@@ -1,0 +1,254 @@
+------------------------------------------------------------------------
+r46 | nenad | 2013-05-28 01:31:55 +0200 (Tue, 28 May 2013) | 3 lines
+
+- UPDATE: API has been cleared a bit
+- UPDATE: added warnings for scheduler functions
+
+------------------------------------------------------------------------
+r45 | nenad | 2013-05-28 01:30:54 +0200 (Tue, 28 May 2013) | 2 lines
+
+- NEW: documentation for Threads Queue, Ready Threads Queue
+
+------------------------------------------------------------------------
+r44 | nenad | 2013-05-28 01:30:16 +0200 (Tue, 28 May 2013) | 2 lines
+
+- UPDATE: some doxygen comments and FLS function argument type is portReg_T
+
+------------------------------------------------------------------------
+r43 | nenad | 2013-05-28 01:29:19 +0200 (Tue, 28 May 2013) | 2 lines
+
+- UPDATE: added TODO list
+
+------------------------------------------------------------------------
+r42 | nenad | 2013-05-28 00:45:25 +0200 (Tue, 28 May 2013) | 2 lines
+
+- UPDATE: added configuration error checking
+
+------------------------------------------------------------------------
+r41 | nenad | 2013-05-27 21:13:19 +0200 (Mon, 27 May 2013) | 2 lines
+
+- UPDATE: corrected some issues with types and portReg_T bit width
+
+------------------------------------------------------------------------
+r40 | nenad | 2013-05-27 18:35:23 +0200 (Mon, 27 May 2013) | 3 lines
+
+- NEW: PORT_PWR2 to speed up Logical Shift Left operations on many 8-bit CPUs
+- NEW: esThdTerm() but it's still incomplete
+
+------------------------------------------------------------------------
+r39 | nenad | 2013-05-27 18:33:46 +0200 (Mon, 27 May 2013) | 2 lines
+
+- NEW: PORT_PWR2 and pwr2LKP look up table to speed up Logical Shift Left operations on many 8-bit CPUs
+
+------------------------------------------------------------------------
+r38 | nenad | 2013-05-27 13:08:36 +0200 (Mon, 27 May 2013) | 2 lines
+
+- UPDATE: doxygen source file names are updated
+
+------------------------------------------------------------------------
+r37 | nenad | 2013-05-27 12:29:53 +0200 (Mon, 27 May 2013) | 2 lines
+
+- UPDATE: svn wants to update this directory
+
+------------------------------------------------------------------------
+r36 | nenad | 2013-05-27 12:25:32 +0200 (Mon, 27 May 2013) | 2 lines
+
+- UPDATE: file names are corrected 2
+
+------------------------------------------------------------------------
+r35 | nenad | 2013-05-27 12:20:15 +0200 (Mon, 27 May 2013) | 2 lines
+
+- UPDATE: file names are corrected
+
+------------------------------------------------------------------------
+r34 | nenad | 2013-05-27 12:15:43 +0200 (Mon, 27 May 2013) | 2 lines
+
+- UPDATE: kernel/ and kernel-port/ are added to svn:ignore
+
+------------------------------------------------------------------------
+r33 | nenad | 2013-05-27 12:14:19 +0200 (Mon, 27 May 2013) | 2 lines
+
+- NEW: added /doc/out/ directory because doxygen doesn't want to create it
+
+------------------------------------------------------------------------
+r32 | nenad | 2013-05-27 02:03:34 +0200 (Mon, 27 May 2013) | 2 lines
+
+- NEW: Readme file is created
+
+------------------------------------------------------------------------
+r31 | nenad | 2013-05-27 00:59:49 +0200 (Mon, 27 May 2013) | 2 lines
+
+- UPDATE: Ignoring Eclipse stuff
+
+------------------------------------------------------------------------
+r30 | nenad | 2013-05-27 00:57:06 +0200 (Mon, 27 May 2013) | 2 lines
+
+- DELETE: Deleting Eclipse stuff
+
+------------------------------------------------------------------------
+r29 | nenad | 2013-05-27 00:17:24 +0200 (Mon, 27 May 2013) | 2 lines
+
+- NEW: Setting svn:external property
+
+------------------------------------------------------------------------
+r28 | nenad | 2013-05-27 00:11:07 +0200 (Mon, 27 May 2013) | 2 lines
+
+- UPDATE: Rafactoring -> more consistent code, prettier code
+
+------------------------------------------------------------------------
+r27 | nenad | 2013-05-26 22:24:10 +0200 (Sun, 26 May 2013) | 2 lines
+
+- UPDATE: documentation
+
+------------------------------------------------------------------------
+r26 | nenad | 2013-05-26 17:26:35 +0200 (Sun, 26 May 2013) | 2 lines
+
+- UPDATE: switching from internal port to external
+
+------------------------------------------------------------------------
+r25 | nenad | 2013-05-26 17:26:00 +0200 (Sun, 26 May 2013) | 2 lines
+
+- NEW: PORT_C_ALIGNED, PORT_C_WEAK
+
+------------------------------------------------------------------------
+r24 | nenad | 2013-05-26 00:31:49 +0200 (Sun, 26 May 2013) | 2 lines
+
+- UPDATE: Rename of the project
+
+------------------------------------------------------------------------
+r23 | nenad | 2013-05-26 00:30:22 +0200 (Sun, 26 May 2013) | 2 lines
+
+- NEW: Kernel can use 2D bitmap to find a highest priority ready thread
+
+------------------------------------------------------------------------
+r22 | nenad | 2013-05-26 00:28:18 +0200 (Sun, 26 May 2013) | 2 lines
+
+- UPDATE: documentation needs correct names for project
+
+------------------------------------------------------------------------
+r21 | nenad | 2013-05-26 00:25:18 +0200 (Sun, 26 May 2013) | 2 lines
+
+- UPDATE: documentation needs correct names for project
+
+------------------------------------------------------------------------
+r20 | nenad | 2013-05-26 00:23:29 +0200 (Sun, 26 May 2013) | 2 lines
+
+- UPDATE: documentation needs correct names for project
+
+------------------------------------------------------------------------
+r19 | nenad | 2013-05-24 23:35:39 +0200 (Fri, 24 May 2013) | 3 lines
+
+- NEW: kernel hooks are added
+- NEW: (in progress) thread queues will have up to 256 priority levels
+
+------------------------------------------------------------------------
+r18 | nenad | 2013-05-24 23:33:08 +0200 (Fri, 24 May 2013) | 2 lines
+
+- UPDATE: Spelling errors corrections
+
+------------------------------------------------------------------------
+r17 | nenad | 2013-05-24 19:51:30 +0200 (Fri, 24 May 2013) | 6 lines
+
+- FIX: PORT_ISR_ENTER() and PORT_ISR_EXIT() are now calling kernel functions
+- FIX: schedSystI() had a wrong if condition
+- UPDATE: esThdGetId() and esThdGetPrio() have become inline functions
+- UPDATE: portSysTick() is rewritten to follow kernel rules for writing ISR functions
+- NEW: PORT_C_WEAK adds weak attribute to symbols
+
+------------------------------------------------------------------------
+r16 | nenad | 2013-05-24 14:49:06 +0200 (Fri, 24 May 2013) | 11 lines
+
+- NEW: PORT_C_FUNC - provides function name for assert macro
+- NEW: macro PORT_STCK_MINSIZE - returns what is minimal allowed size of thread stack
+- NEW: PORT_C_FUNC is added for asserts
+- NEW: error checking macros are added
+- UPDATE: kernel state graph
+- UPDATE: kernel state graph further description
+- UPDATE: added error checking for: esKernInit(), esKernStart(), esThdInit(), esThdGetId(), esThdGetPrio()
+- UPDATE: kernel configuration is a bit more consistent 
+- UPDATE: various functions are documented
+- UPDATE: all functions are checking their arguments
+
+------------------------------------------------------------------------
+r15 | nenad | 2013-05-23 11:48:34 +0200 (Thu, 23 May 2013) | 3 lines
+
+- NEW: error checking macros
+- UPDATE: documentation
+
+------------------------------------------------------------------------
+r14 | nenad | 2013-05-21 22:57:57 +0200 (Tue, 21 May 2013) | 3 lines
+
+- UPDATE: second version of 2D architecture
+- UPDATE: Round-Robin & system timer is working fine
+
+------------------------------------------------------------------------
+r13 | nenad | 2013-05-19 03:42:37 +0200 (Sun, 19 May 2013) | 2 lines
+
+- NEW: adding a new 2D Bit Map scheduler architecture, DOESN'T WORK
+
+------------------------------------------------------------------------
+r12 | nenad | 2013-05-17 19:45:51 +0200 (Fri, 17 May 2013) | 3 lines
+
+- UPDATE: documentation
+- UPDATE: some refactoring
+
+------------------------------------------------------------------------
+r11 | nenad | 2013-05-17 03:32:11 +0200 (Fri, 17 May 2013) | 2 lines
+
+- NEW: documentation
+
+------------------------------------------------------------------------
+r10 | nenad | 2013-05-17 01:46:33 +0200 (Fri, 17 May 2013) | 2 lines
+
+- DELETE: delete the '/doc/out/' directory
+
+------------------------------------------------------------------------
+r9 | nenad | 2013-05-17 01:37:34 +0200 (Fri, 17 May 2013) | 2 lines
+
+- NEW: ignoring the '/doc/out/' directory
+
+------------------------------------------------------------------------
+r8 | nenad | 2013-05-17 01:34:50 +0200 (Fri, 17 May 2013) | 2 lines
+
+- DELETE: uneeded files added to SVN...dooh
+
+------------------------------------------------------------------------
+r7 | nenad | 2013-05-17 01:32:27 +0200 (Fri, 17 May 2013) | 3 lines
+
+- NEW: documentation
+- UPDATE: some reorganization and spelling errors correction
+
+------------------------------------------------------------------------
+r6 | nenad | 2013-05-15 03:23:35 +0200 (Wed, 15 May 2013) | 2 lines
+
+- FIX: the scheduler was using (by mistake) FFS instead of FLS algorithm...
+
+------------------------------------------------------------------------
+r5 | nenad | 2013-05-15 01:57:04 +0200 (Wed, 15 May 2013) | 2 lines
+
+- NEW: documentation
+
+------------------------------------------------------------------------
+r4 | nenad | 2013-05-14 23:12:42 +0200 (Tue, 14 May 2013) | 3 lines
+
+- CELEBRATION: Kernel works!
+- NEW: added documentation
+
+------------------------------------------------------------------------
+r3 | nenad | 2013-05-14 00:46:42 +0200 (Tue, 14 May 2013) | 4 lines
+
+- NEW: doxygen comments
+- NEW: system timer functions are added
+- TODO: should test all system timer functions and see what happens to threads when they are added multiple times to Ready Threads Queue
+
+------------------------------------------------------------------------
+r2 | nenad | 2013-05-13 21:14:23 +0200 (Mon, 13 May 2013) | 2 lines
+
+- UPDATE: Initial import reorganization.
+
+------------------------------------------------------------------------
+r1 | nenad | 2013-05-13 20:41:12 +0200 (Mon, 13 May 2013) | 2 lines
+
+- NEW: Initial directory structure import.
+
+------------------------------------------------------------------------

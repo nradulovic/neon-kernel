@@ -1,0 +1,14 @@
+@INCLUDE            =   doxyfile-generic
+PROJECT_NAME        =   "eSolid - Real-Time Kernel"
+PROJECT_BRIEF       =   "Event Based System"
+INPUT               =   ../doc/src/kernel-example.dox                           \
+                        ../doc/src/kernel.dox                                   \
+                        ../inc/kernel.h                                         \
+                        ../inc/kernel_cfg.h                                     \
+                        ../src/kernel.c                                         \
+                        ../template/generic/port/compiler.h                     \
+                        ../template/generic/port/cpu.h                          \
+                        ../template/generic/port/cpu.c                          \
+                        ../template/generic/port/cpu_cfg.h                      \
+                        ../template/generic/kernel_cfg.h                             
+OUTPUT_DIRECTORY    =   ../doc/out/kernel
