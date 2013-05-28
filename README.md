@@ -41,6 +41,7 @@ that IDE will generate them for you.
 There are two source files which need to be compiled: 
 - kernel.c in '/src' directory and 
 - cpu.c in '/port/arm-none-eabi-gcc/v7-m' directory.
+
 The following include paths are needed:
 - /inc
 - /port/arm-none-eabi-gcc/common
