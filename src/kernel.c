@@ -86,7 +86,7 @@ enum rdyState {
  */
 struct rdyQueue {
     struct esThdQ   thdQ;                                                       /**< @brief Thread Queue                                    */
-    struct prioBM   multOcc;                                                    /**< @brief Multi occupancy                                 */
+    portReg_T       multOcc;                                                    /**< @brief Multi occupancy                                 */
     enum rdyState   state;                                                      /**< @brief Ready Thread Queue state                        */
 };
 
@@ -329,9 +329,8 @@ static PORT_C_INLINE void schedInit(
 
     esThdQInit(
         &gRdyQueue.thdQ);                                                       /* Initialize basic thread queue structure                  */
-    prioBMInit(
-        &gRdyQueue.multOcc);
-    gRdyQueue.state = RDYQ_SINGLE;                                              /* Set default ready queue state                            */
+    gRdyQueue.multOcc = 0U;
+    gRdyQueue.state   = RDYQ_SINGLE;                                            /* Set default ready queue state                            */
     ((volatile esKernCntl_T *)&gKernCntl)->cthd  = NULL;
     ((volatile esKernCntl_T *)&gKernCntl)->pthd  = NULL;
     ((volatile esKernCntl_T *)&gKernCntl)->state = ES_KERN_INIT;
@@ -348,12 +347,12 @@ static PORT_C_INLINE void schedStartI(
 static PORT_C_INLINE void schedEvalMultiI(
     void) {
 
-    if ((FALSE == prioBMIsEmpty(&gRdyQueue.multOcc)) &&
-        (RDYQ_SINGLE == gRdyQueue.state)) {                                     /* If any priority group has more than two threads          */
-                                                                                /* If ready queue is in SINGLE state switch it to MULTI     */
+    if ((0U != gRdyQueue.multOcc) &&
+        (RDYQ_SINGLE == gRdyQueue.state)) {                                     /* If any priority group has more than two threads and      */
+                                                                                /* if ready queue is in SINGLE state switch it to MULTI     */
         gRdyQueue.state = RDYQ_MULTI;
         sysTmrNotifyI();                                                        /* Round-Robin scheduling is needed: switch system timer ON */
-    } else if ((TRUE == prioBMIsEmpty(&gRdyQueue.multOcc)) &&
+    } else if ((0U == gRdyQueue.multOcc) &&
                (RDYQ_MULTI == gRdyQueue.state)) {                               /* If no priority group has more than two threads           */
                                                                                 /* If ready queue is in MULTI state switch it to SINGLE     */
         gRdyQueue.state = RDYQ_SINGLE;
@@ -761,9 +760,7 @@ void esSchedRdyAddI(
         thd);
 
     if (THDQ_IS_THD_SECOND(thd)) {
-        prioBMSet(
-            &gRdyQueue.multOcc,
-            thd->prio);
+        ++gRdyQueue.multOcc;
     }
     nthd = gKernCntl.pthd;
 
@@ -784,9 +781,7 @@ void esSchedRdyRmI(
     ES_API_REQUIRE(&gRdyQueue.thdQ == thd->thdL.q);
 
     if (THDQ_IS_THD_SECOND(thd)) {
-        prioBMClear(
-            &gRdyQueue.multOcc,
-            thd->prio);
+        --gRdyQueue.multOcc;
     }
     esThdQRmI(
         &gRdyQueue.thdQ,
