@@ -8,7 +8,7 @@ would be great to share it.
 
 eSolid is a collection of resources for embedded system design and this
 Real-Time Kernel is only a piece of that collection. Because of that fact
-remember: **there are no synchronization or IPC mechanisms in this kernel**,
+remember: __there are no synchronization or IPC mechanisms in this kernel__,
 and it can be viewed as a preemptive Round-Robin scheduler, only.
 
 
@@ -35,28 +35,28 @@ like AVR-GCC are planned, too.
 
 The kernel was built using arm-none-eabi GCC v4.7.3 compiler toolchain (from 
 https://launchpad.net/gcc-arm-embedded/+download) and binary was downloaded
-to the MCU using *texane* gdb-server. There are no makefiles, it is assumed
+to the MCU using _texane_ gdb-server. There are no makefiles, it is assumed
 that IDE will generate them for you.
 
 There are two source files which need to be compiled: 
-- kernel.c in '/src' directory and 
-- cpu.c in '/port/arm-none-eabi-gcc/v7-m' directory.
+- kernel.c in `/src` directory and 
+- cpu.c in `/port/arm-none-eabi-gcc/v7-m` directory.
 
 The following include paths are needed:
-- /inc
-- /port/arm-none-eabi-gcc/common
-- /port/arm-none-eabi-gcc/v7-m
+- `/inc`
+- `/port/arm-none-eabi-gcc/common`
+- `/port/arm-none-eabi-gcc/v7-m`
 
 ### Documentation
 
-Doxygen configuration and source files are available in /doc directory. Go to
+Doxygen configuration and source files are available in `/doc` directory. Go to
 that directory and run doxygen:
 
     # doxygen doxyfile-kernel
     # doxygen doxyfile-kernel-port
 
-This will generate HTML, LaTex and man documentation in /doc/out/kernel and
-/doc/out/kernel-port directories, respectively.
+This will generate HTML, LaTex and man documentation in `/doc/out/kernel` and
+`/doc/out/kernel-port` directories, respectively.
 
 
 ## Running
