@@ -643,6 +643,25 @@ void esSchedYieldIsrI(
     void);
 
 /**@} *//*----------------------------------------------------------------*//**
+ * @name        System timer
+ * @{ *//*--------------------------------------------------------------------*/
+
+/**@brief       Add a system timer user
+ */
+void esSysTmrAddI(
+    void);
+
+/**@brief       Remove a system timer user
+ */
+void esSysTmrRmI(
+    void);
+
+/**@brief       Check if system timer event is needed for Round-Robin scheduling
+ */
+void esSysTmrEvaluateI(
+    void);
+
+/**@} *//*----------------------------------------------------------------*//**
  * @name        Kernel hook functions
  * @{ *//*--------------------------------------------------------------------*/
 

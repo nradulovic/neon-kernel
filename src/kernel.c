@@ -72,27 +72,26 @@
 /*======================================================  LOCAL DATA TYPES  ==*/
 
 /*------------------------------------------------------------------------*//**
- * @name        Ready Threads Queue
+ * @name        System Timer
  * @{ *//*--------------------------------------------------------------------*/
 
-/**@brief       Ready Threads Queue state enumeration
+/**@brief       System Timer state enumeration
  */
-enum rdyState {
-    RDYQ_SINGLE = 0x00U,                                                        /**< No priority group has more than one ready thread y     */
-    RDYQ_MULTI  = 0x01U                                                         /**< At least one group has more than one ready thread      */
+enum sysTmrState {
+    SYSTMR_ENABLE   = 0x00U,                                                    /**< System Timer is enabled.                               */
+    SYSTMR_DISABLE  = 0x01U                                                     /**< System Timer is disabled.                              */
 };
 
-/**@brief       Ready Threads Queue structure
+/**@brief       System Timer structure
  */
-struct rdyQueue {
-    struct esThdQ   thdQ;                                                       /**< @brief Thread Queue                                    */
-    portReg_T       multOcc;                                                    /**< @brief Multi occupancy                                 */
-    enum rdyState   state;                                                      /**< @brief Ready Thread Queue state                        */
+struct sysTmr {
+    uint_fast16_t       cnt;                                                    /**< @brief Number of system timer users.                   */
+    enum sysTmrState    state;                                                  /**< @brief System Timer state                              */
 };
 
-/**@brief       Ready Threads Queue type
+/**@brief       System Timer type
  */
-typedef struct rdyQueue rdyQueue_T;
+typedef struct sysTmr sysTmr_T;
 
 /**@} *//*----------------------------------------------------------------*//**
  * @name        Priority Bit Map
@@ -174,28 +173,9 @@ static PORT_C_INLINE void schedInit(
 static PORT_C_INLINE void schedStartI(
     esThd_T * thd);
 
-/**@brief       Check if system timer event is needed for Round-Robin scheduling
- */
-static PORT_C_INLINE void schedEvalMultiI(
-    void);
-
 /**@brief       Do Round-Robin scheduling
  */
 static void schedSysTmrI(
-    void);
-
-/**@} *//*----------------------------------------------------------------*//**
- * @name        System timer
- * @{ *//*--------------------------------------------------------------------*/
-
-/**@brief       Notify system timer that system event is needed
- */
-static PORT_C_INLINE void sysTmrNotifyI(
-    void);
-
-/**@brief       Cancel system event
- */
-static PORT_C_INLINE void sysTmrCancelI(
     void);
 
 /**@} *//*--------------------------------------------------------------------*/
@@ -203,11 +183,18 @@ static PORT_C_INLINE void sysTmrCancelI(
 
 /**@brief       Ready Thread queue
  */
-static rdyQueue_T gRdyQueue;
+static esThdQ_T gRdyQueue;
 
 /**@brief       Kernel Lock Counter
  */
 static uint_fast8_t gLockCnt = 0U;
+
+/**@brief       System Timer
+ */
+static sysTmr_T gSysTmr = {
+    0U,
+    SYSTMR_DISABLE
+};
 
 /*======================================================  GLOBAL VARIABLES  ==*/
 
@@ -328,9 +315,7 @@ static PORT_C_INLINE void schedInit(
     void) {
 
     esThdQInit(
-        &gRdyQueue.thdQ);                                                       /* Initialize basic thread queue structure                  */
-    gRdyQueue.multOcc = 0U;
-    gRdyQueue.state   = RDYQ_SINGLE;                                            /* Set default ready queue state                            */
+        &gRdyQueue);                                                            /* Initialize basic thread queue structure                  */
     ((volatile esKernCntl_T *)&gKernCntl)->cthd  = NULL;
     ((volatile esKernCntl_T *)&gKernCntl)->pthd  = NULL;
     ((volatile esKernCntl_T *)&gKernCntl)->state = ES_KERN_INIT;
@@ -342,22 +327,6 @@ static PORT_C_INLINE void schedStartI(
     ((volatile esKernCntl_T *)&gKernCntl)->cthd  = thd;
     ((volatile esKernCntl_T *)&gKernCntl)->pthd  = thd;
     ((volatile esKernCntl_T *)&gKernCntl)->state = ES_KERN_RUN;
-}
-
-static PORT_C_INLINE void schedEvalMultiI(
-    void) {
-
-    if ((0U != gRdyQueue.multOcc) &&
-        (RDYQ_SINGLE == gRdyQueue.state)) {                                     /* If any priority group has more than two threads and      */
-                                                                                /* if ready queue is in SINGLE state switch it to MULTI     */
-        gRdyQueue.state = RDYQ_MULTI;
-        sysTmrNotifyI();                                                        /* Round-Robin scheduling is needed: switch system timer ON */
-    } else if ((0U == gRdyQueue.multOcc) &&
-               (RDYQ_MULTI == gRdyQueue.state)) {                               /* If no priority group has more than two threads           */
-                                                                                /* If ready queue is in MULTI state switch it to SINGLE     */
-        gRdyQueue.state = RDYQ_SINGLE;
-        sysTmrCancelI();                                                        /* Round-Robin scheduling is not needed anymore: try  to    */
-    }                                                                           /* switch system timer OFF                                  */
 }
 
 static void schedSysTmrI(
@@ -377,7 +346,7 @@ static void schedSysTmrI(
 
                 cthd->qCnt = cthd->qRld;                                        /* Reload thread time quantum                               */
                 nthd = esThdQRotateI(                                           /* Fetch the next thread and rotate this priority group      */
-                    &gRdyQueue.thdQ,
+                    &gRdyQueue,
                     cthd->prio);
 
                 if (cthd == gKernCntl.pthd) {                                   /* If there is no any other thread pending for switching    */
@@ -386,21 +355,6 @@ static void schedSysTmrI(
             }
         }
     }
-}
-
-
-/*--  System timer functions  ------------------------------------------------*/
-
-static PORT_C_INLINE void sysTmrNotifyI(
-    void) {
-
-    PORT_SYSTMR_ISR_ENABLE();
-}
-
-static PORT_C_INLINE void sysTmrCancelI(
-    void) {
-
-    PORT_SYSTMR_ISR_DISABLE();
 }
 
 /*===================================  GLOBAL PRIVATE FUNCTION DEFINITIONS  ==*/
@@ -430,7 +384,7 @@ void esKernStart(
     esThd_T * nthd;
 
     ES_API_REQUIRE(ES_KERN_INIT == gKernCntl.state);
-    ES_API_REQUIRE(FALSE == esThdQIsEmpty(&gRdyQueue.thdQ));
+    ES_API_REQUIRE(FALSE == esThdQIsEmpty(&gRdyQueue));
 
 #if (1U == CFG_HOOK_KERN_START)
     userKernStart();
@@ -439,10 +393,10 @@ void esKernStart(
     PORT_SYSTMR_INIT();
     PORT_CRITICAL_ENTER();
     nthd = esThdQFetchFirstI(                                                   /* Get the highest priority thread                          */
-        &gRdyQueue.thdQ);
+        &gRdyQueue);
     schedStartI(
         nthd);                                                                  /* Initialize scheduler data structures for multi-threading */
-    schedEvalMultiI();                                                          /* Check if system timer is needed for Round-Robin          */
+    esSysTmrEvaluateI();                                                           /* Check if system timer is needed for Round-Robin          */
     PORT_CRITICAL_EXIT();
     PORT_THD_START();                                                           /* Start the first thread                                   */
 }
@@ -591,7 +545,7 @@ void esThdSetPrioI(
             thd->thdL.q,
             thd);
 
-        if (&gRdyQueue.thdQ == thd->thdL.q) {                                   /* If thread is actually in ready thread queue              */
+        if (&gRdyQueue == thd->thdL.q) {                                        /* If thread is actually in ready thread queue              */
 
             if (thd->prio > gKernCntl.pthd->prio) {                             /* If new prio is higher than the current prio              */
                 ((volatile esKernCntl_T *)&gKernCntl)->pthd = thd;              /* Notify scheduler about new thread                        */
@@ -606,7 +560,7 @@ void esThdSetPrioI(
             thd->thdL.q,
             thd);
 
-        if (&gRdyQueue.thdQ == thd->thdL.q) {
+        if (&gRdyQueue == thd->thdL.q) {
             ((volatile esKernCntl_T *)&gKernCntl)->pthd = NULL;
         }
     }
@@ -677,7 +631,7 @@ void esThdQRmI(
 
     sentinel = &(thdQ->grp[thd->prio]);
 
-    if (THDQ_IS_THD_FIRST(thd)) {                                              /* Is this thread last one in the thdL list?                */
+    if (THDQ_IS_THD_FIRST(thd)) {                                               /* Is this thread last one in the thdL list?                */
         *sentinel = NULL;                                                       /* Make the list empty.                                     */
         prioBMClear(
             &thdQ->prioOcc,
@@ -756,11 +710,11 @@ void esSchedRdyAddI(
     ES_API_REQUIRE(NULL == thd->thdL.q);
 
     esThdQAddI(
-        &gRdyQueue.thdQ,
+        &gRdyQueue,
         thd);
 
     if (THDQ_IS_THD_SECOND(thd)) {
-        ++gRdyQueue.multOcc;
+        esSysTmrAddI();
     }
     nthd = gKernCntl.pthd;
 
@@ -778,13 +732,13 @@ void esSchedRdyRmI(
     ES_API_REQUIRE(ES_KERN_INACTIVE > gKernCntl.state);
     ES_API_REQUIRE(NULL != thd);
     ES_API_REQUIRE(THD_CONTRACT_SIGNATURE == thd->signature);
-    ES_API_REQUIRE(&gRdyQueue.thdQ == thd->thdL.q);
+    ES_API_REQUIRE(&gRdyQueue == thd->thdL.q);
 
     if (THDQ_IS_THD_SECOND(thd)) {
-        --gRdyQueue.multOcc;
+        esSysTmrRmI();
     }
     esThdQRmI(
-        &gRdyQueue.thdQ,
+        &gRdyQueue,
         thd);
 
     if ((gKernCntl.cthd == thd) || (gKernCntl.pthd == thd)) {
@@ -804,12 +758,12 @@ void esSchedYieldI(
 
         if (NULL == newThd) {
             newThd = esThdQFetchFirstI(
-                &gRdyQueue.thdQ);
+                &gRdyQueue);
             ((volatile esKernCntl_T *)&gKernCntl)->pthd = newThd;
         }
 
         if (newThd != gKernCntl.cthd) {
-            schedEvalMultiI();
+            esSysTmrEvaluateI();
 
 #if (1U == CFG_HOOK_CTX_SW)
             userCtxSw(
@@ -836,12 +790,12 @@ void esSchedYieldIsrI(
 
             if (NULL == newThd) {
                 newThd = esThdQFetchFirstI(
-                    &gRdyQueue.thdQ);
+                    &gRdyQueue);
                 ((volatile esKernCntl_T *)&gKernCntl)->pthd = newThd;
             }
 
             if (newThd != gKernCntl.cthd) {
-                schedEvalMultiI();
+                esSysTmrEvaluateI();
 
 #if (1U == CFG_HOOK_CTX_SW)
             userCtxSw(
@@ -852,6 +806,33 @@ void esSchedYieldIsrI(
             }
         }
     }
+}
+
+
+/*--  System timer functions  ------------------------------------------------*/
+
+void esSysTmrEvaluateI(
+    void) {
+
+    if ((0U != gSysTmr.cnt) && (SYSTMR_DISABLE == gSysTmr.state)) {             /* If there are users: switch system timer ON if it is OFF. */
+        gSysTmr.state = SYSTMR_ENABLE;
+        PORT_SYSTMR_ISR_ENABLE();
+    } else if ((0U == gSysTmr.cnt) && (SYSTMR_ENABLE == gSysTmr.state)) {       /* If there are no users: switch sys. timer OFF if it is ON.*/
+        gSysTmr.state = SYSTMR_DISABLE;
+        PORT_SYSTMR_ISR_DISABLE();
+    }
+}
+
+void esSysTmrAddI(
+    void) {
+
+    ++gSysTmr.cnt;
+}
+
+void esSysTmrRmI(
+    void) {
+
+    --gSysTmr.cnt;
 }
 
 /*================================*//** @cond *//*==  CONFIGURATION ERRORS  ==*/
