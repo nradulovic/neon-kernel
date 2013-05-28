@@ -1,6 +1,6 @@
 # eSolid Real-Time Kernel
 
-This is a bare-kernel, two weeks of work project. It is intended for a bigger 
+This is a bare-kernel, the result of two weeks of work. It is intended for a bigger 
 project which already includes some synchronization mechanisms. The initial 
 idea was that this kernel would only provide minimal functionality for context 
 switching, but the kernel implementation went so nicely that I think that it 
