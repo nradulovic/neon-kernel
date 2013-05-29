@@ -656,7 +656,10 @@ void esSysTmrAddI(
 void esSysTmrRmI(
     void);
 
-/**@brief       Check if system timer event is needed for Round-Robin scheduling
+/**@brief       Evaluate if the system timer is needed to run
+ * @details     This function will evaluate system timer users counter and if
+ *              anyone is registered to use it then timer interrupt will be
+ *              enabled.
  */
 void esSysTmrEvaluateI(
     void);
@@ -716,7 +719,7 @@ extern void userKernInit(
 extern void userKernStart(
     void);
 
-/**@brief       Kernel thread init end hook function, called from esThdInit()
+/**@brief       Thread initialization end hook function, called from esThdInit()
  *              function.
  * @details     This function is called after the thread initialization.
  * @note        1) The definition of this function must be written by the user.
@@ -724,6 +727,15 @@ extern void userKernStart(
  *              active.
  */
 extern void userThdInitEnd(
+    void);
+
+/**@brief       Thread terminate hook function, called from esThdTerm() or when
+ *              a thread terminates itself.
+ * @note        1) The definition of this function must be written by the user.
+ * @note        2) This function is called only if @ref CFG_HOOK_THD_TERM is
+ *              active.
+ */
+extern void userThdTerm(
     void);
 
 /**@brief       Kernel context switch hook function, called from esSchedYieldI()
