@@ -39,8 +39,8 @@
 #define R__                             volatile const                          /**< @brief Defines 'read only' permissions                 */
 #define RW_                             volatile                                /**< @brief Defines 'read/write' permissions                */
 
-#define PSR_THUMB_STATE_Pos             24                                      /**< @brief PSR Thumb multiOcc: Position                       */
-#define PSR_THUMB_STATE_MSK             (1UL << PSR_THUMB_STATE_Pos)            /**< @brief PSR Thumb multiOcc: Mask                           */
+#define PSR_THUMB_STATE_Pos             24                                      /**< @brief PSR Thumb state: Position                       */
+#define PSR_THUMB_STATE_MSK             (1UL << PSR_THUMB_STATE_Pos)            /**< @brief PSR Thumb state: Mask                           */
 
 /**@brief       Exception return value
  * @details     This value must is set to:
@@ -54,23 +54,22 @@
  */
 #define SCB_AIRCR_VECTKEY               0x5FAUL
 
-
-
-/**@brief       On AIRCR register writes, write 0x5FA, otherwise the write is
- *              ignored
- */
-#define SCB_AIRCR_VECTKEY               0x5FAUL
-
 /**@brief       This field determines the split of group priority from
  *              subpriority.
  * @details     We need to it set to zero because we don't want other ISR to
  *              preempt kernel ISR.
  */
-#define CPU_SCB_AIRCR_PRIGROUP              0U
+#define CPU_SCB_AIRCR_PRIGROUP          0U
 
-/**
+/**@brief       System timer reload value
  */
-#define SYST_RELOAD_VAL                 (CFG_SYSTMR_CLOCK_FREQUENCY / CFG_SYSTMR_EVENT_FREQUENCY)
+#define SYSTMR_RELOAD_VAL               (CFG_SYSTMR_CLOCK_FREQUENCY / CFG_SYSTMR_EVENT_FREQUENCY)
+
+#define SYSTMR_MAX_VAL                  SYST_RVR_RELOAD_MSK
+
+/**@brief       Maximum number of ticks the system timer can delay
+ */
+#define SYSTMR_MAX_TICKS                (SYSTMR_MAX_VAL / SYSTMR_RELOAD_VAL)
 
 /** @} *//*---------------------------------------------------------------*//**
  * @name        System Control Block (SCB)
@@ -89,23 +88,19 @@
 #define SCB_CCR_STKALIGN_MSK            (1UL << SCB_CCR_STKALIGN_POS)           /**< @brief SCB ccr: STKALIGN Mask                          */
 
 /** @} *//*---------------------------------------------------------------*//**
- * @name        System Timer (SYST)
+ * @name        System Timer (SYSTMR)
  * @{ *//*--------------------------------------------------------------------*/
 
-#define SYST                            ((sysTick_T *)CPU_SYST_BASE)            /**< @brief SYST configuration struct                   */
+#define SYSTMR                          ((sysTick_T *)CPU_SYST_BASE)            /**< @brief SYSTMR configuration struct                     */
 
-#define SYST_CSR_COUNTFLAG_POS          16                                      /**< @brief SYST csr: COUNTFLAG Position                    */
-#define SYST_CSR_COUNTFLAG_MSK          (1UL << SYST_CSR_COUNTFLAG_POS)         /**< @brief SYST csr: COUNTFLAG Mask                        */
+#define SYST_CSR_COUNTFLAG_POS          16                                      /**< @brief SYSTMR csr: COUNTFLAG Position                  */
+#define SYST_CSR_COUNTFLAG_MSK          (1UL << SYST_CSR_COUNTFLAG_POS)         /**< @brief SYSTMR csr: COUNTFLAG Mask                      */
 
-#define SYST_CSR_ENABLE_POS             0                                       /**< @brief SYST csr: ENABLE Position                       */
-#define SYST_CSR_ENABLE_MSK             (1UL << SYST_CSR_ENABLE_POS)            /**< @brief SYST csr: ENABLE Mask                           */
+#define SYST_CSR_CLKSOURCE_POS          2                                       /**< @brief SYSTMR csr: CLKSOURCE Position                  */
+#define SYST_CSR_CLKSOURCE_MSK          (1UL << SYST_CSR_CLKSOURCE_POS)         /**< @brief SYSTMR csr: CLKSOURCE Mask                      */
 
-#define SYST_CSR_CLKSOURCE_POS          2                                       /**< @brief SYST csr: CLKSOURCE Position                    */
-#define SYST_CSR_CLKSOURCE_MSK          (1UL << SYST_CSR_CLKSOURCE_POS)         /**< @brief SYST csr: CLKSOURCE Mask                        */
-
-#define SYST_RVR                        (CPU_SYST_BASE + 0x04UL)                /**< @brief SYST Reload Value Register                      */
-#define SYST_RVR_RELOAD_POS             0                                       /**< @brief SYST rvr: RELOAD Position                       */
-#define SYST_RVR_RELOAD_MSK             (0xFFFFFFUL << SYST_RVR_RELOAD_POS)     /**< @brief SYST rvr: RELOAD Mask                           */
+#define SYST_RVR_RELOAD_POS             0                                       /**< @brief SYSTMR rvr: RELOAD Position                     */
+#define SYST_RVR_RELOAD_MSK             (0xFFFFFFUL << SYST_RVR_RELOAD_POS)     /**< @brief SYSTMR rvr: RELOAD Mask                         */
 
 /** @} *//*-------------------------------------------------------------------*/
 /*======================================================  LOCAL DATA TYPES  ==*/
@@ -114,13 +109,13 @@
  * @details     Cortex-M3 Processor Exceptions Numbers
  */
 typedef enum irqN {
-  NONMASKABLEINT_IRQN   = -14,                                                  /**< @brief 2 Non Maskable Interrupt                        */
-  MEMORYMANAGEMENT_IRQN = -12,                                                  /**< @brief 4 Cortex-M3 Memory Management Interrupt         */
-  BUSFAULT_IRQN         = -11,                                                  /**< @brief 5 Cortex-M3 Bus Fault Interrupt                 */
-  USAGEFAULT_IRQN       = -10,                                                  /**< @brief 6 Cortex-M3 Usage Fault Interrupt               */
-  SVCALL_IRQN           = -5,                                                   /**< @brief 11 Cortex-M3 SV Call Interrupt                  */
-  PENDSV_IRQN           = -2,                                                   /**< @brief 14 Cortex-M3 Pend SV Interrupt                  */
-  SYST_IRQN             = -1                                                    /**< @brief 15 Cortex-M3 System Tick Interrupt              */
+    NONMASKABLEINT_IRQN   = -14,                                                /**< @brief 2 Non Maskable Interrupt                        *///!< NONMASKABLEINT_IRQN
+    MEMORYMANAGEMENT_IRQN = -12,                                                /**< @brief 4 Cortex-M3 Memory Management Interrupt         *///!< MEMORYMANAGEMENT_IRQN
+    BUSFAULT_IRQN         = -11,                                                /**< @brief 5 Cortex-M3 Bus Fault Interrupt                 *///!< BUSFAULT_IRQN
+    USAGEFAULT_IRQN       = -10,                                                /**< @brief 6 Cortex-M3 Usage Fault Interrupt               *///!< USAGEFAULT_IRQN
+    SVCALL_IRQN           = -5,                                                 /**< @brief 11 Cortex-M3 SV Call Interrupt                  *///!< SVCALL_IRQN
+    PENDSV_IRQN           = -2,                                                 /**< @brief 14 Cortex-M3 Pend SV Interrupt                  *///!< PENDSV_IRQN
+    SYST_IRQN             = -1                                                  /**< @brief 15 Cortex-M3 System Tick Interrupt              *///!< SYST_IRQN
 } irqN_T;
 
 /**@brief       Structure type to access the System Control Block (SCB).
@@ -149,13 +144,13 @@ typedef struct scb {
     RW_ uint32_t    cpacr;                                                      /**< @brief Coprocessor Access Control Register                   */
 } scb_T;
 
-/**@brief       Structure type to access the System Timer (SYST).
+/**@brief       Structure type to access the System Timer (SYSTMR).
  */
 typedef struct sysTick {
-    RW_ uint32_t    csr;                                                        /**< @brief SYST Control and Status Register                */
-    RW_ uint32_t    rvr;                                                        /**< @brief SYST Reload Value Register                      */
-    RW_ uint32_t    cvr;                                                        /**< @brief SYST Current Value Register                     */
-    R__ uint32_t    calib;                                                      /**< @brief SYST Calibration Register                       */
+    RW_ uint32_t    csr;                                                        /**< @brief SYSTMR Control and Status Register              */
+    RW_ uint32_t    rvr;                                                        /**< @brief SYSTMR Reload Value Register                    */
+    RW_ uint32_t    cvr;                                                        /**< @brief SYSTMR Current Value Register                   */
+    R__ uint32_t    calib;                                                      /**< @brief SYSTMR Calibration Register                     */
 } sysTick_T;
 
 /*=============================================  LOCAL FUNCTION PROTOTYPES  ==*/
@@ -186,7 +181,13 @@ static PORT_C_INLINE void intPrioSet(
 static void threadExit(
     void) {
 
-    while (TRUE);
+#if (1U == CFG_HOOK_THD_TERM)
+    userThdExit();
+#endif
+
+    while (TRUE) {
+        ;
+    }
 }
 
 static PORT_C_INLINE void intPrioSet(
@@ -199,12 +200,22 @@ static PORT_C_INLINE void intPrioSet(
 /*===================================  GLOBAL PRIVATE FUNCTION DEFINITIONS  ==*/
 /*====================================  GLOBAL PUBLIC FUNCTION DEFINITIONS  ==*/
 
+void portSysTmrReload_(
+    portReg_T       rld) {
+
+    if (SYSTMR_MAX_TICKS < rld) {
+        rld = SYSTMR_MAX_TICKS;
+    }
+    SYSTMR->rvr = SYSTMR_RELOAD_VAL * rld;
+    SYSTMR->cvr = SYSTMR->rvr;
+}
+
 void portSysTmrInit_(
     void) {
 
-    SYST->rvr = (SYST_RELOAD_VAL & SYST_RVR_RELOAD_MSK) - 1U;                   /* set systick reload register                              */
-    SYST->cvr = 0U;                                                             /* Clear the systick Counter Value                          */
-    SYST->csr = SYST_CSR_CLKSOURCE_MSK | SYST_CSR_ENABLE_MSK;                   /* Enable SYST IRQ and SYST Timer                           */
+    SYSTMR->rvr = (SYSTMR_RELOAD_VAL & SYST_RVR_RELOAD_MSK) - 1U;                 /* set systick reload register                              */
+    SYSTMR->cvr = SYSTMR->rvr;                                                           /* Clear the systick Counter Value                          */
+    SYSTMR->csr = SYST_CSR_CLKSOURCE_MSK | CPU_SYST_CSR_ENABLE_MSK;                 /* Enable SYSTMR IRQ and SYSTMR Timer                       */
 }
 
 /*
@@ -229,7 +240,7 @@ void portThdStart_(
         "   b      .INF_LOOP                                \n\t"               /* (10)                                                     */
         :
         : "i"(SCB_VTOR)
-        : "sp","r0");
+        : "sp", "r0");
 }
 
 void * portCtxInit_(
@@ -257,8 +268,8 @@ void portInit_(
         SCB->aircr,
         SCB_AIRCR_VECTKEY_MSK | SCB_AIRCR_PRIGROUP_MSK,
         (SCB_AIRCR_VECTKEY << SCB_AIRCR_VECTKEY_POS) |
-           (CPU_SCB_AIRCR_PRIGROUP << SCB_AIRCR_PRIGROUP_POS));                     /* Setup priority subgroup to zero bits                     */
-    SYST->csr &= ~SYST_CSR_ENABLE_MSK;                                          /* Disable SYST Timer if it was enabled                     */
+           (CPU_SCB_AIRCR_PRIGROUP << SCB_AIRCR_PRIGROUP_POS));                 /* Setup priority subgroup to zero bits                     */
+    SYSTMR->csr &= ~CPU_SYST_CSR_ENABLE_MSK;                                          /* Disable SYSTMR Timer if it was enabled                     */
     intPrioSet(
         PENDSV_IRQN,
         CFG_CRITICAL_PRIO);

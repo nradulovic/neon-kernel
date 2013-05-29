@@ -78,6 +78,8 @@
 
 #define PORT_SYSTMR_INIT()              portSysTmrInit_()
 
+#define PORT_SYSTMR_RELOAD(val)         portSysTmrReload_(val)
+
 #define PORT_SYSTMR_ISR_ENABLE()        portSysTmrEnable_()
 
 #define PORT_SYSTMR_ISR_DISABLE()       portSysTmrDisable_()
@@ -138,9 +140,15 @@
 #define CPU_SCB_ICSR_RETTOBASE_MSK      (1UL << CPU_SCB_ICSR_RETTOBASE_POS)     /**< @brief SCB icsr: RETTOBASE Mask                        */
 
 #define CPU_SYST_BASE                   (CPU_SCS_BASE + 0x0010UL)               /**< @brief System Timer Base Addr                          */
-#define CPU_SYST_CSR_BASE               (CPU_SYST_BASE + 0x0UL)                 /**< @brief Control and Status Register Base Addr           */
-#define CPU_SYST_CSR_TICKINT_POS        1                                       /**< @brief SYST csr: TICKINT Position                      */
-#define CPU_SYST_CSR_TICKINT_MSK        (1UL << CPU_SYST_CSR_TICKINT_POS)       /**< @brief SYST csr: TICKINT Mask                          */
+#define CPU_SYST_CSR_OFFSET             (0x0UL)                                 /**< @brief Control and Status Register Base Addr Offset    */
+#define CPU_SYST_RVR_OFFSET             (0x4UL)                                 /**< @brief Reload Value Register Base Addr Offset          */
+#define CPU_SYST_CVR_OFFSET             (0x8UL)                                 /**< @brief Current Value Register Base Addr Offset         */
+
+#define CPU_SYST_CSR_TICKINT_POS        1                                       /**< @brief SYSTMR csr: TICKINT Position                    */
+#define CPU_SYST_CSR_TICKINT_MSK        (1UL << CPU_SYST_CSR_TICKINT_POS)       /**< @brief SYSTMR csr: TICKINT Mask                        */
+
+#define CPU_SYST_CSR_ENABLE_POS         0                                       /**< @brief SYSTMR csr: ENABLE Position                     */
+#define CPU_SYST_CSR_ENABLE_MSK         (1UL << CPU_SYST_CSR_ENABLE_POS)        /**< @brief SYSTMR csr: ENABLE Mask                         */
 
 /** @} *//*---------------------------------------------  C++ extern begin  --*/
 #ifdef __cplusplus
@@ -293,6 +301,9 @@ static PORT_C_INLINE_ALWAYS uint_fast8_t portFindLastSet_(
     return (31UL - clz);
 }
 
+void portSysTmrReload_(
+    portReg_T       rld);
+
 /**@brief       Disable the system timer interrupt
  * @inline
  */
@@ -301,8 +312,8 @@ static PORT_C_INLINE_ALWAYS void portSysTmrEnable_(
 
     portReg_T * csr;
 
-    csr = (portReg_T *)CPU_SYST_CSR_BASE;
-    *csr |= CPU_SYST_CSR_TICKINT_MSK;
+    csr = (portReg_T *)(CPU_SYST_BASE + CPU_SYST_CSR_OFFSET);
+    *csr |= CPU_SYST_CSR_TICKINT_MSK | CPU_SYST_CSR_ENABLE_MSK;
 }
 
 /**@brief       Enable the system timer interrupt
@@ -313,8 +324,8 @@ static PORT_C_INLINE_ALWAYS void portSysTmrDisable_(
 
     portReg_T * csr;
 
-    csr = (portReg_T *)CPU_SYST_CSR_BASE;
-    *csr &= ~CPU_SYST_CSR_TICKINT_MSK;
+    csr = (portReg_T *)(CPU_SYST_BASE + CPU_SYST_CSR_OFFSET);
+    *csr &= ~(CPU_SYST_CSR_TICKINT_MSK | CPU_SYST_CSR_ENABLE_MSK);
 }
 
 /**@brief       Initialize system timer
