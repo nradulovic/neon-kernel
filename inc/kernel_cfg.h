@@ -95,13 +95,19 @@
 # define CFG_HOOK_KERN_START            0U
 #endif
 
-/**@brief       Kernel thread init end hook function
+/**@brief       Thread initialization end hook function
  */
 #if !defined(CFG_HOOK_THD_INIT_END)
 # define CFG_HOOK_THD_INIT_END          0U
 #endif
 
-/**@brief       Kernel context switch hook function
+/**@brief       Thread termination hook function
+ */
+#if !defined(CFG_HOOK_THD_TERM)
+# define CFG_HOOK_THD_TERM              0U
+#endif
+
+/**@brief       Context switch hook function
  */
 #if !defined(CFG_HOOK_CTX_SW)
 # define CFG_HOOK_CTX_SW                0U

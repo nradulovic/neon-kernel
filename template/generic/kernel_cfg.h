@@ -131,12 +131,20 @@
 # define CFG_HOOK_KERN_START            0U
 #endif
 
-/**@brief       Kernel thread init hook function
+/**@brief       Thread initialization hook function
  * @details     This hook is called at the end of esThdInit() function.
  * @note        This hook will call userThdInitEnd() function.
  */
 #if !defined(CFG_HOOK_THD_INIT_END)
 # define CFG_HOOK_THD_INIT_END          0U
+#endif
+
+/**@brief       Thread termination hook function
+ * @details     This hook is called when a thread terminates.
+ * @note        This hook will call userThdTerm() function.
+ */
+#if !defined(CFG_HOOK_THD_TERM)
+# define CFG_HOOK_THD_TERM              0U
 #endif
 
 /**@brief       Kernel context switch hook function
