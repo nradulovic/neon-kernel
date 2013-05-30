@@ -106,7 +106,7 @@
 /*================================*//** @cond *//*==  CONFIGURATION ERRORS  ==*/
 
 #if !defined(CPU_FOUND_)
-# error "Kernel CPU port: please define a valid port macro."
+# error "eSolid RT Kernel port: please define a valid port macro."
 #endif
 
 /** @endcond *//** @} *//******************************************************

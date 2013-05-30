@@ -41,7 +41,23 @@
 
 #define PORT_DATA_WIDTH                 32U                                     /**< @brief General purpose registers are 32bit wide        */
 
-#define PORT_STCK_MINSIZE               sizeof(struct portCtx)                  /**< @brief Minimal stack size value is sizeof(struct Ctx)  */
+/**@brief       Minimal stack size value is the number of elements in struct
+ *              @ref portCtx
+ */
+#define PORT_STCK_MINSIZE                                                       \
+    (sizeof(struct portCtx) / sizeof(portReg_T))
+
+/**@brief       System timer reload value
+ */
+#define PORT_SYSTMR_RELOAD_VAL          (CFG_SYSTMR_CLOCK_FREQUENCY / CFG_SYSTMR_EVENT_FREQUENCY)
+
+/**@brief       System timer maximum value
+ */
+#define PORT_SYSTMR_MAX_VAL             0xFFFFFFUL
+
+/**@brief       Maximum number of ticks the system timer can delay
+ */
+#define PORT_SYSTMR_MAX_TICKS           (PORT_SYSTMR_MAX_VAL / PORT_SYSTMR_RELOAD_VAL)
 
 /** @} *//*---------------------------------------------------------------*//**
  * @name        Interrupt management
@@ -111,24 +127,9 @@
  * @name        Port specific macros
  * @{ *//*--------------------------------------------------------------------*/
 
-/**@brief       This is the data that will be placed on task context at its
- *              creation
- * @details     This macro can be used if you need to specify different settings
- *              for Interruptible-continuable instructions. The setting is done
- *              in PSR register.
- */
-#define CPU_PSR_DATA                    0UL
-
 /**@brief       Calculate interrupt priority real value
  */
 #define CPU_ISR_PRIO                    (CFG_CRITICAL_PRIO << (8 - CPU_ISR_PRIO_BITS))
-
-/**@brief       This field determines the split of group priority from
- *              subpriority.
- * @warning     Change this value only if you are familiar with Cortex interrupt
- *              priority system and how kernel protects its critical sections.
- */
-#define CPU_SCB_AIRCR_PRIGROUP          0U
 
 #define CPU_SCS_BASE                    (0xE000E000UL)                          /**< @brief System Control Space Base Addr                  */
 
@@ -433,6 +434,11 @@ void portSysTmr(
 #endif
 
 /*================================*//** @cond *//*==  CONFIGURATION ERRORS  ==*/
+
+#if (PORT_SYSTMR_MAX_VAL < PORT_SYSTMR_RELOAD_VAL)
+# error "eSolid RT Kernel port: System Timer overflow, please check CFG_SYSTMR_CLOCK_FREQUENCY and CFG_SYSTMR_EVENT_FREQUENCY options."
+#endif
+
 /** @endcond *//** @} *//******************************************************
  * END of cpu.h
  ******************************************************************************/

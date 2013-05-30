@@ -56,20 +56,18 @@
 
 /**@brief       This field determines the split of group priority from
  *              subpriority.
- * @details     We need to it set to zero because we don't want other ISR to
- *              preempt kernel ISR.
+ * @warning     Change this value only if you are familiar with Cortex interrupt
+ *              priority system and how kernel protects its critical sections.
  */
 #define CPU_SCB_AIRCR_PRIGROUP          0U
 
-/**@brief       System timer reload value
+/**@brief       This is the data that will be placed on task context at its
+ *              creation
+ * @details     This macro can be used if you need to specify different settings
+ *              for Interruptible-continuable instructions. The setting is done
+ *              in PSR register.
  */
-#define SYSTMR_RELOAD_VAL               (CFG_SYSTMR_CLOCK_FREQUENCY / CFG_SYSTMR_EVENT_FREQUENCY)
-
-#define SYSTMR_MAX_VAL                  SYST_RVR_RELOAD_MSK
-
-/**@brief       Maximum number of ticks the system timer can delay
- */
-#define SYSTMR_MAX_TICKS                (SYSTMR_MAX_VAL / SYSTMR_RELOAD_VAL)
+#define CPU_PSR_DATA                    0UL
 
 /** @} *//*---------------------------------------------------------------*//**
  * @name        System Control Block (SCB)
@@ -98,9 +96,6 @@
 
 #define SYST_CSR_CLKSOURCE_POS          2                                       /**< @brief SYSTMR csr: CLKSOURCE Position                  */
 #define SYST_CSR_CLKSOURCE_MSK          (1UL << SYST_CSR_CLKSOURCE_POS)         /**< @brief SYSTMR csr: CLKSOURCE Mask                      */
-
-#define SYST_RVR_RELOAD_POS             0                                       /**< @brief SYSTMR rvr: RELOAD Position                     */
-#define SYST_RVR_RELOAD_MSK             (0xFFFFFFUL << SYST_RVR_RELOAD_POS)     /**< @brief SYSTMR rvr: RELOAD Mask                         */
 
 /** @} *//*-------------------------------------------------------------------*/
 /*======================================================  LOCAL DATA TYPES  ==*/
@@ -203,19 +198,15 @@ static PORT_C_INLINE void intPrioSet(
 void portSysTmrReload_(
     portReg_T       rld) {
 
-    if (SYSTMR_MAX_TICKS < rld) {
-        rld = SYSTMR_MAX_TICKS;
-    }
-    SYSTMR->rvr = SYSTMR_RELOAD_VAL * rld;
-    SYSTMR->cvr = SYSTMR->rvr;
+    SYSTMR->cvr = SYSTMR->rvr = rld;
 }
 
 void portSysTmrInit_(
     void) {
 
-    SYSTMR->rvr = (SYSTMR_RELOAD_VAL & SYST_RVR_RELOAD_MSK) - 1U;                 /* set systick reload register                              */
-    SYSTMR->cvr = SYSTMR->rvr;                                                           /* Clear the systick Counter Value                          */
-    SYSTMR->csr = SYST_CSR_CLKSOURCE_MSK | CPU_SYST_CSR_ENABLE_MSK;                 /* Enable SYSTMR IRQ and SYSTMR Timer                       */
+    SYSTMR->rvr = PORT_SYSTMR_RELOAD_VAL - 1U;                                  /* set systick reload register                              */
+    SYSTMR->cvr = SYSTMR->rvr;                                                  /* Clear the systick Counter Value                          */
+    SYSTMR->csr = SYST_CSR_CLKSOURCE_MSK | CPU_SYST_CSR_ENABLE_MSK;             /* Enable SYSTMR IRQ and SYSTMR Timer                       */
 }
 
 /*
@@ -389,7 +380,7 @@ void portSysTmr(
     void) {
 
     PORT_ISR_ENTER();
-    esKernSysTmrI();
+    esSysTmrHandlerI();
     PORT_ISR_EXIT();
 }
 
