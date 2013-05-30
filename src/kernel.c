@@ -165,13 +165,11 @@ static PORT_C_INLINE void schedInit(
     void);
 
 /**@brief       Set scheduler data structures ready for multi-threading
- * @param       thd
- *              The first thread that will be started
  * @details     This function is called just before multi-threading has
  *              commenced.
  */
 static PORT_C_INLINE void schedStartI(
-    esThd_T * thd);
+    void);
 
 /**@brief       Do Round-Robin scheduling
  */
@@ -195,6 +193,19 @@ static sysTmr_T gSysTmr = {
     0U,
     SYSTMR_DISABLE
 };
+
+#define KSYSTMR_STACK_SIZE              (40U + PORT_STCK_MINSIZE)
+#define KIDLE_STACK_SIZE                (40U + PORT_STCK_MINSIZE)
+
+static void kSysTmr(
+    void *          arg);
+static esThd_T kSysTmrId;
+static portReg_T kSysTmrStack[KSYSTMR_STACK_SIZE];
+
+static void kIdle(
+    void *          arg);
+static esThd_T kIdleId;
+static portReg_T kIdleStack[KIDLE_STACK_SIZE];
 
 /*======================================================  GLOBAL VARIABLES  ==*/
 
@@ -322,10 +333,15 @@ static PORT_C_INLINE void schedInit(
 }
 
 static PORT_C_INLINE void schedStartI(
-    esThd_T * thd) {
+    void) {
 
-    ((volatile esKernCntl_T *)&gKernCntl)->cthd  = thd;
-    ((volatile esKernCntl_T *)&gKernCntl)->pthd  = thd;
+    esThd_T * nthd;
+
+    esSysTmrEvaluateI();                                                        /* Check if system timer is needed for Round-Robin          */
+    nthd = esThdQFetchFirstI(                                                   /* Get the highest priority thread                          */
+            &gRdyQueue);
+    ((volatile esKernCntl_T *)&gKernCntl)->cthd  = nthd;
+    ((volatile esKernCntl_T *)&gKernCntl)->pthd  = nthd;
     ((volatile esKernCntl_T *)&gKernCntl)->state = ES_KERN_RUN;
 }
 
@@ -374,6 +390,8 @@ void esKernInit(
     PORT_INT_DISABLE();
     PORT_INIT_EARLY();
     schedInit();
+    esThdInit(&kIdleId,kIdle,NULL,kIdleStack, sizeof(kIdleStack),0U);
+    esThdInit(&kSysTmrId,kSysTmr,NULL,kSysTmrStack,sizeof(kSysTmrStack),CFG_SCHED_PRIO_LVL - 1U);
     PORT_INIT();
 }
 
@@ -381,7 +399,6 @@ void esKernStart(
     void) {
 
     PORT_CRITICAL_DECL();
-    esThd_T * nthd;
 
     ES_API_REQUIRE(ES_KERN_INIT == gKernCntl.state);
     ES_API_REQUIRE(FALSE == esThdQIsEmpty(&gRdyQueue));
@@ -390,24 +407,21 @@ void esKernStart(
     userKernStart();
 #endif
     PORT_INIT_LATE();
-    PORT_SYSTMR_INIT();
     PORT_CRITICAL_ENTER();
-    nthd = esThdQFetchFirstI(                                                   /* Get the highest priority thread                          */
-        &gRdyQueue);
-    schedStartI(
-        nthd);                                                                  /* Initialize scheduler data structures for multi-threading */
-    esSysTmrEvaluateI();                                                           /* Check if system timer is needed for Round-Robin          */
+    schedStartI();                                                                  /* Initialize scheduler data structures for multi-threading */
     PORT_CRITICAL_EXIT();
     PORT_THD_START();                                                           /* Start the first thread                                   */
 }
 
-void esKernSysTmrI(void) {
+void esSysTmrHandlerI(void) {
 
     ES_API_REQUIRE(ES_KERN_INIT > gKernCntl.state);
 
 #if (1U == CFG_HOOK_SYSTMR_EVENT)
     userSysTmr();
 #endif
+    esSchedRdyAddI(
+        &kSysTmrId);
     schedSysTmrI();
 }
 
@@ -566,6 +580,44 @@ void esThdSetPrioI(
     }
 }
 
+void esThdPostI(
+    esThd_T *       thd) {
+
+    if (NULL == thd->thdL.q) {
+        esSchedRdyAddI(
+            thd);
+    }
+    esSchedYieldI();
+}
+
+void esThdPost(
+    esThd_T *       thd) {
+
+    PORT_CRITICAL_DECL();
+
+    PORT_CRITICAL_ENTER();
+    esThdPostI(
+        thd);
+    PORT_CRITICAL_EXIT();
+}
+
+void esThdWaitI(
+    void) {
+
+    esSchedRdyRmI(
+        esThdGetId());
+    esSchedYieldI();
+}
+
+void esThdWait(
+    void) {
+
+    PORT_CRITICAL_DECL();
+
+    PORT_CRITICAL_ENTER();
+    esThdWaitI();
+    PORT_CRITICAL_EXIT();
+}
 
 /*--  Thread Queue functions  ------------------------------------------------*/
 
@@ -814,12 +866,24 @@ void esSchedYieldIsrI(
 void esSysTmrEvaluateI(
     void) {
 
-    if ((0U != gSysTmr.cnt) && (SYSTMR_DISABLE == gSysTmr.state)) {             /* If there are users: switch system timer ON if it is OFF. */
-        gSysTmr.state = SYSTMR_ENABLE;
-        PORT_SYSTMR_ISR_ENABLE();
-    } else if ((0U == gSysTmr.cnt) && (SYSTMR_ENABLE == gSysTmr.state)) {       /* If there are no users: switch sys. timer OFF if it is ON.*/
-        gSysTmr.state = SYSTMR_DISABLE;
-        PORT_SYSTMR_ISR_DISABLE();
+    switch (gSysTmr.state) {
+        case SYSTMR_DISABLE : {
+
+            if (0U < gSysTmr.cnt) {
+                gSysTmr.state = SYSTMR_ENABLE;
+                PORT_SYSTMR_ISR_ENABLE();
+            }
+            break;
+        }
+
+        case SYSTMR_ENABLE : {
+
+            if (0U == gSysTmr.cnt) {
+                gSysTmr.state = SYSTMR_DISABLE;
+                PORT_SYSTMR_ISR_DISABLE();
+            }
+            break;
+        }
     }
 }
 
@@ -833,6 +897,33 @@ void esSysTmrRmI(
     void) {
 
     --gSysTmr.cnt;
+}
+
+
+/*--  Kernel threads  --------------------------------------------------------*/
+
+void kSysTmr(
+    void *          arg) {
+
+    (void)arg;
+    PORT_SYSTMR_INIT();
+    gSysTmr.state = SYSTMR_DISABLE;
+
+    while (TRUE) {
+
+
+        esThdWait();
+    }
+}
+
+void kIdle(
+    void *          arg){
+
+    (void)arg;
+
+    while (TRUE) {
+
+    }
 }
 
 /*================================*//** @cond *//*==  CONFIGURATION ERRORS  ==*/

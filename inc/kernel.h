@@ -166,7 +166,7 @@ typedef struct esThd esThd_T;
 /**@brief       Priority Bit Map Group Index
  * @notapi
  */
-# define PRIO_BM_GRP_INDX                                                    \
+# define PRIO_BM_GRP_INDX                                                       \
     ((CFG_SCHED_PRIO_LVL + PORT_DATA_WIDTH - 1U) / PORT_DATA_WIDTH)
 
 /**@brief       Thread Queue structure
@@ -294,7 +294,7 @@ void esKernStart(
  *                  @ref states.
  * @notapi
  */
-void esKernSysTmrI(
+void esSysTmrHandlerI(
     void);
 
 /**@brief       Enter Interrupt Service Routine
@@ -475,6 +475,18 @@ static PORT_C_INLINE uint8_t esThdGetPrio(
 void esThdSetPrioI(
     esThd_T *       thd,
     uint8_t         prio);
+
+void esThdPostI(
+    esThd_T *       thd);
+
+void esThdPost(
+    esThd_T *       thd);
+
+void esThdWaitI(
+    void);
+
+void esThdWait(
+    void);
 
 /**@} *//*----------------------------------------------------------------*//**
  * @name        Thread Queue management
