@@ -46,7 +46,9 @@
 /**@brief       Kernel state variable bit position which defines if kernel is in
  *              interrupt servicing state
  */
-#define SCHED_ISR_ACTIVE_MSK            (0x01U)
+#define SCHED_STATE_ISR_ACTIVE_MSK              (1U << 0U)
+
+#define SCHED_STATE_LOCK_MASK                   (1U << 1U)
 
 /**@brief       Thread structure signature
  * @details     The signature is used to confirm that a structure passed to a
@@ -197,10 +199,15 @@ static sysTmr_T gSysTmr = {
 #define KSYSTMR_STACK_SIZE              (40U + PORT_STCK_MINSIZE)
 #define KIDLE_STACK_SIZE                (40U + PORT_STCK_MINSIZE)
 
+void kSysTmrInit(
+    void);
 static void kSysTmr(
     void *          arg);
 static esThd_T kSysTmrId;
 static portReg_T kSysTmrStack[KSYSTMR_STACK_SIZE];
+
+static void kIdleInit(
+    void);
 
 static void kIdle(
     void *          arg);
@@ -390,8 +397,8 @@ void esKernInit(
     PORT_INT_DISABLE();
     PORT_INIT_EARLY();
     schedInit();
-    esThdInit(&kIdleId,kIdle,NULL,kIdleStack, sizeof(kIdleStack),0U);
-    esThdInit(&kSysTmrId,kSysTmr,NULL,kSysTmrStack,sizeof(kSysTmrStack),CFG_SCHED_PRIO_LVL - 1U);
+    kIdleInit();
+    kSysTmrInit();
     PORT_INIT();
 }
 
@@ -428,50 +435,19 @@ void esSysTmrHandlerI(void) {
 void esKernLockEnterI(
     void) {
 
-    if (ES_KERN_RUN == gKernCntl.state) {                                       /* If the kernel is in RUN state then switch it to LOCK     */
-        ((volatile esKernCntl_T *)&gKernCntl)->state = ES_KERN_LOCK;            /* state. In any other case the switch is not done.         */
+    if (0U == gLockCnt) {
+        ((volatile esKernCntl_T *)&gKernCntl)->state |= SCHED_STATE_LOCK_MASK;
     }
-
-    if (ES_KERN_LOCK == gKernCntl.state) {                                      /* Increment gLockCnt only if the kernel is in LOCK state   */
-        gLockCnt++;
-    }
+    ++gLockCnt;
 }
 
 void esKernLockExitI(
     void) {
 
-    if (ES_KERN_LOCK == gKernCntl.state) {
-        gLockCnt--;
+    --gLockCnt;
 
-        if (0U == gLockCnt) {
-            ((volatile esKernCntl_T *)&gKernCntl)->state = ES_KERN_RUN;
-            esSchedYieldI();                                                    /* Scheduler is unlocked, he should check new threads       */
-        }
-    }
-}
-
-void esKernLockIsrEnterI(
-    void) {
-
-    if (ES_KERN_INTSRV_RUN == gKernCntl.state) {                                /* If the kernel is in RUN state then switch it to LOCK     */
-        ((volatile esKernCntl_T *)&gKernCntl)->state = ES_KERN_INTSRV_LOCK;     /* state. In any other case the switch is not done.         */
-    }
-
-    if (ES_KERN_INTSRV_LOCK == gKernCntl.state) {                               /* Increment gLockCnt only if the kernel is in LOCK state  */
-        gLockCnt++;
-    }
-}
-
-void esKernLockIsrExitI(
-    void) {
-
-    if (ES_KERN_INTSRV_LOCK == gKernCntl.state) {
-        gLockCnt--;
-
-        if (0U == gLockCnt) {
-            ((volatile esKernCntl_T *)&gKernCntl)->state = ES_KERN_INTSRV_RUN;
-            esSchedYieldIsrI();
-        }
+    if (0U == gLockCnt) {
+        ((volatile esKernCntl_T *)&gKernCntl)->state &= ~SCHED_STATE_LOCK_MASK;
     }
 }
 
@@ -480,7 +456,7 @@ void esKernIsrPrologueI(
 
     ES_API_REQUIRE(ES_KERN_INIT > gKernCntl.state);
 
-    ((volatile esKernCntl_T *)&gKernCntl)->state |= SCHED_ISR_ACTIVE_MSK;
+    ((volatile esKernCntl_T *)&gKernCntl)->state |= SCHED_STATE_ISR_ACTIVE_MSK;
 }
 
 void esKernIsrEpilogueI(
@@ -488,7 +464,11 @@ void esKernIsrEpilogueI(
 
     ES_API_REQUIRE(ES_KERN_INIT > gKernCntl.state);
 
-    esSchedYieldIsrI();
+    if (TRUE == PORT_ISR_IS_LAST()) {
+        ((volatile esKernCntl_T *)&gKernCntl)->state &= ~SCHED_STATE_ISR_ACTIVE_MSK;
+
+        esSchedYieldIsrI();
+    }
 }
 
 
@@ -832,30 +812,26 @@ void esSchedYieldIsrI(
 
     ES_API_REQUIRE(ES_KERN_INACTIVE > gKernCntl.state);
 
-    if (TRUE == PORT_ISR_IS_LAST()) {
-        ((volatile esKernCntl_T *)&gKernCntl)->state &= ~SCHED_ISR_ACTIVE_MSK;
+    if (ES_KERN_RUN == gKernCntl.state) {
+        esThd_T * newThd;
 
-        if (ES_KERN_RUN == gKernCntl.state) {
-            esThd_T * newThd;
+        newThd = gKernCntl.pthd;
 
-            newThd = gKernCntl.pthd;
+        if (NULL == newThd) {
+            newThd = esThdQFetchFirstI(
+                &gRdyQueue);
+            ((volatile esKernCntl_T *)&gKernCntl)->pthd = newThd;
+        }
 
-            if (NULL == newThd) {
-                newThd = esThdQFetchFirstI(
-                    &gRdyQueue);
-                ((volatile esKernCntl_T *)&gKernCntl)->pthd = newThd;
-            }
-
-            if (newThd != gKernCntl.cthd) {
-                esSysTmrEvaluateI();
+        if (newThd != gKernCntl.cthd) {
+            esSysTmrEvaluateI();
 
 #if (1U == CFG_HOOK_CTX_SW)
-            userCtxSw(
-                gKernCntl.cthd,
-                newThd);
+        userCtxSw(
+            gKernCntl.cthd,
+            newThd);
 #endif
-                PORT_CTX_SW_ISR();
-            }
+            PORT_CTX_SW_ISR();
         }
     }
 }
@@ -902,6 +878,20 @@ void esSysTmrRmI(
 
 /*--  Kernel threads  --------------------------------------------------------*/
 
+void kSysTmrInit(
+    void) {
+
+    esThdInit(
+        &kSysTmrId,
+        kSysTmr,
+        NULL,
+        kSysTmrStack,
+        sizeof(kSysTmrStack),
+        CFG_SCHED_PRIO_LVL - 1U);
+    kSysTmrId.qCnt = 1U;
+    kSysTmrId.qRld = 1U;
+}
+
 void kSysTmr(
     void *          arg) {
 
@@ -910,9 +900,37 @@ void kSysTmr(
     gSysTmr.state = SYSTMR_DISABLE;
 
     while (TRUE) {
-
-
         esThdWait();
+    }
+}
+
+void kIdleInit(
+    void) {
+
+    esThdInit(
+        &kIdleId,
+        kIdle,
+        NULL,
+        kIdleStack,
+        sizeof(kIdleStack),
+        0U);
+    kIdleId.qCnt = 1U;
+    kIdleId.qRld = 1U;
+}
+
+portReg_T sysTmrTryStopI(
+    void) {
+
+    gSysTmr.state = SYSTMR_DISABLE;
+
+    return (1U);
+}
+
+void sysTmrTryStartI(
+    portReg_T state) {
+
+    if (0U == state) {
+        PORT_SYSTMR_INIT();
     }
 }
 
@@ -922,7 +940,18 @@ void kIdle(
     (void)arg;
 
     while (TRUE) {
+        PORT_CRITICAL_DECL();
+        portReg_T   tmrState;
 
+        PORT_CRITICAL_ENTER();
+        esKernLockEnterI();
+        tmrState = sysTmrTryStopI();
+        PORT_CRITICAL_EXIT();
+        PORT_SLEEP(tmrState);
+        PORT_CRITICAL_ENTER();
+        sysTmrTryStartI(tmrState);
+        esKernLockExitI();
+        PORT_CRITICAL_EXIT();
     }
 }
 

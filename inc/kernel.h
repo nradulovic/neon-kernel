@@ -351,16 +351,6 @@ void esKernLockEnterI(
 void esKernLockExitI(
     void);
 
-/**@brief       To do
- */
-void esKernLockIsrEnterI(
-    void);
-
-/**@brief       To do
- */
-void esKernLockIsrExitI(
-    void);
-
 /**@} *//*----------------------------------------------------------------*//**
  * @name        Thread management
  * @brief       Basic thread management services
