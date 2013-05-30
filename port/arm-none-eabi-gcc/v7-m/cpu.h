@@ -117,6 +117,8 @@
  * @name        Generic port macros
  * @{ *//*--------------------------------------------------------------------*/
 
+#define PORT_SLEEP(val)                 (void)0
+
 #define PORT_INIT_EARLY()               (void)0                                 /**< @brief This port does not need this function call      */
 
 #define PORT_INIT()                     portInit_()
