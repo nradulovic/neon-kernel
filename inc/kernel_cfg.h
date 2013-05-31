@@ -73,6 +73,16 @@
 # define CFG_SYSTMR_EVENT_FREQUENCY     100UL
 #endif
 
+/**@brief       The size of the system timer counter
+ * @details     Possible values are:
+ *              - 0U - 8 bit counter
+ *              - 1U - 16 bit counter
+ *              - 2U - 32 bit counter
+ */
+#if !defined(CFG_SYSTMR_COUNTER_TYPE)
+# define CFG_SYSTMR_COUNTER_TYPE        2U
+#endif
+
 /** @} *//*---------------------------------------------------------------*//**
  * @name        Kernel hooks
  * @{ *//*--------------------------------------------------------------------*/
@@ -144,6 +154,15 @@
 # error "eSolid RT Kernel: Configuration option CFG_HOOK_CTX_SW is out of range."
 #endif
 
+#if (2U == CFG_SYSTMR_COUNTER_TYPE)
+typedef uint32_t esSysTmr_T;
+#elif (1U == CFG_SYSTMR_COUNTER_TYPE)
+typedef uint16_t esSysTmr_T;
+#elif (1U == CFG_SYSTMR_COUNTER_TYPE)
+typedef uint8_t esSysTmr_T;
+#else
+# error "eSolid RT Kernel: Configuration option CFG_SYSTMR_COUNTER_TYPE is out of range."
+#endif
 /** @endcond *//** @} *//******************************************************
  * END of kernel_config.h
  ******************************************************************************/
