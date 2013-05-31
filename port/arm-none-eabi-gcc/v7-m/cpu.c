@@ -89,13 +89,16 @@
  * @name        System Timer (SYSTMR)
  * @{ *//*--------------------------------------------------------------------*/
 
-#define SYSTMR                          ((sysTick_T *)CPU_SYST_BASE)            /**< @brief SYSTMR configuration struct                     */
+#define SYST                          ((sysTick_T *)CPU_SYST_BASE)            /**< @brief SYSTMR configuration struct                     */
 
 #define SYST_CSR_COUNTFLAG_POS          16                                      /**< @brief SYSTMR csr: COUNTFLAG Position                  */
 #define SYST_CSR_COUNTFLAG_MSK          (1UL << SYST_CSR_COUNTFLAG_POS)         /**< @brief SYSTMR csr: COUNTFLAG Mask                      */
 
 #define SYST_CSR_CLKSOURCE_POS          2                                       /**< @brief SYSTMR csr: CLKSOURCE Position                  */
 #define SYST_CSR_CLKSOURCE_MSK          (1UL << SYST_CSR_CLKSOURCE_POS)         /**< @brief SYSTMR csr: CLKSOURCE Mask                      */
+
+#define SYST_CSR_ENABLE_POS             0                                       /**< @brief SYSTMR csr: ENABLE Position                     */
+#define SYST_CSR_ENABLE_MSK             (1UL << SYST_CSR_ENABLE_POS)            /**< @brief SYSTMR csr: ENABLE Mask                         */
 
 /** @} *//*-------------------------------------------------------------------*/
 /*======================================================  LOCAL DATA TYPES  ==*/
@@ -196,17 +199,24 @@ static PORT_C_INLINE void intPrioSet(
 /*====================================  GLOBAL PUBLIC FUNCTION DEFINITIONS  ==*/
 
 void portSysTmrReload_(
-    portReg_T       rld) {
+    esSysTmr_T      ticks) {
 
-    SYSTMR->cvr = SYSTMR->rvr = rld;
+    SYST->csr &= ~SYST_CSR_ENABLE_MSK;                                          /* Disable SYST Timer                                       */
+    SYST->cvr = SYST->rvr = (PORT_SYSTMR_RELOAD_VAL * ticks) - 1U;
+    SYST->csr |= SYST_CSR_ENABLE_MSK;                                           /* Enable SYST Timer                                        */
 }
 
 void portSysTmrInit_(
     void) {
 
-    SYSTMR->rvr = PORT_SYSTMR_RELOAD_VAL - 1U;                                  /* set systick reload register                              */
-    SYSTMR->cvr = SYSTMR->rvr;                                                  /* Clear the systick Counter Value                          */
-    SYSTMR->csr = SYST_CSR_CLKSOURCE_MSK | CPU_SYST_CSR_ENABLE_MSK;             /* Enable SYSTMR IRQ and SYSTMR Timer                       */
+    SYST->cvr = SYST->rvr = PORT_SYSTMR_RELOAD_VAL - 1U;                        /* set systick reload register                              */
+    SYST->csr = SYST_CSR_CLKSOURCE_MSK | SYST_CSR_ENABLE_MSK;                   /* Enable SYST Timer                                        */
+}
+
+void portSysTmrTerm_(
+    void) {
+
+    SYST->csr &= ~SYST_CSR_ENABLE_MSK;                                          /* Disable SYST Timer if it was enabled                     */
 }
 
 /*
@@ -260,7 +270,7 @@ void portInit_(
         SCB_AIRCR_VECTKEY_MSK | SCB_AIRCR_PRIGROUP_MSK,
         (SCB_AIRCR_VECTKEY << SCB_AIRCR_VECTKEY_POS) |
            (CPU_SCB_AIRCR_PRIGROUP << SCB_AIRCR_PRIGROUP_POS));                 /* Setup priority subgroup to zero bits                     */
-    SYSTMR->csr &= ~CPU_SYST_CSR_ENABLE_MSK;                                          /* Disable SYSTMR Timer if it was enabled                     */
+    portSysTmrTerm_();
     intPrioSet(
         PENDSV_IRQN,
         CFG_CRITICAL_PRIO);

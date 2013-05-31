@@ -154,15 +154,18 @@
 # error "eSolid RT Kernel: Configuration option CFG_HOOK_CTX_SW is out of range."
 #endif
 
+#if (0 > CFG_SYSTMR_COUNTER_TYPE) || (2U < CFG_SYSTMR_COUNTER_TYPE)
+# error "eSolid RT Kernel: Configuration option CFG_SYSTMR_COUNTER_TYPE is out of range."
+#endif
+
 #if (2U == CFG_SYSTMR_COUNTER_TYPE)
 typedef uint32_t esSysTmr_T;
 #elif (1U == CFG_SYSTMR_COUNTER_TYPE)
 typedef uint16_t esSysTmr_T;
-#elif (1U == CFG_SYSTMR_COUNTER_TYPE)
+#elif (0U == CFG_SYSTMR_COUNTER_TYPE)
 typedef uint8_t esSysTmr_T;
-#else
-# error "eSolid RT Kernel: Configuration option CFG_SYSTMR_COUNTER_TYPE is out of range."
 #endif
+
 /** @endcond *//** @} *//******************************************************
  * END of kernel_config.h
  ******************************************************************************/

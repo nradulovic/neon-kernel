@@ -94,11 +94,13 @@
 
 #define PORT_SYSTMR_INIT()              portSysTmrInit_()
 
-#define PORT_SYSTMR_RELOAD(val)         portSysTmrReload_(val)
+#define PORT_SYSTMR_TERM()              portSysTmrTerm_()
 
-#define PORT_SYSTMR_ISR_ENABLE()        portSysTmrEnable_()
+#define PORT_SYSTMR_RELOAD(ticks)       portSysTmrReload_(ticks)
 
-#define PORT_SYSTMR_ISR_DISABLE()       portSysTmrDisable_()
+#define PORT_SYSTMR_ISR_ENABLE()        portSysTmrIsrEnable_()
+
+#define PORT_SYSTMR_ISR_DISABLE()       portSysTmrIsrDisable_()
 
 /** @} *//*---------------------------------------------------------------*//**
  * @name        Dispatcher context switching
@@ -117,7 +119,8 @@
  * @name        Generic port macros
  * @{ *//*--------------------------------------------------------------------*/
 
-#define PORT_SLEEP(val)                 (void)0
+#define PORT_CRITICAL_EXIT_SLEEP(tmrState)                                      \
+    PORT_CRITICAL_EXIT()
 
 #define PORT_INIT_EARLY()               (void)0                                 /**< @brief This port does not need this function call      */
 
@@ -149,9 +152,6 @@
 
 #define CPU_SYST_CSR_TICKINT_POS        1                                       /**< @brief SYSTMR csr: TICKINT Position                    */
 #define CPU_SYST_CSR_TICKINT_MSK        (1UL << CPU_SYST_CSR_TICKINT_POS)       /**< @brief SYSTMR csr: TICKINT Mask                        */
-
-#define CPU_SYST_CSR_ENABLE_POS         0                                       /**< @brief SYSTMR csr: ENABLE Position                     */
-#define CPU_SYST_CSR_ENABLE_MSK         (1UL << CPU_SYST_CSR_ENABLE_POS)        /**< @brief SYSTMR csr: ENABLE Mask                         */
 
 /** @} *//*---------------------------------------------  C++ extern begin  --*/
 #ifdef __cplusplus
@@ -305,35 +305,38 @@ static PORT_C_INLINE_ALWAYS uint_fast8_t portFindLastSet_(
 }
 
 void portSysTmrReload_(
-    portReg_T       rld);
+    esSysTmr_T      ticks);
 
 /**@brief       Disable the system timer interrupt
  * @inline
  */
-static PORT_C_INLINE_ALWAYS void portSysTmrEnable_(
+static PORT_C_INLINE_ALWAYS void portSysTmrIsrEnable_(
     void) {
 
     portReg_T * csr;
 
     csr = (portReg_T *)(CPU_SYST_BASE + CPU_SYST_CSR_OFFSET);
-    *csr |= CPU_SYST_CSR_TICKINT_MSK | CPU_SYST_CSR_ENABLE_MSK;
+    *csr |= CPU_SYST_CSR_TICKINT_MSK;
 }
 
 /**@brief       Enable the system timer interrupt
  * @inline
  */
-static PORT_C_INLINE_ALWAYS void portSysTmrDisable_(
+static PORT_C_INLINE_ALWAYS void portSysTmrIsrDisable_(
     void) {
 
     portReg_T * csr;
 
     csr = (portReg_T *)(CPU_SYST_BASE + CPU_SYST_CSR_OFFSET);
-    *csr &= ~(CPU_SYST_CSR_TICKINT_MSK | CPU_SYST_CSR_ENABLE_MSK);
+    *csr &= ~(CPU_SYST_CSR_TICKINT_MSK);
 }
 
 /**@brief       Initialize system timer
  */
 void portSysTmrInit_(
+    void);
+
+void portSysTmrTerm_(
     void);
 
 /**@brief       Start the first thread
