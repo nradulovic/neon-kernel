@@ -239,7 +239,7 @@ typedef struct esKernCntl esKernCntl_T;
 typedef uint32_t esSysTmr_T;
 #elif (1U == CFG_SYSTMR_COUNTER_TYPE)
 typedef uint16_t esSysTmr_T;
-#elif (1U == CFG_SYSTMR_COUNTER_TYPE)
+#elif (0U == CFG_SYSTMR_COUNTER_TYPE)
 typedef uint8_t esSysTmr_T;
 #endif
 
