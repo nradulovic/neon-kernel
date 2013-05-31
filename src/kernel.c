@@ -48,6 +48,9 @@
  */
 #define SCHED_STATE_ISR_ACTIVE_MSK              (1U << 0U)
 
+/**@brief       Kernel state variable bit position which defines if the kernel
+ *              is locked or not.
+ */
 #define SCHED_STATE_LOCK_MASK                   (1U << 1U)
 
 /**@brief       Thread structure signature
@@ -71,6 +74,14 @@
 #define THDQ_IS_THD_SECOND(thd)                                                 \
     (((thd)->thdL.next == (thd)->thdL.prev) && ((thd) != (thd)->thdL.next))
 
+/**@brief       System Timer kernel thread stack size
+ */
+#define KSYSTMR_STACK_SIZE              (40U + PORT_STCK_MINSIZE)
+
+/**@brief       Idle kernel thread stack size
+ */
+#define KIDLE_STACK_SIZE                (40U + PORT_STCK_MINSIZE)
+
 /*======================================================  LOCAL DATA TYPES  ==*/
 
 /*------------------------------------------------------------------------*//**
@@ -80,8 +91,8 @@
 /**@brief       System Timer state enumeration
  */
 enum sysTmrState {
-    SYSTMR_ENABLE   = 0x00U,                                                    /**< System Timer is enabled.                               */
-    SYSTMR_DISABLE  = 0x01U                                                     /**< System Timer is disabled.                              */
+    SYSTMR_ENABLE   = 0x00U,                                                    /**< System Timer is enabled.                               *///!< SYSTMR_ENABLE
+    SYSTMR_DISABLE  = 0x01U                                                     /**< System Timer is disabled.                              *///!< SYSTMR_DISABLE
 };
 
 /**@brief       System Timer structure
@@ -160,7 +171,7 @@ static PORT_C_INLINE bool_T prioBMIsEmpty(
  * @name        Scheduler
  * @{ *//*--------------------------------------------------------------------*/
 
-/**@brief       Initialize Ready Thread Queue structure @ref rdyQueue and
+/**@brief       Initialize Ready Thread Queue structure @ref gRdyQueue and
  *              Kernel control structure @ref esKernCntl.
  */
 static PORT_C_INLINE void schedInit(
@@ -178,6 +189,48 @@ static PORT_C_INLINE void schedStartI(
 static void schedSysTmrI(
     void);
 
+/**@} *//*----------------------------------------------------------------*//**
+ * @name        System timer
+ * @{ *//*--------------------------------------------------------------------*/
+
+static void sysTmrTryStartI(
+    portReg_T       state);
+
+static portReg_T sysTmrTryStopI(
+    void);
+
+/**@} *//*----------------------------------------------------------------*//**
+ * @name        System timer kernel thread
+ * @{ *//*--------------------------------------------------------------------*/
+
+/**@brief       Initialization of System Timer Thread
+ */
+static void kSysTmrInit(
+    void);
+
+/**@brief       System timer thread code
+ * @param       arg
+ *              NO ARGUMENTS - thread does not use argument
+ */
+static void kSysTmr(
+    void *          arg);
+
+/**@} *//*----------------------------------------------------------------*//**
+ * @name        Idle kernel thread
+ * @{ *//*--------------------------------------------------------------------*/
+
+/**@brief       Initialization of Idle thread
+ */
+static void kIdleInit(
+    void);
+
+/**@brief       Idle thread code
+ * @param       arg
+ *              NO ARGUMENTS - thread does not use argument
+ */
+static void kIdle(
+    void *          arg);
+
 /**@} *//*--------------------------------------------------------------------*/
 /*=======================================================  LOCAL VARIABLES  ==*/
 
@@ -189,6 +242,10 @@ static esThdQ_T gRdyQueue;
  */
 static uint_fast8_t gLockCnt = 0U;
 
+/**@} *//*----------------------------------------------------------------*//**
+ * @name        System timer kernel thread
+ * @{ *//*--------------------------------------------------------------------*/
+
 /**@brief       System Timer
  */
 static sysTmr_T gSysTmr = {
@@ -196,24 +253,27 @@ static sysTmr_T gSysTmr = {
     SYSTMR_DISABLE
 };
 
-#define KSYSTMR_STACK_SIZE              (40U + PORT_STCK_MINSIZE)
-#define KIDLE_STACK_SIZE                (40U + PORT_STCK_MINSIZE)
-
-void kSysTmrInit(
-    void);
-static void kSysTmr(
-    void *          arg);
+/**@brief       System timer thread Id
+ */
 static esThd_T kSysTmrId;
+
+/**@brief       System timer thread stack
+ */
 static portReg_T kSysTmrStack[KSYSTMR_STACK_SIZE];
 
-static void kIdleInit(
-    void);
+/**@} *//*----------------------------------------------------------------*//**
+ * @name        Idle kernel thread
+ * @{ *//*--------------------------------------------------------------------*/
 
-static void kIdle(
-    void *          arg);
+/**@brief       Idle thread Id
+ */
 static esThd_T kIdleId;
+
+/**@brief       Idle thread stack
+ */
 static portReg_T kIdleStack[KIDLE_STACK_SIZE];
 
+/**@} *//*--------------------------------------------------------------------*/
 /*======================================================  GLOBAL VARIABLES  ==*/
 
 /**@brief       Kernel control initialization
@@ -377,6 +437,103 @@ static void schedSysTmrI(
                 }
             }
         }
+    }
+}
+
+
+/*--  System timer  ----------------------------------------------------------*/
+
+static portReg_T sysTmrTryStopI(
+    void) {
+
+    portReg_T ans;
+
+    if (0U == gSysTmr.cnt) {
+        gSysTmr.state = SYSTMR_DISABLE;
+        PORT_SYSTMR_TERM();
+        ans = 0U;
+    } else {
+        PORT_SYSTMR_RELOAD(1U);
+        ans = 1U;
+    }
+
+    return (ans);
+}
+
+static void sysTmrTryStartI(
+    portReg_T       state) {
+
+    if (0U == state) {
+        PORT_SYSTMR_INIT();
+    } else {
+        PORT_SYSTMR_RELOAD(1U);
+    }
+}
+
+
+/*--  Kernel threads  --------------------------------------------------------*/
+
+static void kSysTmrInit(
+    void) {
+
+    esThdInit(
+        &kSysTmrId,
+        kSysTmr,
+        NULL,
+        kSysTmrStack,
+        sizeof(kSysTmrStack),
+        CFG_SCHED_PRIO_LVL - 1U);
+    kSysTmrId.qCnt = 1U;
+    kSysTmrId.qRld = 1U;
+}
+
+static void kSysTmr(
+    void *          arg) {
+
+    esSysTmr_T      sysTmrCnt;
+
+    (void)arg;
+    PORT_SYSTMR_INIT();
+    gSysTmr.state = SYSTMR_DISABLE;
+    sysTmrCnt = 0U;
+
+    while (TRUE) {
+        esThdWait();
+        ++sysTmrCnt;
+    }
+}
+
+static void kIdleInit(
+    void) {
+
+    esThdInit(
+        &kIdleId,
+        kIdle,
+        NULL,
+        kIdleStack,
+        sizeof(kIdleStack),
+        0U);
+    kIdleId.qCnt = 1U;
+    kIdleId.qRld = 1U;
+}
+
+static void kIdle(
+    void *          arg){
+
+    (void)arg;
+
+    while (TRUE) {
+        PORT_CRITICAL_DECL();
+        portReg_T   tmrState;
+
+        PORT_CRITICAL_ENTER();
+        esKernLockEnterI();
+        tmrState = sysTmrTryStopI();
+        PORT_CRITICAL_EXIT_SLEEP(tmrState);
+        PORT_CRITICAL_ENTER();
+        sysTmrTryStartI(tmrState);
+        esKernLockExitI();
+        PORT_CRITICAL_EXIT();
     }
 }
 
@@ -873,86 +1030,6 @@ void esSysTmrRmI(
     void) {
 
     --gSysTmr.cnt;
-}
-
-
-/*--  Kernel threads  --------------------------------------------------------*/
-
-void kSysTmrInit(
-    void) {
-
-    esThdInit(
-        &kSysTmrId,
-        kSysTmr,
-        NULL,
-        kSysTmrStack,
-        sizeof(kSysTmrStack),
-        CFG_SCHED_PRIO_LVL - 1U);
-    kSysTmrId.qCnt = 1U;
-    kSysTmrId.qRld = 1U;
-}
-
-void kSysTmr(
-    void *          arg) {
-
-    (void)arg;
-    PORT_SYSTMR_INIT();
-    gSysTmr.state = SYSTMR_DISABLE;
-
-    while (TRUE) {
-        esThdWait();
-    }
-}
-
-void kIdleInit(
-    void) {
-
-    esThdInit(
-        &kIdleId,
-        kIdle,
-        NULL,
-        kIdleStack,
-        sizeof(kIdleStack),
-        0U);
-    kIdleId.qCnt = 1U;
-    kIdleId.qRld = 1U;
-}
-
-portReg_T sysTmrTryStopI(
-    void) {
-
-    gSysTmr.state = SYSTMR_DISABLE;
-
-    return (1U);
-}
-
-void sysTmrTryStartI(
-    portReg_T state) {
-
-    if (0U == state) {
-        PORT_SYSTMR_INIT();
-    }
-}
-
-void kIdle(
-    void *          arg){
-
-    (void)arg;
-
-    while (TRUE) {
-        PORT_CRITICAL_DECL();
-        portReg_T   tmrState;
-
-        PORT_CRITICAL_ENTER();
-        esKernLockEnterI();
-        tmrState = sysTmrTryStopI();
-        PORT_CRITICAL_EXIT();
-        PORT_SLEEP(tmrState);
-        PORT_CRITICAL_ENTER();
-        sysTmrTryStartI(tmrState);
-        esKernLockExitI();
-        PORT_CRITICAL_EXIT();
-    }
 }
 
 /*================================*//** @cond *//*==  CONFIGURATION ERRORS  ==*/
