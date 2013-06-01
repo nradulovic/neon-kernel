@@ -315,7 +315,7 @@ static PORT_C_INLINE_ALWAYS uint_fast8_t portFindLastSet_(
 }
 
 void portSysTmrReload_(
-    esSysTmr_T      ticks);
+    esTick_T      ticks);
 
 /**@brief       Disable the system timer interrupt
  * @inline

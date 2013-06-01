@@ -79,8 +79,8 @@
  *              - 1U - 16 bit counter
  *              - 2U - 32 bit counter
  */
-#if !defined(CFG_SYSTMR_COUNTER_TYPE)
-# define CFG_SYSTMR_COUNTER_TYPE        2U
+#if !defined(CFG_SYSTMR_TICK_TYPE)
+# define CFG_SYSTMR_TICK_TYPE        2U
 #endif
 
 /** @} *//*---------------------------------------------------------------*//**
@@ -154,16 +154,16 @@
 # error "eSolid RT Kernel: Configuration option CFG_HOOK_CTX_SW is out of range."
 #endif
 
-#if (0 > CFG_SYSTMR_COUNTER_TYPE) || (2U < CFG_SYSTMR_COUNTER_TYPE)
+#if (0 > CFG_SYSTMR_TICK_TYPE) || (2U < CFG_SYSTMR_TICK_TYPE)
 # error "eSolid RT Kernel: Configuration option CFG_SYSTMR_COUNTER_TYPE is out of range."
 #endif
 
-#if (2U == CFG_SYSTMR_COUNTER_TYPE)
-typedef uint32_t esSysTmr_T;
-#elif (1U == CFG_SYSTMR_COUNTER_TYPE)
-typedef uint16_t esSysTmr_T;
-#elif (0U == CFG_SYSTMR_COUNTER_TYPE)
-typedef uint8_t esSysTmr_T;
+#if (2U == CFG_SYSTMR_TICK_TYPE)
+typedef uint32_t esTick_T;
+#elif (1U == CFG_SYSTMR_TICK_TYPE)
+typedef uint16_t esTick_T;
+#elif (0U == CFG_SYSTMR_TICK_TYPE)
+typedef uint8_t esTick_T;
 #endif
 
 /** @endcond *//** @} *//******************************************************

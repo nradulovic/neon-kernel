@@ -198,7 +198,7 @@ static PORT_C_INLINE void intPrioSet(
 /*====================================  GLOBAL PUBLIC FUNCTION DEFINITIONS  ==*/
 
 void portSysTmrReload_(
-    esSysTmr_T      ticks) {
+    esTick_T      ticks) {
 
     SYST->csr &= ~SYST_CSR_ENABLE_MSK;                                          /* Disable SYST Timer                                       */
     SYST->cvr = SYST->rvr = (PORT_SYSTMR_RELOAD_VAL * ticks) - 1U;

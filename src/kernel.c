@@ -490,7 +490,7 @@ static void kSysTmrInit(
 static void kSysTmr(
     void *          arg) {
 
-    esSysTmr_T      sysTmrCnt;
+    esTick_T      sysTmrCnt;
 
     (void)arg;
     PORT_SYSTMR_INIT();
@@ -915,7 +915,7 @@ void esSchedRdyAddI(
         thd);
 
     if (THDQ_IS_THD_SECOND(thd)) {
-        esSysTmrAddI();
+        sysTmrTAddI();
     }
     nthd = gKernCntl.pthd;
 
@@ -936,7 +936,7 @@ void esSchedRdyRmI(
     ES_API_REQUIRE(&gRdyQueue == thd->thdL.q);
 
     if (THDQ_IS_THD_SECOND(thd)) {
-        esSysTmrRmI();
+        sysTmrTRmI();
     }
     esThdQRmI(
         &gRdyQueue,
@@ -1032,16 +1032,24 @@ void esSysTmrEvaluateI(
     }
 }
 
-void esSysTmrAddI(
+void sysTmrTAddI(
     void) {
 
     ++gSysTmr.cnt;
 }
 
-void esSysTmrRmI(
+void sysTmrTRmI(
     void) {
 
     --gSysTmr.cnt;
+}
+
+
+void esSysTmrAddI(
+    esTick_T        tick,
+    void (* fn)(void *),
+    void *          arg) {
+
 }
 
 /*================================*//** @cond *//*==  CONFIGURATION ERRORS  ==*/

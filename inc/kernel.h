@@ -668,12 +668,12 @@ void esSchedYieldIsrI(
 
 /**@brief       Add a system timer user
  */
-void esSysTmrAddI(
+void sysTmrTAddI(
     void);
 
 /**@brief       Remove a system timer user
  */
-void esSysTmrRmI(
+void sysTmrTRmI(
     void);
 
 /**@brief       Evaluate if the system timer is needed to run
