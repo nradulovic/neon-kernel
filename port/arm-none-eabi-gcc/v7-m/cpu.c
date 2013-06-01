@@ -89,7 +89,7 @@
  * @name        System Timer (SYSTMR)
  * @{ *//*--------------------------------------------------------------------*/
 
-#define SYST                          ((sysTick_T *)CPU_SYST_BASE)            /**< @brief SYSTMR configuration struct                     */
+#define SYST                            ((sysTick_T *)CPU_SYST_BASE)            /**< @brief SYSTMR configuration struct                     */
 
 #define SYST_CSR_COUNTFLAG_POS          16                                      /**< @brief SYSTMR csr: COUNTFLAG Position                  */
 #define SYST_CSR_COUNTFLAG_MSK          (1UL << SYST_CSR_COUNTFLAG_POS)         /**< @brief SYSTMR csr: COUNTFLAG Mask                      */
@@ -179,9 +179,8 @@ static PORT_C_INLINE void intPrioSet(
 static void threadExit(
     void) {
 
-#if (1U == CFG_HOOK_THD_TERM)
-    userThdExit();
-#endif
+    esThdTerm(
+        esThdGetId());
 
     while (TRUE) {
         ;
@@ -228,7 +227,7 @@ void portSysTmrTerm_(
 void portThdStart_(
     void) {
 
-    __asm volatile (
+    __asm__ __volatile__ (
         "   ldr     r0, =%0                                 \n\t"               /* (1)                                                      */
         "   ldr     r0, [r0]                                \n\t"               /* (2)                                                      */
         "   ldr     r0, [r0]                                \n\t"               /* (3)                                                      */
@@ -245,16 +244,16 @@ void portThdStart_(
 }
 
 void * portCtxInit_(
-    void *          stack,
-    size_t          stackSize,
+    void *          stck,
+    size_t          stckSize,
     void (* thread)(void *),
     void *          arg) {
 
     struct portCtx * sp;
 
-    sp = (struct portCtx *)((uint8_t *)stack + stackSize);
+    sp = (struct portCtx *)((uint8_t *)stck + stckSize);
     sp--;
-    sp->xpsr = (portReg_T)PSR_THUMB_STATE_MSK | CPU_PSR_DATA;
+    sp->xpsr = (portReg_T)(PSR_THUMB_STATE_MSK | CPU_PSR_DATA);
     sp->pc = (portReg_T)thread;
     sp->lr = (portReg_T)threadExit;
     sp->r0 = (portReg_T)arg;
@@ -296,7 +295,7 @@ PORT_C_NAKED void portSVC(
     void) {
 
 #if (0 != CFG_CRITICAL_PRIO)
-    __asm volatile (
+    __asm__ __volatile__ (
         "   ldr     r0, =%0                                 \n\t"               /* (1) Load gKernCntl.cthd address                          */
         "   mov     r1, %2                                  \n\t"               /* (2)                                                      */
         "   mrs     r3, basepri                             \n\t"               /* (3)                                                      */
@@ -313,7 +312,7 @@ PORT_C_NAKED void portSVC(
             "i"(EXC_RETURN),
             "i"(CPU_ISR_PRIO));
 #else
-    __asm volatile (
+    __asm__ __volatile__ (
         "   ldr     r0, =%0                                 \n\t"               /* (1) Load gKernCntl.cthd address                          */
         "   cpsid   i                                       \n\t"               /* (2)                                                      */
         "   ldr     r1, [r0]                                \n\t"               /* (5)                                                      */
@@ -343,7 +342,7 @@ PORT_C_NAKED void portPendSV(
     void) {
 
 #if (0 != CFG_CRITICAL_PRIO)
-    __asm volatile (
+    __asm__ __volatile__ (
         "   ldr     r0, =%0                                 \n\t"               /* (1) Get the address of gKernCntl                         */
         "   mov     r1, %3                                  \n\t"               /* (2)                                                      */
         "   mrs     r3, basepri                             \n\t"               /* (3)                                                      */
@@ -365,7 +364,7 @@ PORT_C_NAKED void portPendSV(
             "i"(offsetof(esKernCntl_T, pthd)),
             "i"(CPU_ISR_PRIO));
 #else
-    __asm volatile (
+    __asm__ __volatile__ (
         "   ldr     r0, =%0                                 \n\t"               /* (1) Get the address of gCurrentThd                       */
         "   cpsid   i                                       \n\t"               /* (2)                                                      */
         "   mrs     r1, psp                                 \n\t"               /* (5)                                                      */

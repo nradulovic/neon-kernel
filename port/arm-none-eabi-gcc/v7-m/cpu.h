@@ -55,7 +55,7 @@
  */
 #define PORT_SYSTMR_MAX_VAL             0xFFFFFFUL
 
-/**@brief       Maximum number of ticks the system timer can delay
+/**@brief       Maximum number of ticks the system timer can accept
  */
 #define PORT_SYSTMR_MAX_TICKS           (PORT_SYSTMR_MAX_VAL / PORT_SYSTMR_RELOAD_VAL)
 
@@ -119,6 +119,10 @@
  * @name        Generic port macros
  * @{ *//*--------------------------------------------------------------------*/
 
+#define PORT_STCK_SIZE(size)                                                    \
+    ((((size + PORT_STCK_MINSIZE) + (sizeof(struct portStck) /                  \
+    sizeof(portReg_T))) - 1U) / (sizeof(struct portStck)/sizeof(portReg_T)))
+
 #define PORT_CRITICAL_EXIT_SLEEP(tmrState)                                      \
     PORT_CRITICAL_EXIT()
 
@@ -132,7 +136,7 @@
  * @name        Port specific macros
  * @{ *//*--------------------------------------------------------------------*/
 
-/**@brief       Calculate interrupt priority real value
+/**@brief       Calculate interrupt priority value
  */
 #define CPU_ISR_PRIO                    (CFG_CRITICAL_PRIO << (8 - CPU_ISR_PRIO_BITS))
 
@@ -162,9 +166,15 @@ extern "C" {
 
 typedef uint32_t portReg_T;                                                     /**< @brief General purpose registers are 32bit wide.       */
 
+struct portStck {
+    portReg_T       reg;
+} __attribute__ ((aligned (8)));
+
+typedef struct portStck portStck_T;                                             /**< @brief Stack type                                      */
+
 /**@brief       Structure of the context switch
  * @details     There are 16, 32-bit core (integer) registers visible to the ARM
- *              and Thumb instruction sets. These are labeled r0-r15.
+ *              and Thumb instruction sets.
  */
 struct portCtx {
 /* Registers saved by the context switcher                                    */
@@ -201,7 +211,7 @@ struct portCtx {
 static PORT_C_INLINE_ALWAYS void portIntDisable_(
     void) {
 
-    __asm volatile (
+    __asm__ __volatile__ (
         "   cpsid   i                                       \n\t");
 }
 
@@ -214,12 +224,12 @@ static PORT_C_INLINE_ALWAYS void portIntSet_(
     portReg_T     val) {
 
 #if (0 != CFG_CRITICAL_PRIO)
-    __asm volatile (
+    __asm__ __volatile__ (
         "   msr    basepri, %0                              \n\t"
         :
         : "r"(val));
 #else
-    __asm volatile (
+    __asm__ __volatile__ (
         "   msr    primask, %0                              \n\t"
         :
         : "r"(val));
@@ -239,13 +249,13 @@ static PORT_C_INLINE_ALWAYS portReg_T portIntGetSet_(
     portReg_T         val;
 
     val = CPU_ISR_PRIO;
-    __asm volatile (
+    __asm__ __volatile__ (
         "   mrs     %0, basepri                             \n\t"
         "   msr     basepri, %1                             \n\t"
         : "=r"(result)
         : "r"(val));
 #else
-    __asm volatile (
+    __asm__ __volatile__ (
         "   mrs     %0, primask                             \n\t"
         "   cpsid   i                                       \n\t"
         : "=r"(result));
@@ -296,7 +306,7 @@ static PORT_C_INLINE_ALWAYS uint_fast8_t portFindLastSet_(
 
     uint_fast8_t    clz;
 
-    __asm volatile (
+    __asm__ __volatile__ (
         "   clz    %0, %1                                   \n\t"
         : "=r"(clz)
         : "r"(value));
@@ -331,11 +341,13 @@ static PORT_C_INLINE_ALWAYS void portSysTmrIsrDisable_(
     *csr &= ~(CPU_SYST_CSR_TICKINT_MSK);
 }
 
-/**@brief       Initialize system timer
+/**@brief       Initialize and start the system timer
  */
 void portSysTmrInit_(
     void);
 
+/**@brief       Stop the sistem timer
+ */
 void portSysTmrTerm_(
     void);
 
