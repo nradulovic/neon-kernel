@@ -76,11 +76,11 @@
 
 /**@brief       System Timer kernel thread stack size
  */
-#define KSYSTMR_STACK_SIZE              (40U + PORT_STCK_MINSIZE)
+#define KSYSTMR_STCK_SIZE              PORT_STCK_SIZE(40U)
 
 /**@brief       Idle kernel thread stack size
  */
-#define KIDLE_STACK_SIZE                (40U + PORT_STCK_MINSIZE)
+#define KIDLE_STCK_SIZE                PORT_STCK_SIZE(40U)
 
 /*======================================================  LOCAL DATA TYPES  ==*/
 
@@ -259,7 +259,7 @@ static esThd_T kSysTmrId;
 
 /**@brief       System timer thread stack
  */
-static portReg_T kSysTmrStack[KSYSTMR_STACK_SIZE];
+static portStck_T gKSysTmrStck[KSYSTMR_STCK_SIZE];
 
 /**@} *//*----------------------------------------------------------------*//**
  * @name        Idle kernel thread
@@ -271,7 +271,7 @@ static esThd_T kIdleId;
 
 /**@brief       Idle thread stack
  */
-static portReg_T kIdleStack[KIDLE_STACK_SIZE];
+static portStck_T gKIdleStck[KIDLE_STCK_SIZE];
 
 /**@} *//*--------------------------------------------------------------------*/
 /*======================================================  GLOBAL VARIABLES  ==*/
@@ -480,8 +480,8 @@ static void kSysTmrInit(
         &kSysTmrId,
         kSysTmr,
         NULL,
-        kSysTmrStack,
-        sizeof(kSysTmrStack),
+        gKSysTmrStck,
+        sizeof(gKSysTmrStck),
         CFG_SCHED_PRIO_LVL - 1U);
     kSysTmrId.qCnt = 1U;
     kSysTmrId.qRld = 1U;
@@ -510,8 +510,8 @@ static void kIdleInit(
         &kIdleId,
         kIdle,
         NULL,
-        kIdleStack,
-        sizeof(kIdleStack),
+        gKIdleStck,
+        sizeof(gKIdleStck),
         0U);
     kIdleId.qCnt = 1U;
     kIdleId.qRld = 1U;
@@ -635,7 +635,7 @@ void esThdInit(
     esThd_T *       thd,
     void (* thdf)(void *),
     void *          arg,
-    void *          stck,
+    portStck_T *    stck,
     size_t          stckSize,
     uint8_t         prio) {
 
@@ -645,13 +645,13 @@ void esThdInit(
 	ES_API_REQUIRE(NULL != thd);
 	ES_API_REQUIRE(NULL != thdf);
 	ES_API_REQUIRE(NULL != stck);
-	ES_API_REQUIRE(PORT_STCK_MINSIZE <= stckSize);
+	ES_API_REQUIRE(PORT_STCK_MINSIZE <= (stckSize * sizeof(portReg_T)));
 	ES_API_REQUIRE(CFG_SCHED_PRIO_LVL >= prio);
 
     thd->stck   = PORT_CTX_INIT(stck, stckSize, thdf, arg);                     /* Make a fake stack                                        */
     thd->thdL.q = NULL;                                                         /* This thread is not in any thread queue                   */
-    thd->prio   = prio;                                                         /* Set the prio                                             */
-    thd->cprio  = prio;                                                         /* This is constant prio, it never changes                  */
+    thd->prio   = prio;                                                         /* Set the priority                                         */
+    thd->cprio  = prio;                                                         /* This is constant priority, it never changes              */
     thd->qCnt   = CFG_SCHED_TIME_QUANTUM;
     thd->qRld   = CFG_SCHED_TIME_QUANTUM;
     ES_API_OBLIGATION(thd->signature = THD_CONTRACT_SIGNATURE);                 /* Make thread structure valid                              */

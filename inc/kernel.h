@@ -111,6 +111,14 @@
 # define ES_API_ENSURE(expr)            (void)0
 #endif
 
+/**@} *//*----------------------------------------------------------------*//**
+ * @name        Thread management
+ * @{ *//*--------------------------------------------------------------------*/
+
+/**@brief       Converts the required stack elements into the stack array index
+ */
+#define ES_STCK_SIZE(elem)              PORT_STCK_SIZE(elem)
+
 /**@} *//*----------------------------------------------  C++ extern begin  --*/
 #ifdef __cplusplus
 extern "C" {
@@ -134,7 +142,7 @@ extern "C" {
  * @api
  */
 struct esThd {
-    void *          stck;                                                       /**< @brief Pointer to thread's Top Of Stack                */
+    portStck_T *    stck;                                                       /**< @brief Pointer to thread's Top Of Stack                */
 
 /**@brief       Thread linked List structure
  */
@@ -144,10 +152,12 @@ struct esThd {
         struct esThd *  prev;                                                   /**< @brief Previous thread in linked list                  */
     }               thdL;                                                       /**< @brief Thread linked list                              */
 
-    struct thdTL {
-        struct esThd *  next;
-        struct esThd *  prev;
-    }               thdTL;
+/**@brief       Timer thread linked list structure
+ */
+    struct tmrL {
+        struct esThd *  next;                                                   /**< @brief Next thread in timer linked list                */
+        struct esThd *  prev;                                                   /**< @brief Previous thread in timer linked list            */
+    }               tmrL;                                                       /**< @brief Timer linked List                               */
     uint_fast8_t    prio;                                                       /**< @brief Thread current priority level                   */
     uint_fast8_t    cprio;                                                      /**< @brief Constant Thread Priority level                  */
     uint_fast8_t    qCnt;                                                       /**< @brief Quantum counter                                 */
@@ -160,6 +170,10 @@ struct esThd {
 /**@brief       Thread type
  */
 typedef struct esThd esThd_T;
+
+/**@brief       Stack type
+ */
+typedef portStck_T esStck_T;
 
 /**@} *//*----------------------------------------------------------------*//**
  * @name        Thread Queue management
@@ -237,8 +251,6 @@ struct esKernCntl {
  */
 typedef struct esKernCntl esKernCntl_T;
 
-
-
 /**@} *//*--------------------------------------------------------------------*/
 /*======================================================  GLOBAL VARIABLES  ==*/
 
@@ -250,7 +262,6 @@ typedef struct esKernCntl esKernCntl_T;
  * @note        This variable has Read-Only access rights for application.
  */
 extern const volatile esKernCntl_T gKernCntl;
-
 
 /**@} *//*--------------------------------------------------------------------*/
 /*===================================================  FUNCTION PROTOTYPES  ==*/
@@ -376,7 +387,7 @@ void esKernLockExitI(
  *              is application defined and it is intended to pass arguments to
  *              thread when it is started for the first time.
  * @param       stck
- *              Stack: is a void pointer to a allocated memory for thread stack.
+ *              Stack: is a pointer to a allocated memory for thread stack.
  *              The pointer always points to the first element in the array,
  *              regardless of what type of stack the CPU is using. The thread's
  *              stack is used to store local variables, function parameters,
@@ -414,7 +425,7 @@ void esThdInit(
     esThd_T *       thd,
     void (* thdf)(void *),
     void *          arg,
-    void *          stck,
+    portStck_T *    stck,
     size_t          stckSize,
     uint8_t         prio);
 
