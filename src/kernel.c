@@ -669,13 +669,25 @@ void esThdInit(
 void esThdTerm(
     esThd_T *       thd) {
 
+    PORT_CRITICAL_DECL();
+
     ES_API_REQUIRE(ES_KERN_INACTIVE > gKernCntl.state);
     ES_API_REQUIRE(NULL != thd);
     ES_API_REQUIRE(THD_CONTRACT_SIGNATURE == thd->signature);
+    ES_API_REQUIRE((NULL == thd->thdL.q) || (&gRdyQueue == thd->thdL.q));
 
-    /**
-     * TODO: Evaluate what should this function do.
-     */
+#if (1U == CFG_HOOK_THD_TERM)
+    userThdTerm();
+#endif
+    PORT_CRITICAL_ENTER();
+
+    if (&gRdyQueue == thd->thdL.q) {
+        esSchedRdyRmI(
+            thd);
+    }
+    ES_API_OBLIGATION(thd->signature = 0U);
+    esSchedYieldI();
+    PORT_CRITICAL_EXIT();
 }
 
 void esThdSetPrioI(

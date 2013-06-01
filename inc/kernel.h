@@ -134,9 +134,6 @@ extern "C" {
  * @api
  */
 struct esThd {
-/**@warning     This member must be on the first position within this structure
- *              because it is used by context switching code.
- */
     void *          stck;                                                       /**< @brief Pointer to thread's Top Of Stack                */
 
 /**@brief       Thread linked List structure
@@ -145,7 +142,12 @@ struct esThd {
         struct esThdQ * q;                                                      /**< @brief Indicates which queue is used                   */
         struct esThd *  next;                                                   /**< @brief Next thread in linked list                      */
         struct esThd *  prev;                                                   /**< @brief Previous thread in linked list                  */
-    } thdL;                                                                     /**< @brief Thread linked list                              */
+    }               thdL;                                                       /**< @brief Thread linked list                              */
+
+    struct thdTL {
+        struct esThd *  next;
+        struct esThd *  prev;
+    }               thdTL;
     uint_fast8_t    prio;                                                       /**< @brief Thread current priority level                   */
     uint_fast8_t    cprio;                                                      /**< @brief Constant Thread Priority level                  */
     uint_fast8_t    qCnt;                                                       /**< @brief Quantum counter                                 */
@@ -395,7 +397,7 @@ void esKernLockExitI(
  *              Threads can be created either prior to the start of
  *              multi-threading (before calling esKernStart()), or by a running
  *              thread.
- * @pre         1) <code>The kernel state < ES_KERN_INACTIVE</code>, see
+ * @pre         1) <code>The kernel state ES_KERN_INACTIVE</code>, see
  *                  @ref states.
  * @pre         2) <code>thd != NULL</code>
  * @pre         3) <code>thdf != NULL</code>
@@ -419,11 +421,14 @@ void esThdInit(
 /**@brief       Terminate the specified thread
  * @param       thd
  *              Thread: is a pointer to the thread structure, @ref esThd_T.
- * @pre         1) <code>The kernel state < ES_KERN_INACTIVE</code>, see
+ * @pre         1) <code>The kernel state ES_KERN_INACTIVE</code>, see
  *                  @ref states.
  * @pre         2) <code>thd != NULL</code>
  * @pre         3) <code>thd->signature == THD_CONTRACT_SIGNATURE</code>, the
  *                  pointer must point to a @ref esThd_T structure.
+ * @pre         4) <code>(thd->thdL.q == NULL) OR (thd->thdL.q == gRdyQueue)</code>
+ *              - Thread must be either in Ready Threads Queue or not be in any
+ *              queue (e.g. not waiting on a synchronization mechanism).
  */
 void esThdTerm(
     esThd_T *       thd);
@@ -615,7 +620,7 @@ void esSchedRdyAddI(
  * @pre         2) <code>thd != NULL</code>
  * @pre         3) <code>thd->signature == THD_CONTRACT_SIGNATURE</code>, the
  *                  pointer must point to a @ref esThd_T structure.
- * @pre         4) <code>thd->thdL.q == &gRdyQueue.thdQ</code>, thread MUST BE
+ * @pre         4) <code>thd->thdL.q == &gRdyQueue</code>, thread MUST BE
  *              in Ready Threads queue.
  * @iclass
  */
@@ -627,7 +632,7 @@ void esSchedRdyRmI(
  * @pre         1) <code>The kernel state < ES_KERN_INACTIVE</code>, see
  *                  @ref states.
  * @warning     Scheduler will have undefined behavior if there is no ready
- *              thread to run (e.g. empty @ref sched_rdyThdQ) at the time it is
+ *              thread to run (e.g. empty @ref gRdyQueue) at the time it is
  *              invoked.
  * @iclass
  */
@@ -639,7 +644,7 @@ void esSchedYieldI(
  * @pre         1) <code>The kernel state < ES_KERN_INACTIVE</code>, see
  *                  @ref states.
  * @warning     Scheduler will have undefined behavior if there is no ready
- *              thread to run (e.g. empty @ref sched_rdyThdQ) at the time it is
+ *              thread to run (e.g. empty @ref gRdyQueue) at the time it is
  *              invoked.
  * @iclass
  */
