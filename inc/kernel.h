@@ -152,7 +152,7 @@ struct esThd {
         struct esThd *  prev;                                                   /**< @brief Previous thread in linked list                  */
     }               thdL;                                                       /**< @brief Thread linked list                              */
 
-/**@brief       Timer thread linked list structure
+/**@brief       Timer linked list structure
  */
     struct tmrL {
         struct esThd *  next;                                                   /**< @brief Next thread in timer linked list                */
