@@ -217,11 +217,11 @@ typedef struct esThdQ esThdQ_T;
  * @api
  */
 enum esKernState {
-    ES_KERN_RUN         = 0x00U,                                                /**< Kernel is active, multi-threading available            */
+    ES_KERN_RUN         = 0x00U,                                                /**< Kernel is active                                       */
     ES_KERN_INTSRV_RUN  = 0x01U,                                                /**< Servicing an interrupt  return to ES_KERN_RUN state    */
-    ES_KERN_LOCK        = 0x02U,                                                /**< Kernel is locked, no multi-threading                   */
+    ES_KERN_LOCK        = 0x02U,                                                /**< Kernel is locked                                       */
     ES_KERN_INTSRV_LOCK = 0x03U,                                                /**< Servicing an interrupt, return to ES_KERN_LOCK state   */
-    ES_KERN_INIT        = 0x04U,                                                /**< Kernel is in initialization state, no multi-threading  */
+    ES_KERN_INIT        = 0x04U,                                                /**< Kernel is in initialization state                      */
     ES_KERN_INACTIVE    = 0x05U                                                 /**< Kernel data structures are not initialized             */
 };
 
@@ -392,7 +392,7 @@ void esKernLockExitI(
  *              regardless of what type of stack the CPU is using. The thread's
  *              stack is used to store local variables, function parameters,
  *              return addresses. Each thread has its own stack and different
- *              sized stack.
+ *              sized stack. The stack type must be an array of @ref portStck_T.
  * @param       stckSize
  *              Stack Size: specifies the size of allocated stack memory. Size
  *              is expressed in bytes. Please see port documentation about
