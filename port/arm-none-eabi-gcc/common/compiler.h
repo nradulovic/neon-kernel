@@ -70,6 +70,10 @@
  */
 #define PORT_C_WEAK                     __attribute__((weak))
 
+/**@brief       Declare a function that will never return
+ */
+#define PORT_C_NORETURN                 __attribute__((noreturn))
+
 #define PORT_C_ROM
 
 /**@brief       This attribute specifies a minimum alignment (in bytes) for

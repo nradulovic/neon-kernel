@@ -34,6 +34,7 @@
 #include "compiler.h"
 #include "kernel_cfg.h"
 #include "cpu.h"
+#include "list.h"
 
 /*===============================================================  MACRO's  ==*/
 
@@ -175,6 +176,16 @@ typedef struct esThd esThd_T;
  */
 typedef portStck_T esStck_T;
 
+struct esTmr {
+    struct esTmr *  next;
+    struct esTmr *  prev;
+    esTick_T        rtick;
+    void (* fn)(void *);
+    void *          arg;
+};
+
+typedef struct esTmr esTmr_T;
+
 /**@} *//*----------------------------------------------------------------*//**
  * @name        Thread Queue management
  * @{ *//*--------------------------------------------------------------------*/
@@ -300,7 +311,7 @@ void esKernInit(
  *                  start and this function will never return.
  * @api
  */
-void esKernStart(
+PORT_C_NORETURN void esKernStart(
     void);
 
 /**@brief       Process the system timer event
