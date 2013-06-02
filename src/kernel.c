@@ -100,6 +100,7 @@ enum sysTmrState {
 struct sysTmr {
     uint_fast16_t       cnt;                                                    /**< @brief Number of system timer users.                   */
     enum sysTmrState    state;                                                  /**< @brief System Timer state                              */
+    struct esTmr *      head;
 };
 
 /**@brief       System Timer type
@@ -250,7 +251,8 @@ static uint_fast8_t gLockCnt = 0U;
  */
 static sysTmr_T gSysTmr = {
     0U,
-    SYSTMR_DISABLE
+    SYSTMR_DISABLE,
+    NULL
 };
 
 /**@brief       System timer thread Id
@@ -559,7 +561,7 @@ void esKernInit(
     PORT_INIT();
 }
 
-void esKernStart(
+PORT_C_NORETURN void esKernStart(
     void) {
 
     PORT_CRITICAL_DECL();
@@ -572,9 +574,13 @@ void esKernStart(
 #endif
     PORT_INIT_LATE();
     PORT_CRITICAL_ENTER();
-    schedStartI();                                                                  /* Initialize scheduler data structures for multi-threading */
+    schedStartI();                                                              /* Initialize scheduler data structures for multi-threading */
     PORT_CRITICAL_EXIT();
     PORT_THD_START();                                                           /* Start the first thread                                   */
+
+    while (TRUE) {
+        ;
+    }
 }
 
 void esSysTmrHandlerI(void) {
@@ -802,9 +808,9 @@ void esThdQAddI(
     sentinel = &(thdQ->grp[thd->prio]);
 
     if (NULL == *sentinel) {                                                    /* Is thdL list empty?                                       */
+        *sentinel = thd;                                                        /* This thread becomes first in the list                    */
         thd->thdL.next = thd;
         thd->thdL.prev = thd;
-        *sentinel = thd;                                                        /* This thread becomes first in the list                    */
         prioBMSet(
             &thdQ->prioOcc,
             thd->prio);                                                         /* Mark the priority group as used.                         */
@@ -1044,12 +1050,38 @@ void sysTmrTRmI(
     --gSysTmr.cnt;
 }
 
-
-void esSysTmrAddI(
+void esTmrAddI(
+    esTmr_T *       tmr,
     esTick_T        tick,
     void (* fn)(void *),
     void *          arg) {
 
+    tmr->fn = fn;
+    tmr->arg = arg;
+
+    if (NULL != gSysTmr.head) {
+        tmr->next = tmr;
+        tmr->prev = tmr;
+        tmr->rtick = tick;
+    } else {
+        esTmr_T *   tmp;
+
+        tmp = gSysTmr.head;
+
+        while (tmp->rtick < tick) {
+            tick -= tmp->rtick;
+            tmp = tmp->next;
+        }
+        tmr->rtick = tick;
+        tmr->next = tmp;
+        tmr->prev = tmp->prev;
+        tmr->prev->next = tmr;
+        tmr->next->prev = tmr;
+
+        if (tmp != gSysTmr.head) {
+            tmp->rtick -= tick;
+        }
+    }
 }
 
 /*================================*//** @cond *//*==  CONFIGURATION ERRORS  ==*/
