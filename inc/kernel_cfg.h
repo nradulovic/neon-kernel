@@ -155,7 +155,7 @@
 #endif
 
 #if (0 > CFG_SYSTMR_TICK_TYPE) || (2U < CFG_SYSTMR_TICK_TYPE)
-# error "eSolid RT Kernel: Configuration option CFG_SYSTMR_COUNTER_TYPE is out of range."
+# error "eSolid RT Kernel: Configuration option CFG_SYSTMR_TICK_TYPE is out of range."
 #endif
 
 #if (2U == CFG_SYSTMR_TICK_TYPE)
