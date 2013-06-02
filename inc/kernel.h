@@ -169,7 +169,14 @@ typedef struct esThd esThd_T;
  */
 typedef portStck_T esStck_T;
 
+/**@} *//*----------------------------------------------------------------*//**
+ * @name        Timer services
+ * @{ *//*--------------------------------------------------------------------*/
+
+/**@brief       Timer structure
+ */
 struct esTmr {
+
 /**@brief       Timer linked list structure
  */
     struct tmrL {
@@ -181,6 +188,8 @@ struct esTmr {
     void *          arg;
 };
 
+/**@brief       Timer type
+ */
 typedef struct esTmr esTmr_T;
 
 /**@} *//*----------------------------------------------------------------*//**
@@ -269,7 +278,7 @@ typedef struct esKernCntl esKernCntl_T;
 /**@brief       Kernel control block
  * @note        This variable has Read-Only access rights for application.
  */
-extern const volatile esKernCntl_T gKernCntl;
+extern const volatile esKernCntl_T gKernCtrl;
 
 /**@} *//*--------------------------------------------------------------------*/
 /*===================================================  FUNCTION PROTOTYPES  ==*/
@@ -459,7 +468,7 @@ void esThdTerm(
 static PORT_C_INLINE esThd_T * esThdGetId(
     void) {
 
-    return (gKernCntl.cthd);
+    return (gKernCtrl.cthd);
 }
 
 /**@brief       Get the priority of a thread
@@ -674,23 +683,24 @@ void esSchedYieldIsrI(
  * @name        System timer
  * @{ *//*--------------------------------------------------------------------*/
 
-/**@brief       Add a system timer user
- */
-void sysTmrTAddI(
+void esSysTmrEnable(
     void);
 
-/**@brief       Remove a system timer user
- */
-void sysTmrTRmI(
+void esSysTmrDisable(
     void);
 
-/**@brief       Evaluate if the system timer is needed to run
- * @details     This function will evaluate system timer users counter and if
- *              anyone is registered to use it then timer interrupt will be
- *              enabled.
- */
-void esSysTmrEvaluateI(
-    void);
+/**@} *//*----------------------------------------------------------------*//**
+ * @name        Timer services
+ * @{ *//*--------------------------------------------------------------------*/
+
+void esTmrInit(
+    esTmr_T *       tmr,
+    esTick_T        tick,
+    void (* fn)(void *),
+    void *          arg);
+
+void esTmrAddI(
+    esTmr_T *       tmr);
 
 /**@} *//*----------------------------------------------------------------*//**
  * @name        Kernel hook functions

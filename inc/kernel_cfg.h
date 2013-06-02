@@ -159,11 +159,11 @@
 #endif
 
 #if (2U == CFG_SYSTMR_TICK_TYPE)
-typedef uint32_t esTick_T;
+typedef uint_fast32_t esTick_T;
 #elif (1U == CFG_SYSTMR_TICK_TYPE)
-typedef uint16_t esTick_T;
+typedef uint_fast16_t esTick_T;
 #elif (0U == CFG_SYSTMR_TICK_TYPE)
-typedef uint8_t esTick_T;
+typedef uint_fast8_t esTick_T;
 #endif
 
 /** @endcond *//** @} *//******************************************************
