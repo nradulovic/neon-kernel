@@ -67,12 +67,35 @@
 
 /**@brief       Helper macro: is the thread the only one in the list
  */
-#define THDQ_IS_THD_FIRST(thd)          ((thd) == (thd)->thdL.next)
+#define DLIST_IS_ENTRY_FIRST(list, entry)     ((entry) == (entry)->list.next)
 
 /**@brief       Helper macro: is the thread second one in the list
  */
-#define THDQ_IS_THD_SECOND(thd)                                                 \
-    (((thd)->thdL.next == (thd)->thdL.prev) && ((thd) != (thd)->thdL.next))
+#define DLIST_IS_ENTRY_SECOND(list, entry)                                      \
+    (((entry) != (entry)->list.next) && ((entry)->list.next == (entry)->list.prev))
+
+#define DLIST_ENTRY_GET_NEXT(list, entry)                                       \
+    (entry)->list.next
+
+#define DLIST_ENTRY_INIT(list, entry)\
+    do {                                                                        \
+        (entry)->list.next = (entry);                                           \
+        (entry)->list.prev = (entry);                                           \
+    } while (0U)
+
+#define DLIST_ENTRY_ADD_TAIL(list, sentinel, entry)                             \
+    do {                                                                        \
+        (entry)->list.next = (sentinel);                                        \
+        (entry)->list.prev = (entry)->list.next->list.prev;                     \
+        (entry)->list.next->list.prev = (entry);                                \
+        (entry)->list.prev->list.next = (entry);                                \
+    } while (0U)
+
+#define DLIST_ENTRY_RM(list, entry)                                             \
+    do {                                                                        \
+        (entry)->list.next->list.prev = (entry)->list.prev;                     \
+        (entry)->list.prev->list.next = (entry)->list.next;                     \
+    } while (0U)
 
 /**@brief       System Timer kernel thread stack size
  */
@@ -91,8 +114,8 @@
 /**@brief       System Timer state enumeration
  */
 enum sysTmrState {
-    SYSTMR_ENABLE   = 0x00U,                                                    /**< System Timer is enabled.                               *///!< SYSTMR_ENABLE
-    SYSTMR_DISABLE  = 0x01U                                                     /**< System Timer is disabled.                              *///!< SYSTMR_DISABLE
+    SYSTMR_ENABLE   = 0x00U,                                                    /**< System Timer is enabled.                               */
+    SYSTMR_DISABLE  = 0x01U                                                     /**< System Timer is disabled.                              */
 };
 
 /**@brief       System Timer structure
@@ -423,7 +446,7 @@ static void schedSysTmrI(
 
         cthd = gKernCntl.cthd;                                                  /* Get the current thread                                   */
 
-        if (!THDQ_IS_THD_FIRST(cthd)) {
+        if (!DLIST_IS_ENTRY_FIRST(thdL, cthd)) {
             cthd->qCnt--;                                                       /* Decrement current thread time quantum                    */
 
             if (0U == cthd->qCnt) {
@@ -656,6 +679,7 @@ void esThdInit(
 
     thd->stck   = PORT_CTX_INIT(stck, stckSize, thdf, arg);                     /* Make a fake stack                                        */
     thd->thdL.q = NULL;                                                         /* This thread is not in any thread queue                   */
+    DLIST_ENTRY_INIT(thdL, thd);
     thd->prio   = prio;                                                         /* Set the priority                                         */
     thd->cprio  = prio;                                                         /* This is constant priority, it never changes              */
     thd->qCnt   = CFG_SCHED_TIME_QUANTUM;
@@ -809,16 +833,11 @@ void esThdQAddI(
 
     if (NULL == *sentinel) {                                                    /* Is thdL list empty?                                       */
         *sentinel = thd;                                                        /* This thread becomes first in the list                    */
-        thd->thdL.next = thd;
-        thd->thdL.prev = thd;
         prioBMSet(
             &thdQ->prioOcc,
             thd->prio);                                                         /* Mark the priority group as used.                         */
     } else {                                                                    /* No, thdL list is occupied.                                */
-        thd->thdL.next = *sentinel;
-        thd->thdL.prev = (*sentinel)->thdL.prev;
-        thd->thdL.prev->thdL.next = thd;
-        thd->thdL.next->thdL.prev = thd;
+        DLIST_ENTRY_ADD_TAIL(thdL, *sentinel, thd);
     }
     thd->thdL.q = thdQ;
 }
@@ -838,7 +857,7 @@ void esThdQRmI(
 
     sentinel = &(thdQ->grp[thd->prio]);
 
-    if (THDQ_IS_THD_FIRST(thd)) {                                               /* Is this thread last one in the thdL list?                */
+    if (DLIST_IS_ENTRY_FIRST(thdL, thd)) {                                      /* Is this thread last one in the thdL list?                */
         *sentinel = NULL;                                                       /* Make the list empty.                                     */
         prioBMClear(
             &thdQ->prioOcc,
@@ -846,10 +865,10 @@ void esThdQRmI(
     } else {                                                                    /* This thread is not the last one in the thdL list.        */
 
         if (*sentinel == thd) {                                                 /* In case we are removing thread from the beginning of the */
-            *sentinel = thd->thdL.next;                                         /* list we need to advance sentinel to point to the next one*/
+            *sentinel = DLIST_ENTRY_GET_NEXT(thdL, thd);                        /* list we need to advance sentinel to point to the next one*/
         }                                                                       /* in list.                                                 */
-        thd->thdL.next->thdL.prev = thd->thdL.prev;
-        thd->thdL.prev->thdL.next = thd->thdL.next;
+        DLIST_ENTRY_RM(thdL, thd);
+        DLIST_ENTRY_INIT(thdL, thd);
     }
     thd->thdL.q = NULL;
 }
@@ -881,7 +900,7 @@ esThd_T * esThdQRotateI(
     ES_API_REQUIRE(CFG_SCHED_PRIO_LVL >= prio);
 
     sentinel = &(thdQ->grp[prio]);                                              /* Get the Group Head pointer from thread priority.         */
-    *sentinel = (*sentinel)->thdL.next;
+    *sentinel = DLIST_ENTRY_GET_NEXT(thdL, *sentinel);
 
     return (*sentinel);
 }
@@ -920,7 +939,7 @@ void esSchedRdyAddI(
         &gRdyQueue,
         thd);
 
-    if (THDQ_IS_THD_SECOND(thd)) {
+    if (DLIST_IS_ENTRY_SECOND(thdL, thd)) {
         sysTmrTAddI();
     }
     nthd = gKernCntl.pthd;
@@ -941,7 +960,7 @@ void esSchedRdyRmI(
     ES_API_REQUIRE(THD_CONTRACT_SIGNATURE == thd->signature);
     ES_API_REQUIRE(&gRdyQueue == thd->thdL.q);
 
-    if (THDQ_IS_THD_SECOND(thd)) {
+    if (DLIST_IS_ENTRY_SECOND(thdL, thd)) {
         sysTmrTRmI();
     }
     esThdQRmI(
@@ -1060,8 +1079,7 @@ void esTmrAddI(
     tmr->arg = arg;
 
     if (NULL != gSysTmr.head) {
-        tmr->next = tmr;
-        tmr->prev = tmr;
+        DLIST_ENTRY_INIT(tmrL, tmr);
         tmr->rtick = tick;
     } else {
         esTmr_T *   tmp;
@@ -1070,13 +1088,10 @@ void esTmrAddI(
 
         while (tmp->rtick < tick) {
             tick -= tmp->rtick;
-            tmp = tmp->next;
+            tmp = DLIST_ENTRY_GET_NEXT(tmrL, tmp);
         }
         tmr->rtick = tick;
-        tmr->next = tmp;
-        tmr->prev = tmp->prev;
-        tmr->prev->next = tmr;
-        tmr->next->prev = tmr;
+        DLIST_ENTRY_ADD_TAIL(tmrL, tmp, tmr);
 
         if (tmp != gSysTmr.head) {
             tmp->rtick -= tick;

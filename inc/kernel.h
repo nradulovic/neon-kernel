@@ -152,13 +152,6 @@ struct esThd {
         struct esThd *  next;                                                   /**< @brief Next thread in linked list                      */
         struct esThd *  prev;                                                   /**< @brief Previous thread in linked list                  */
     }               thdL;                                                       /**< @brief Thread linked list                              */
-
-/**@brief       Timer linked list structure
- */
-    struct tmrL {
-        struct esThd *  next;                                                   /**< @brief Next thread in timer linked list                */
-        struct esThd *  prev;                                                   /**< @brief Previous thread in timer linked list            */
-    }               tmrL;                                                       /**< @brief Timer linked List                               */
     uint_fast8_t    prio;                                                       /**< @brief Thread current priority level                   */
     uint_fast8_t    cprio;                                                      /**< @brief Constant Thread Priority level                  */
     uint_fast8_t    qCnt;                                                       /**< @brief Quantum counter                                 */
@@ -177,8 +170,12 @@ typedef struct esThd esThd_T;
 typedef portStck_T esStck_T;
 
 struct esTmr {
-    struct esTmr *  next;
-    struct esTmr *  prev;
+/**@brief       Timer linked list structure
+ */
+    struct tmrL {
+        struct esTmr *  next;                                                   /**< @brief Next thread in timer linked list                */
+        struct esTmr *  prev;                                                   /**< @brief Previous thread in timer linked list            */
+    }               tmrL;                                                       /**< @brief Timer linked List                               */
     esTick_T        rtick;
     void (* fn)(void *);
     void *          arg;
