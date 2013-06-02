@@ -107,13 +107,13 @@
  * @details     Cortex-M3 Processor Exceptions Numbers
  */
 typedef enum irqN {
-    NONMASKABLEINT_IRQN   = -14,                                                /**< @brief 2 Non Maskable Interrupt                        *///!< NONMASKABLEINT_IRQN
-    MEMORYMANAGEMENT_IRQN = -12,                                                /**< @brief 4 Cortex-M3 Memory Management Interrupt         *///!< MEMORYMANAGEMENT_IRQN
-    BUSFAULT_IRQN         = -11,                                                /**< @brief 5 Cortex-M3 Bus Fault Interrupt                 *///!< BUSFAULT_IRQN
-    USAGEFAULT_IRQN       = -10,                                                /**< @brief 6 Cortex-M3 Usage Fault Interrupt               *///!< USAGEFAULT_IRQN
-    SVCALL_IRQN           = -5,                                                 /**< @brief 11 Cortex-M3 SV Call Interrupt                  *///!< SVCALL_IRQN
-    PENDSV_IRQN           = -2,                                                 /**< @brief 14 Cortex-M3 Pend SV Interrupt                  *///!< PENDSV_IRQN
-    SYST_IRQN             = -1                                                  /**< @brief 15 Cortex-M3 System Tick Interrupt              *///!< SYST_IRQN
+    NONMASKABLEINT_IRQN   = -14,                                                /**< @brief 2 Non Maskable Interrupt                        */
+    MEMORYMANAGEMENT_IRQN = -12,                                                /**< @brief 4 Cortex-M3 Memory Management Interrupt         */
+    BUSFAULT_IRQN         = -11,                                                /**< @brief 5 Cortex-M3 Bus Fault Interrupt                 */
+    USAGEFAULT_IRQN       = -10,                                                /**< @brief 6 Cortex-M3 Usage Fault Interrupt               */
+    SVCALL_IRQN           = -5,                                                 /**< @brief 11 Cortex-M3 SV Call Interrupt                  */
+    PENDSV_IRQN           = -2,                                                 /**< @brief 14 Cortex-M3 Pend SV Interrupt                  */
+    SYST_IRQN             = -1                                                  /**< @brief 15 Cortex-M3 System Tick Interrupt              */
 } irqN_T;
 
 /**@brief       Structure type to access the System Control Block (SCB).
