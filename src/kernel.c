@@ -67,14 +67,18 @@
 
 /**@brief       Helper macro: is the thread the only one in the list
  */
-#define DLIST_IS_ENTRY_FIRST(list, entry)     ((entry) == (entry)->list.next)
+#define DLIST_IS_ENTRY_FIRST(list, entry)                                       \
+    ((entry) == (entry)->list.next)
+
+#define DLIST_IS_ENTRY_LAST(list, entry)                                        \
+    DLIST_IS_ENTRY_FIRST(list, entry)
 
 /**@brief       Helper macro: is the thread second one in the list
  */
 #define DLIST_IS_ENTRY_SECOND(list, entry)                                      \
     (((entry) != (entry)->list.next) && ((entry)->list.next == (entry)->list.prev))
 
-#define DLIST_ENTRY_GET_NEXT(list, entry)                                       \
+#define DLIST_ENTRY_NEXT(list, entry)                                           \
     (entry)->list.next
 
 #define DLIST_ENTRY_INIT(list, entry)\
@@ -124,6 +128,7 @@ struct sysTmr {
     uint_fast16_t       cnt;                                                    /**< @brief Number of system timer users.                   */
     enum sysTmrState    state;                                                  /**< @brief System Timer state                              */
     struct esTmr *      head;
+    struct esTmr *      pend;
 };
 
 /**@brief       System Timer type
@@ -205,7 +210,7 @@ static PORT_C_INLINE void schedInit(
  * @details     This function is called just before multi-threading has
  *              commenced.
  */
-static PORT_C_INLINE void schedStartI(
+static PORT_C_INLINE void schedStart(
     void);
 
 /**@brief       Do Round-Robin scheduling
@@ -289,6 +294,7 @@ static esThdQ_T gRdyQueue;
 static sysTmr_T gSysTmr = {
     0U,
     SYSTMR_DISABLE,
+    NULL,
     NULL
 };
 
@@ -443,17 +449,20 @@ static PORT_C_INLINE void schedInit(
     ((volatile esKernCntl_T *)&gKernCtrl)->state = ES_KERN_INIT;
 }
 
-static PORT_C_INLINE void schedStartI(
+static PORT_C_INLINE void schedStart(
     void) {
 
+    PORT_CRITICAL_DECL();
     esThd_T * nthd;
 
+    PORT_CRITICAL_ENTER();
     sysTmrEvaluateI();                                                          /* Check if system timer is needed for Round-Robin          */
     nthd = esThdQFetchFirstI(                                                   /* Get the highest priority thread                          */
             &gRdyQueue);
     ((volatile esKernCntl_T *)&gKernCtrl)->cthd  = nthd;
     ((volatile esKernCntl_T *)&gKernCtrl)->pthd  = nthd;
     ((volatile esKernCntl_T *)&gKernCtrl)->state = ES_KERN_RUN;
+    PORT_CRITICAL_EXIT();
 }
 
 static void schedSysTmrI(
@@ -550,6 +559,41 @@ static void sysTmrEvaluateI(
     }
 }
 
+
+/*--  Timer  -----------------------------------------------------------------*/
+
+static esTmr_T * tmrSort(
+    esTmr_T *       sentinel,
+    esTmr_T *       tmr) {
+    esTmr_T *       tmp;
+    esTick_T        tick;
+
+    tmp = sentinel;
+    tick = tmr->rtick;
+
+    while (tmp->rtick < tick) {
+        tick -= tmp->rtick;
+        tmp = DLIST_ENTRY_NEXT(tmrL, tmp);
+    }
+    tmr->rtick = tick;
+
+    return (tmp);
+}
+
+static void tmrAddToList(esTmr_T ** list, esTmr_T * tmr) {
+
+    if (NULL == list) {
+        *list = tmr;
+    } else {
+        esTmr_T * tmp;
+
+        tmp = tmrSort(*list, tmr);
+        DLIST_ENTRY_ADD_AFTER(tmrL, tmp, tmr);
+        tmp->rtick -= tmr->rtick;
+    }
+}
+
+
 /*--  Kernel threads  --------------------------------------------------------*/
 
 static void kTmrInit(
@@ -577,23 +621,36 @@ static void kTmr(
     sysTmrCnt = 0U;
 
     while (TRUE) {
-        esTmr_T * tmr;
+        esTmr_T * tmp;
 
         esThdWait();
         ++sysTmrCnt;
-        tmr = gSysTmr.head;
+        tmp = gSysTmr.pend;
 
-        if (NULL != tmr) {
-            --tmr->rtick;
+        if (NULL != tmp) {
 
-            while (0U == tmr->rtick) {
-                gSysTmr.head = DLIST_ENTRY_GET_NEXT(tmrL, tmr);
-                DLIST_ENTRY_RM(tmrL, tmr);
-                tmr = gSysTmr.head;
+            do {
+                esTmr_T * tmr;
+
+                tmr = tmp;
+                tmp = DLIST_ENTRY_NEXT(tmrL, tmp);
+                tmrAddToList(&gSysTmr.head, tmr);
+            } while (gSysTmr.pend != tmp);
+            gSysTmr.pend = NULL;
+        }
+        tmp = gSysTmr.head;
+
+        if (NULL != tmp) {
+            --tmp->rtick;
+
+            while (0U == tmp->rtick) {
+                gSysTmr.head = DLIST_ENTRY_NEXT(tmrL, tmp);
+                DLIST_ENTRY_RM(tmrL, tmp);
+                tmp = gSysTmr.head;
                 /*
                  * TODO Still not done
                  */
-                (* tmr->fn)(tmr->arg);
+                (* tmp->fn)(tmp->arg);
             }
         }
     }
@@ -659,8 +716,6 @@ void esKernInit(
 PORT_C_NORETURN void esKernStart(
     void) {
 
-    PORT_CRITICAL_DECL();
-
     ES_API_REQUIRE(ES_KERN_INIT == gKernCtrl.state);
     ES_API_REQUIRE(FALSE == esThdQIsEmpty(&gRdyQueue));
 
@@ -668,9 +723,7 @@ PORT_C_NORETURN void esKernStart(
     userKernStart();
 #endif
     PORT_INIT_LATE();
-    PORT_CRITICAL_ENTER();
-    schedStartI();                                                              /* Initialize scheduler data structures for multi-threading */
-    PORT_CRITICAL_EXIT();
+    schedStart();                                                               /* Initialize scheduler data structures for multi-threading */
     PORT_THD_START();                                                           /* Start the first thread                                   */
 
     while (TRUE) {
@@ -937,7 +990,7 @@ void esThdQRmI(
     } else {                                                                    /* This thread is not the last one in the thdL list.        */
 
         if (*sentinel == thd) {                                                 /* In case we are removing thread from the beginning of the */
-            *sentinel = DLIST_ENTRY_GET_NEXT(thdL, thd);                        /* list we need to advance sentinel to point to the next one*/
+            *sentinel = DLIST_ENTRY_NEXT(thdL, thd);                        /* list we need to advance sentinel to point to the next one*/
         }                                                                       /* in list.                                                 */
         DLIST_ENTRY_RM(thdL, thd);
         DLIST_ENTRY_INIT(thdL, thd);
@@ -972,7 +1025,7 @@ esThd_T * esThdQRotateI(
     ES_API_REQUIRE(CFG_SCHED_PRIO_LVL >= prio);
 
     sentinel = &(thdQ->grp[prio]);                                              /* Get the Group Head pointer from thread priority.         */
-    *sentinel = DLIST_ENTRY_GET_NEXT(thdL, *sentinel);
+    *sentinel = DLIST_ENTRY_NEXT(thdL, *sentinel);
 
     return (*sentinel);
 }
@@ -1130,7 +1183,6 @@ void esSysTmrDisable(
 
 /*--  Timer functions  -------------------------------------------------------*/
 
-
 void esTmrInit(
     esTmr_T *       tmr,
     esTick_T        tick,
@@ -1148,31 +1200,13 @@ void esTmrAddI(
 
     esTmr_T *       tmp;
 
-    tmp = gSysTmr.head;
+    tmp = gSysTmr.pend;
 
-    if (NULL != tmp) {
-        gSysTmr.head = tmr;
+    if (NULL == tmp) {
+        gSysTmr.pend = tmr;
     } else {
-        esTick_T        tick;
-
-        tick = tmr->rtick;
-
-        while (tmp->rtick < tick) {
-            tick -= tmp->rtick;
-            tmp = DLIST_ENTRY_GET_NEXT(tmrL, tmp);
-        }
-        tmr->rtick = tick;
         DLIST_ENTRY_ADD_AFTER(tmrL, tmp, tmr);
-
-        if (tmp != gSysTmr.head) {
-            tmp->rtick -= tick;
-        }
     }
-    /*
-     * TODO: Maybe it is better to let the job of timer sorting to kTmr thread?
-     * In that case then we put the timer in a pending list, and kTmr will sort
-     * them later.
-     */
 }
 
 /*================================*//** @cond *//*==  CONFIGURATION ERRORS  ==*/
