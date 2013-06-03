@@ -700,7 +700,10 @@ void esTmrInit(
     void *          arg);
 
 void esTmrAddI(
-    esTmr_T *       tmr);
+    esTmr_T *       tmr,
+    esTick_T        tick,
+    void (* fn)(void *),
+    void *          arg);
 
 /**@} *//*----------------------------------------------------------------*//**
  * @name        Kernel hook functions
@@ -724,7 +727,7 @@ void esTmrAddI(
  * @note        2) This function is called only if @ref CFG_API_VALIDATION is
  *              active.
  */
-extern void userAssert(
+PORT_C_NORETURN extern void userAssert(
     const char *    funcName,
     const char *    expr);
 

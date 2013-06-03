@@ -78,6 +78,9 @@
 #define DLIST_IS_ENTRY_SECOND(list, entry)                                      \
     (((entry) != (entry)->list.next) && ((entry)->list.next == (entry)->list.prev))
 
+#define DLIST_ENTRY_PREV(list, entry)                                           \
+    (entry)->list.prev
+
 #define DLIST_ENTRY_NEXT(list, entry)                                           \
     (entry)->list.next
 
@@ -125,11 +128,10 @@ enum sysTmrState {
 /**@brief       System Timer structure
  */
 struct sysTmr {
-    uint_fast16_t       sysTmrUsers;                                                  /**< @brief Number of system timer sysTmrUsers.                   */
+    esTick_T            ctick;
+    uint_fast16_t       sysTmrUsers;                                            /**< @brief Number of system timer sysTmrUsers.                   */
     uint_fast16_t       tmrUsers;
     enum sysTmrState    state;                                                  /**< @brief System Timer state                              */
-    struct esTmr *      head;
-    struct esTmr *      pend;
 };
 
 /**@brief       System Timer type
@@ -294,9 +296,34 @@ static esThdQ_T gRdyQueue;
  */
 static sysTmr_T gSysTmr = {
     0U,
-    SYSTMR_DISABLE,
-    NULL,
-    NULL
+    0U,
+    0U,
+    SYSTMR_DISABLE
+};
+
+static esTmr_T gTmrWait = {
+   {    &gTmrWait,
+        &gTmrWait
+   },
+
+#if (0U == CFG_SYSTMR_TICK_TYPE)
+   UINT_FAST8_MAX,
+#elif (1U == CFG_SYSTMR_TICK_TYPE)
+   UINT_FAST16_MAX,
+#else
+   UINT_FAST32_MAX,
+#endif
+   NULL,
+   NULL
+};
+
+static esTmr_T gTmrPend = {
+   {    &gTmrPend,
+        &gTmrPend
+   },
+   0U,
+   NULL,
+   NULL
 };
 
 /**@brief       System timer thread Id
@@ -323,7 +350,7 @@ static portStck_T gKIdleStck[KIDLE_STCK_SIZE];
 
 /**@brief       Kernel Lock Counter
  */
-static uint_fast8_t gKernLockCnt = 0U;
+static uint_fast8_t gKernLockCnt;
 
 /*======================================================  GLOBAL VARIABLES  ==*/
 
@@ -563,13 +590,14 @@ static void sysTmrEvaluateI(
 
 /*--  Timer  -----------------------------------------------------------------*/
 
-static esTmr_T * tmrSort(
-    esTmr_T *       sentinel,
+static void tmrListAddSort(
+    esTmr_T *       list,
     esTmr_T *       tmr) {
-    esTmr_T *       tmp;
-    esTick_T        tick;
 
-    tmp = sentinel;
+    esTmr_T *   tmp;
+    esTick_T    tick;
+
+    tmp = DLIST_ENTRY_NEXT(tmrL, list);
     tick = tmr->rtick;
 
     while (tmp->rtick < tick) {
@@ -577,19 +605,9 @@ static esTmr_T * tmrSort(
         tmp = DLIST_ENTRY_NEXT(tmrL, tmp);
     }
     tmr->rtick = tick;
+    DLIST_ENTRY_ADD_AFTER(tmrL, tmp, tmr);
 
-    return (tmp);
-}
-
-static void tmrAddToList(esTmr_T ** list, esTmr_T * tmr) {
-
-    if (NULL == list) {
-        *list = tmr;
-    } else {
-        esTmr_T * tmp;
-
-        tmp = tmrSort(*list, tmr);
-        DLIST_ENTRY_ADD_AFTER(tmrL, tmp, tmr);
+    if (list != tmp) {
         tmp->rtick -= tmr->rtick;
     }
 }
@@ -614,44 +632,32 @@ static void kTmrInit(
 static void kTmr(
     void *          arg) {
 
-    esTick_T      sysTmrCnt;
-
     (void)arg;
     PORT_SYSTMR_INIT();
-    gSysTmr.state = SYSTMR_DISABLE;
-    sysTmrCnt = 0U;
 
     while (TRUE) {
-        esTmr_T * tmp;
 
         esThdWait();
-        ++sysTmrCnt;
-        tmp = gSysTmr.pend;
+        ++gSysTmr.ctick;
 
-        if (NULL != tmp) {
+        while (!DLIST_IS_ENTRY_LAST(tmrL, &gTmrPend)) {
+            esTmr_T * tmr;
 
-            do {
-                esTmr_T * tmr;
-
-                tmr = tmp;
-                tmp = DLIST_ENTRY_NEXT(tmrL, tmp);
-                tmrAddToList(&gSysTmr.head, tmr);
-            } while (gSysTmr.pend != tmp);
-            gSysTmr.pend = NULL;
+            tmr = DLIST_ENTRY_NEXT(tmrL, &gTmrPend);
+            DLIST_ENTRY_RM(tmrL, tmr);
+            tmrListAddSort(&gTmrWait, tmr);
         }
-        tmp = gSysTmr.head;
 
-        if (NULL != tmp) {
-            --tmp->rtick;
+        if (!DLIST_IS_ENTRY_LAST(tmrL, &gTmrWait)) {
+            esTmr_T * tmr;
 
-            while (0U == tmp->rtick) {
-                gSysTmr.head = DLIST_ENTRY_NEXT(tmrL, tmp);
-                DLIST_ENTRY_RM(tmrL, tmp);
-                tmp = gSysTmr.head;
-                /*
-                 * TODO Still not done
-                 */
-                (* tmp->fn)(tmp->arg);
+            tmr = DLIST_ENTRY_NEXT(tmrL, &gTmrWait);
+            --tmr->rtick;
+
+            while (0U == tmr->rtick) {
+                DLIST_ENTRY_RM(tmrL, tmr);
+                (* tmr->fn)(tmr->arg);
+                tmr = DLIST_ENTRY_NEXT(tmrL, &gTmrWait);
             }
         }
     }
@@ -732,16 +738,23 @@ PORT_C_NORETURN void esKernStart(
     }
 }
 
-void esSysTmrHandlerI(void) {
+void esSysTmrHandlerI(
+    void) {
 
     ES_API_REQUIRE(ES_KERN_INIT > gKernCtrl.state);
 
 #if (1U == CFG_HOOK_SYSTMR_EVENT)
     userSysTmr();
 #endif
-    esSchedRdyAddI(
-        &gKTmrId);
-    schedSysTmrI();
+
+    if (0U != gSysTmr.tmrUsers) {
+        esSchedRdyAddI(
+            &gKTmrId);
+    }
+
+    if (0U != gSysTmr.sysTmrUsers) {
+        schedSysTmrI();
+    }
 }
 
 void esKernLockEnterI(
@@ -1184,30 +1197,16 @@ void esSysTmrDisable(
 
 /*--  Timer functions  -------------------------------------------------------*/
 
-void esTmrInit(
+void esTmrAddI(
     esTmr_T *       tmr,
     esTick_T        tick,
     void (* fn)(void *),
     void *          arg) {
 
-    DLIST_ENTRY_INIT(tmrL, tmr);
     tmr->rtick = tick;
     tmr->fn = fn;
     tmr->arg = arg;
-}
-
-void esTmrAddI(
-    esTmr_T *       tmr) {
-
-    esTmr_T *       tmp;
-
-    tmp = gSysTmr.pend;
-
-    if (NULL == tmp) {
-        gSysTmr.pend = tmr;
-    } else {
-        DLIST_ENTRY_ADD_AFTER(tmrL, tmp, tmr);
-    }
+    DLIST_ENTRY_ADD_AFTER(tmrL, &gTmrPend, tmr);
     ++gSysTmr.tmrUsers;
 }
 
