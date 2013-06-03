@@ -46,12 +46,12 @@
 /**@brief       Kernel state variable bit position which defines if kernel is in
  *              interrupt servicing state
  */
-#define SCHED_STATE_ISR_ACTIVE_MSK              (1U << 0U)
+#define SCHED_STATE_ISR_ACTIVE_MSK      (1U << 0U)
 
 /**@brief       Kernel state variable bit position which defines if the kernel
  *              is locked or not.
  */
-#define SCHED_STATE_LOCK_MASK                   (1U << 1U)
+#define SCHED_STATE_LOCK_MASK           (1U << 1U)
 
 /**@brief       Thread structure signature
  * @details     The signature is used to confirm that a structure passed to a
