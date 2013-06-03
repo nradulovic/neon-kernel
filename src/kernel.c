@@ -125,7 +125,8 @@ enum sysTmrState {
 /**@brief       System Timer structure
  */
 struct sysTmr {
-    uint_fast16_t       cnt;                                                    /**< @brief Number of system timer users.                   */
+    uint_fast16_t       sysTmrUsers;                                                  /**< @brief Number of system timer sysTmrUsers.                   */
+    uint_fast16_t       tmrUsers;
     enum sysTmrState    state;                                                  /**< @brief System Timer state                              */
     struct esTmr *      head;
     struct esTmr *      pend;
@@ -239,7 +240,7 @@ static void sysTmrRmI(
     void);
 
 /**@brief       Evaluate if the system timer is needed to run
- * @details     This function will evaluate system timer users counter and if
+ * @details     This function will evaluate system timer sysTmrUsers counter and if
  *              anyone is registered to use it then timer interrupt will be
  *              enabled.
  */
@@ -501,7 +502,7 @@ static portReg_T sysTmrTrySleepI(
 
     portReg_T ans;
 
-    if (0U == gSysTmr.cnt) {
+    if (0U == gSysTmr.sysTmrUsers) {
         gSysTmr.state = SYSTMR_DISABLE;
         PORT_SYSTMR_TERM();
         ans = 0U;
@@ -526,13 +527,13 @@ static void sysTmrTryWakeUpI(
 static void sysTmrAddI(
     void) {
 
-    ++gSysTmr.cnt;
+    ++gSysTmr.sysTmrUsers;
 }
 
 static void sysTmrRmI(
     void) {
 
-    --gSysTmr.cnt;
+    --gSysTmr.sysTmrUsers;
 }
 
 static void sysTmrEvaluateI(
@@ -541,7 +542,7 @@ static void sysTmrEvaluateI(
     switch (gSysTmr.state) {
         case SYSTMR_DISABLE : {
 
-            if (0U < gSysTmr.cnt) {
+            if (0U < gSysTmr.sysTmrUsers) {
                 gSysTmr.state = SYSTMR_ENABLE;
                 PORT_SYSTMR_ISR_ENABLE();
             }
@@ -550,7 +551,7 @@ static void sysTmrEvaluateI(
 
         case SYSTMR_ENABLE : {
 
-            if (0U == gSysTmr.cnt) {
+            if (0U == gSysTmr.sysTmrUsers) {
                 gSysTmr.state = SYSTMR_DISABLE;
                 PORT_SYSTMR_ISR_DISABLE();
             }
@@ -1207,6 +1208,7 @@ void esTmrAddI(
     } else {
         DLIST_ENTRY_ADD_AFTER(tmrL, tmp, tmr);
     }
+    ++gSysTmr.tmrUsers;
 }
 
 /*================================*//** @cond *//*==  CONFIGURATION ERRORS  ==*/
