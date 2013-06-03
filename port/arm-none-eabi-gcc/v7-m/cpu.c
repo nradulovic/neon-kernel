@@ -224,7 +224,7 @@ void portSysTmrTerm_(
  * - 8      initiate SVC 0 which switches the context to the first thread
  * - 10     infinite loop: will never reach here
  */
-void portThdStart_(
+PORT_C_NORETURN void portThdStart_(
     void) {
 
     __asm__ __volatile__ (
@@ -236,11 +236,13 @@ void portThdStart_(
         "   msr     basepri, r0                             \n\t"               /* (6)                                                      */
         "   cpsie   i                                       \n\t"               /* (7)                                                      */
         "   svc     0                                       \n\t"               /* (8)                                                      */
-        ".INF_LOOP:                                         \n\t"               /* (9)                                                      */
-        "   b      .INF_LOOP                                \n\t"               /* (10)                                                     */
         :
         : "i"(SCB_VTOR)
-        : "sp", "r0");
+        : "sp", "r0", "memory");
+
+    while (TRUE) {
+        ;
+    }
 }
 
 void * portCtxInit_(
@@ -360,8 +362,8 @@ PORT_C_NAKED void portPendSV(
         "   bx      lr                                      \n\t"               /* Return to new thread                                     */
         :
         :   "i"(&gKernCtrl),
-            "i"(offsetof(esKernCntl_T, cthd)),
-            "i"(offsetof(esKernCntl_T, pthd)),
+            "J"(offsetof(esKernCntl_T, cthd)),
+            "J"(offsetof(esKernCntl_T, pthd)),
             "i"(CPU_ISR_PRIO));
 #else
     __asm__ __volatile__ (
@@ -380,8 +382,8 @@ PORT_C_NAKED void portPendSV(
         "   bx      lr                                      \n\t"               /* Return to new thread                                     */
         :
         :   "i"(&gKernCtrl),
-            "i"(offsetof(esKernCntl_T, cthd)),
-            "i"(offsetof(esKernCntl_T, pthd)));
+            "J"(offsetof(esKernCntl_T, cthd)),
+            "J"(offsetof(esKernCntl_T, pthd)));
 #endif
 }
 

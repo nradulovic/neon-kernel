@@ -358,7 +358,7 @@ void portSysTmrTerm_(
  * @warning     This function requires valid Vector Table Offset Register in
  *              System control block.
  */
-void portThdStart_(
+PORT_C_NORETURN void portThdStart_(
     void);
 
 /** @} *//*---------------------------------------------------------------*//**
