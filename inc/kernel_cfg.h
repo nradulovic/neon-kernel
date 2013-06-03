@@ -80,7 +80,7 @@
  *              - 2U - 32 bit counter
  */
 #if !defined(CFG_SYSTMR_TICK_TYPE)
-# define CFG_SYSTMR_TICK_TYPE        2U
+# define CFG_SYSTMR_TICK_TYPE           2U
 #endif
 
 /** @} *//*---------------------------------------------------------------*//**
