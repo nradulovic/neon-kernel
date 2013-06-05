@@ -806,6 +806,13 @@ void esKernIsrEpilogueI(
 
 
 /*--  Thread functions  ------------------------------------------------------*/
+void schedRdyAddInitI(
+    esThd_T *       thd) {
+
+    if (NULL == gKernCtrl->pthd) {
+        ((volatile esKernCntl_T *)&gKernCtrl)->pthd = thd;
+    }
+}
 
 void esThdInit(
     esThd_T *       thd,
@@ -833,6 +840,7 @@ void esThdInit(
     thd->qRld   = CFG_SCHED_TIME_QUANTUM;
     ES_API_OBLIGATION(thd->signature = THD_CONTRACT_SIGNATURE);                 /* Make thread structure valid                              */
     PORT_CRITICAL_ENTER();
+    schedRdyAddInitI(thd);
     esSchedRdyAddI(
         thd);
     esSchedYieldI();
@@ -1075,8 +1083,6 @@ bool_T esThdQIsEmpty(
 void esSchedRdyAddI(
     esThd_T *       thd) {
 
-    esThd_T *       nthd;
-
     ES_API_REQUIRE(ES_KERN_INACTIVE > gKernCtrl.state);
     ES_API_REQUIRE(NULL != thd);
     ES_API_REQUIRE(THD_CONTRACT_SIGNATURE == thd->signature);
@@ -1085,13 +1091,9 @@ void esSchedRdyAddI(
     esThdQAddI(
         &gRdyQueue,
         thd);
-    nthd = gKernCtrl.pthd;
 
-    if (NULL != nthd) {
-
-        if (thd->prio > nthd->prio) {
-            ((volatile esKernCntl_T *)&gKernCtrl)->pthd = thd;
-        }
+    if (thd->prio > gKernCtrl.pthd->prio) {
+        ((volatile esKernCntl_T *)&gKernCtrl)->pthd = thd;
     }
 }
 
