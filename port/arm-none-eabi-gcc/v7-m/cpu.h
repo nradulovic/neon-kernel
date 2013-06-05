@@ -141,18 +141,19 @@
 #define CPU_ISR_PRIO                    (CFG_CRITICAL_PRIO << (8 - CPU_ISR_PRIO_BITS))
 
 #define CPU_SCS_BASE                    (0xE000E000UL)                          /**< @brief System Control Space Base Addr                  */
-
 #define CPU_SCB_BASE                    (CPU_SCS_BASE + 0x0D00UL)               /**< @brief System Control Block Base Addr                  */
-#define CPU_SCB_ICSR_BASE               (CPU_SCB_BASE + 0x04UL)                 /**< @brief Interrupt Control and State Register Base Addr  */
+#define CPU_SCB_ICSR_OFFSET             (0x04UL)                                /**< @brief Interrupt Control and State Register Base Addr  */
+#define CPU_SCB_ICSR                    ((portReg_T *)(CPU_SCB_BASE + CPU_SCB_ICSR_OFFSET))
 #define CPU_SCB_ICSR_PENDSVSET_POS      28                                      /**< @brief SCB icsr: PENDSVSET Position                    */
 #define CPU_SCB_ICSR_PENDSVSET_MSK      (1UL << CPU_SCB_ICSR_PENDSVSET_POS)     /**< @brief SCB icsr: PENDSVSET Mask                        */
+#define CPU_SCB_ICSR_PENDSTCLR_POS      25                                      /**< @brief SCB icsr: PENDSTCLR Position                    */
+#define CPU_SCB_ICSR_PENDSTCLR_MSK      (1UL << CPU_SCB_ICSR_PENDSTCLR_POS)     /**< @brief SCB icsr: PENDSTCLR Mask                        */
 #define CPU_SCB_ICSR_RETTOBASE_POS      11                                      /**< @brief SCB icsr: RETTOBASE Position                    */
 #define CPU_SCB_ICSR_RETTOBASE_MSK      (1UL << CPU_SCB_ICSR_RETTOBASE_POS)     /**< @brief SCB icsr: RETTOBASE Mask                        */
 
 #define CPU_SYST_BASE                   (CPU_SCS_BASE + 0x0010UL)               /**< @brief System Timer Base Addr                          */
 #define CPU_SYST_CSR_OFFSET             (0x0UL)                                 /**< @brief Control and Status Register Base Addr Offset    */
-#define CPU_SYST_RVR_OFFSET             (0x4UL)                                 /**< @brief Reload Value Register Base Addr Offset          */
-#define CPU_SYST_CVR_OFFSET             (0x8UL)                                 /**< @brief Current Value Register Base Addr Offset         */
+#define CPU_SYST_CSR                    ((portReg_T *)(CPU_SYST_BASE + CPU_SYST_CSR_OFFSET))
 
 #define CPU_SYST_CSR_TICKINT_POS        1                                       /**< @brief SYSTMR csr: TICKINT Position                    */
 #define CPU_SYST_CSR_TICKINT_MSK        (1UL << CPU_SYST_CSR_TICKINT_POS)       /**< @brief SYSTMR csr: TICKINT Mask                        */
@@ -273,12 +274,9 @@ static PORT_C_INLINE_ALWAYS portReg_T portIntGetSet_(
 static PORT_C_INLINE_ALWAYS bool_T portIsrIsLast_(
     void) {
 
-    portReg_T *       icsr;
     bool_T          ans;
 
-    icsr = (portReg_T *)CPU_SCB_ICSR_BASE;
-
-    if (0U != (*icsr & CPU_SCB_ICSR_RETTOBASE_MSK)) {
+    if (0U != (*CPU_SCB_ICSR & CPU_SCB_ICSR_RETTOBASE_MSK)) {
         ans = TRUE;
     } else {
         ans = FALSE;
@@ -323,10 +321,7 @@ void portSysTmrReload_(
 static PORT_C_INLINE_ALWAYS void portSysTmrIsrEnable_(
     void) {
 
-    portReg_T * csr;
-
-    csr = (portReg_T *)(CPU_SYST_BASE + CPU_SYST_CSR_OFFSET);
-    *csr |= CPU_SYST_CSR_TICKINT_MSK;
+    *CPU_SYST_CSR |= CPU_SYST_CSR_TICKINT_MSK;
 }
 
 /**@brief       Enable the system timer interrupt
@@ -335,10 +330,8 @@ static PORT_C_INLINE_ALWAYS void portSysTmrIsrEnable_(
 static PORT_C_INLINE_ALWAYS void portSysTmrIsrDisable_(
     void) {
 
-    portReg_T * csr;
-
-    csr = (portReg_T *)(CPU_SYST_BASE + CPU_SYST_CSR_OFFSET);
-    *csr &= ~(CPU_SYST_CSR_TICKINT_MSK);
+    *CPU_SCB_ICSR |= CPU_SCB_ICSR_PENDSTCLR_MSK;
+    *CPU_SYST_CSR &= ~(CPU_SYST_CSR_TICKINT_MSK);
 }
 
 /**@brief       Initialize and start the system timer
@@ -373,10 +366,7 @@ PORT_C_NORETURN void portThdStart_(
 static PORT_C_INLINE_ALWAYS void portCtxSw_(
     void) {
 
-    portReg_T * icsr;
-
-    icsr = (portReg_T *)CPU_SCB_ICSR_BASE;
-    *icsr |= CPU_SCB_ICSR_PENDSVSET_MSK;
+    *CPU_SCB_ICSR |= CPU_SCB_ICSR_PENDSVSET_MSK;
 }
 
 /**@brief       Initializes the thread context

@@ -201,14 +201,16 @@ void portSysTmrReload_(
     esTick_T      ticks) {
 
     SYST->csr &= ~SYST_CSR_ENABLE_MSK;                                          /* Disable SYST Timer                                       */
-    SYST->cvr = SYST->rvr = (PORT_SYSTMR_RELOAD_VAL * ticks) - 1U;
+    SYST->rvr = (PORT_SYSTMR_RELOAD_VAL * ticks) - 1U;
+    SYST->cvr = SYST->rvr;
     SYST->csr |= SYST_CSR_ENABLE_MSK;                                           /* Enable SYST Timer                                        */
 }
 
 void portSysTmrInit_(
     void) {
 
-    SYST->cvr = SYST->rvr = PORT_SYSTMR_RELOAD_VAL - 1U;                        /* set systick reload register                              */
+    SYST->rvr = PORT_SYSTMR_RELOAD_VAL - 1U;                                    /* set systick reload register                              */
+    SYST->cvr = SYST->rvr;
     SYST->csr = SYST_CSR_CLKSOURCE_MSK | SYST_CSR_ENABLE_MSK;                   /* Enable SYST Timer                                        */
 }
 
