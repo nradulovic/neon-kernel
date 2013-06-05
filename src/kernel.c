@@ -246,8 +246,8 @@ static void sysTmrRmI(
  *              anyone is registered to use it then timer interrupt will be
  *              enabled.
  */
-static void sysTmrEvaluateI(
-    void);
+static void schedQmEvaluateI(
+    esThd_T *       thd);
 
 /**@} *//*----------------------------------------------------------------*//**
  * @name        System timer kernel thread
@@ -484,9 +484,10 @@ static PORT_C_INLINE void schedStart(
     esThd_T * nthd;
 
     PORT_CRITICAL_ENTER();
-    sysTmrEvaluateI();                                                          /* Check if system timer is needed for Round-Robin          */
     nthd = esThdQFetchFirstI(                                                   /* Get the highest priority thread                          */
-            &gRdyQueue);
+        &gRdyQueue);
+    schedQmEvaluateI(
+        nthd);
     ((volatile esKernCntl_T *)&gKernCtrl)->cthd  = nthd;
     ((volatile esKernCntl_T *)&gKernCtrl)->pthd  = nthd;
     ((volatile esKernCntl_T *)&gKernCtrl)->state = ES_KERN_RUN;
@@ -563,26 +564,33 @@ static void sysTmrRmI(
     --gSysTmr.sysTmrUsers;
 }
 
-static void sysTmrEvaluateI(
-    void) {
+static void sysTmrQmDisableI (void) {
 
-    switch (gSysTmr.state) {
-        case SYSTMR_DISABLE : {
+}
 
-            if (0U < gSysTmr.sysTmrUsers) {
-                gSysTmr.state = SYSTMR_ENABLE;
-                PORT_SYSTMR_ISR_ENABLE();
-            }
-            break;
+static void sysTmrQmEnableI (void) {
+
+}
+
+static void schedQmEvaluateI(
+    esThd_T *       thd) {
+
+    enum qmState {
+        QM_ENABLE,
+        QM_DISABLE
+    };
+
+    static enum qmState qmState = QM_DISABLE;
+
+    if (DLIST_IS_ENTRY_FIRST(thdL, thd)) {
+        if (QM_ENABLE == qmState) {
+            qmState = QM_DISABLE;
+            sysTmrQmDisableI();
         }
-
-        case SYSTMR_ENABLE : {
-
-            if (0U == gSysTmr.sysTmrUsers) {
-                gSysTmr.state = SYSTMR_DISABLE;
-                PORT_SYSTMR_ISR_DISABLE();
-            }
-            break;
+    } else {
+        if (QM_DISABLE == qmState) {
+            qmState = QM_ENABLE;
+            sysTmrQmEnableI();
         }
     }
 }
@@ -893,7 +901,7 @@ void esThdSetPrioI(
             thd);
 
         if (&gRdyQueue == thd->thdL.q) {
-            ((volatile esKernCntl_T *)&gKernCtrl)->pthd = NULL;
+            ((volatile esKernCntl_T *)&gKernCtrl)->pthd = esThdQFetchFirstI(&gRdyQueue);
         }
     }
 }
@@ -1077,10 +1085,6 @@ void esSchedRdyAddI(
     esThdQAddI(
         &gRdyQueue,
         thd);
-
-    if (DLIST_IS_ENTRY_SECOND(thdL, thd)) {
-        sysTmrAddI();
-    }
     nthd = gKernCtrl.pthd;
 
     if (NULL != nthd) {
@@ -1099,15 +1103,12 @@ void esSchedRdyRmI(
     ES_API_REQUIRE(THD_CONTRACT_SIGNATURE == thd->signature);
     ES_API_REQUIRE(&gRdyQueue == thd->thdL.q);
 
-    if (DLIST_IS_ENTRY_SECOND(thdL, thd)) {
-        sysTmrRmI();
-    }
     esThdQRmI(
         &gRdyQueue,
         thd);
 
     if ((gKernCtrl.cthd == thd) || (gKernCtrl.pthd == thd)) {
-        ((volatile esKernCntl_T *)&gKernCtrl)->pthd = NULL;
+        ((volatile esKernCntl_T *)&gKernCtrl)->pthd = esThdQFetchFirstI(&gRdyQueue);
     }
 }
 
@@ -1121,14 +1122,9 @@ void esSchedYieldI(
 
         newThd = gKernCtrl.pthd;
 
-        if (NULL == newThd) {
-            newThd = esThdQFetchFirstI(
-                &gRdyQueue);
-            ((volatile esKernCntl_T *)&gKernCtrl)->pthd = newThd;
-        }
-
         if (newThd != gKernCtrl.cthd) {
-            sysTmrEvaluateI();
+            schedQmEvaluateI(
+                newThd);
 
 #if (1U == CFG_HOOK_CTX_SW)
             userCtxSw(
@@ -1150,14 +1146,9 @@ void esSchedYieldIsrI(
 
         newThd = gKernCtrl.pthd;
 
-        if (NULL == newThd) {
-            newThd = esThdQFetchFirstI(
-                &gRdyQueue);
-            ((volatile esKernCntl_T *)&gKernCtrl)->pthd = newThd;
-        }
-
         if (newThd != gKernCtrl.cthd) {
-            sysTmrEvaluateI();
+            schedQmEvaluateI(
+                newThd);
 
 #if (1U == CFG_HOOK_CTX_SW)
         userCtxSw(
@@ -1179,7 +1170,6 @@ void esSysTmrEnable(
 
     PORT_CRITICAL_ENTER();
     sysTmrAddI();
-    sysTmrEvaluateI();
     PORT_CRITICAL_EXIT();
 }
 
@@ -1190,7 +1180,6 @@ void esSysTmrDisable(
 
     PORT_CRITICAL_ENTER();
     sysTmrRmI();
-    sysTmrEvaluateI();
     PORT_CRITICAL_EXIT();
 }
 
