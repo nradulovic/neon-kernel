@@ -499,25 +499,18 @@ static void schedSysTmrI(
         esThd_T * cthd;
 
         cthd = gKernCtrl.cthd;                                                  /* Get the current thread                                   */
+        cthd->qCnt--;                                                       /* Decrement current thread time quantum                    */
 
-        /*
-         * TODO: [???] remove this if condition since it was already evaluated in
-         * schedQmEvaluateI()
-         */
-        if (!DLIST_IS_ENTRY_FIRST(thdL, cthd)) {
-            cthd->qCnt--;                                                       /* Decrement current thread time quantum                    */
+        if (0U == cthd->qCnt) {
+            esThd_T * nthd;
 
-            if (0U == cthd->qCnt) {
-                esThd_T * nthd;
+            cthd->qCnt = cthd->qRld;                                        /* Reload thread time quantum                               */
+            nthd = esThdQRotateI(                                           /* Fetch the next thread and rotate this priority group     */
+                &gRdyQueue,
+                cthd->prio);
 
-                cthd->qCnt = cthd->qRld;                                        /* Reload thread time quantum                               */
-                nthd = esThdQRotateI(                                           /* Fetch the next thread and rotate this priority group     */
-                    &gRdyQueue,
-                    cthd->prio);
-
-                if (cthd == gKernCtrl.pthd) {                                   /* If there is no any other thread pending for switching    */
-                    ((volatile esKernCntl_T *)&gKernCtrl)->pthd = nthd;         /* Make the new thread pending                              */
-                }
+            if (cthd == gKernCtrl.pthd) {                                   /* If there is no any other thread pending for switching    */
+                ((volatile esKernCntl_T *)&gKernCtrl)->pthd = nthd;         /* Make the new thread pending                              */
             }
         }
     }
