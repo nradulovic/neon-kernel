@@ -46,12 +46,16 @@
 /**@brief       Kernel state variable bit position which defines if kernel is in
  *              interrupt servicing state
  */
-#define SCHED_STATE_ISR_ACTIVE_MSK      (1U << 0U)
+#define SCHED_STATE_INTSRV_MSK          (1U << 0)
 
 /**@brief       Kernel state variable bit position which defines if the kernel
  *              is locked or not.
  */
-#define SCHED_STATE_LOCK_MASK           (1U << 1U)
+#define SCHED_STATE_LOCK_MSK            (1U << 1)
+
+#define SYSTMR_SCHED_QM_MSK             (1U << 0)
+
+#define SYSTMR_USR_QM_MSK               (1U << 1)
 
 /**@brief       Thread structure signature
  * @details     The signature is used to confirm that a structure passed to a
@@ -72,11 +76,6 @@
 
 #define DLIST_IS_ENTRY_LAST(list, entry)                                        \
     DLIST_IS_ENTRY_FIRST(list, entry)
-
-/**@brief       Helper macro: is the thread second one in the list
- */
-#define DLIST_IS_ENTRY_SECOND(list, entry)                                      \
-    (((entry) != (entry)->list.next) && ((entry)->list.next == (entry)->list.prev))
 
 #define DLIST_ENTRY_PREV(list, entry)                                           \
     (entry)->list.prev
@@ -106,11 +105,11 @@
 
 /**@brief       System Timer kernel thread stack size
  */
-#define KTMR_STCK_SIZE              PORT_STCK_SIZE(40U)
+#define KTMR_STCK_SIZE                  PORT_STCK_SIZE(40U)
 
 /**@brief       Idle kernel thread stack size
  */
-#define KIDLE_STCK_SIZE                PORT_STCK_SIZE(40U)
+#define KIDLE_STCK_SIZE                 PORT_STCK_SIZE(40U)
 
 /*======================================================  LOCAL DATA TYPES  ==*/
 
@@ -118,20 +117,18 @@
  * @name        System Timer
  * @{ *//*--------------------------------------------------------------------*/
 
-/**@brief       System Timer state enumeration
- */
 enum sysTmrState {
-    SYSTMR_ENABLE   = 0x00U,                                                    /**< System Timer is enabled.                               */
-    SYSTMR_DISABLE  = 0x01U                                                     /**< System Timer is disabled.                              */
+    SYSTMR_ACTIVE,
+    SYSTMR_INACTIVE
 };
 
 /**@brief       System Timer structure
  */
 struct sysTmr {
     esTick_T            ctick;
-    uint_fast16_t       sysTmrUsers;                                            /**< @brief Number of system timer sysTmrUsers.                   */
-    uint_fast16_t       tmrUsers;
-    enum sysTmrState    state;                                                  /**< @brief System Timer state                              */
+    uint_fast16_t       tmr;
+    uint_fast8_t        qm;                                                     /**< @brief Number of system timer qm.                   */
+    enum sysTmrState    state;
 };
 
 /**@brief       System Timer type
@@ -216,6 +213,16 @@ static PORT_C_INLINE void schedInit(
 static PORT_C_INLINE void schedStart(
     void);
 
+/**@brief       Initialize scheduler ready structure during the thread add
+ *              operation
+ * @param       thd
+ *              Pointer to the thread currently being initialized.
+ * @details     Function will initialize scheduler structures during the init
+ *              phase of the kernel.
+ */
+static void schedRdyAddInitI(
+    esThd_T *       thd);
+
 /**@brief       Do Round-Robin scheduling
  */
 static void schedSysTmrI(
@@ -225,24 +232,8 @@ static void schedSysTmrI(
  * @name        System timer
  * @{ *//*--------------------------------------------------------------------*/
 
-static void sysTmrTryWakeUpI(
-    portReg_T       state);
-
-static portReg_T sysTmrTrySleepI(
-    void);
-
-/**@brief       Add a system timer user
- */
-static void sysTmrAddI(
-    void);
-
-/**@brief       Remove a system timer user
- */
-static void sysTmrRmI(
-    void);
-
 /**@brief       Evaluate if the system timer is needed to run
- * @details     This function will evaluate system timer sysTmrUsers counter and if
+ * @details     This function will evaluate system timer qm counter and if
  *              anyone is registered to use it then timer interrupt will be
  *              enabled.
  */
@@ -298,7 +289,7 @@ static sysTmr_T gSysTmr = {
     0U,
     0U,
     0U,
-    SYSTMR_DISABLE
+    SYSTMR_INACTIVE
 };
 
 static esTmr_T gTmrWait = {
@@ -472,8 +463,6 @@ static PORT_C_INLINE void schedInit(
 
     esThdQInit(
         &gRdyQueue);                                                            /* Initialize basic thread queue structure                  */
-    ((volatile esKernCntl_T *)&gKernCtrl)->cthd  = NULL;
-    ((volatile esKernCntl_T *)&gKernCtrl)->pthd  = NULL;
     ((volatile esKernCntl_T *)&gKernCtrl)->state = ES_KERN_INIT;
 }
 
@@ -494,6 +483,14 @@ static PORT_C_INLINE void schedStart(
     PORT_CRITICAL_EXIT();
 }
 
+static void schedRdyAddInitI(
+    esThd_T *       thd) {
+
+    if (NULL == gKernCtrl.pthd) {
+        ((volatile esKernCntl_T *)&gKernCtrl)->pthd = thd;
+    }
+}
+
 static void schedSysTmrI(
     void) {
 
@@ -503,6 +500,10 @@ static void schedSysTmrI(
 
         cthd = gKernCtrl.cthd;                                                  /* Get the current thread                                   */
 
+        /*
+         * TODO: [???] remove this if condition since it was already evaluated in
+         * schedQmEvaluateI()
+         */
         if (!DLIST_IS_ENTRY_FIRST(thdL, cthd)) {
             cthd->qCnt--;                                                       /* Decrement current thread time quantum                    */
 
@@ -525,73 +526,51 @@ static void schedSysTmrI(
 
 /*--  System timer  ----------------------------------------------------------*/
 
-static portReg_T sysTmrTrySleepI(
+static void sysTmrTryDeactivate(
     void) {
 
-    portReg_T ans;
+    if (SYSTMR_ACTIVE == gSysTmr.state) {
+        if (0U == (gSysTmr.tmr + gSysTmr.qm)) {
+            gSysTmr.state = SYSTMR_INACTIVE;
 
-    if (0U == gSysTmr.sysTmrUsers) {
-        gSysTmr.state = SYSTMR_DISABLE;
-        PORT_SYSTMR_TERM();
-        ans = 0U;
-    } else {
-        PORT_SYSTMR_RELOAD(1U);
-        ans = 1U;
-    }
-
-    return (ans);
-}
-
-static void sysTmrTryWakeUpI(
-    portReg_T       state) {
-
-    if (0U == state) {
-        PORT_SYSTMR_INIT();
-    } else {
-        PORT_SYSTMR_RELOAD(1U);
+#if (0U == CFG_SCHED_SYSTMR_MODE)
+#elif (1U == CFG_SCHED_SYSTMR_MODE)
+            PORT_SYSTMR_ISR_DISABLE();
+#else
+            /*
+             * TODO: Write adaptive mode
+             */
+#endif
+        }
     }
 }
 
-static void sysTmrAddI(
+static void sysTmrTryActivate(
     void) {
 
-    ++gSysTmr.sysTmrUsers;
-}
+    if (SYSTMR_INACTIVE == gSysTmr.state) {
+        gSysTmr.state = SYSTMR_ACTIVE;
 
-static void sysTmrRmI(
-    void) {
-
-    --gSysTmr.sysTmrUsers;
-}
-
-static void sysTmrQmDisableI (void) {
-
-}
-
-static void sysTmrQmEnableI (void) {
-
+#if (0U == CFG_SCHED_SYSTMR_MODE)
+#elif (1U == CFG_SCHED_SYSTMR_MODE)
+        PORT_SYSTMR_ISR_ENABLE();
+#else
+        /*
+         * TODO: Write adaptive mode
+         */
+#endif
+    }
 }
 
 static void schedQmEvaluateI(
     esThd_T *       thd) {
 
-    enum qmState {
-        QM_ENABLE,
-        QM_DISABLE
-    };
-
-    static enum qmState qmState = QM_DISABLE;
-
     if (DLIST_IS_ENTRY_FIRST(thdL, thd)) {
-        if (QM_ENABLE == qmState) {
-            qmState = QM_DISABLE;
-            sysTmrQmDisableI();
-        }
+        gSysTmr.qm &= ~SYSTMR_SCHED_QM_MSK;
+        sysTmrTryDeactivate();
     } else {
-        if (QM_DISABLE == qmState) {
-            qmState = QM_ENABLE;
-            sysTmrQmEnableI();
-        }
+        sysTmrTryActivate();
+        gSysTmr.qm |= SYSTMR_SCHED_QM_MSK;
     }
 }
 
@@ -696,11 +675,8 @@ static void kIdle(
 
         PORT_CRITICAL_ENTER();
         esKernLockEnterI();
-        tmrState = sysTmrTrySleepI();
-        PORT_CRITICAL_EXIT_SLEEP(tmrState);
+        PORT_CRITICAL_EXIT_SLEEP();
         PORT_CRITICAL_ENTER();
-        sysTmrTryWakeUpI(
-            tmrState);
         esKernLockExitI();
         PORT_CRITICAL_EXIT();
     }
@@ -755,12 +731,12 @@ void esSysTmrHandlerI(
     userSysTmr();
 #endif
 
-    if (0U != gSysTmr.tmrUsers) {
+    if (0U != gSysTmr.tmr) {
         esSchedRdyAddI(
             &gKTmrId);
     }
 
-    if (0U != gSysTmr.sysTmrUsers) {
+    if (SYSTMR_SCHED_QM_MSK == gSysTmr.qm) {
         schedSysTmrI();
     }
 }
@@ -769,7 +745,7 @@ void esKernLockEnterI(
     void) {
 
     if (0U == gKernLockCnt) {
-        ((volatile esKernCntl_T *)&gKernCtrl)->state |= SCHED_STATE_LOCK_MASK;
+        ((volatile esKernCntl_T *)&gKernCtrl)->state |= SCHED_STATE_LOCK_MSK;
     }
     ++gKernLockCnt;
 }
@@ -780,7 +756,7 @@ void esKernLockExitI(
     --gKernLockCnt;
 
     if (0U == gKernLockCnt) {
-        ((volatile esKernCntl_T *)&gKernCtrl)->state &= ~SCHED_STATE_LOCK_MASK;
+        ((volatile esKernCntl_T *)&gKernCtrl)->state &= ~SCHED_STATE_LOCK_MSK;
     }
 }
 
@@ -789,7 +765,7 @@ void esKernIsrPrologueI(
 
     ES_API_REQUIRE(ES_KERN_INIT > gKernCtrl.state);
 
-    ((volatile esKernCntl_T *)&gKernCtrl)->state |= SCHED_STATE_ISR_ACTIVE_MSK;
+    ((volatile esKernCntl_T *)&gKernCtrl)->state |= SCHED_STATE_INTSRV_MSK;
 }
 
 void esKernIsrEpilogueI(
@@ -798,21 +774,13 @@ void esKernIsrEpilogueI(
     ES_API_REQUIRE(ES_KERN_INIT > gKernCtrl.state);
 
     if (TRUE == PORT_ISR_IS_LAST()) {
-        ((volatile esKernCntl_T *)&gKernCtrl)->state &= ~SCHED_STATE_ISR_ACTIVE_MSK;
-
+        ((volatile esKernCntl_T *)&gKernCtrl)->state &= ~SCHED_STATE_INTSRV_MSK;
         esSchedYieldIsrI();
     }
 }
 
 
 /*--  Thread functions  ------------------------------------------------------*/
-void schedRdyAddInitI(
-    esThd_T *       thd) {
-
-    if (NULL == gKernCtrl->pthd) {
-        ((volatile esKernCntl_T *)&gKernCtrl)->pthd = thd;
-    }
-}
 
 void esThdInit(
     esThd_T *       thd,
@@ -840,7 +808,8 @@ void esThdInit(
     thd->qRld   = CFG_SCHED_TIME_QUANTUM;
     ES_API_OBLIGATION(thd->signature = THD_CONTRACT_SIGNATURE);                 /* Make thread structure valid                              */
     PORT_CRITICAL_ENTER();
-    schedRdyAddInitI(thd);
+    schedRdyAddInitI(
+        thd);
     esSchedRdyAddI(
         thd);
     esSchedYieldI();
@@ -953,6 +922,7 @@ void esThdWait(
     PORT_CRITICAL_EXIT();
 }
 
+
 /*--  Thread Queue functions  ------------------------------------------------*/
 
 void esThdQInit(
@@ -1020,7 +990,7 @@ void esThdQRmI(
     } else {                                                                    /* This thread is not the last one in the thdL list.        */
 
         if (*sentinel == thd) {                                                 /* In case we are removing thread from the beginning of the */
-            *sentinel = DLIST_ENTRY_NEXT(thdL, thd);                        /* list we need to advance sentinel to point to the next one*/
+            *sentinel = DLIST_ENTRY_NEXT(thdL, thd);                            /* list we need to advance sentinel to point to the next one*/
         }                                                                       /* in list.                                                 */
         DLIST_ENTRY_RM(thdL, thd);
         DLIST_ENTRY_INIT(thdL, thd);
@@ -1068,11 +1038,7 @@ bool_T esThdQIsEmpty(
     ES_API_REQUIRE(NULL != thdQ);
     ES_API_REQUIRE(THDQ_CONTRACT_SIGNATURE == thdQ->signature);
 
-    if (TRUE == prioBMIsEmpty(&thdQ->prioOcc)) {
-        ans = TRUE;
-    } else {
-        ans = FALSE;
-    }
+    ans = prioBMIsEmpty(&thdQ->prioOcc);
 
     return (ans);
 }
@@ -1171,7 +1137,8 @@ void esSysTmrEnable(
     PORT_CRITICAL_DECL();
 
     PORT_CRITICAL_ENTER();
-    sysTmrAddI();
+    sysTmrTryActivate();
+    gSysTmr.qm |= SYSTMR_USR_QM_MSK;
     PORT_CRITICAL_EXIT();
 }
 
@@ -1181,7 +1148,8 @@ void esSysTmrDisable(
     PORT_CRITICAL_DECL();
 
     PORT_CRITICAL_ENTER();
-    sysTmrRmI();
+    gSysTmr.qm &= ~SYSTMR_USR_QM_MSK;
+    sysTmrTryDeactivate();
     PORT_CRITICAL_EXIT();
 }
 
@@ -1198,7 +1166,8 @@ void esTmrAddI(
     tmr->fn = fn;
     tmr->arg = arg;
     DLIST_ENTRY_ADD_AFTER(tmrL, &gTmrPend, tmr);
-    ++gSysTmr.tmrUsers;
+    sysTmrTryActivate();
+    ++gSysTmr.tmr;
 }
 
 /*================================*//** @cond *//*==  CONFIGURATION ERRORS  ==*/
