@@ -683,9 +683,18 @@ void esSchedYieldIsrI(
  * @name        System timer
  * @{ *//*--------------------------------------------------------------------*/
 
+/**@brief       Enable system timer tick events
+ * @details     This function will override scheduler power savings algorithm
+ *              and force the system timer into running (active) state.
+ */
 void esSysTmrEnable(
     void);
 
+/**@brief       Disable system timer tick events
+ * @details     This function will try to switch off the system timer. If the
+ *              system timer is used by scheduler than the scheduler will take
+ *              control of the system timer.
+ */
 void esSysTmrDisable(
     void);
 
