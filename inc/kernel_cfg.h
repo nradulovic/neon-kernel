@@ -64,6 +64,16 @@
 # define CFG_SCHED_TIME_QUANTUM         10U
 #endif
 
+/**@brief       Scheduler system timer mode
+ * @details     Possible values are:
+ *              - 0U - fixed mode
+ *              - 1U - inhibited mode
+ *              - 2U - adaptive mode
+ */
+#if !defined(CFG_SCHED_SYSTMR_MODE)
+# define CFG_SCHED_SYSTMR_MODE          1U
+#endif
+
 /**@brief       The frequency of system tick event
  * @note        This setting is valid only if configuration option
  *              @ref CFG_SYSTMR_CLOCK_FREQUENCY is properly set in port
