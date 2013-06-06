@@ -123,7 +123,7 @@
     ((((size + PORT_STCK_MINSIZE) + (sizeof(struct portStck) /                  \
     sizeof(portReg_T))) - 1U) / (sizeof(struct portStck)/sizeof(portReg_T)))
 
-#define PORT_CRITICAL_EXIT_SLEEP(tmrState)                                      \
+#define PORT_CRITICAL_EXIT_SLEEP()                                              \
     PORT_CRITICAL_EXIT()
 
 #define PORT_INIT_EARLY()               (void)0                                 /**< @brief This port does not need this function call      */
