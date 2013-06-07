@@ -98,6 +98,10 @@
 
 #define PORT_SYSTMR_RELOAD(ticks)       portSysTmrReload_(ticks)
 
+#define PORT_SYSTMR_ENABLE()            portSysTmrEnable_()
+
+#define PORT_SYSTMR_DISABLE()           portSysTmrTerm_()
+
 #define PORT_SYSTMR_ISR_ENABLE()        portSysTmrIsrEnable_()
 
 #define PORT_SYSTMR_ISR_DISABLE()       portSysTmrIsrDisable_()
@@ -106,8 +110,8 @@
  * @name        Dispatcher context switching
  * @{ *//*--------------------------------------------------------------------*/
 
-#define PORT_CTX_INIT(stack, stackSize, thread, arg)                            \
-    portCtxInit_(stack, stackSize, thread, arg)
+#define PORT_CTX_INIT(stck, stckSize, thread, arg)                              \
+    portCtxInit_(stck, stckSize, thread, arg)
 
 #define PORT_CTX_SW()                   portCtxSw_()
 
@@ -126,9 +130,9 @@
 #define PORT_CRITICAL_EXIT_SLEEP()                                              \
     PORT_CRITICAL_EXIT()
 
-#define PORT_INIT_EARLY()               (void)0                                 /**< @brief This port does not need this function call      */
+#define PORT_INIT_EARLY()               portInitEarly_()                        /**< @brief This port does not need this function call      */
 
-#define PORT_INIT()                     portInit_()
+#define PORT_INIT()                     (void)0
 
 #define PORT_INIT_LATE()                (void)0                                 /**< @brief This port does not need this function call      */
 
@@ -309,11 +313,14 @@ static PORT_C_INLINE_ALWAYS uint_fast8_t portFindLastSet_(
         : "=r"(clz)
         : "r"(value));
 
-    return (31UL - clz);
+    return (31U - clz);
 }
 
 void portSysTmrReload_(
     esTick_T      ticks);
+
+void portSysTmrEnable_(
+    void);
 
 /**@brief       Disable the system timer interrupt
  * @inline
@@ -331,7 +338,7 @@ static PORT_C_INLINE_ALWAYS void portSysTmrIsrDisable_(
     void) {
 
     *CPU_SCB_ICSR |= CPU_SCB_ICSR_PENDSTCLR_MSK;
-    *CPU_SYST_CSR &= ~(CPU_SYST_CSR_TICKINT_MSK);
+    *CPU_SYST_CSR &= ~CPU_SYST_CSR_TICKINT_MSK;
 }
 
 /**@brief       Initialize and start the system timer
@@ -347,9 +354,11 @@ void portSysTmrTerm_(
 /**@brief       Start the first thread
  * @details     This function will set the main stack register to point at the
  *              beginning of stack disregarding all previous stack information
- *              after which it will call service to start the first thread.
+ *              after which it will call system service to start the first
+ *              thread.
  * @warning     This function requires valid Vector Table Offset Register in
- *              System control block.
+ *              System control block. Vector Table Offset Register is used to
+ *              extract the beginning of main stack.
  */
 PORT_C_NORETURN void portThdStart_(
     void);
@@ -400,7 +409,7 @@ void * portCtxInit_(
  * @details     Function will set up sub-priority bits to zero and handlers
  *              interrupt priority.
  */
-void portInit_(
+void portInitEarly_(
     void);
 
 /** @} *//*---------------------------------------------------------------*//**

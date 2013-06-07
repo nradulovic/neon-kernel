@@ -197,6 +197,27 @@ static PORT_C_INLINE void intPrioSet(
 /*===================================  GLOBAL PRIVATE FUNCTION DEFINITIONS  ==*/
 /*====================================  GLOBAL PUBLIC FUNCTION DEFINITIONS  ==*/
 
+void portSysTmrInit_(
+    void) {
+
+    SYST->csr &= ~SYST_CSR_ENABLE_MSK;                                          /* Disable SYST Timer                                       */
+    SYST->rvr = PORT_SYSTMR_RELOAD_VAL - 1U;                                    /* set systick reload register                              */
+    SYST->cvr = SYST->rvr;
+    SYST->csr = SYST_CSR_CLKSOURCE_MSK;                                         /* SysTick uses the processor clock.                        */
+}
+
+void portSysTmrTerm_(
+    void) {
+
+    SYST->csr &= ~SYST_CSR_ENABLE_MSK;                                          /* Disable SYST Timer                                       */
+}
+
+void portSysTmrEnable_(
+    void) {
+
+    SYST->csr |= SYST_CSR_ENABLE_MSK;                                           /* Enable SYST Timer                                        */
+}
+
 void portSysTmrReload_(
     esTick_T      ticks) {
 
@@ -204,20 +225,6 @@ void portSysTmrReload_(
     SYST->rvr = (PORT_SYSTMR_RELOAD_VAL * ticks) - 1U;
     SYST->cvr = SYST->rvr;
     SYST->csr |= SYST_CSR_ENABLE_MSK;                                           /* Enable SYST Timer                                        */
-}
-
-void portSysTmrInit_(
-    void) {
-
-    SYST->rvr = PORT_SYSTMR_RELOAD_VAL - 1U;                                    /* set systick reload register                              */
-    SYST->cvr = SYST->rvr;
-    SYST->csr = SYST_CSR_CLKSOURCE_MSK | SYST_CSR_ENABLE_MSK;                   /* Enable SYST Timer                                        */
-}
-
-void portSysTmrTerm_(
-    void) {
-
-    SYST->csr &= ~SYST_CSR_ENABLE_MSK;                                          /* Disable SYST Timer if it was enabled                     */
 }
 
 /*
@@ -265,7 +272,7 @@ void * portCtxInit_(
     return (sp);
 }
 
-void portInit_(
+void portInitEarly_(
     void) {
 
     PORT_HWREG_SET(
@@ -273,7 +280,6 @@ void portInit_(
         SCB_AIRCR_VECTKEY_MSK | SCB_AIRCR_PRIGROUP_MSK,
         (SCB_AIRCR_VECTKEY << SCB_AIRCR_VECTKEY_POS) |
            (CPU_SCB_AIRCR_PRIGROUP << SCB_AIRCR_PRIGROUP_POS));                 /* Setup priority subgroup to zero bits                     */
-    portSysTmrTerm_();
     intPrioSet(
         PENDSV_IRQN,
         CFG_CRITICAL_PRIO);
@@ -364,8 +370,8 @@ PORT_C_NAKED void portPendSV(
         "   bx      lr                                      \n\t"               /* Return to new thread                                     */
         :
         :   "i"(&gKernCtrl),
-            "J"(offsetof(esKernCntl_T, cthd)),
-            "J"(offsetof(esKernCntl_T, pthd)),
+            "J"(offsetof(esKernCtrl_T, cthd)),
+            "J"(offsetof(esKernCtrl_T, pthd)),
             "i"(CPU_ISR_PRIO));
 #else
     __asm__ __volatile__ (
@@ -384,8 +390,8 @@ PORT_C_NAKED void portPendSV(
         "   bx      lr                                      \n\t"               /* Return to new thread                                     */
         :
         :   "i"(&gKernCtrl),
-            "J"(offsetof(esKernCntl_T, cthd)),
-            "J"(offsetof(esKernCntl_T, pthd)));
+            "J"(offsetof(esKernCtrl_T, cthd)),
+            "J"(offsetof(esKernCtrl_T, pthd)));
 #endif
 }
 
