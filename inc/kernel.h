@@ -258,7 +258,7 @@ typedef enum esKernState esKernState_T;
  *              capability.
  * @api
  */
-struct esKernCntl {
+struct esKernCtrl {
     struct esThd *      cthd;                                                   /**< @brief Pointer to the Current Thread                   */
     struct esThd *      pthd;                                                   /**< @brief Pointer to the Pending Thread to be switched    */
     enum esKernState    state;                                                  /**< @brief State of kernel                                 */
@@ -266,7 +266,7 @@ struct esKernCntl {
 
 /**@brief       Kernel control block type
  */
-typedef struct esKernCntl esKernCntl_T;
+typedef struct esKernCtrl esKernCtrl_T;
 
 /**@} *//*--------------------------------------------------------------------*/
 /*======================================================  GLOBAL VARIABLES  ==*/
@@ -278,7 +278,7 @@ typedef struct esKernCntl esKernCntl_T;
 /**@brief       Kernel control block
  * @note        This variable has Read-Only access rights for application.
  */
-extern const volatile esKernCntl_T gKernCtrl;
+extern const volatile esKernCtrl_T gKernCtrl;
 
 /**@} *//*--------------------------------------------------------------------*/
 /*===================================================  FUNCTION PROTOTYPES  ==*/
