@@ -38,7 +38,7 @@
 
 portReg_T gPortIsrNesting_;
 
-const PORT_C_ROM portReg_T pwr2LKP [PORT_DATA_WIDTH] = {
+const PORT_C_ROM portReg_T pwr2LKP [PORT_DATA_WIDTH_VAL] = {
     (1U <<  0), (1U <<  1), (1U <<  2), (1U <<  3),
     (1U <<  4), (1U <<  5), (1U <<  6), (1U <<  7),
 #if (8U < PORT_DATA_WIDTH)
@@ -57,23 +57,6 @@ const PORT_C_ROM portReg_T pwr2LKP [PORT_DATA_WIDTH] = {
 /*===================================  GLOBAL PRIVATE FUNCTION DEFINITIONS  ==*/
 /*====================================  GLOBAL PUBLIC FUNCTION DEFINITIONS  ==*/
 
-portReg_T portIntGet_(
-    void) {
-
-    return (0U);
-}
-
-void portIntDisable_(
-    void) {
-
-}
-
-void portIntSet_(
-    portReg_T       status) {
-
-    (void)status;
-}
-
 /*
  * This is a generic implementation of FLS algorthm and it should work on every
  * port available.
@@ -86,7 +69,7 @@ uint_fast8_t portFindLastSet_(
 
     rtn = 0U;
 
-#if (32U == PORT_DATA_WIDTH)
+#if (32U == PORT_DATA_WIDTH_VAL)
     tmp = val >> 16;
 
     if (0U != tmp) {
@@ -95,7 +78,7 @@ uint_fast8_t portFindLastSet_(
     }
 #endif
 
-#if (16U <= PORT_DATA_WIDTH)
+#if (16U <= PORT_DATA_WIDTH_VAL)
     tmp = val >> 8;
 
     if (0U != tmp) {
@@ -125,26 +108,6 @@ uint_fast8_t portFindLastSet_(
     return (rtn);
 }
 
-void portSysTmrInit_(
-    void) {
-
-}
-
-void portSysTmrEnable_(
-    void) {
-
-}
-
-void portSysTmrDisable_(
-    void) {
-
-}
-
-void portThdStart_(
-    void) {
-
-}
-
 void * portCtxInit_(
     void *          stck,
     size_t          stckSize,
@@ -157,31 +120,6 @@ void * portCtxInit_(
     (void)arg;
 
     return (NULL);
-}
-
-void portCtxSw_(
-    void) {
-
-}
-
-void portCtxSwIsr_(
-    void) {
-
-}
-
-void portInitEarly_(
-    void) {
-
-}
-
-void portInit_(
-    void) {
-
-}
-
-void portInitLate_(
-    void) {
-
 }
 
 /*================================*//** @cond *//*==  CONFIGURATION ERRORS  ==*/

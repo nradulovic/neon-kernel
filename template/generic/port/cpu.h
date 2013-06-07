@@ -72,13 +72,31 @@
 
 /**@brief       This macro specifies the bit width of CPU data registers
  */
-#define PORT_DATA_WIDTH                 8U
+#define PORT_DATA_WIDTH_VAL             8U
 
 /**@brief       This macro specifies the minimal size of the thread stack
  * @details     Generally minimal stack size is equal to the size of context
  *              structure
  */
-#define PORT_STCK_MINSIZE               sizeof(struct portCtx)
+#define PORT_STCK_MINSIZE_VAL           sizeof(struct portCtx)
+
+/**@brief       System timer reload value for one tick
+ * @details     This is a calculated value for one system tick period
+ */
+#define PORT_SYSTMR_RELOAD_VAL                                                  \
+    (CFG_SYSTMR_CLOCK_FREQUENCY / CFG_SYSTMR_EVENT_FREQUENCY)
+
+/**@brief       System timer maximum value
+ * @details     This macro specifies maximum value that can be reloaded into
+ *              system timer counter. For example, if the system timer is a
+ *              8-bit counter than this macro would have the value of 0xFFU.
+ */
+#define PORT_SYSTMR_MAX_VAL             0xFFU
+
+/**@brief       Maximum number of ticks the system timer can accept
+ */
+#define PORT_SYSTMR_MAX_TICKS_VAL                                               \
+    (PORT_SYSTMR_MAX_VAL / PORT_SYSTMR_RELOAD_VAL)
 
 /** @} *//*---------------------------------------------------------------*//**
  * @name        Interrupt management
@@ -92,15 +110,29 @@
  */
 #define PORT_INT_DISABLE()              portIntDisable_()
 
-/**@brief       Enter ISR. Increment isrNesting variable to keep track of ISR
- *              nesting.
+/**@brief       Enter ISR. Increment gPortIsrNesting_ variable to keep track of
+ *              ISR nesting.
+ * @details     Variable gPortIsrNesting_ is needed only if the port does not
+ *              support any other method of detecting when the last ISR is
+ *              executing.
  */
-#define PORT_ISR_ENTER()                gPortIsrNesting_++
+#define PORT_ISR_ENTER()                                                        \
+    do {                                                                        \
+        gPortIsrNesting_++;                                                     \
+        esKernIsrPrologueI();                                                   \
+    } while (0U)
 
-/**@brief       Exit ISR. Decrement isrNesting variable to keep track of ISR
- *              nesting.
+/**@brief       Exit ISR. Decrement gPortIsrNesting_ variable to keep track of
+ *              ISR nesting.
+ * @details     Variable gPortIsrNesting_ is needed only if the port does not
+ *              support any other method of detecting when the last ISR is
+ *              executing.
  */
-#define PORT_ISR_EXIT()                 gPortIsrNesting_--
+#define PORT_ISR_EXIT()                                                         \
+    do {                                                                        \
+        gPortIsrNesting_--;                                                     \
+        esKernIsrEpilogueI();                                                   \
+    } while (0U)
 
 /**@brief       If isrNesting variable is zero then the last ISR is executing
  *              and scheduler should be invoked
@@ -123,6 +155,7 @@
  * @{ *//*--------------------------------------------------------------------*/
 
 /**@brief       Declare the interrupt status variable
+ * @details     This variable is used to store the current state of enabled ISRs.
  */
 #define PORT_CRITICAL_DECL()            portReg_T intStatus_
 
@@ -152,41 +185,72 @@
 #define PORT_FIND_LAST_SET(val)         portFindLastSet_(val)
 
 /**@brief       Helper macro: calculate 2^pwr expression
+ * @details     Some ports may want to use look up tables instead of shifting
+ *              operation
  */
 #define PORT_PWR2(pwr)                  (1U << (pwr))
 
-/**@brief       Initialize systick timer and associated interrupt
+/**@brief       Initialize system timer and associated interrupt
+ * @details     This macro will only initialize system timer and associated
+ *              interrupt. It MUST NOT start the system timer in this stage.
+ *              Responsibility:
+ *              - initialize system timer
+ *              - initialize system timer interrupt
  */
 #define PORT_SYSTMR_INIT()              portSysTmrInit_()
 
-/**@brief       Enable the systick interrupt
- * @note        In some cases this macro will also see if kernel is running
- *              before actually enabling the systick
+/**@brief       Stop the timer if it is running and disable associated interrupt.
+ * @details     Responsibility:
+ *              - disable system timer interrupt
+ *              - stop and disable system timer
+ */
+#define PORT_SYSTMR_TERM()              portSysTmrTerm_()
+
+/**@brief       Reload the system timer with specified number of ticks
+ * @details     Responsibility:
+ *              - calculate the reload value based on PORT_SYSTMR_RELOAD_VAL
+ *              - reload the system timer
+ */
+#define PORT_SYSTMR_RELOAD(ticks)       portSysTmrReload_(ticks)
+
+/**@brief       Enable the system timer
+ * @details     Responsibility:
+ *              - enable (run) the system timer counter
  */
 #define PORT_SYSTMR_ENABLE()            portSysTmrEnable_()
 
-/**@brief       Disable the systick interrupt
+/**@brief       Disable the system timer
+ * @details     Responsibility:
+ *              - disable (stop) the system timer counter
  */
 #define PORT_SYSTMR_DISABLE()           portSysTmrDisable_()
+
+/**@brief       Enable the system timer interrupt
+ * @details     Responsibility:
+ *              - allow system timer interrupt to occur
+ */
+#define PORT_SYSTMR_ISR_ENABLE()        portSysTmrIsrEnable_()
+
+/**@brief       Disable the system timer interrupt
+ * @details     Responsibility:
+ *              - disallow system timer interrupt to occur
+ */
+#define PORT_SYSTMR_ISR_DISABLE()       portSysTmrIsrDisable_()
 
 /** @} *//*---------------------------------------------------------------*//**
  * @name        Dispatcher context switching
  * @{ *//*--------------------------------------------------------------------*/
 
 /**@brief       Initialize the thread context
- *
  * @param       [inout] stck
  *              Pointer to the allocated thread stck. The pointer points to the
  *              beginning of the memory as defined per C language. It's up to
  *              port function to adjust the pointer according to the stck type:
  *              full descending or full ascending one.
- *
  * @param       stackSize
  *              The size of allocated stck in bytes.
- *
  * @param       [in] thread
  *              Pointer to the thread function.
- *
  * @param       [in] arg
  *              Argument that will be passed to thread function at the starting
  *              of execution.
@@ -195,11 +259,11 @@
 #define PORT_CTX_INIT(stck, stackSize, thread, arg)                             \
     portCtxInit_(stck, stackSize, thread, arg)
 
-/**@brief       Do the context switch - invoked from API
+/**@brief       Do the context switch - invoked from API level
  */
 #define PORT_CTX_SW()                   portCtxSw_()
 
-/**@brief       Do the context switch - invoked from ISR
+/**@brief       Do the context switch - invoked from ISR level
  */
 #define PORT_CTX_SW_ISR()               portCtxSwIsr_()
 
@@ -210,6 +274,22 @@
 /** @} *//*---------------------------------------------------------------*//**
  * @name        General port macros
  * @{ *//*--------------------------------------------------------------------*/
+
+/**@brief       Calculate the stack size
+ * @details     This macro is used when specifying the size of thread stack.
+ *              Responsibility:
+ *              - add to @p size the minimal stack size specified by
+ *              @ref PORT_STCK_MINSIZE_VAL.
+ *              - if it is needed by the port make sure the alignment is correct.
+ */
+#define PORT_STCK_SIZE(size)                                                    \
+    ((((size + PORT_STCK_MINSIZE_VAL) + (sizeof(struct portStck) /                  \
+    sizeof(portReg_T))) - 1U) / (sizeof(struct portStck)/sizeof(portReg_T)))
+
+/**@brief       TODO
+ */
+#define PORT_CRITICAL_EXIT_SLEEP()                                              \
+    PORT_CRITICAL_EXIT()
 
 /**@brief       Early port initialization
  * @details     This macro will be called at early initialization stage from
@@ -243,6 +323,15 @@ extern "C" {
  */
 typedef uint8_t portReg_T;
 
+/**@brief       Stack structure used for stack declaration in order to force the
+ *              alignment
+ */
+struct portStck {
+    portReg_T       reg;
+} __attribute__ ((aligned (1)));
+
+typedef struct portStck portStck_T;                                             /**< @brief Stack type                                      */
+
 /**@brief       Port context structure
  */
 struct portCtx {
@@ -267,7 +356,7 @@ extern portReg_T gPortIsrNesting_;
  *              implementation from: <code>(1U << (pwr))</code> to
  *              <code>pwr2LKP[pwr]</code>
  */
-extern const PORT_C_ROM portReg_T pwr2LKP [PORT_DATA_WIDTH];
+extern const PORT_C_ROM portReg_T pwr2LKP [PORT_DATA_WIDTH_VAL];
 
 /*===================================================  FUNCTION PROTOTYPES  ==*/
 
@@ -275,15 +364,15 @@ extern const PORT_C_ROM portReg_T pwr2LKP [PORT_DATA_WIDTH];
  * @name        Interrupt management
  * @{ *//*--------------------------------------------------------------------*/
 
+/**@brief       Disable interrupts
+ */
+void portIntDisable_(
+    void);
+
 /**@brief       Get the current status of enabled/disabled interrupts
  * @return      Interrupt status
  */
 portReg_T portIntGet_(
-    void);
-
-/**@brief       Disable interrupts
- */
-void portIntDisable_(
     void);
 
 /**@brief       Set the status of interrupts according to the @c status argument
@@ -326,14 +415,36 @@ uint_fast8_t portFindLastSet_(
 void portSysTmrInit_(
     void);
 
-/**@brief       Enable the systick interrupt
+/**@brief       Stop the sistem timer
+ */
+void portSysTmrTerm_(
+    void);
+
+/**@brief       Reload the system timer
+ * @param       ticks
+ *              How much ticks is needed to delay
+ */
+void portSysTmrReload_(
+    esTick_T      ticks);
+
+/**@brief       Enable the system timer
  */
 void portSysTmrEnable_(
     void);
 
-/**@brief       Disable the systick interrupt
+/**@brief       Disable the system timer
  */
 void portSysTmrDisable_(
+    void);
+
+/**@brief       Disable the system timer interrupt
+ */
+void portSysTmrIsrEnable_(
+    void);
+
+/**@brief       Enable the system timer interrupt
+ */
+void portSysTmrIsrDisable_(
     void);
 
 /**@brief       Start the first thread
