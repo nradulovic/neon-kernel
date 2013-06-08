@@ -16,6 +16,7 @@ and it can be viewed as a preemptive Round-Robin scheduler, only.
 
 - Integrate a profiling system (memory/stack usage, cpu usage...)
 - Time delay/management
+- test, test, test...
 
 
 # Using eSolid Real-Time Kernel
@@ -48,8 +49,9 @@ The following include paths are needed:
 
 ### Documentation
 
-Doxygen configuration and source files are available in `/doc` directory. Go to
-that directory and run doxygen:
+Some documentation is available under Wiki https://github.com/nradulovic/esolid-kernel/wiki. 
+Doxygen configuration and full documentation source files are available in `/doc` directory. 
+Go to the directory and run doxygen:
 
     # doxygen doxyfile-kernel
     # doxygen doxyfile-kernel-port
