@@ -326,7 +326,7 @@ PORT_C_NORETURN void esKernStart(
  *                  @ref states.
  * @notapi
  */
-void esSysTmrHandlerI(
+void esKernSysTmrI(
     void);
 
 /**@brief       Enter Interrupt Service Routine
@@ -601,7 +601,7 @@ void esThdQRmI(
  *                  pointer must point to a @ref esThdQ_T structure.
  * @iclass
  */
-esThd_T * esThdQFetchFirstI(
+esThd_T * esThdQFetchI(
     const esThdQ_T *    thdQ);
 
 /**@brief       Fetch the next thread and rotate linked list
@@ -617,7 +617,7 @@ esThd_T * esThdQFetchFirstI(
  * @pre         3) <code>0 <= prio <= CFG_SCHED_PRIO_LVL</code>, see
  *                  @ref CFG_SCHED_PRIO_LVL.
  */
-esThd_T * esThdQRotateI(
+esThd_T * esThdQFetchRotateI(
     esThdQ_T *      thdQ,
     uint_fast8_t    prio);
 

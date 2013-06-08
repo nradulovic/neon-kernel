@@ -394,7 +394,7 @@ void portSysTmr(
     void) {
 
     PORT_ISR_ENTER();
-    esSysTmrHandlerI();
+    esKernSysTmrI();
     PORT_ISR_EXIT();
 }
 

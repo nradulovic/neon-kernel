@@ -36,12 +36,12 @@
  *              <code>log2(PORT_DATA_WIDTH_VAL)</code>
  */
 #define PRIO_BM_DATA_WIDTH_LOG2                                                 \
-    (PORT_DATA_WIDTH_VAL <   2 ? 0 :                                                \
-     (PORT_DATA_WIDTH_VAL <   4 ? 1 :                                               \
-      (PORT_DATA_WIDTH_VAL <   8 ? 2 :                                              \
-       (PORT_DATA_WIDTH_VAL <  16 ? 3 :                                             \
-        (PORT_DATA_WIDTH_VAL <  32 ? 4 :                                            \
-         (PORT_DATA_WIDTH_VAL <  64 ? 5 :                                           \
+    (PORT_DATA_WIDTH_VAL <   2 ? 0 :                                            \
+     (PORT_DATA_WIDTH_VAL <   4 ? 1 :                                           \
+      (PORT_DATA_WIDTH_VAL <   8 ? 2 :                                          \
+       (PORT_DATA_WIDTH_VAL <  16 ? 3 :                                         \
+        (PORT_DATA_WIDTH_VAL <  32 ? 4 :                                        \
+         (PORT_DATA_WIDTH_VAL <  64 ? 5 :                                       \
           (PORT_DATA_WIDTH_VAL < 128 ? 6 : 7)))))))
 
 /**@brief       Kernel state variable bit position which defines if kernel is in
@@ -265,14 +265,14 @@ static void schedQmI(
 /**@brief       Activate system timer Quantum mode
  */
 #if (1U == SCHED_POWER_SAVE) || defined(__DOXYGEN__)
-static void schedQmActivate(
+static PORT_C_INLINE void schedQmActivate(
     void);
 #endif
 
 /**@brief       Deactivate system timer Quantum mode
  */
 #if (1U == SCHED_POWER_SAVE) || defined(__DOXYGEN__)
-static void schedQmDeactivate(
+static PORT_C_INLINE void schedQmDeactivate(
     void);
 #endif
 
@@ -551,7 +551,7 @@ static PORT_C_INLINE void schedStart(
     esThd_T * nthd;
 
     PORT_CRITICAL_ENTER();
-    nthd = esThdQFetchFirstI(                                                   /* Get the highest priority thread                          */
+    nthd = esThdQFetchI(                                                   /* Get the highest priority thread                          */
         &gRdyQueue);
 
 #if (1U == SCHED_POWER_SAVE)
@@ -587,7 +587,7 @@ static void schedQmI(
                 esThd_T * nthd;
 
                 cthd->qCnt = cthd->qRld;                                        /* Reload thread time quantum                               */
-                nthd = esThdQRotateI(                                           /* Fetch the next thread and rotate this priority group     */
+                nthd = esThdQFetchRotateI(                                           /* Fetch the next thread and rotate this priority group     */
                     &gRdyQueue,
                     cthd->prio);
 
@@ -600,7 +600,7 @@ static void schedQmI(
 }
 
 #if (1U == SCHED_POWER_SAVE) || defined(__DOXYGEN__)
-static void schedQmActivate(
+static PORT_C_INLINE void schedQmActivate(
     void) {
     sysTmrTryActivate();
     gSysTmr.qm |= SYSTMR_SCHED_QM_MSK;
@@ -608,7 +608,7 @@ static void schedQmActivate(
 #endif
 
 #if (1U == SCHED_POWER_SAVE) || defined(__DOXYGEN__)
-static void schedQmDeactivate(
+static PORT_C_INLINE void schedQmDeactivate(
     void) {
     gSysTmr.qm &= ~SYSTMR_SCHED_QM_MSK;
     sysTmrTryDeactivate();
@@ -811,6 +811,9 @@ void esKernInit(
     PORT_INIT();
 }
 
+/* 1)       Since this function will never return it is marked with `noreturn`
+ *          attribute to allow compiler optimizations.
+ */
 PORT_C_NORETURN void esKernStart(
     void) {
 
@@ -829,7 +832,7 @@ PORT_C_NORETURN void esKernStart(
     }
 }
 
-void esSysTmrHandlerI(
+void esKernSysTmrI(
     void) {
 
 #if (1U == CFG_HOOK_SYSTMR_EVENT)
@@ -906,20 +909,20 @@ void esThdInit(
     ES_API_REQUIRE(PORT_STCK_MINSIZE_VAL <= (stckSize * sizeof(portReg_T)));
     ES_API_REQUIRE(CFG_SCHED_PRIO_LVL >= prio);
 
-    thd->stck   = PORT_CTX_INIT(stck, stckSize, thdf, arg);                     /* Make a fake stack                                        */
-    thd->thdL.q = NULL;                                                         /* This thread is not in any thread queue                   */
+    thd->stck   = PORT_CTX_INIT(stck, stckSize, thdf, arg);                     /* Make a fake thread stack.                                */
+    thd->thdL.q = NULL;                                                         /* This thread is not in any thread queue.                  */
     DLIST_ENTRY_INIT(thdL, thd);
-    thd->prio   = prio;                                                         /* Set the priority                                         */
-    thd->cprio  = prio;                                                         /* This is constant priority, it never changes              */
+    thd->prio   = prio;                                                         /* Set the priority.                                        */
+    thd->cprio  = prio;                                                         /* This is constant priority, it never changes.             */
     thd->qCnt   = CFG_SCHED_TIME_QUANTUM;
     thd->qRld   = CFG_SCHED_TIME_QUANTUM;
-    ES_API_OBLIGATION(thd->signature = THD_CONTRACT_SIGNATURE);                 /* Make thread structure valid                              */
+    ES_API_OBLIGATION(thd->signature = THD_CONTRACT_SIGNATURE);                 /* Make thread structure valid.                             */
     PORT_CRITICAL_ENTER();
     schedRdyAddInitI(
-        thd);
+        thd);                                                                   /* Initialize thread before adding it to Ready Thread queue.*/
     esSchedRdyAddI(
-        thd);
-    esSchedYieldI();
+        thd);                                                                   /* Add the thread to Ready Thread queue.                    */
+    esSchedYieldI();                                                            /* Invoke the scheduler.                                    */
     PORT_CRITICAL_EXIT();
 
 #if (1U == CFG_HOOK_THD_INIT_END)
@@ -946,7 +949,7 @@ void esThdTerm(
         esSchedRdyRmI(
             thd);
     }
-    ES_API_OBLIGATION(thd->signature = 0U);
+    ES_API_OBLIGATION(thd->signature = 0U);                                     /* Mark the thread ID structure as invalid.                 */
     esSchedYieldI();
     PORT_CRITICAL_EXIT();
 }
@@ -985,21 +988,29 @@ void esThdSetPrioI(
             thd);
 
         if (&gRdyQueue == thd->thdL.q) {
-            ((volatile esKernCtrl_T *)&gKernCtrl)->pthd = esThdQFetchFirstI(&gRdyQueue);
+            ((volatile esKernCtrl_T *)&gKernCtrl)->pthd = esThdQFetchI(
+                &gRdyQueue);
         }
     }
 }
 
+/* 1)       Since this function can be called multiple times with the same
+ *          thread then it needs to check if the thread is not already in a
+ *          queue.
+ */
 void esThdPostI(
     esThd_T *       thd) {
 
     if (NULL == thd->thdL.q) {
         esSchedRdyAddI(
             thd);
+        esSchedYieldI();
     }
-    esSchedYieldI();
+
 }
 
+/* 1)       See notes for esThdPostI()
+ */
 void esThdPost(
     esThd_T *       thd) {
 
@@ -1061,17 +1072,17 @@ void esThdQAddI(
     ES_API_REQUIRE(NULL == thd->thdL.q);
     ES_API_REQUIRE(CFG_SCHED_PRIO_LVL >= thd->prio);
 
-    sentinel = &(thdQ->grp[thd->prio]);
+    sentinel = &(thdQ->grp[thd->prio]);                                         /* Get the sentinel from thread priority level.             */
 
     if (NULL == *sentinel) {                                                    /* Is thdL list empty?                                      */
-        *sentinel = thd;                                                        /* This thread becomes first in the list                    */
+        *sentinel = thd;                                                        /* This thread becomes first in the list.                   */
         prioBMSet(
             &thdQ->prioOcc,
             thd->prio);                                                         /* Mark the priority group as used.                         */
-    } else {                                                                    /* No, thdL list is occupied.                               */
-        DLIST_ENTRY_ADD_AFTER(thdL, *sentinel, thd);
+    } else {
+        DLIST_ENTRY_ADD_AFTER(thdL, *sentinel, thd);                            /* Thread is added at the tail of the list.                 */
     }
-    thd->thdL.q = thdQ;
+    thd->thdL.q = thdQ;                                                         /* Set the pointer to the thread queue being used.          */
 }
 
 void esThdQRmI(
@@ -1087,7 +1098,7 @@ void esThdQRmI(
     ES_API_REQUIRE(thdQ == thd->thdL.q);
     ES_API_REQUIRE(CFG_SCHED_PRIO_LVL >= thd->prio);
 
-    sentinel = &(thdQ->grp[thd->prio]);
+    sentinel = &(thdQ->grp[thd->prio]);                                         /* Get the sentinel from thread priority level.             */
 
     if (DLIST_IS_ENTRY_FIRST(thdL, thd)) {                                      /* Is this thread last one in the thdL list?                */
         *sentinel = NULL;                                                       /* Make the list empty.                                     */
@@ -1098,14 +1109,14 @@ void esThdQRmI(
 
         if (*sentinel == thd) {                                                 /* In case we are removing thread from the beginning of the */
             *sentinel = DLIST_ENTRY_NEXT(thdL, thd);                            /* list we need to advance sentinel to point to the next one*/
-        }                                                                       /* in list.                                                 */
+        }                                                                       /* in the list.                                             */
         DLIST_ENTRY_RM(thdL, thd);
         DLIST_ENTRY_INIT(thdL, thd);
     }
     thd->thdL.q = NULL;
 }
 
-esThd_T * esThdQFetchFirstI(
+esThd_T * esThdQFetchI(
     const esThdQ_T *    thdQ) {
 
     esThd_T **      sentinel;
@@ -1121,7 +1132,7 @@ esThd_T * esThdQFetchFirstI(
     return (*sentinel);
 }
 
-esThd_T * esThdQRotateI(
+esThd_T * esThdQFetchRotateI(
     esThdQ_T *      thdQ,
     uint_fast8_t    prio) {
 
@@ -1145,7 +1156,8 @@ bool_T esThdQIsEmpty(
     ES_API_REQUIRE(NULL != thdQ);
     ES_API_REQUIRE(THDQ_CONTRACT_SIGNATURE == thdQ->signature);
 
-    ans = prioBMIsEmpty(&thdQ->prioOcc);
+    ans = prioBMIsEmpty(
+        &thdQ->prioOcc);
 
     return (ans);
 }
@@ -1170,6 +1182,9 @@ void esSchedRdyAddI(
     }
 }
 
+/* 1)       If this function is removing current thread or pending thread then
+ *          the scheduler will be invoked to get new highest priority thread.
+ */
 void esSchedRdyRmI(
     esThd_T *       thd) {
 
@@ -1183,10 +1198,15 @@ void esSchedRdyRmI(
         thd);
 
     if ((gKernCtrl.cthd == thd) || (gKernCtrl.pthd == thd)) {
-        ((volatile esKernCtrl_T *)&gKernCtrl)->pthd = esThdQFetchFirstI(&gRdyQueue);
+        ((volatile esKernCtrl_T *)&gKernCtrl)->pthd = esThdQFetchI(
+            &gRdyQueue);
     }
 }
 
+/* 1)       The scheduler must always evaluate Qm regardless of the need to do
+ *          context switching. Therefore schedQmEvaluateI() must be called
+ *          before condition: `(newThd != gKernCtrl.cthd)`.
+ */
 void esSchedYieldI(
     void) {
 
@@ -1202,8 +1222,8 @@ void esSchedYieldI(
             newThd);
 #endif
 
-        if (newThd != gKernCtrl.cthd) {
-
+        if (newThd != gKernCtrl.cthd) {                                         /* Context switching is needed only when cthd and nthd are  */
+                                                                                /* different.                                               */
 #if (1U == CFG_HOOK_CTX_SW)
             userCtxSw(
                 gKernCtrl.cthd,
@@ -1214,6 +1234,10 @@ void esSchedYieldI(
     }
 }
 
+/* 1)       See notes for esSchedYieldI()
+ * 2)       This function is identical to esSchedYieldI() except it calls
+ *          context switching macro for ISR.
+ */
 void esSchedYieldIsrI(
     void) {
 
