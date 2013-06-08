@@ -256,8 +256,8 @@ digraph state {
     INTSRV_RUN -> RUN [fontname=Helvetica, style=dotted,label=" Reti "];
     LOCK -> INTSRV_LOCK [fontname=Helvetica, style=dotted, label=" Int "];
     INTSRV_LOCK -> LOCK [fontname=Helvetica, style=dotted, label=" Reti "];
-    INTSRV_LOCK -> INTSRV_RUN [fontname=courier, label=" esKernLockIsrExit() "];
-    INTSRV_RUN -> INTSRV_LOCK [fontname=courier, label=" esKernLockIsrEnter() "];
+    INTSRV_LOCK -> INTSRV_RUN [fontname=courier, label=" esKernLockExit() "];
+    INTSRV_RUN -> INTSRV_LOCK [fontname=courier, label=" esKernLockEnter() "];
     INTSRV_RUN [label="INTSRV\nRUN\n- 1 -"];
     INTSRV_LOCK [label="INTSRV\nLOCK\n- 3 -"];
     INACTIVE [style="bold", label="INACTIVE\n- 5 -"];
