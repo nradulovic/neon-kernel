@@ -32,16 +32,17 @@
 
 /*=========================================================  LOCAL MACRO's  ==*/
 
-/**@brief       Priority Bit Map log base 2: <code>log2(PORT_DATA_WIDTH)</code>
+/**@brief       Priority Bit Map log base 2:
+ *              <code>log2(PORT_DATA_WIDTH_VAL)</code>
  */
 #define PRIO_BM_DATA_WIDTH_LOG2                                                 \
-    (PORT_DATA_WIDTH <   2 ? 0 :                                                \
-     (PORT_DATA_WIDTH <   4 ? 1 :                                               \
-      (PORT_DATA_WIDTH <   8 ? 2 :                                              \
-       (PORT_DATA_WIDTH <  16 ? 3 :                                             \
-        (PORT_DATA_WIDTH <  32 ? 4 :                                            \
-         (PORT_DATA_WIDTH <  64 ? 5 :                                           \
-          (PORT_DATA_WIDTH < 128 ? 6 : 7)))))))
+    (PORT_DATA_WIDTH_VAL <   2 ? 0 :                                                \
+     (PORT_DATA_WIDTH_VAL <   4 ? 1 :                                               \
+      (PORT_DATA_WIDTH_VAL <   8 ? 2 :                                              \
+       (PORT_DATA_WIDTH_VAL <  16 ? 3 :                                             \
+        (PORT_DATA_WIDTH_VAL <  32 ? 4 :                                            \
+         (PORT_DATA_WIDTH_VAL <  64 ? 5 :                                           \
+          (PORT_DATA_WIDTH_VAL < 128 ? 6 : 7)))))))
 
 /**@brief       Kernel state variable bit position which defines if kernel is in
  *              interrupt servicing state
@@ -53,13 +54,17 @@
  */
 #define SCHED_STATE_LOCK_MSK            (1U << 1)
 
+/**@brief       Scheduler is using system timer Quantum mask
+ */
 #define SYSTMR_SCHED_QM_MSK             (1U << 0)
 
+/**@brief       User is using system timer Quantum mask
+ */
 #define SYSTMR_USR_QM_MSK               (1U << 1)
 
 /**@brief       Enable/disable scheduler power savings mode
  */
-#if (0U == CFG_SYSTMR_MODE)
+#if (0U == CFG_SYSTMR_MODE) || defined(__DOXYGEN__)
 # define SCHED_POWER_SAVE               0U
 #else
 # define SCHED_POWER_SAVE               1U
@@ -77,29 +82,41 @@
  */
 #define THDQ_CONTRACT_SIGNATURE         ((portReg_T)0xFEEDBEEEU)
 
-/**@brief       Helper macro: is the thread the only one in the list
+/**@brief       DList macro: is the thread the first one in the list
  */
 #define DLIST_IS_ENTRY_FIRST(list, entry)                                       \
     ((entry) == (entry)->list.next)
 
+/**@brief       DList macro: is the thread the last one in the list
+ */
 #define DLIST_IS_ENTRY_LAST(list, entry)                                        \
     DLIST_IS_ENTRY_FIRST(list, entry)
 
+/**@brief       DList macro: is the thread single in the list
+ */
 #define DLIST_IS_ENTRY_SINGLE(list, entry)                                      \
     DLIST_IS_ENTRY_FIRST(list, entry)
 
+/**@brief       Get the previous entry
+ */
 #define DLIST_ENTRY_PREV(list, entry)                                           \
     (entry)->list.prev
 
+/**@brief       Get the next entry
+ */
 #define DLIST_ENTRY_NEXT(list, entry)                                           \
     (entry)->list.next
 
+/**@brief       Initialize entry
+ */
 #define DLIST_ENTRY_INIT(list, entry)\
     do {                                                                        \
         (entry)->list.next = (entry);                                           \
         (entry)->list.prev = (entry);                                           \
     } while (0U)
 
+/**@brief       Add new @c entry after @c current entry
+ */
 #define DLIST_ENTRY_ADD_AFTER(list, current, entry)                             \
     do {                                                                        \
         (entry)->list.next = (current);                                         \
@@ -108,6 +125,8 @@
         (entry)->list.prev->list.next = (entry);                                \
     } while (0U)
 
+/**@brief       Remove the @c entry from a list
+ */
 #define DLIST_ENTRY_RM(list, entry)                                             \
     do {                                                                        \
         (entry)->list.next->list.prev = (entry)->list.prev;                     \
@@ -131,8 +150,8 @@
 /**@brief       System timer state enumeration
  */
 enum sysTmrState {
-    SYSTMR_ACTIVE,                                                              /**< @brief System timer is running.                        */
-    SYSTMR_INACTIVE                                                             /**< @brief System timer is stopped.                        */
+    SYSTMR_ACTIVE,                                                              /**< @brief System timer is running.                        *///!< SYSTMR_ACTIVE
+    SYSTMR_INACTIVE                                                             /**< @brief System timer is stopped.                        *///!< SYSTMR_INACTIVE
 };
 
 /**@brief       Main System Timer structure
@@ -243,17 +262,21 @@ static void schedRdyAddInitI(
 static void schedQmI(
     void);
 
+/**@brief       Activate system timer Quantum mode
+ */
 #if (1U == SCHED_POWER_SAVE) || defined(__DOXYGEN__)
 static void schedQmActivate(
     void);
 #endif
 
+/**@brief       Deactivate system timer Quantum mode
+ */
 #if (1U == SCHED_POWER_SAVE) || defined(__DOXYGEN__)
 static void schedQmDeactivate(
     void);
 #endif
 
-/**@brief       Evaluate if the Quantum scheduling is needed
+/**@brief       Evaluate if the system timer Quantum mode is needed
  */
 #if (1U == SCHED_POWER_SAVE) || defined(__DOXYGEN__)
 static void schedQmEvaluateI(
@@ -271,14 +294,14 @@ static void sysTmrInit(
 
 /**@brief       Try to deactivate system timer
  */
-#if (0 != CFG_SYSTMR_MODE)
+#if (0 != CFG_SYSTMR_MODE) || defined(__DOXYGEN__)
 static void sysTmrTryDeactivate(
     void);
 #endif
 
 /**@brief       Try to activate system timer
  */
-#if (0 != CFG_SYSTMR_MODE)
+#if (0 != CFG_SYSTMR_MODE) || defined(__DOXYGEN__)
 static void sysTmrTryActivate(
     void);
 #endif
@@ -574,7 +597,7 @@ static void schedQmI(
     }
 }
 
-#if (1U == SCHED_POWER_SAVE)
+#if (1U == SCHED_POWER_SAVE) || defined(__DOXYGEN__)
 static void schedQmActivate(
     void) {
     sysTmrTryActivate();
@@ -582,7 +605,7 @@ static void schedQmActivate(
 }
 #endif
 
-#if (1U == SCHED_POWER_SAVE)
+#if (1U == SCHED_POWER_SAVE) || defined(__DOXYGEN__)
 static void schedQmDeactivate(
     void) {
     gSysTmr.qm &= ~SYSTMR_SCHED_QM_MSK;
@@ -590,7 +613,7 @@ static void schedQmDeactivate(
 }
 #endif
 
-#if (1U == SCHED_POWER_SAVE)
+#if (1U == SCHED_POWER_SAVE) || defined(__DOXYGEN__)
 static void schedQmEvaluateI(
     esThd_T *       thd) {
 
@@ -620,10 +643,7 @@ static void sysTmrInit(
 #endif
 }
 
-#if (0 != CFG_SYSTMR_MODE)
-    /*
-     * This function is empty in FIXED mode
-     */
+#if (0 != CFG_SYSTMR_MODE) || defined(__DOXYGEN__)
 static void sysTmrTryActivate(
     void) {
 
@@ -640,10 +660,7 @@ static void sysTmrTryActivate(
 }
 #endif
 
-#if (0 != CFG_SYSTMR_MODE)
-/*
- * This function is empty in FIXED mode
- */
+#if (0 != CFG_SYSTMR_MODE) || defined(__DOXYGEN__)
 static void sysTmrTryDeactivate(
     void) {
 
@@ -884,7 +901,7 @@ void esThdInit(
     ES_API_REQUIRE(NULL != thd);
     ES_API_REQUIRE(NULL != thdf);
     ES_API_REQUIRE(NULL != stck);
-    ES_API_REQUIRE(PORT_STCK_MINSIZE <= (stckSize * sizeof(portReg_T)));
+    ES_API_REQUIRE(PORT_STCK_MINSIZE_VAL <= (stckSize * sizeof(portReg_T)));
     ES_API_REQUIRE(CFG_SCHED_PRIO_LVL >= prio);
 
     thd->stck   = PORT_CTX_INIT(stck, stckSize, thdf, arg);                     /* Make a fake stack                                        */
@@ -1206,8 +1223,8 @@ void esSchedYieldIsrI(
         newThd = gKernCtrl.pthd;
 
 #if (1U == SCHED_POWER_SAVE)
-            schedQmEvaluateI(
-                newThd);
+        schedQmEvaluateI(
+            newThd);
 #endif
 
         if (newThd != gKernCtrl.cthd) {

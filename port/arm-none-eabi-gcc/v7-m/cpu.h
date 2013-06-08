@@ -39,17 +39,18 @@
  * @name        Port constants
  * @{ *//*--------------------------------------------------------------------*/
 
-#define PORT_DATA_WIDTH                 32U                                     /**< @brief General purpose registers are 32bit wide        */
+#define PORT_DATA_WIDTH_VAL             32U                                     /**< @brief General purpose registers are 32bit wide        */
 
 /**@brief       Minimal stack size value is the number of elements in struct
  *              @ref portCtx
  */
-#define PORT_STCK_MINSIZE                                                       \
+#define PORT_STCK_MINSIZE_VAL                                                   \
     (sizeof(struct portCtx) / sizeof(portReg_T))
 
 /**@brief       System timer reload value
  */
-#define PORT_SYSTMR_RELOAD_VAL          (CFG_SYSTMR_CLOCK_FREQUENCY / CFG_SYSTMR_EVENT_FREQUENCY)
+#define PORT_SYSTMR_RELOAD_VAL                                                  \
+    (CFG_SYSTMR_CLOCK_FREQUENCY / CFG_SYSTMR_EVENT_FREQUENCY)
 
 /**@brief       System timer maximum value
  */
@@ -57,7 +58,8 @@
 
 /**@brief       Maximum number of ticks the system timer can accept
  */
-#define PORT_SYSTMR_MAX_TICKS           (PORT_SYSTMR_MAX_VAL / PORT_SYSTMR_RELOAD_VAL)
+#define PORT_SYSTMR_MAX_TICKS_VAL                                               \
+    (PORT_SYSTMR_MAX_VAL / PORT_SYSTMR_RELOAD_VAL)
 
 /** @} *//*---------------------------------------------------------------*//**
  * @name        Interrupt management
@@ -100,7 +102,7 @@
 
 #define PORT_SYSTMR_ENABLE()            portSysTmrEnable_()
 
-#define PORT_SYSTMR_DISABLE()           portSysTmrTerm_()
+#define PORT_SYSTMR_DISABLE()           portSysTmrDisable_()
 
 #define PORT_SYSTMR_ISR_ENABLE()        portSysTmrIsrEnable_()
 
@@ -124,7 +126,7 @@
  * @{ *//*--------------------------------------------------------------------*/
 
 #define PORT_STCK_SIZE(size)                                                    \
-    ((((size + PORT_STCK_MINSIZE) + (sizeof(struct portStck) /                  \
+    ((((size + PORT_STCK_MINSIZE_VAL) + (sizeof(struct portStck) /                  \
     sizeof(portReg_T))) - 1U) / (sizeof(struct portStck)/sizeof(portReg_T)))
 
 #define PORT_CRITICAL_EXIT_SLEEP()                                              \
@@ -162,6 +164,9 @@
 #define CPU_SYST_CSR_TICKINT_POS        1                                       /**< @brief SYSTMR csr: TICKINT Position                    */
 #define CPU_SYST_CSR_TICKINT_MSK        (1UL << CPU_SYST_CSR_TICKINT_POS)       /**< @brief SYSTMR csr: TICKINT Mask                        */
 
+#define CPU_SYST_CSR_ENABLE_POS         0                                       /**< @brief SYSTMR csr: ENABLE Position                     */
+#define CPU_SYST_CSR_ENABLE_MSK         (1UL << CPU_SYST_CSR_ENABLE_POS)        /**< @brief SYSTMR csr: ENABLE Mask                         */
+
 /** @} *//*---------------------------------------------  C++ extern begin  --*/
 #ifdef __cplusplus
 extern "C" {
@@ -171,6 +176,8 @@ extern "C" {
 
 typedef uint32_t portReg_T;                                                     /**< @brief General purpose registers are 32bit wide.       */
 
+/**@brief       Stack structure used for stack in order to force the alignment
+ */
 struct portStck {
     portReg_T       reg;
 } __attribute__ ((aligned (8)));
@@ -316,11 +323,41 @@ static PORT_C_INLINE_ALWAYS uint_fast8_t portFindLastSet_(
     return (31U - clz);
 }
 
+/**@brief       Initialize and start the system timer
+ */
+void portSysTmrInit_(
+    void);
+
+/**@brief       Stop the system timer
+ */
+void portSysTmrTerm_(
+    void);
+
+/**@brief       Reload the system timer
+ * @param       ticks
+ *              How much ticks is needed to delay
+ */
 void portSysTmrReload_(
     esTick_T      ticks);
 
-void portSysTmrEnable_(
-    void);
+/**@brief       Enable the system timer
+ * @inline
+ */
+static PORT_C_INLINE_ALWAYS void portSysTmrEnable_(
+    void) {
+
+    *CPU_SYST_CSR |= CPU_SYST_CSR_ENABLE_MSK;
+}
+
+/**@brief       Disable the system timer
+ * @inline
+ */
+static PORT_C_INLINE_ALWAYS void portSysTmrDisable_(
+    void) {
+
+    *CPU_SCB_ICSR |= CPU_SCB_ICSR_PENDSTCLR_MSK;
+    *CPU_SYST_CSR &= ~(CPU_SYST_CSR_TICKINT_MSK | CPU_SYST_CSR_ENABLE_MSK);
+}
 
 /**@brief       Disable the system timer interrupt
  * @inline
@@ -340,16 +377,6 @@ static PORT_C_INLINE_ALWAYS void portSysTmrIsrDisable_(
     *CPU_SCB_ICSR |= CPU_SCB_ICSR_PENDSTCLR_MSK;
     *CPU_SYST_CSR &= ~CPU_SYST_CSR_TICKINT_MSK;
 }
-
-/**@brief       Initialize and start the system timer
- */
-void portSysTmrInit_(
-    void);
-
-/**@brief       Stop the sistem timer
- */
-void portSysTmrTerm_(
-    void);
 
 /**@brief       Start the first thread
  * @details     This function will set the main stack register to point at the

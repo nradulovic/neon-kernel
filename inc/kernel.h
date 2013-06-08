@@ -200,7 +200,7 @@ typedef struct esTmr esTmr_T;
  * @notapi
  */
 # define PRIO_BM_GRP_INDX                                                       \
-    ((CFG_SCHED_PRIO_LVL + PORT_DATA_WIDTH - 1U) / PORT_DATA_WIDTH)
+    ((CFG_SCHED_PRIO_LVL + PORT_DATA_WIDTH_VAL - 1U) / PORT_DATA_WIDTH_VAL)
 
 /**@brief       Thread Queue structure
  * @api
@@ -429,8 +429,8 @@ void esKernLockExitI(
  *                  @ref states.
  * @pre         2) <code>thd != NULL</code>
  * @pre         3) <code>thdf != NULL</code>
- * @pre         4) <code>stckSize >= PORT_STCK_MINSIZE</code>, see
- *                  @ref PORT_STCK_MINSIZE.
+ * @pre         4) <code>stckSize >= PORT_STCK_MINSIZE_VAL</code>, see
+ *                  @ref PORT_STCK_MINSIZE_VAL.
  * @pre         5) <code>0 <= prio <= CFG_SCHED_PRIO_LVL</code>, see
  *                  @ref CFG_SCHED_PRIO_LVL.
  * @post        1) <code>thd->signature == THD_CONTRACT_SIGNATURE</code>, each

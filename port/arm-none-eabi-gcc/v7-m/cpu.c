@@ -209,13 +209,8 @@ void portSysTmrInit_(
 void portSysTmrTerm_(
     void) {
 
+    portSysTmrIsrDisable_();
     SYST->csr &= ~SYST_CSR_ENABLE_MSK;                                          /* Disable SYST Timer                                       */
-}
-
-void portSysTmrEnable_(
-    void) {
-
-    SYST->csr |= SYST_CSR_ENABLE_MSK;                                           /* Enable SYST Timer                                        */
 }
 
 void portSysTmrReload_(
