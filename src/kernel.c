@@ -277,6 +277,8 @@ static void schedQmDeactivate(
 #endif
 
 /**@brief       Evaluate if the system timer Quantum mode is needed
+ * @param       thd
+ *              Pointer to the thread which is ready to be executed
  */
 #if (1U == SCHED_POWER_SAVE) || defined(__DOXYGEN__)
 static void schedQmEvaluateI(

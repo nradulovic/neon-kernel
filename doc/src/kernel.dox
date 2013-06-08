@@ -522,8 +522,8 @@ threads concurrently.
 @section        sched_thdL Threads List
 @section        sched_thdQ Threads Queue 
 Based on the number of configured priority levels (see @ref CFG_SCHED_PRIO_LVL) 
-and on the number of data register bits (see @ref PORT_DATA_WIDTH) of the used 
-CPU, two configurations are possible:
+and on the number of data register bits (see @ref PORT_DATA_WIDTH_VAL) of the 
+used CPU, two configurations are possible:
 - Simple Ready Threads Queue
 - Complex Ready Threads Queue
 

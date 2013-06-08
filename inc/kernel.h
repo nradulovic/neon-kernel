@@ -183,9 +183,9 @@ struct esTmr {
         struct esTmr *  next;                                                   /**< @brief Next thread in timer linked list                */
         struct esTmr *  prev;                                                   /**< @brief Previous thread in timer linked list            */
     }               tmrL;                                                       /**< @brief Timer linked List                               */
-    esTick_T        rtick;
-    void (* fn)(void *);
-    void *          arg;
+    esTick_T        rtick;                                                      /**< @brief Relative tick value                             */
+    void (* fn)(void *);                                                        /**< @brief Callback function pointer                       */
+    void *          arg;                                                        /**< @brief Callback function argument                      */
 };
 
 /**@brief       Timer type
@@ -501,15 +501,31 @@ void esThdSetPrioI(
     esThd_T *       thd,
     uint8_t         prio);
 
+/**@brief       Post to thread semaphore
+ * @param       thd
+ *              Pointer to the thread ID structure
+ * @iclass
+ */
 void esThdPostI(
     esThd_T *       thd);
 
+/**@brief       Post to thread semaphore
+ * @param       thd
+ *              Pointer to the thread ID structure
+ * @api
+ */
 void esThdPost(
     esThd_T *       thd);
 
+/**@brief       Wait for thread semaphore
+ * @iclass
+ */
 void esThdWaitI(
     void);
 
+/**@brief       Wait for thread semaphore
+ * @api
+ */
 void esThdWait(
     void);
 
@@ -702,12 +718,16 @@ void esSysTmrDisable(
  * @name        Timer services
  * @{ *//*--------------------------------------------------------------------*/
 
-void esTmrInit(
-    esTmr_T *       tmr,
-    esTick_T        tick,
-    void (* fn)(void *),
-    void *          arg);
-
+/**@brief       Add a new timer
+ * @param       tmr
+ *              Pointer to the timer ID structure, @ref esTmr.
+ * @param       tick
+ *              The timer delay expressed in system ticks
+ * @param       fn
+ *              Pointer to the callback function
+ * @param       arg
+ *              Pointer to the arguments of callback function
+ */
 void esTmrAddI(
     esTmr_T *       tmr,
     esTick_T        tick,
