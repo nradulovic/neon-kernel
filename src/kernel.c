@@ -1331,7 +1331,7 @@ void esSysTmrDisable(
 
 /*--  Timer functions  -------------------------------------------------------*/
 
-void esTmrAddI(
+void esTmrInitI(
     esTmr_T *       tmr,
     esTick_T        tick,
     void (* fn)(void *),
@@ -1355,7 +1355,7 @@ void esTmrAddI(
     ES_API_OBLIGATION(tmr->signature = TMR_CONTRACT_SIGNATURE);
 }
 
-void esTmrRmI(
+void esTmrTermI(
     esTmr_T *       tmr) {
 
     ES_API_ENSURE(ES_KERN_INACTIVE > gKernCtrl.state);

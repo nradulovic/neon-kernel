@@ -747,7 +747,7 @@ void esSysTmrDisable(
  *                  structure will have valid signature after initialization.
  * @api
  */
-void esTmrAddI(
+void esTmrInitI(
     esTmr_T *       tmr,
     esTick_T        tick,
     void (* fn)(void *),
@@ -762,7 +762,7 @@ void esTmrAddI(
  *                  point to a @ref esTmr structure.
  * @api
  */
-void esTmrRmI(
+void esTmrTermI(
     esTmr_T *       tmr);
 
 /**@} *//*----------------------------------------------------------------*//**
