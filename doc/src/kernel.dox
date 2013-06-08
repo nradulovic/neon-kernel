@@ -53,8 +53,8 @@
 @section        kernel_specs eSolid RT Kernel Specification
 @subsection     spec_source Source code
 
-The source code of the kernel and all of it's ports are published under <b>free 
-software license</b>, which guarantees end users (individuals, organizations, 
+The source code of the kernel and all of it's ports are published under **free 
+software license**, which guarantees end users (individuals, organizations, 
 companies) the freedoms to use, study, share (copy), and modify the software. 
 
 The GPL grants the recipients of a computer software the rights of the Free 
@@ -69,51 +69,50 @@ For more details visit: https://gnu.org/licenses/gpl.html
 
 All objects declared in Application Programming Interface are following
 these naming rules:
-- All objects except macros are using @c CamelCase style names
-- All functions, structures and unions are prefixed with: @c es
-- All typedef-ed types are prefixed with: @c es and postfixed with: @c _T
-- All macro names are in @c UPPERCASE style, words are delimited by underscore 
+- All objects except macros are using `CamelCase` style names
+- All functions, structures and unions are prefixed with: `es`
+- All typedef-ed types are prefixed with: `es` and postfixed with: `_T`
+- All macro names are in `UPPERCASE` style, words are delimited by underscore 
     sign
-- All macro names are prefixed with: @c ES_
-- All Global variables are prefixed with: @c g
+- All macro names are prefixed with: `ES_`
+- All Global variables are prefixed with: `g`
 
 All API objects are named following this convention: 
-<code>es<group><action><suffix>()</code>
+`es<group><action><suffix>()`
 
 - Group:
-    - @c Kern - General Kernel services
-    - @c Thd - Thread management
-    - @c ThdQ - Thread Queue management
-    - @c Sched - Scheduler invocation
-    - @c SchedRdy - Scheduler Ready Thread Queue management
+    - `Kern` - General Kernel services
+    - `Thd` - Thread management
+    - `ThdQ` - Thread Queue management
+    - `Sched` - Scheduler invocation
+    - `SchedRdy` - Scheduler Ready Thread Queue management
 - Suffix:
-    - none - normal API object
-    - I - I class - Regular Interrupts are locked
+    - `none` - normal API object
+    - `I` - I class - Regular Interrupts are locked
 
 All Port Interface objects are named using the rules stated above with certain
 differences:
-- All functions, structures and unions are prefixed with: @c port
-- All macro names are prefixed with: @c PORT_
+- All functions, structures and unions are prefixed with: `port`
+- All macro names are prefixed with: `PORT_`
 
 @subsection     spec_preempt Preemptive multi-threading
-eSolid RT Kernel uses a <b>preemptive scheduler</b>, which has the power to 
+eSolid RT Kernel uses a **preemptive scheduler**, which has the power to 
 preempt, or interrupt, and later resume, other threads in the system. The 
 scheduler always runs ready thread with the highest priority.
 
 @subsection     spec_rr Round-Robin scheduling
-Round-Robin scheduling is very <b>simple algorithm</b> to implement and it is 
-<b>starvation free</b>. It employs time-sharing, giving to each thread a time 
-slice or @c quantum. Processor's time is shared between a number of threads, 
-giving the illusion that it is dealing with these threads <b>concurrently</b>. 
+Round-Robin scheduling is very **simple algorithm** to implement and it is 
+**starvation free**. It employs time-sharing, giving to each thread a time 
+slice or `quantum`. Processor's time is shared between a number of threads, 
+giving the illusion that it is dealing with these threads **concurrently**. 
 This scheduling is only used when there are two or more threads of the same 
 priority ready for execution.
 
 @subsection     spec_deterministic Deterministic
 All algorithms used in eSolid RT Kernel implementation are belonging to 
-<b>Constant Time Complexity</b> category. Constant Time <code>O(1)</code> 
-functions needs fixed amount of time to execute an algorithm. Their execution 
-time does not depend on number of inputs. For more information see 
-@ref time_complexity.
+**Constant Time Complexity** category. Constant Time `O(1)` functions needs 
+fixed amount of time to execute an algorithm. Their execution time does not 
+depend on number of inputs. For more information see @ref time_complexity.
 
 @subsection     spec_cfg Configurable
 The kernel provides two configuration files kernel_cfg.h and cpu_cfg.h which can
@@ -140,7 +139,7 @@ ROM memory capacity and required processing time.
 
 @subsection     spec_errchk Error checking
 All eSolid software is using design methods very similar to approaches of
-<b>contract programming</b> paradigm for software design. The contract
+**contract programming** paradigm for software design. The contract
 programming prescribes that Application Programming Interface should have formal, 
 precise and verifiable specifications, which extend the ordinary definition of 
 abstract data types with preconditions and postconditions. These specifications 
@@ -155,7 +154,7 @@ contain the following pieces of information:
 - Postconditions
 - Invariants
 
-The contract validations are done by <b>assert</b> macros. They have the
+The contract validations are done by **assert** macros. They have the
 responsibility of informing the programmer when a contract can not be validated.
 
 @subsection     spec_prof Profiling 
@@ -173,6 +172,7 @@ responsibility of informing the programmer when a contract can not be validated.
 The directory structure of eSolid RT Kernel is fairly easy to understand. Once 
 the organization of directories and files is understood it is fairly easy to 
 integrate eSolid RT Kernel into application.
+
 @subsection     files_porting What is a port?
 Porting is a process of adapting software to an architecture that is different 
 from the one for which it was originally designed. The term is also used when 
@@ -183,15 +183,16 @@ writing it from beginning.
 @section        files_sections Code Sections
 The kernel is divided into three sections. One section is port independent code,
 the second one is port dependent code and the third sections is code templates.
+
 @subsection     files_icode Port independent code
 Port independent code is the code which does not change from port to port, e.g.
 when the CPU is changed this code is not changed at all and it is still 
 correctly executed. Code can be developed and tested on another machine, which
 greatly reduces design efforts. It provides API and some common data structures. 
 Port independent code lives under @c /inc and @c /src directories:
-- @c inc/kernel.h
-- @c inc/kernel_cfg.h
-- @c src/kernel.c
+- `inc/kernel.h`
+- `inc/kernel_cfg.h`
+- `src/kernel.c`
 
 Click on file name for further description of the file.
 
@@ -206,10 +207,10 @@ the port files. Usually each port has some kind of variant. In that case each
 variant is a subdirectory of the containing port. Common code for all variants
 will be in common subdirectory. Each eSolid RT Kernel port will have at least 
 the following files:
-- <code>port/[port_name]/common/compiler.h</code>
-- <code>port/[port_name]/[variant_name]/cpu_cfg.h</code>
-- <code>port/[port_name]/[variant_name]/cpu.h</code>
-- <code>port/[port_name]/[variant_name]/cpu.c</code>
+- `port/[port_name]/common/compiler.h`
+- `port/[port_name]/[variant_name]/cpu_cfg.h`
+- `port/[port_name]/[variant_name]/cpu.h`
+- `port/[port_name]/[variant_name]/cpu.c`
 
 @note           Port dependent code is separately described in documentation 
 for relevant port.
@@ -218,17 +219,17 @@ Templates are some predefined configuration settings for various scenarios
 where eSolid RT Kernel can be used. Templates also contain some example code 
 for how to write new ports. 
 
-In the example below is given @c Generic template which holds files with default 
+In the example below is given `Generic` template which holds files with default 
 configuration settings and some example code for new ports. New port files are
 in template/generic/port directory. When porting to a new architecture/compiler
 use provided template files for starters. This will greatly reduce the time
 needed to become familiar with the kernel port requirements. Generic template
 files are the following:
-- @c template/generic/port/compiler.h
-- @c template/generic/port/cpu_cfg.h
-- @c template/generic/port/cpu.h
-- @c template/generic/port/cpu.c
-- @c template/generic/kernel_cfg.h
+- `template/generic/port/compiler.h`
+- `template/generic/port/cpu_cfg.h`
+- `template/generic/port/cpu.h`
+- `template/generic/port/cpu.c`
+- `template/generic/kernel_cfg.h`
 */
 /*----------------------------------------------------------------------------*/
 /** @page       states Kernel states
@@ -289,16 +290,16 @@ maskable interrupt sources are DISABLED.
 Normal, running state of the kernel - Level 0
 
 To start multi-threading just call the esKernStart() function. This function 
-will switch the kernel into @c RUN state and multi-threading of created threads 
-will commence. During the @c RUN state you are allowed to create other task as 
+will switch the kernel into `RUN` state and multi-threading of created threads 
+will commence. During the `RUN` state you are allowed to create other task as 
 well. All the interrupt sources are enabled and the system APIs are accessible, 
 threads are running. All the maskable interrupt sources are ENABLED.
 
 @par            LOCK
 Scheduler locked state, no context switching - Level 2
 
-The running state of the kernel can be switched to @c LOCK state where the 
-scheduler is locked and no context switching is allowed. @c LOCK state is one 
+The running state of the kernel can be switched to `LOCK` state where the 
+scheduler is locked and no context switching is allowed. `LOCK` state is one 
 way of preventing the access to a shared resource. One more reason to lock the
 scheduler would be during the accessing of special hardware (like programming 
 the FLASH memory) which does not allow interruption of the running operation. 
@@ -308,12 +309,12 @@ sources are ENABLED.
 @par            INTSRV
 Interrupt Service state, no context switching - Levels 1 and 3
 
-During the both states @c RUN and @c LOCK, an interrupt event can occur. 
-When Interrupt Service Routine is executing the kernel is in @c INTSRV_* state. 
+During the both states `RUN` and `LOCK`, an interrupt event can occur. 
+When Interrupt Service Routine is executing the kernel is in `INTSRV_*` state. 
 Each INTSRV state corresponds to the state where the execution was interrupted 
 from and the kernel will return to it's original state.
 
-@note           The level of state @c INACTIVE is the highest. As the kernel
+@note           The level of state `INACTIVE` is the highest. As the kernel
 boots up the level is decremented. The running state is level 0.
 */
 /*----------------------------------------------------------------------------*/
@@ -451,7 +452,7 @@ longer serviced, so tracking time is impossible during the critical section.
 Also, if a program execution halts during its critical section, control will 
 never be returned to another thread, effectively halting the entire system.  
  
-@subsection     cs_kernel_lock Disabling Kernel
+@subsection     cs_kernel_lock Disabling Kernel scheduler
 Another way to implement a critical section and protect your data is by locking
 the kernel scheduler. The kernel locking can be used only if you know that 
 protected data will be modified only by other threads. This protection scheme 
@@ -489,12 +490,12 @@ note that any further processing by other threads is still disabled.
 @section        tc_intro Intro
 In computer science, the time complexity of an algorithm quantifies the amount 
 of time taken by an algorithm to run as a function of the length of the input. 
-The time complexity of an algorithm is commonly expressed using <b>big O</b> 
+The time complexity of an algorithm is commonly expressed using **big O** 
 notation, which excludes coefficients and lower order terms. When expressed this 
 way, the time complexity is said to be described asymptotically, i.e., as the 
 input size goes to infinity. For example, if the time required by an algorithm 
-on all inputs of size <code>n</code> is at most <code> 5n^3 + 3n</code>, the 
-asymptotic time complexity is <code>O(n^3)</code>.
+on all inputs of size `n` is at most ` 5n^3 + 3n`, the 
+asymptotic time complexity is `O(n^3)`.
 
 Time complexity is commonly estimated by counting the number of elementary 
 operations performed by the algorithm, where an elementary operation takes a 
@@ -504,15 +505,15 @@ factor.
 
 Since an algorithm’s performance time may vary with different inputs of the same 
 size, one commonly uses the worst-case time complexity of an algorithm, denoted 
-as <b>T(n)</b>, which is defined as the maximum amount of time taken on any 
-input of size <code>n</code>. Time complexities are classified by the nature of 
-the function <code>T(n)</code>. For instance, an algorithm with <code>T(n) = 
-O(n)</code> is called a linear time algorithm, and an algorithm with <code>T(n) 
-= O(2^n)</code> is said to be an exponential time algorithm.
+as **T(n)**, which is defined as the maximum amount of time taken on any 
+input of size `n`. Time complexities are classified by the nature of 
+the function `T(n)`. For instance, an algorithm with `T(n) = 
+O(n)` is called a linear time algorithm, and an algorithm with `T(n) 
+= O(2^n)` is said to be an exponential time algorithm.
 
-@note  Worst-case time-complexity <code>T(n)</code> indicates the longest 
-    running time performed by an algorithm given any input of size 
-    <code>n</code>, and thus this guarantees that the algorithm finishes on time.
+@note  Worst-case time-complexity `T(n)` indicates the longest running time 
+    performed by an algorithm given any input of size `n`, and thus this 
+    guarantees that the algorithm finishes on time.
 
 @subsection     tc_big_o Big O notation
 
@@ -522,11 +523,11 @@ functions and it is used to classify algorithms by how they respond (e.g., in
 their processing time or working space requirements) to changes in input size.
 
 @section        tc_constant_time Constant time
-An algorithm is said to be constant time (also written as <code>O(1)</code> time) 
-if the value of <code>T(n)</code> is bounded by a value that does not depend on 
-the size of the input. 
+An algorithm is said to be constant time (also written as `O(1)` time) if the 
+value of `T(n)` is bounded by a value that does not depend on the size of the 
+input. 
 
-Despite the name <i>"constant time"</i>, the running time does not have to be 
+Despite the name *constant time*, the running time does not have to be
 independent of the problem size, but an upper bound for the running time has to 
 be bounded independently of the problem size.
 
@@ -535,7 +536,7 @@ be bounded independently of the problem size.
     input argument.
     
 @subsection        tc_esolid eSolid RT Kernel time complexity
-All eSolid RT Kernel functions are using <code>constant time O(1)</code> 
+All eSolid RT Kernel functions are using `constant time O(1)` 
 algorithms. This is especially important for Real Time applications.
 */
 /*----------------------------------------------------------------------------*/
@@ -548,7 +549,7 @@ algorithms. This is especially important for Real Time applications.
 @n
 @section        sched_quantum Quantum
 The period of time for which a thread is allowed to execute in a preemptive
-multi-threading system is generally called the time slice, or @c quantum. The 
+multi-threading system is generally called the time slice, or `quantum`. The 
 scheduler is run once every quantum to choose the next thread for execution. If 
 the quantum is too short then the scheduler overhead may become high.
 
@@ -574,10 +575,10 @@ Ready Threads Queue configuration since 8-bit register cannot carry 9 bits of
 data.
 
 @subsection     sched_rdyThdQ_simple Simple Ready Threads Queue
-Each bit in <code>bit[0]</code> variable represents each priority level. The 
+Each bit in `bit[0]` variable represents each priority level. The 
 number of bits used in this variable depends on @ref CFG_SCHED_PRIO_LVL value. 
-If a bit at <code>Nth</code> position is set then there is a thread inserted in
-Thread List at <code>Nth</code> priority.
+If a bit at `Nth` position is set then there is a thread inserted in
+Thread List at `Nth` priority.
 
 @image html     thdQ-simple.png "Ready Threads Queue - low number of priority levels"
 @image latex    thdQ-simple.png "Ready Threads Queue - low number of priority levels" width=15cm
