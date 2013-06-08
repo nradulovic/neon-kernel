@@ -442,7 +442,7 @@ previously saved interrupt state.
 - If interrupt service routine *changes* the shared resource state.
 - If the processing time of critical section is very small.
 
-@par            When no to use this scheme
+@par            When not to use this scheme
 
 - If interrupt service routine takes a lot of CPU time to process critical 
 section. If a critical section is long, then the system clock will drift every 
@@ -469,7 +469,7 @@ can not be used when data is modified by interrupt service routines.
 - If interrupt service routine *never changes* the shared resource state.
 - If the processing time of critical section is very small.
 
-@par            When no to use this scheme
+@par            When not to use this scheme
 
 - If interrupt service routine takes a lot of CPU time to process critical 
 section. If a critical section is long, then the system will be partially 
