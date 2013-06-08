@@ -156,8 +156,8 @@
 /**@brief       System timer state enumeration
  */
 enum sysTmrState {
-    SYSTMR_ACTIVE,                                                              /**< @brief System timer is running.                        *///!< SYSTMR_ACTIVE
-    SYSTMR_INACTIVE                                                             /**< @brief System timer is stopped.                        *///!< SYSTMR_INACTIVE
+    SYSTMR_ACTIVE,                                                              /**< @brief System timer is running.                        */
+    SYSTMR_INACTIVE                                                             /**< @brief System timer is stopped.                        */
 };
 
 /**@brief       Main System Timer structure
@@ -387,7 +387,10 @@ static esTmr_T gTmrWait = {
    UINT_FAST32_MAX,
 #endif
    NULL,
-   NULL
+   NULL,
+#if (1U == CFG_API_VALIDATION)
+   TMR_CONTRACT_SIGNATURE
+#endif
 };
 
 /**@brief       Timers pending to be inserted in waiting list
@@ -398,7 +401,10 @@ static esTmr_T gTmrPend = {
    },
    0U,
    NULL,
-   NULL
+   NULL,
+#if (1U == CFG_API_VALIDATION)
+   TMR_CONTRACT_SIGNATURE
+#endif
 };
 
 /**@brief       System timer thread Id
@@ -1347,6 +1353,14 @@ void esTmrAddI(
     ++gSysTmr.tmr;
 
     ES_API_OBLIGATION(tmr->signature = TMR_CONTRACT_SIGNATURE);
+}
+
+void esTmrRmI(
+    esTmr_T *       tmr) {
+
+    ES_API_ENSURE(ES_KERN_INACTIVE > gKernCtrl.state);
+    ES_API_ENSURE(NULL != tmr);
+    ES_API_ENSURE(TMR_CONTRACT_SIGNATURE == tmr->signature);
 }
 
 /*================================*//** @cond *//*==  CONFIGURATION ERRORS  ==*/

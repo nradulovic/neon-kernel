@@ -170,7 +170,7 @@ typedef struct esThd esThd_T;
 typedef portStck_T esStck_T;
 
 /**@} *//*----------------------------------------------------------------*//**
- * @name        Timer services
+ * @name        Timer management
  * @{ *//*--------------------------------------------------------------------*/
 
 /**@brief       Timer structure
@@ -727,10 +727,10 @@ void esSysTmrDisable(
     void);
 
 /**@} *//*----------------------------------------------------------------*//**
- * @name        Timer services
+ * @name        Timer management
  * @{ *//*--------------------------------------------------------------------*/
 
-/**@brief       Add a new timer
+/**@brief       Add and start a new timer
  * @param       tmr
  *              Timer: is pointer to the timer ID structure, @ref esTmr.
  * @param       tick
@@ -752,6 +752,18 @@ void esTmrAddI(
     esTick_T        tick,
     void (* fn)(void *),
     void *          arg);
+
+/**@brief       Cancel and remove a timer
+ * @param       tmr
+ *              Timer: is pointer to the timer ID structure, @ref esTmr.
+ * @pre         1) `The kernel state < ES_KERN_INACTIVE`, see @ref states.
+ * @pre         2) `tmr != NULL`
+ * @pre         3) `tmr->signature == TMR_CONTRACT_SIGNATURE`, the pointer must
+ *                  point to a @ref esTmr structure.
+ * @api
+ */
+void esTmrRmI(
+    esTmr_T *       tmr);
 
 /**@} *//*----------------------------------------------------------------*//**
  * @name        Kernel hook functions
