@@ -1,9 +1,7 @@
-/******************************************************************************
+/*
  * This file is part of eSolid-Kernel
  *
- * Template version: 1.1.16 (10.05.2013)
- *
- * Copyright (C) 2011, 2012 - Nenad Radulovic
+ * Copyright (C) 2013 - Nenad Radulovic
  *
  * eSolid-Kernel is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

@@ -1,22 +1,20 @@
-/******************************************************************************
- * This file is part of esolid-kernel
+/*
+ * This file is part of eSolid-Kernel
  *
- * Template version: 1.1.13 (10.04.2013)
+ * Copyright (C) 2013 - Nenad Radulovic
  *
- * Copyright (C) 2011, 2012 - Nenad Radulovic
- *
- * esolid-kernel is free software; you can redistribute it and/or modify
+ * eSolid-Kernel is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
  *
- * esolid-kernel is distributed in the hope that it will be useful,
+ * eSolid-Kernel is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with esolid-kernel; if not, write to the Free Software
+ * along with eSolid-Kernel; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin St, Fifth Floor,
  * Boston, MA  02110-1301  USA
  *
@@ -24,13 +22,11 @@
  * e-mail  :    blueskyniss@gmail.com
  *//***********************************************************************//**
  * @file
- * @author      nenad
+ * @author      Nenad Radulovic
  * @brief       Short desciption of file
- * @details     Detailed description of file
- * @note        Notes
  * @addtogroup  module_impl
  *********************************************************************//** @{ */
-                                                                                                  
+
 /*=========================================================  INCLUDE FILES  ==*/
 #include "semaphore.h"
 

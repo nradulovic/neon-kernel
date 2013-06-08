@@ -1,7 +1,7 @@
-/******************************************************************************
+/*
  * This file is part of eSolid-Kernel
  *
- * Copyright (C) 2011, 2012 - Nenad Radulovic
+ * Copyright (C) 2013 - Nenad Radulovic
  *
  * eSolid-Kernel is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,11 +25,6 @@
  * @author  	Nenad Radulovic
  * @brief   	Configuration of Kernel.
  * @addtogroup  kern_cfg
- * @details     Each configuration option or setting has its own default value
- *              when not defined by the application. When application needs to
- *              change a setting it just needs to define a configuration macro
- *              with another value and the default configuration macro will be
- *              overridden.
  *********************************************************************//** @{ */
 
 #ifndef KERNEL_CONFIG_H_

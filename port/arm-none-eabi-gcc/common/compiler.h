@@ -1,7 +1,7 @@
-/******************************************************************************
+/*
  * This file is part of esolid-rtos
  *
- * Copyright (C) 2011, 2012 - Nenad Radulovic
+ * Copyright (C) 2013 - Nenad Radulovic
  *
  * esolid-rtos is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
