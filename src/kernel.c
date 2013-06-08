@@ -870,6 +870,26 @@ void esKernLockExitI(
     esSchedYieldI();
 }
 
+void esKernLockEnter(
+    void) {
+
+    PORT_CRITICAL_DECL();
+
+    PORT_CRITICAL_ENTER();
+    esKernLockEnterI();
+    PORT_CRITICAL_EXIT();
+}
+
+void esKernLockExit(
+    void) {
+
+    PORT_CRITICAL_DECL();
+
+    PORT_CRITICAL_ENTER();
+    esKernLockExitI();
+    PORT_CRITICAL_EXIT();
+}
+
 void esKernIsrPrologueI(
     void) {
 

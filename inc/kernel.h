@@ -372,13 +372,27 @@ void esKernIsrEpilogueI(
  * @{ *//*--------------------------------------------------------------------*/
 
 /**@brief       Lock the scheduler
+ * @iclass
  */
 void esKernLockEnterI(
     void);
 
 /**@brief       Unlock the scheduler
+ * @iclass
  */
 void esKernLockExitI(
+    void);
+
+/**@brief       Lock the scheduler
+ * @api
+ */
+void esKernLockEnter(
+    void);
+
+/**@brief       Unlock the scheduler
+ * @api
+ */
+void esKernLockExit(
     void);
 
 /**@} *//*----------------------------------------------------------------*//**
