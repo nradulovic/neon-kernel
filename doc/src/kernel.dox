@@ -559,6 +559,9 @@ between a number of threads, giving the illusion that it is dealing with these
 threads concurrently. 
 
 @section        sched_thdL Threads List
+@image html     thdL.png "Threads List"
+@image latex    thdL.png "Threads List" width=15cm
+
 @section        sched_thdQ Threads Queue 
 Based on the number of configured priority levels (see @ref CFG_SCHED_PRIO_LVL) 
 and on the number of data register bits (see @ref PORT_DATA_WIDTH_VAL) of the 
