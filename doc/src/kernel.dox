@@ -366,7 +366,7 @@ digraph thdState {
 */
 /*----------------------------------------------------------------------------*/
 /** @page       critical_section Critical sections
-@brief          How to deal with critical sections in application
+@brief          How to deal with critical sections in an application
 
 @tableofcontents
 @n
@@ -417,11 +417,12 @@ In order to properly disable interrupts the application must follow these steps:
 - access the shared resource
 - restore previously saved interrupt state
 
-For @c auto variable declaration macro @ref ES_CRITICAL_DECL() is used. Then
-by using the macro @ref ES_CRITICAL_ENTER() the state of enabled interrupts 
-will be saved in @c auto variable declared earlier. Immediately after saving of 
-interrupt state the macro will lock interrupts. Now the code can safely access 
-and use the shared resource. When code finishes using the resource it will call 
+For `auto` variable declaration macro @ref ES_CRITICAL_DECL() is used. This 
+macro will declare a temporary interrupt status variable. Then by using the 
+macro @ref ES_CRITICAL_ENTER() the state of enabled interrupts will be saved in 
+`auto` variable declared earlier. Immediately after saving the interrupt state 
+the macro will lock interrupts. Now the code can safely access and use the 
+shared resource. When code finishes using the resource it will call
 @ref ES_CRITICAL_EXIT() macro. This macro will restore interrupts from the 
 previously saved interrupt state.
 
@@ -436,8 +437,45 @@ previously saved interrupt state.
      */
     ES_CRITICAL_EXIT();                 /* Restore previous state unlocking the interrupts */
 @endcode
+@par            When to use this scheme
 
+- If interrupt service routine *changes* the shared resource state.
+- If the processing time of critical section is very small.
+
+@par            When no to use this scheme
+
+- If interrupt service routine takes a lot of CPU time to process critical 
+section. If a critical section is long, then the system clock will drift every 
+time a critical section is executed because the system timer interrupt is no 
+longer serviced, so tracking time is impossible during the critical section. 
+Also, if a program execution halts during its critical section, control will 
+never be returned to another thread, effectively halting the entire system.  
+ 
 @subsection     cs_kernel_lock Disabling Kernel
+Another way to implement a critical section and protect your data is by locking
+the kernel scheduler. The kernel locking can be used only if you know that 
+protected data will be modified only by other threads. This protection scheme 
+can not be used when data is modified by interrupt service routines.
+
+@code
+    esKernLockEnter();                  /* Temporarily disable kernel scheduler  */
+    /*
+     * Access the shared resource
+     */
+    esKernLockExit();                   /* Enable kernel scheduler */
+@endcode
+@par            When to use this scheme
+
+- If interrupt service routine *never changes* the shared resource state.
+- If the processing time of critical section is very small.
+
+@par            When no to use this scheme
+
+- If interrupt service routine takes a lot of CPU time to process critical 
+section. If a critical section is long, then the system will be partially 
+responsive to other events since interrupt service routines can be invoked, but 
+note that any further processing by other threads is still disabled. 
+ 
 @subsection     cs_sem_lock Using semaphores
 */
 /*----------------------------------------------------------------------------*/
