@@ -466,6 +466,7 @@ void esThdInit(
  * @pre         4) `(thd->thdL.q == NULL) OR (thd->thdL.q == gRdyQueue)`, thread
  *                  must be either in Ready Threads Queue or not be in any queue
  *                  (e.g. not waiting for a synchronization mechanism).
+ * @api
  */
 void esThdTerm(
     esThd_T *       thd);
@@ -608,6 +609,7 @@ void esThdQRmI(
  * @pre         1) `thdQ != NULL`
  * @pre         2) `thdQ->signature == THDQ_CONTRACT_SIGNATURE`, the pointer
  *                  must point to a @ref esThdQ_T structure.
+ * @pre         3) `prioBM != 0`, priority bit map must not be empty
  * @iclass
  */
 esThd_T * esThdQFetchI(
@@ -625,6 +627,9 @@ esThd_T * esThdQFetchI(
  *                  must point to a @ref esThdQ_T structure.
  * @pre         3) `0 <= prio <= CFG_SCHED_PRIO_LVL`, see
  *                  @ref CFG_SCHED_PRIO_LVL.
+ * @pre         4) `sentinel != NULL`, at least one thread must be in the
+ *                  selected priority level
+ * @iclass
  */
 esThd_T * esThdQFetchRotateI(
     esThdQ_T *      thdQ,
@@ -640,6 +645,7 @@ esThd_T * esThdQFetchRotateI(
  * @pre         1) `thdQ != NULL`
  * @pre         2) `thdQ->signature == THDQ_CONTRACT_SIGNATURE`, the pointer
  *                  must point to a @ref esThdQ_T structure.
+ * @api
  */
 bool_T esThdQIsEmpty(
     const esThdQ_T *    thdQ);
@@ -656,7 +662,7 @@ bool_T esThdQIsEmpty(
  * @pre         2) `thd != NULL`
  * @pre         3) `thd->signature == THD_CONTRACT_SIGNATURE`, the pointer must
  *                  point to a @ref esThd_T structure.
- * @pre         3) `thd->thdL.q == NULL`, thread must not be in a queue.
+ * @pre         4) `thd->thdL.q == NULL`, thread must not be in a queue.
  * @iclass
  */
 void esSchedRdyAddI(
@@ -706,6 +712,7 @@ void esSchedYieldIsrI(
 /**@brief       Enable system timer tick events
  * @details     This function will override scheduler power savings algorithm
  *              and force the system timer into running (active) state.
+ * @api
  */
 void esSysTmrEnable(
     void);
@@ -714,6 +721,7 @@ void esSysTmrEnable(
  * @details     This function will try to switch off the system timer. If the
  *              system timer is used by scheduler than the scheduler will take
  *              control of the system timer.
+ * @api
  */
 void esSysTmrDisable(
     void);
@@ -731,6 +739,13 @@ void esSysTmrDisable(
  *              Function: is pointer to the callback function
  * @param       arg
  *              Argument: is pointer to the arguments of callback function
+ * @pre         1) `The kernel state < ES_KERN_INACTIVE`, see @ref states.
+ * @pre         2) `tmr != NULL`
+ * @pre         3) `tick > 1U`
+ * @pre         4) `fn != NULL`
+ * @post        1) `tmr->signature == TMR_CONTRACT_SIGNATURE`, each esTmr_T
+ *                  structure will have valid signature after initialization.
+ * @api
  */
 void esTmrAddI(
     esTmr_T *       tmr,

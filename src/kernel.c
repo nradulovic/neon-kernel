@@ -82,6 +82,12 @@
  */
 #define THDQ_CONTRACT_SIGNATURE         ((portReg_T)0xFEEDBEEEU)
 
+/**@brief       Timer structure signature
+ * @details     The signature is used to confirm that a structure passed to a
+ *              timer function is indeed a esTmr_T timer structure.
+ */
+#define TMR_CONTRACT_SIGNATURE          ((portReg_T)0xFEEDBEEFU)
+
 /**@brief       DList macro: is the thread the first one in the list
  */
 #define DLIST_IS_ENTRY_FIRST(list, entry)                                       \
@@ -1144,6 +1150,7 @@ esThd_T * esThdQFetchI(
 
     ES_API_REQUIRE(NULL != thdQ);
     ES_API_REQUIRE(THDQ_CONTRACT_SIGNATURE == thdQ->signature);
+    ES_API_REQUIRE(FALSE ==prioBMIsEmpty(&thdQ->prioOcc));
 
     prio = prioBMGet(
         &thdQ->prioOcc);                                                        /* Get the highest priority ready to run.                   */
@@ -1161,6 +1168,7 @@ esThd_T * esThdQFetchRotateI(
     ES_API_REQUIRE(NULL != thdQ);
     ES_API_REQUIRE(THDQ_CONTRACT_SIGNATURE == thdQ->signature);
     ES_API_REQUIRE(CFG_SCHED_PRIO_LVL >= prio);
+    ES_API_REQUIRE(NULL != &(thdQ->grp[prio]));
 
     sentinel = &(thdQ->grp[prio]);                                              /* Get the Group Head pointer from thread priority.         */
     *sentinel = DLIST_ENTRY_NEXT(thdL, *sentinel);
@@ -1323,6 +1331,11 @@ void esTmrAddI(
     void (* fn)(void *),
     void *          arg) {
 
+    ES_API_ENSURE(ES_KERN_INACTIVE > gKernCtrl.state);
+    ES_API_ENSURE(NULL != tmr);
+    ES_API_ENSURE(1U < tick);
+    ES_API_ENSURE(NULL != fn);
+
     tmr->rtick = tick;
     tmr->fn = fn;
     tmr->arg = arg;
@@ -1332,6 +1345,8 @@ void esTmrAddI(
     sysTmrTryActivate();
 #endif
     ++gSysTmr.tmr;
+
+    ES_API_OBLIGATION(tmr->signature = TMR_CONTRACT_SIGNATURE);
 }
 
 /*================================*//** @cond *//*==  CONFIGURATION ERRORS  ==*/
