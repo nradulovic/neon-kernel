@@ -67,7 +67,8 @@
 #endif
 
 /**@brief       Scheduler priority levels
- * @brief       Possible values:
+ * @details     The number of priority levels. Each priority level can have
+ *              several threads. Possible values:
  *              - Min: 2U (two priority levels)
  *              - Max: 256U
  *
@@ -92,6 +93,16 @@
 # define CFG_SCHED_TIME_QUANTUM         10U
 #endif
 
+/**@brief       System timer mode
+ * @details     Possible values are:
+ *              - 0U - fixed mode
+ *              - 1U - inhibited mode
+ *              - 2U - adaptive mode
+ */
+#if !defined(CFG_SYSTMR_MODE)
+# define CFG_SYSTMR_MODE                1U
+#endif
+
 /**@brief       The frequency of system tick event
  * @details     Specify the desired resolution system tick time source. This
  *              setting is valid only if configuration option
@@ -100,6 +111,16 @@
  */
 #if !defined(CFG_SYSTMR_EVENT_FREQUENCY)
 # define CFG_SYSTMR_EVENT_FREQUENCY     100UL
+#endif
+
+/**@brief       The size of the system timer counter
+ * @details     Possible values are:
+ *              - 0U - 8 bit counter
+ *              - 1U - 16 bit counter
+ *              - 2U - 32 bit counter
+ */
+#if !defined(CFG_SYSTMR_TICK_TYPE)
+# define CFG_SYSTMR_TICK_TYPE           2U
 #endif
 
 /** @} *//*---------------------------------------------------------------*//**
@@ -184,6 +205,20 @@
 
 #if ((1U != CFG_HOOK_CTX_SW) && (0U != CFG_HOOK_CTX_SW))
 # error "eSolid RT Kernel: Configuration option CFG_HOOK_CTX_SW is out of range."
+#endif
+
+#if (0 > CFG_SYSTMR_TICK_TYPE) || (2U < CFG_SYSTMR_TICK_TYPE)
+# error "eSolid RT Kernel: Configuration option CFG_SYSTMR_TICK_TYPE is out of range."
+#endif
+
+#if (2U == CFG_SYSTMR_TICK_TYPE) || defined(__DOXYGEN__)
+/**@brief       Timer tick type
+ */
+typedef uint_fast32_t esTick_T;
+#elif (1U == CFG_SYSTMR_TICK_TYPE)
+typedef uint_fast16_t esTick_T;
+#elif (0U == CFG_SYSTMR_TICK_TYPE)
+typedef uint_fast8_t esTick_T;
 #endif
 
 /** @endcond *//** @} *//******************************************************

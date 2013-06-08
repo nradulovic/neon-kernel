@@ -60,10 +60,6 @@
 #endif
 
 /**@brief       System timer mode
- * @details     Possible values are:
- *              - 0U - fixed mode
- *              - 1U - inhibited mode
- *              - 2U - adaptive mode
  */
 #if !defined(CFG_SYSTMR_MODE)
 # define CFG_SYSTMR_MODE                1U
@@ -79,10 +75,6 @@
 #endif
 
 /**@brief       The size of the system timer counter
- * @details     Possible values are:
- *              - 0U - 8 bit counter
- *              - 1U - 16 bit counter
- *              - 2U - 32 bit counter
  */
 #if !defined(CFG_SYSTMR_TICK_TYPE)
 # define CFG_SYSTMR_TICK_TYPE           2U
@@ -163,7 +155,9 @@
 # error "eSolid RT Kernel: Configuration option CFG_SYSTMR_TICK_TYPE is out of range."
 #endif
 
-#if (2U == CFG_SYSTMR_TICK_TYPE)
+#if (2U == CFG_SYSTMR_TICK_TYPE) || defined(__DOXYGEN__)
+/**@brief       Timer tick type
+ */
 typedef uint_fast32_t esTick_T;
 #elif (1U == CFG_SYSTMR_TICK_TYPE)
 typedef uint_fast16_t esTick_T;

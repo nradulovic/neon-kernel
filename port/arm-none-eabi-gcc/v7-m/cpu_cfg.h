@@ -1,4 +1,4 @@
-/******************************************************************************
+/*
  * This file is part of eSolid-Kernel
  *
  * Copyright (C) 2013 - Nenad Radulovic
@@ -26,11 +26,6 @@
  * @brief   	Configuration of CPU module.
  * @addtogroup  arm-none-eabi-gcc-v7-m_cfg
  * @brief		Configuration of CPU module.
- * @details     Each configuration option or setting has its own default value
- *              when not defined by the application. When application needs to
- *              change a setting it just needs to define a configuration macro
- *              with another value and the default configuration macro will be
- *              overridden.
  *********************************************************************//** @{ */
 
 #ifndef CPU_CONFIG_H_
