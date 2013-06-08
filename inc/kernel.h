@@ -403,9 +403,9 @@ void esKernLockExit(
 
 /**@brief       Initialize the specified thread
  * @param       thd
- *              Thread: is a pointer to the thread structure, @ref esThd_T.
+ *              Thread: is a pointer to the thread structure, @ref esThd.
  *              The structure will be used as information container for the
- *              thread. It is assumed that storage for the esThd_T structure is
+ *              thread. It is assumed that storage for the `esThd` structure is
  *              allocated by the user code.
  * @param       thdf
  *              Thread Function: is a pointer to thread function. Thread
@@ -421,7 +421,7 @@ void esKernLockExit(
  *              regardless of what type of stack the CPU is using. The thread's
  *              stack is used to store local variables, function parameters,
  *              return addresses. Each thread has its own stack and different
- *              sized stack. The stack type must be an array of @ref portStck_T.
+ *              sized stack. The stack type must be an array of @ref portStck.
  * @param       stckSize
  *              Stack Size: specifies the size of allocated stack memory. Size
  *              is expressed in bytes. Please see port documentation about
@@ -444,7 +444,7 @@ void esKernLockExit(
  *                  @ref PORT_STCK_MINSIZE_VAL.
  * @pre         5) `0 <= prio <= CFG_SCHED_PRIO_LVL`, see
  *                  @ref CFG_SCHED_PRIO_LVL.
- * @post        1) `thd->signature == THD_CONTRACT_SIGNATURE`, each esThd_T
+ * @post        1) `thd->signature == THD_CONTRACT_SIGNATURE`, each @ref esThd
  *                  structure will have valid signature after initialization.
  * @api
  */
@@ -458,11 +458,11 @@ void esThdInit(
 
 /**@brief       Terminate the specified thread
  * @param       thd
- *              Thread: is a pointer to the thread structure, @ref esThd_T.
+ *              Thread: is a pointer to the thread structure, @ref esThd.
  * @pre         1) `The kernel state ES_KERN_INACTIVE`, see @ref states.
  * @pre         2) `thd != NULL`
  * @pre         3) `thd->signature == THD_CONTRACT_SIGNATURE`, the pointer must
- *                  point to a @ref esThd_T structure.
+ *                  point to a @ref esThd structure.
  * @pre         4) `(thd->thdL.q == NULL) OR (thd->thdL.q == gRdyQueue)`, thread
  *                  must be either in Ready Threads Queue or not be in any queue
  *                  (e.g. not waiting for a synchronization mechanism).
@@ -484,7 +484,7 @@ static PORT_C_INLINE esThd_T * esThdGetId(
 
 /**@brief       Get the priority of a thread
  * @param       thd
- *              Thread: is pointer to the thread structure, @ref esThd_T.
+ *              Thread: is pointer to the thread structure, @ref esThd.
  * @return      The priority of the thread pointed by @c thd.
  * @inline
  * @api
@@ -497,13 +497,13 @@ static PORT_C_INLINE uint8_t esThdGetPrio(
 
 /**@brief       Set the priority of a thread
  * @param       thd
- *              Thread: is pointer to the thread structure, @ref esThd_T.
+ *              Thread: is pointer to the thread structure, @ref esThd.
  * @param       prio
  *              Priority: is new priority of the thread pointed by @c thd.
  * @pre         1) `The kernel state < ES_KERN_INACTIVE`, see @ref states.
  * @pre         2) `thd != NULL`
  * @pre         3) `thd->signature == THD_CONTRACT_SIGNATURE`, the pointer must
- *                  point to a @ref esThd_T structure.
+ *                  point to a @ref esThd structure.
  * @pre         4) `0 <= prio <= CFG_SCHED_PRIO_LVL`, see
  *                  @ref CFG_SCHED_PRIO_LVL.
  * @iclass
@@ -550,7 +550,7 @@ void esThdWait(
  *              @ref esThdQ.
  * @pre         1) `thdQ != NULL`
  * @post        1) `thdQ->signature == THDQ_CONTRACT_SIGNATURE`, each
- *                  esThdQ_T structure will have valid signature after
+ *                  @ref esThdQ structure will have valid signature after
  *                  initialization.
  * @api
  */
@@ -562,15 +562,15 @@ void esThdQInit(
  *              Thread Queue: is a pointer to thread queue structure,
  *              @ref esThdQ.
  * @param       thd
- *              Thread: is a pointer to the thread ID structure, @ref esThd_T.
+ *              Thread: is a pointer to the thread ID structure, @ref esThd.
  * @details     This function adds a thread at the tail of the specified Thread
  *              Queue.
  * @pre         1) `thdQ != NULL`
  * @pre         2) `thdQ->signature == THDQ_CONTRACT_SIGNATURE`, the pointer
- *                  must point to a @ref esThdQ_T structure.
+ *                  must point to a @ref esThdQ structure.
  * @pre         3) `thd != NULL`
  * @pre         4) `thd->signature == THD_CONTRACT_SIGNATURE`, the pointer must
- *                  point to a @ref esThd_T structure.
+ *                  point to a @ref esThd structure.
  * @pre         5) `thd->thdL.q == NULL`, thread must not be in any queue.
  * @pre         6) `0 <= thd->prio <= CFG_SCHED_PRIO_LVL`, see
  *                  @ref CFG_SCHED_PRIO_LVL.
@@ -585,13 +585,13 @@ void esThdQAddI(
  *              Thread Queue: is a pointer to thread queue structure,
  *              @ref esThdQ.
  * @param       thd
- *              Thread: is a pointer to the thread ID structure, @ref esThd_T.
+ *              Thread: is a pointer to the thread ID structure, @ref esThd.
  * @pre         1) `thd != NULL`
  * @pre         2) `thd->signature == THD_CONTRACT_SIGNATURE`, the pointer must
- *                  point to a @ref esThd_T structure.
+ *                  point to a @ref esThd structure.
  * @pre         3) `thdQ != NULL`
  * @pre         4) `thdQ->signature == THDQ_CONTRACT_SIGNATURE`, the pointer
- *                  must point to a @ref esThdQ_T structure.
+ *                  must point to a @ref esThdQ structure.
  * @pre         5) `thd->thdL.q == thdQ`, thread must be in the `thdQ` queue.
  * @pre         6) `0 <= thd->prio <= CFG_SCHED_PRIO_LVL`, see
  *                  @ref CFG_SCHED_PRIO_LVL.
@@ -608,14 +608,14 @@ void esThdQRmI(
  * @return      A pointer to the thread ID structure with the highest priority.
  * @pre         1) `thdQ != NULL`
  * @pre         2) `thdQ->signature == THDQ_CONTRACT_SIGNATURE`, the pointer
- *                  must point to a @ref esThdQ_T structure.
+ *                  must point to a @ref esThdQ structure.
  * @pre         3) `prioBM != 0`, priority bit map must not be empty
  * @iclass
  */
 esThd_T * esThdQFetchI(
     const esThdQ_T *    thdQ);
 
-/**@brief       Fetch the next thread and rotate linked list
+/**@brief       Fetch the next thread and rotate thread linked list
  * @param       thdQ
  *              Thread Queue: is a pointer to thread queue structure,
  *              @ref esThdQ. This is the thread queue to fetch from.
@@ -624,7 +624,7 @@ esThd_T * esThdQFetchI(
  * @return      Pointer to the next thread in queue.
  * @pre         1) `thdQ != NULL`
  * @pre         2) `thdQ->signature == THDQ_CONTRACT_SIGNATURE`, the pointer
- *                  must point to a @ref esThdQ_T structure.
+ *                  must point to a @ref esThdQ structure.
  * @pre         3) `0 <= prio <= CFG_SCHED_PRIO_LVL`, see
  *                  @ref CFG_SCHED_PRIO_LVL.
  * @pre         4) `sentinel != NULL`, at least one thread must be in the
@@ -644,7 +644,7 @@ esThd_T * esThdQFetchRotateI(
  *  @retval     FALSE - thread queue is not empty
  * @pre         1) `thdQ != NULL`
  * @pre         2) `thdQ->signature == THDQ_CONTRACT_SIGNATURE`, the pointer
- *                  must point to a @ref esThdQ_T structure.
+ *                  must point to a @ref esThdQ structure.
  * @api
  */
 bool_T esThdQIsEmpty(
@@ -654,28 +654,28 @@ bool_T esThdQIsEmpty(
  * @name        Scheduler notification and invocation
  * @{ *//*--------------------------------------------------------------------*/
 
-/**@brief       Add thread @c thd to the ready thread list and notify the
+/**@brief       Add thread `thd` to the ready thread list and notify the
  *              scheduler.
  * @param       thd
- *              Pointer to the initialized thread ID structure, @ref esThd_T.
+ *              Pointer to the initialized thread ID structure, @ref esThd.
  * @pre         1) `The kernel state < ES_KERN_INACTIVE`, see @ref states.
  * @pre         2) `thd != NULL`
  * @pre         3) `thd->signature == THD_CONTRACT_SIGNATURE`, the pointer must
- *                  point to a @ref esThd_T structure.
+ *                  point to a @ref esThd structure.
  * @pre         4) `thd->thdL.q == NULL`, thread must not be in a queue.
  * @iclass
  */
 void esSchedRdyAddI(
     esThd_T *       thd);
 
-/**@brief       Remove thread @c thd from the ready thread list and notify
- *              the scheduler.
+/**@brief       Remove thread `thd` from the ready thread list and notify the
+ *              scheduler.
  * @param       thd
- *              Pointer to the initialized thread ID structure, @ref esThd_T.
+ *              Pointer to the initialized thread ID structure, @ref esThd.
  * @pre         1) `The kernel state < ES_KERN_INACTIVE`, see @ref states.
  * @pre         2) `thd != NULL`
  * @pre         3) `thd->signature == THD_CONTRACT_SIGNATURE`, the pointer must
- *                  point to a @ref esThd_T structure.
+ *                  point to a @ref esThd structure.
  * @pre         4) `thd->thdL.q == &gRdyQueue`, thread must be in Ready Threads
  *                  queue.
  * @iclass
@@ -743,7 +743,7 @@ void esSysTmrDisable(
  * @pre         2) `tmr != NULL`
  * @pre         3) `tick > 1U`
  * @pre         4) `fn != NULL`
- * @post        1) `tmr->signature == TMR_CONTRACT_SIGNATURE`, each esTmr_T
+ * @post        1) `tmr->signature == TMR_CONTRACT_SIGNATURE`, each @ref esTmr
  *                  structure will have valid signature after initialization.
  * @api
  */
