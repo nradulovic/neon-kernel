@@ -1,15 +1,15 @@
 # eSolid Real-Time Kernel
 
-This is a bare-kernel, the result of two weeks of work. It is intended for a bigger 
-project which already includes some synchronization mechanisms. The initial 
-idea was that this kernel would only provide minimal functionality for context 
-switching, but the kernel implementation went so nicely that I think that it 
-would be great to share it. 
+This is a bare-kernel, the result of two weeks of work. It is intended for a 
+bigger project which already includes some synchronization mechanisms. The 
+initial idea was that this kernel would only provide minimal functionality for 
+context switching, but the kernel implementation went so nicely that I think 
+that it would be great to share it. 
 
 eSolid is a collection of resources for embedded system design and this
 Real-Time Kernel is only a piece of that collection. Because of that fact
-remember: __there are no synchronization or IPC mechanisms in this kernel__,
-and it can be viewed as a preemptive Round-Robin scheduler, only.
+remember: *there are no synchronization or IPC mechanisms in this kernel*, and 
+it can be viewed as a preemptive Round-Robin scheduler, only.
 
 
 ## TODO list
@@ -49,9 +49,10 @@ The following include paths are needed:
 
 ### Documentation
 
-Some documentation is available under Wiki https://github.com/nradulovic/esolid-kernel/wiki. 
-Doxygen configuration and full documentation source files are available in `/doc` directory. 
-Go to the directory and run doxygen:
+Some documentation is available under Wiki 
+https://github.com/nradulovic/esolid-kernel/wiki. 
+Doxygen configuration and full documentation source files are available in `/doc` 
+directory. Go to the directory and run doxygen:
 
     # doxygen doxyfile-kernel
     # doxygen doxyfile-kernel-port
