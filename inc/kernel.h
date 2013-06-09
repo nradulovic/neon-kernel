@@ -34,7 +34,6 @@
 #include "compiler.h"
 #include "kernel_cfg.h"
 #include "cpu.h"
-#include "list.h"
 
 /*===============================================================  MACRO's  ==*/
 
@@ -218,9 +217,15 @@ struct esThdQ {
 #endif
         portReg_T       bit[PRIO_BM_GRP_INDX];                                  /**< @brief Bit priority indicator                          */
     }               prioOcc;                                                    /**< @brief Priority Occupancy                              */
-    struct esThd *  grp[CFG_SCHED_PRIO_LVL];                                    /**< @brief Array of Group Head pointers to priority groups */
+
+/**@brief       Thread linked list sentinel structure
+ */
+    struct thdLSentinel {
+        struct esThd *  head;                                                   /**< @brief Points to the first thread in linked list.      */
+        struct esThd *  tail;                                                   /**< @brief Points to the last thread in linked list.       */
+    }               grp[CFG_SCHED_PRIO_LVL];                                    /**< @brief Array of thread linked list sentinel structures.*/
 #if (1U == CFG_API_VALIDATION) || defined(__DOXYGEN__)
-    portReg_T       signature;                                                  /**< @brief Thread Queue struct signature, see @ref errors  */
+    portReg_T       signature;                                                  /**< @brief Thread Queue struct signature, see @ref errors. */
 #endif
 };
 
@@ -706,7 +711,7 @@ void esSchedYieldIsrI(
     void);
 
 /**@} *//*----------------------------------------------------------------*//**
- * @name        System timer
+ * @name        System timer management
  * @{ *//*--------------------------------------------------------------------*/
 
 /**@brief       Enable system timer tick events

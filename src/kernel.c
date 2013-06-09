@@ -183,6 +183,14 @@ typedef struct sysTmr sysTmr_T;
  */
 typedef struct prioBM prioBM_T;
 
+/**@} *//*----------------------------------------------------------------*//**
+ * @name        Threads Queue
+ * @{ *//*--------------------------------------------------------------------*/
+
+/**@brief       Thread list sentinel type
+ */
+typedef struct thdLSentinel thdLSentinel_T;
+
 /**@} *//*--------------------------------------------------------------------*/
 /*=============================================  LOCAL FUNCTION PROTOTYPES  ==*/
 
@@ -352,6 +360,10 @@ static void kIdle(
 
 /**@} *//*--------------------------------------------------------------------*/
 /*=======================================================  LOCAL VARIABLES  ==*/
+
+/*------------------------------------------------------------------------*//**
+ * @name        Scheduler
+ * @{ *//*--------------------------------------------------------------------*/
 
 /**@brief       Ready Thread queue
  */
@@ -1086,7 +1098,8 @@ void esThdQInit(
         &thdQ->prioOcc);
 
     for (group = 0U; group < CFG_SCHED_PRIO_LVL; group++) {
-        thdQ->grp[group] = NULL;
+        thdQ->grp[group].head = NULL;
+        thdQ->grp[group].tail = NULL;
     }
     ES_API_OBLIGATION(thdQ->signature = THDQ_CONTRACT_SIGNATURE);
 }
@@ -1095,7 +1108,7 @@ void esThdQAddI(
     esThdQ_T *      thdQ,
     esThd_T *       thd) {
 
-    esThd_T **      sentinel;
+    thdLSentinel_T * sentinel;
 
     ES_API_REQUIRE(NULL != thdQ);
     ES_API_REQUIRE(THDQ_CONTRACT_SIGNATURE == thdQ->signature);
@@ -1106,13 +1119,14 @@ void esThdQAddI(
 
     sentinel = &(thdQ->grp[thd->prio]);                                         /* Get the sentinel from thread priority level.             */
 
-    if (NULL == *sentinel) {                                                    /* Is thdL list empty?                                      */
-        *sentinel = thd;                                                        /* This thread becomes first in the list.                   */
+    if (NULL == sentinel->head) {                                               /* Is thdL list empty?                                      */
+        sentinel->head = thd;                                                   /* This thread becomes first in the list.                   */
+        sentinel->tail = thd;
         prioBMSet(
             &thdQ->prioOcc,
             thd->prio);                                                         /* Mark the priority group as used.                         */
     } else {
-        DLIST_ENTRY_ADD_AFTER(thdL, *sentinel, thd);                            /* Thread is added at the tail of the list.                 */
+        DLIST_ENTRY_ADD_AFTER(thdL, sentinel->tail, thd);                       /* Thread is added at the tail of the list.                 */
     }
     thd->thdL.q = thdQ;                                                         /* Set the pointer to the thread queue being used.          */
 }
@@ -1121,7 +1135,7 @@ void esThdQRmI(
     esThdQ_T *      thdQ,
     esThd_T *       thd) {
 
-    esThd_T **      sentinel;
+    thdLSentinel_T * sentinel;
 
     ES_API_REQUIRE(NULL != thd);
     ES_API_REQUIRE(THD_CONTRACT_SIGNATURE == thd->signature);
@@ -1133,15 +1147,19 @@ void esThdQRmI(
     sentinel = &(thdQ->grp[thd->prio]);                                         /* Get the sentinel from thread priority level.             */
 
     if (DLIST_IS_ENTRY_FIRST(thdL, thd)) {                                      /* Is this thread last one in the thdL list?                */
-        *sentinel = NULL;                                                       /* Make the list empty.                                     */
+        sentinel->head = NULL;                                                  /* Make the list empty.                                     */
         prioBMClear(
             &thdQ->prioOcc,
             thd->prio);                                                         /* Remove the mark since this group is not used.            */
     } else {                                                                    /* This thread is not the last one in the thdL list.        */
 
-        if (*sentinel == thd) {                                                 /* In case we are removing thread from the beginning of the */
-            *sentinel = DLIST_ENTRY_NEXT(thdL, thd);                            /* list we need to advance sentinel to point to the next one*/
-        }                                                                       /* in the list.                                             */
+        if (sentinel->head == thd) {                                            /* In case we are removing thread from the beginning of the */
+            sentinel->head = DLIST_ENTRY_NEXT(thdL, thd);                       /* list we need to advance head to point to the next one in */
+        }                                                                       /* the list.                                                */
+
+        if (sentinel->tail == thd) {                                            /* In case we are removing thread from the end of the list  */
+            sentinel->tail = DLIST_ENTRY_NEXT(thdL, thd);                       /* we need to move tail to point to a next one in the list. */
+        }
         DLIST_ENTRY_RM(thdL, thd);
         DLIST_ENTRY_INIT(thdL, thd);
     }
@@ -1151,7 +1169,7 @@ void esThdQRmI(
 esThd_T * esThdQFetchI(
     const esThdQ_T *    thdQ) {
 
-    esThd_T **      sentinel;
+    thdLSentinel_T * sentinel;
     uint_fast8_t    prio;
 
     ES_API_REQUIRE(NULL != thdQ);
@@ -1160,26 +1178,26 @@ esThd_T * esThdQFetchI(
 
     prio = prioBMGet(
         &thdQ->prioOcc);                                                        /* Get the highest priority ready to run.                   */
-    sentinel = (esThd_T **)&(thdQ->grp[prio]);                                  /* Get the Group Head pointer for that priority.            */
-
-    return (*sentinel);
+    sentinel = (thdLSentinel_T *)&(thdQ->grp[prio]);                            /* Get the Group Head pointer for that priority.            */
+                                                                                /* The type cast is needed to avoid compiler warnings.      */
+    return (sentinel->head);
 }
 
 esThd_T * esThdQFetchRotateI(
     esThdQ_T *      thdQ,
     uint_fast8_t    prio) {
 
-    esThd_T **      sentinel;
+    thdLSentinel_T * sentinel;
 
     ES_API_REQUIRE(NULL != thdQ);
     ES_API_REQUIRE(THDQ_CONTRACT_SIGNATURE == thdQ->signature);
     ES_API_REQUIRE(CFG_SCHED_PRIO_LVL >= prio);
-    ES_API_REQUIRE(NULL != &(thdQ->grp[prio]));
+    ES_API_REQUIRE(NULL != thdQ->grp[prio].head);
 
     sentinel = &(thdQ->grp[prio]);                                              /* Get the Group Head pointer from thread priority.         */
-    *sentinel = DLIST_ENTRY_NEXT(thdL, *sentinel);
+    sentinel->head = DLIST_ENTRY_NEXT(thdL, sentinel->head);
 
-    return (*sentinel);
+    return (sentinel->head);
 }
 
 bool_T esThdQIsEmpty(
