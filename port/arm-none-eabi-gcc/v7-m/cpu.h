@@ -126,7 +126,7 @@
  * @{ *//*--------------------------------------------------------------------*/
 
 #define PORT_STCK_SIZE(size)                                                    \
-    ((((size + PORT_STCK_MINSIZE_VAL) + (sizeof(struct portStck) /                  \
+    ((((size + PORT_STCK_MINSIZE_VAL) + (sizeof(struct portStck) /              \
     sizeof(portReg_T))) - 1U) / (sizeof(struct portStck)/sizeof(portReg_T)))
 
 #define PORT_CRITICAL_EXIT_SLEEP()                                              \

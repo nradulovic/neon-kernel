@@ -326,9 +326,15 @@ static void sysTmrTryActivate(
  * @name        Virtual Timer kernel thread
  * @{ *//*--------------------------------------------------------------------*/
 
+/**@brief       Add a virtual timer into sorted list
+ * @param       list
+ *              List: pointer to sorted list
+ * @param       tmr
+ *              Virtual timer: pointer to virtual timer to add
+ */
 static void vTmrListAddSort(
     esVTmr_T *       list,
-    esVTmr_T *       tmr);
+    esVTmr_T *       vTmr);
 
 /**@brief       Initialization of Virtual Timer kernel thread
  */
@@ -337,7 +343,7 @@ static void kVTmrInit(
 
 /**@brief       Virtual Timer thread code
  * @param       arg
- *              NO ARGUMENTS - thread does not use argument
+ *              Argument: thread does not use argument
  */
 static void kVTmr(
     void *          arg);
@@ -353,7 +359,7 @@ static void kIdleInit(
 
 /**@brief       Idle thread code
  * @param       arg
- *              NO ARGUMENTS - thread does not use argument
+ *              Argument: thread does not use argument
  */
 static void kIdle(
     void *          arg);
@@ -711,23 +717,23 @@ static void sysTmrTryDeactivate(
 
 static void vTmrListAddSort(
     esVTmr_T *       list,
-    esVTmr_T *       tmr) {
+    esVTmr_T *       vTmr) {
 
     esVTmr_T *   tmp;
     esTick_T    tick;
 
     tmp = DLIST_ENTRY_NEXT(tmrL, list);
-    tick = tmr->rtick;
+    tick = vTmr->rtick;
 
     while (tmp->rtick < tick) {
         tick -= tmp->rtick;
         tmp = DLIST_ENTRY_NEXT(tmrL, tmp);
     }
-    tmr->rtick = tick;
-    DLIST_ENTRY_ADD_AFTER(tmrL, tmp, tmr);
+    vTmr->rtick = tick;
+    DLIST_ENTRY_ADD_AFTER(tmrL, tmp, vTmr);
 
     if (list != tmp) {
-        tmp->rtick -= tmr->rtick;
+        tmp->rtick -= vTmr->rtick;
     }
 }
 
@@ -1098,8 +1104,8 @@ void esThdQInit(
         &thdQ->prioOcc);
 
     for (group = 0U; group < CFG_SCHED_PRIO_LVL; group++) {
-        thdQ->grp[group].head = NULL;
-        thdQ->grp[group].tail = NULL;
+        thdQ->grp[group].begin = NULL;
+        thdQ->grp[group].next  = NULL;
     }
     ES_API_OBLIGATION(thdQ->signature = THDQ_CONTRACT_SIGNATURE);
 }
@@ -1119,14 +1125,14 @@ void esThdQAddI(
 
     sentinel = &(thdQ->grp[thd->prio]);                                         /* Get the sentinel from thread priority level.             */
 
-    if (NULL == sentinel->head) {                                               /* Is thdL list empty?                                      */
-        sentinel->head = thd;                                                   /* This thread becomes first in the list.                   */
-        sentinel->tail = thd;
+    if (NULL == sentinel->begin) {                                              /* Is thdL list empty?                                      */
+        sentinel->begin = thd;                                                  /* This thread becomes first in the list.                   */
+        sentinel->next  = thd;
         prioBMSet(
             &thdQ->prioOcc,
             thd->prio);                                                         /* Mark the priority group as used.                         */
     } else {
-        DLIST_ENTRY_ADD_AFTER(thdL, sentinel->tail, thd);                       /* Thread is added at the tail of the list.                 */
+        DLIST_ENTRY_ADD_AFTER(thdL, sentinel->begin, thd);                      /* Thread is added at the next of the list.                 */
     }
     thd->thdL.q = thdQ;                                                         /* Set the pointer to the thread queue being used.          */
 }
@@ -1147,18 +1153,18 @@ void esThdQRmI(
     sentinel = &(thdQ->grp[thd->prio]);                                         /* Get the sentinel from thread priority level.             */
 
     if (DLIST_IS_ENTRY_FIRST(thdL, thd)) {                                      /* Is this thread last one in the thdL list?                */
-        sentinel->head = NULL;                                                  /* Make the list empty.                                     */
+        sentinel->begin = NULL;                                                  /* Make the list empty.                                     */
         prioBMClear(
             &thdQ->prioOcc,
             thd->prio);                                                         /* Remove the mark since this group is not used.            */
     } else {                                                                    /* This thread is not the last one in the thdL list.        */
 
-        if (sentinel->head == thd) {                                            /* In case we are removing thread from the beginning of the */
-            sentinel->head = DLIST_ENTRY_NEXT(thdL, thd);                       /* list we need to advance head to point to the next one in */
+        if (sentinel->begin == thd) {                                           /* In case we are removing thread from the beginning of the */
+            sentinel->begin = DLIST_ENTRY_NEXT(thdL, thd);                      /* list we need to advance begin to point to the next one in */
         }                                                                       /* the list.                                                */
 
-        if (sentinel->tail == thd) {                                            /* In case we are removing thread from the end of the list  */
-            sentinel->tail = DLIST_ENTRY_NEXT(thdL, thd);                       /* we need to move tail to point to a next one in the list. */
+        if (sentinel->next == thd) {                                            /* In case we are removing thread from the end of the list  */
+            sentinel->next = DLIST_ENTRY_NEXT(thdL, thd);                       /* we need to move next to point to a next one in the list. */
         }
         DLIST_ENTRY_RM(thdL, thd);
         DLIST_ENTRY_INIT(thdL, thd);
@@ -1174,13 +1180,13 @@ esThd_T * esThdQFetchI(
 
     ES_API_REQUIRE(NULL != thdQ);
     ES_API_REQUIRE(THDQ_CONTRACT_SIGNATURE == thdQ->signature);
-    ES_API_REQUIRE(FALSE ==prioBMIsEmpty(&thdQ->prioOcc));
+    ES_API_REQUIRE(FALSE == prioBMIsEmpty(&thdQ->prioOcc));
 
     prio = prioBMGet(
         &thdQ->prioOcc);                                                        /* Get the highest priority ready to run.                   */
     sentinel = (thdLSentinel_T *)&(thdQ->grp[prio]);                            /* Get the Group Head pointer for that priority.            */
                                                                                 /* The type cast is needed to avoid compiler warnings.      */
-    return (sentinel->head);
+    return (sentinel->next);
 }
 
 esThd_T * esThdQFetchRotateI(
@@ -1192,12 +1198,12 @@ esThd_T * esThdQFetchRotateI(
     ES_API_REQUIRE(NULL != thdQ);
     ES_API_REQUIRE(THDQ_CONTRACT_SIGNATURE == thdQ->signature);
     ES_API_REQUIRE(CFG_SCHED_PRIO_LVL >= prio);
-    ES_API_REQUIRE(NULL != thdQ->grp[prio].head);
+    ES_API_REQUIRE(NULL != thdQ->grp[prio].next);
 
     sentinel = &(thdQ->grp[prio]);                                              /* Get the Group Head pointer from thread priority.         */
-    sentinel->head = DLIST_ENTRY_NEXT(thdL, sentinel->head);
+    sentinel->next = DLIST_ENTRY_NEXT(thdL, sentinel->next);
 
-    return (sentinel->head);
+    return (sentinel->next);
 }
 
 bool_T esThdQIsEmpty(

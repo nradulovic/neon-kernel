@@ -221,8 +221,8 @@ struct esThdQ {
 /**@brief       Thread linked list sentinel structure
  */
     struct thdLSentinel {
-        struct esThd *  head;                                                   /**< @brief Points to the first thread in linked list.      */
-        struct esThd *  tail;                                                   /**< @brief Points to the last thread in linked list.       */
+        struct esThd *  begin;                                                  /**< @brief Points to the first thread in linked list.      */
+        struct esThd *  next;                                                   /**< @brief Points to the next thread in linked list.       */
     }               grp[CFG_SCHED_PRIO_LVL];                                    /**< @brief Array of thread linked list sentinel structures.*/
 #if (1U == CFG_API_VALIDATION) || defined(__DOXYGEN__)
     portReg_T       signature;                                                  /**< @brief Thread Queue struct signature, see @ref errors. */
@@ -562,13 +562,13 @@ void esThdWait(
 void esThdQInit(
     esThdQ_T *      thdQ);
 
-/**@brief       Add a thread to the tail of the Thread Queue
+/**@brief       Add a thread to the begin of the Thread Queue
  * @param       thdQ
  *              Thread Queue: is a pointer to thread queue structure,
  *              @ref esThdQ.
  * @param       thd
  *              Thread: is a pointer to the thread ID structure, @ref esThd.
- * @details     This function adds a thread at the tail of the specified Thread
+ * @details     This function adds a thread at the begin of the specified Thread
  *              Queue.
  * @pre         1) `thdQ != NULL`
  * @pre         2) `thdQ->signature == THDQ_CONTRACT_SIGNATURE`, the pointer
