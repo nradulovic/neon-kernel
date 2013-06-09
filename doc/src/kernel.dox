@@ -559,8 +559,15 @@ between a number of threads, giving the illusion that it is dealing with these
 threads concurrently. 
 
 @section        sched_thdL Threads List
-@image html     thdL.png "Threads List"
-@image latex    thdL.png "Threads List" width=15cm
+Each thread structure @ref esThd contains Thread List structure @ref esThd::thdL. 
+All threads of same priority are linked together via `next` and `prev` members in
+@ref esThd::thdL structure. The first member of the structure `q` points back to
+the Threads Queue which contains the threads. Sentinel points to the first entry
+of the list. When the list is rotated using esThdQFetchRotateI() the sentinel is
+advanced forward and points to the next thread in list.
+
+@image html     thdL.png "Detailed view of Threads List"
+@image latex    thdL.png "Detailed view of Threads List" width=15cm
 
 @section        sched_thdQ Threads Queue 
 Based on the number of configured priority levels (see @ref CFG_SCHED_PRIO_LVL) 
