@@ -84,9 +84,9 @@
 
 /**@brief       Timer structure signature
  * @details     The signature is used to confirm that a structure passed to a
- *              timer function is indeed a esTmr_T timer structure.
+ *              timer function is indeed a esVTmr_T timer structure.
  */
-#define TMR_CONTRACT_SIGNATURE          ((portReg_T)0xFEEDBEEFU)
+#define VTMR_CONTRACT_SIGNATURE         ((portReg_T)0xFEEDBEEFU)
 
 /**@brief       DList macro: is the thread the first one in the list
  */
@@ -141,7 +141,7 @@
 
 /**@brief       System Timer kernel thread stack size
  */
-#define KTMR_STCK_SIZE                  PORT_STCK_SIZE(40U)
+#define KVTMR_STCK_SIZE                 PORT_STCK_SIZE(40U)
 
 /**@brief       Idle kernel thread stack size
  */
@@ -163,8 +163,8 @@ enum sysTmrState {
 /**@brief       Main System Timer structure
  */
 struct sysTmr {
-    esTick_T            tick;                                                   /**< @brief Current system tick counter                     */
-    uint_fast16_t       tmr;                                                    /**< @brief The number of timers in system                  */
+    esTick_T            tick;                                                   /**< @brief Current system tick counter.                    */
+    uint_fast16_t       vTmr;                                                   /**< @brief The number of virtual timers in system.         */
 #if (0U != CFG_SYSTMR_MODE)
     uint_fast8_t        qm;                                                     /**< @brief Number of system timer quantum users.           */
     enum sysTmrState    state;                                                  /**< @brief Current state of system timer.                  */
@@ -323,23 +323,23 @@ static void sysTmrTryActivate(
 #endif
 
 /**@} *//*----------------------------------------------------------------*//**
- * @name        System timer kernel thread
+ * @name        Virtual Timer kernel thread
  * @{ *//*--------------------------------------------------------------------*/
 
-static void tmrListAddSort(
-    esTmr_T *       list,
-    esTmr_T *       tmr);
+static void vTmrListAddSort(
+    esVTmr_T *       list,
+    esVTmr_T *       tmr);
 
-/**@brief       Initialization of System Timer Thread
+/**@brief       Initialization of Virtual Timer kernel thread
  */
-static void kTmrInit(
+static void kVTmrInit(
     void);
 
-/**@brief       System timer thread code
+/**@brief       Virtual Timer thread code
  * @param       arg
  *              NO ARGUMENTS - thread does not use argument
  */
-static void kTmr(
+static void kVTmr(
     void *          arg);
 
 /**@} *//*----------------------------------------------------------------*//**
@@ -384,11 +384,11 @@ static sysTmr_T gSysTmr = {
 #endif
 };
 
-/**@brief       Waiting list of timers to expire
+/**@brief       Waiting list of virtual timers to expire
  */
-static esTmr_T gTmrWait = {
-   {    &gTmrWait,
-        &gTmrWait
+static esVTmr_T gVTmrWait = {
+   {    &gVTmrWait,
+        &gVTmrWait
    },
 
 #if (0U == CFG_SYSTMR_TICK_TYPE)
@@ -401,41 +401,41 @@ static esTmr_T gTmrWait = {
    NULL,
    NULL,
 #if (1U == CFG_API_VALIDATION)
-   TMR_CONTRACT_SIGNATURE
+   VTMR_CONTRACT_SIGNATURE
 #endif
 };
 
-/**@brief       Timers pending to be inserted in waiting list
+/**@brief       Virtual timers pending to be inserted into waiting list
  */
-static esTmr_T gTmrPend = {
-   {    &gTmrPend,
-        &gTmrPend
+static esVTmr_T gVTmrPend = {
+   {    &gVTmrPend,
+        &gVTmrPend
    },
    0U,
    NULL,
    NULL,
 #if (1U == CFG_API_VALIDATION)
-   TMR_CONTRACT_SIGNATURE
+   VTMR_CONTRACT_SIGNATURE
 #endif
 };
 
-/**@brief       System timer thread Id
+/**@brief       Virtual timer thread ID
  */
-static esThd_T gKTmrId;
+static esThd_T gKVTmrId;
 
-/**@brief       System timer thread stack
+/**@brief       Virtual timer kernel thread stack
  */
-static portStck_T gKTmrStck[KTMR_STCK_SIZE];
+static portStck_T gKVTmrStck[KVTMR_STCK_SIZE];
 
 /**@} *//*----------------------------------------------------------------*//**
  * @name        Idle kernel thread
  * @{ *//*--------------------------------------------------------------------*/
 
-/**@brief       Idle thread Id
+/**@brief       Idle thread ID
  */
 static esThd_T gKIdleId;
 
-/**@brief       Idle thread stack
+/**@brief       Idle kernel thread stack
  */
 static portStck_T gKIdleStck[KIDLE_STCK_SIZE];
 
@@ -693,7 +693,7 @@ static void sysTmrTryDeactivate(
 # if (1U == CFG_SYSTMR_MODE)
 
     if (SYSTMR_ACTIVE == gSysTmr.state) {
-        if (0U == (gSysTmr.tmr + gSysTmr.qm)) {
+        if (0U == (gSysTmr.vTmr + gSysTmr.qm)) {
             gSysTmr.state = SYSTMR_INACTIVE;
             PORT_SYSTMR_ISR_DISABLE();
         }
@@ -709,11 +709,11 @@ static void sysTmrTryDeactivate(
 
 /*--  Timer  -----------------------------------------------------------------*/
 
-static void tmrListAddSort(
-    esTmr_T *       list,
-    esTmr_T *       tmr) {
+static void vTmrListAddSort(
+    esVTmr_T *       list,
+    esVTmr_T *       tmr) {
 
-    esTmr_T *   tmp;
+    esVTmr_T *   tmp;
     esTick_T    tick;
 
     tmp = DLIST_ENTRY_NEXT(tmrL, list);
@@ -734,21 +734,21 @@ static void tmrListAddSort(
 
 /*--  Kernel threads  --------------------------------------------------------*/
 
-static void kTmrInit(
+static void kVTmrInit(
     void) {
 
     esThdInit(
-        &gKTmrId,
-        kTmr,
+        &gKVTmrId,
+        kVTmr,
         NULL,
-        gKTmrStck,
-        sizeof(gKTmrStck),
+        gKVTmrStck,
+        sizeof(gKVTmrStck),
         CFG_SCHED_PRIO_LVL - 1U);
-    gKTmrId.qCnt = 1U;
-    gKTmrId.qRld = 1U;
+    gKVTmrId.qCnt = 1U;
+    gKVTmrId.qRld = 1U;
 }
 
-static void kTmr(
+static void kVTmr(
     void *          arg) {
 
     (void)arg;
@@ -758,24 +758,24 @@ static void kTmr(
         esThdWait();
         ++gSysTmr.tick;
 
-        while (!DLIST_IS_ENTRY_LAST(tmrL, &gTmrPend)) {
-            esTmr_T * tmr;
+        while (!DLIST_IS_ENTRY_LAST(tmrL, &gVTmrPend)) {
+            esVTmr_T * tmr;
 
-            tmr = DLIST_ENTRY_NEXT(tmrL, &gTmrPend);
+            tmr = DLIST_ENTRY_NEXT(tmrL, &gVTmrPend);
             DLIST_ENTRY_RM(tmrL, tmr);
-            tmrListAddSort(&gTmrWait, tmr);
+            vTmrListAddSort(&gVTmrWait, tmr);
         }
 
-        if (!DLIST_IS_ENTRY_LAST(tmrL, &gTmrWait)) {
-            esTmr_T * tmr;
+        if (!DLIST_IS_ENTRY_LAST(tmrL, &gVTmrWait)) {
+            esVTmr_T * tmr;
 
-            tmr = DLIST_ENTRY_NEXT(tmrL, &gTmrWait);
+            tmr = DLIST_ENTRY_NEXT(tmrL, &gVTmrWait);
             --tmr->rtick;
 
             while (0U == tmr->rtick) {
                 DLIST_ENTRY_RM(tmrL, tmr);
                 (* tmr->fn)(tmr->arg);
-                tmr = DLIST_ENTRY_NEXT(tmrL, &gTmrWait);
+                tmr = DLIST_ENTRY_NEXT(tmrL, &gVTmrWait);
             }
         }
     }
@@ -831,7 +831,7 @@ void esKernInit(
     sysTmrInit();
     schedInit();
     kIdleInit();
-    kTmrInit();
+    kVTmrInit();
     PORT_INIT();
 }
 
@@ -863,9 +863,9 @@ void esKernSysTmrI(
     userSysTmr();
 #endif
 
-    if (0U != gSysTmr.tmr) {
+    if (0U != gSysTmr.vTmr) {
         esSchedRdyAddI(
-            &gKTmrId);
+            &gKVTmrId);
     }
     schedQmI();
 }
@@ -1349,36 +1349,36 @@ void esSysTmrDisable(
 
 /*--  Timer functions  -------------------------------------------------------*/
 
-void esTmrInitI(
-    esTmr_T *       tmr,
+void esVTmrInitI(
+    esVTmr_T *      vTmr,
     esTick_T        tick,
     void (* fn)(void *),
     void *          arg) {
 
     ES_API_ENSURE(ES_KERN_INACTIVE > gKernCtrl.state);
-    ES_API_ENSURE(NULL != tmr);
+    ES_API_ENSURE(NULL != vTmr);
     ES_API_ENSURE(1U < tick);
     ES_API_ENSURE(NULL != fn);
 
-    tmr->rtick = tick;
-    tmr->fn = fn;
-    tmr->arg = arg;
-    DLIST_ENTRY_ADD_AFTER(tmrL, &gTmrPend, tmr);
+    vTmr->rtick = tick;
+    vTmr->fn    = fn;
+    vTmr->arg   = arg;
+    DLIST_ENTRY_ADD_AFTER(tmrL, &gVTmrPend, vTmr);
 
 #if (0U != CFG_SYSTMR_MODE)
     sysTmrTryActivate();
 #endif
-    ++gSysTmr.tmr;
+    ++gSysTmr.vTmr;
 
-    ES_API_OBLIGATION(tmr->signature = TMR_CONTRACT_SIGNATURE);
+    ES_API_OBLIGATION(vTmr->signature = VTMR_CONTRACT_SIGNATURE);
 }
 
-void esTmrTermI(
-    esTmr_T *       tmr) {
+void esVTmrTermI(
+    esVTmr_T *       vTmr) {
 
     ES_API_ENSURE(ES_KERN_INACTIVE > gKernCtrl.state);
-    ES_API_ENSURE(NULL != tmr);
-    ES_API_ENSURE(TMR_CONTRACT_SIGNATURE == tmr->signature);
+    ES_API_ENSURE(NULL != vTmr);
+    ES_API_ENSURE(VTMR_CONTRACT_SIGNATURE == vTmr->signature);
 }
 
 /*================================*//** @cond *//*==  CONFIGURATION ERRORS  ==*/

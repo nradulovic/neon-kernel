@@ -169,19 +169,19 @@ typedef struct esThd esThd_T;
 typedef portStck_T esStck_T;
 
 /**@} *//*----------------------------------------------------------------*//**
- * @name        Timer management
+ * @name        Virtual Timer management
  * @{ *//*--------------------------------------------------------------------*/
 
-/**@brief       Timer structure
+/**@brief       Virtual Timer structure
  */
-struct esTmr {
+struct esVTmr {
 
-/**@brief       Timer linked list structure
+/**@brief       Virtual Timer linked list structure
  */
     struct tmrL {
-        struct esTmr *  next;                                                   /**< @brief Next thread in timer linked list                */
-        struct esTmr *  prev;                                                   /**< @brief Previous thread in timer linked list            */
-    }               tmrL;                                                       /**< @brief Timer linked List                               */
+        struct esVTmr * next;                                                   /**< @brief Next thread in Virtual Timer linked list.       */
+        struct esVTmr * prev;                                                   /**< @brief Previous thread in virtual timer linked list.   */
+    }               tmrL;                                                       /**< @brief Virtual Timer linked List.                      */
     esTick_T        rtick;                                                      /**< @brief Relative tick value                             */
     void (* fn)(void *);                                                        /**< @brief Callback function pointer                       */
     void *          arg;                                                        /**< @brief Callback function argument                      */
@@ -190,9 +190,9 @@ struct esTmr {
 #endif
 };
 
-/**@brief       Timer type
+/**@brief       Virtual Timer type
  */
-typedef struct esTmr esTmr_T;
+typedef struct esVTmr esVTmr_T;
 
 /**@} *//*----------------------------------------------------------------*//**
  * @name        Thread Queue management
@@ -732,12 +732,12 @@ void esSysTmrDisable(
     void);
 
 /**@} *//*----------------------------------------------------------------*//**
- * @name        Timer management
+ * @name        Virtual Timer management
  * @{ *//*--------------------------------------------------------------------*/
 
-/**@brief       Add and start a new timer
- * @param       tmr
- *              Timer: is pointer to the timer ID structure, @ref esTmr.
+/**@brief       Add and start a new virtual timer
+ * @param       vTmr
+ *              Virtual Timer: is pointer to the timer ID structure, @ref esVTmr.
  * @param       tick
  *              Tick: the timer delay expressed in system ticks
  * @param       fn
@@ -745,30 +745,31 @@ void esSysTmrDisable(
  * @param       arg
  *              Argument: is pointer to the arguments of callback function
  * @pre         1) `The kernel state < ES_KERN_INACTIVE`, see @ref states.
- * @pre         2) `tmr != NULL`
+ * @pre         2) `vTmr != NULL`
  * @pre         3) `tick > 1U`
  * @pre         4) `fn != NULL`
- * @post        1) `tmr->signature == TMR_CONTRACT_SIGNATURE`, each @ref esTmr
- *                  structure will have valid signature after initialization.
+ * @post        1) `vTmr->signature == VTMR_CONTRACT_SIGNATURE`, each
+ *                  @ref esVTmr structure will have valid signature after
+ *                  initialization.
  * @api
  */
-void esTmrInitI(
-    esTmr_T *       tmr,
+void esVTmrInitI(
+    esVTmr_T *      vTmr,
     esTick_T        tick,
     void (* fn)(void *),
     void *          arg);
 
-/**@brief       Cancel and remove a timer
- * @param       tmr
- *              Timer: is pointer to the timer ID structure, @ref esTmr.
+/**@brief       Cancel and remove a virtual timer
+ * @param       vTmr
+ *              Timer: is pointer to the timer ID structure, @ref esVTmr.
  * @pre         1) `The kernel state < ES_KERN_INACTIVE`, see @ref states.
- * @pre         2) `tmr != NULL`
- * @pre         3) `tmr->signature == TMR_CONTRACT_SIGNATURE`, the pointer must
- *                  point to a @ref esTmr structure.
+ * @pre         2) `vTmr != NULL`
+ * @pre         3) `vTmr->signature == VTMR_CONTRACT_SIGNATURE`, the pointer
+ *                  must point to a @ref esVTmr structure.
  * @api
  */
-void esTmrTermI(
-    esTmr_T *       tmr);
+void esVTmrTermI(
+    esVTmr_T *       vTmr);
 
 /**@} *//*----------------------------------------------------------------*//**
  * @name        Kernel hook functions

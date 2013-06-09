@@ -65,7 +65,7 @@
 # define CFG_SYSTMR_MODE                1U
 #endif
 
-/**@brief       The frequency of system tick event
+/**@brief       The frequency of system timer tick event
  * @note        This setting is valid only if configuration option
  *              @ref CFG_SYSTMR_CLOCK_FREQUENCY is properly set in port
  *              configuration file cpu_cfg.h
@@ -74,7 +74,7 @@
 # define CFG_SYSTMR_EVENT_FREQUENCY     100UL
 #endif
 
-/**@brief       The size of the system timer counter
+/**@brief       The size of the system timer tick event counter
  */
 #if !defined(CFG_SYSTMR_TICK_TYPE)
 # define CFG_SYSTMR_TICK_TYPE           2U

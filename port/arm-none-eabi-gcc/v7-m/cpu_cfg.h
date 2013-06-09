@@ -94,7 +94,7 @@
 /**@brief       SysTick exception handler
  */
 #if !defined(portSysTmr) || defined(__DOXYGEN__)
-# define portSysTmr                    SysTick_Handler
+# define portSysTmr                     SysTick_Handler
 #endif
 
 /** @} *//*-------------------------------------------------------------------*/
