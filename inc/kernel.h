@@ -42,7 +42,7 @@
  * @{ *//*--------------------------------------------------------------------*/
 
 /**@brief       Identifies the underlying kernel version number
- * @details     RTOS identification and version (main [31:16] .sub [15:0])
+ * @details     Kernel identification and version (main [31:16] .sub [15:0])
  */
 #define ES_KERNEL_VER                   0x10000UL
 
@@ -221,7 +221,7 @@ struct esThdQ {
 /**@brief       Thread linked list sentinel structure
  */
     struct thdLSentinel {
-        struct esThd *  begin;                                                  /**< @brief Points to the first thread in linked list.      */
+        struct esThd *  head;                                                   /**< @brief Points to the first thread in linked list.      */
         struct esThd *  next;                                                   /**< @brief Points to the next thread in linked list.       */
     }               grp[CFG_SCHED_PRIO_LVL];                                    /**< @brief Array of thread linked list sentinel structures.*/
 #if (1U == CFG_API_VALIDATION) || defined(__DOXYGEN__)
@@ -299,21 +299,18 @@ extern const volatile esKernCtrl_T gKernCtrl;
  * @{ *//*--------------------------------------------------------------------*/
 
 /**@brief       Initialize kernel internal data structures
- * @details     This is the function which must be called first before any other
- *              kernel API. It initializes internal data structures which all
- *              other kernel API use.
  * @pre         1) `The kernel state == ES_KERN_INACTIVE`, see @ref states.
  * @post        1) `The kernel state == ES_KERN_INIT`.
  * @note        1) This function may be invoked only once.
+ * @details     This function must be called first before any other kernel API.
+ *              It initializes internal data structures that are used by other
+ *              API functions.
  * @api
  */
 void esKernInit(
     void);
 
 /**@brief       Start the multi-threading
- * @details     This function will start multi-threading. Once the
- *              multi-threading has started the execution will never return to
- *              this function again (this function never returns).
  * @pre         1) `The kernel state == ES_KERN_INIT`, see @ref states.
  * @pre         2) At least one thread must be initialized and be in Threads
  *                  Ready Queue before starting multi-threading, see esThdInit().
@@ -321,40 +318,39 @@ void esKernInit(
  * @post        2) The multi-threading execution will commence.
  * @note        1) Once this function is called the execution of threads will
  *                  start and this function will never return.
+ * @details     This function will start multi-threading. Once the
+ *              multi-threading has started the execution will never return to
+ *              this function again (this function never returns).
  * @api
  */
 PORT_C_NORETURN void esKernStart(
     void);
 
 /**@brief       Process the system timer event
- * @details     This function will be called only by port system timer interrupt.
  * @pre         1) `The kernel state < ES_KERN_INIT`, see @ref states.
+ * @details     This function will be called only by port system timer interrupt.
  * @notapi
  */
 void esKernSysTmrI(
     void);
 
 /**@brief       Enter Interrupt Service Routine
- * @details     Function will notify kernel that you are about to enter
- *              interrupt service routine (ISR). This allows kernel to keep
- *              track of interrupt nesting and then only perform rescheduling at
- *              the last nested ISR.
  * @pre         1) `The kernel state < ES_KERN_INIT`, see @ref states.
  * @note        1) You must call esKernIsrEpilogueI() at the exit of ISR.
  * @note        2) You must invoke esKernIsrPrologueI() and esKernIsrEpilogueI()
  *                  in pair. In other words, for every call to
  *                  esKernIsrPrologueI() at the beginning of the ISR you must
  *                  have a call to esKernIsrEpilogueI() at the end of the ISR.
+ * @details     Function will notify kernel that you are about to enter
+ *              interrupt service routine (ISR). This allows kernel to keep
+ *              track of interrupt nesting and then only perform rescheduling at
+ *              the last nested ISR.
  * @iclass
  */
 void esKernIsrPrologueI(
     void);
 
 /**@brief       Exit Interrupt Service Routine
- * @details     This function is used to notify kernel that you have completed
- *              servicing an interrupt. When the last nested ISR has completed,
- *              the function will call the scheduler to determine whether a new,
- *              high-priority task, is ready to run.
  * @pre         1) `The kernel state < ES_KERN_INIT`, see @ref states.
  * @note        1) You must invoke esKernIsrPrologueI() and esKernIsrEpilogueI()
  *                  in pair. In other words, for every call to
@@ -362,6 +358,10 @@ void esKernIsrPrologueI(
  *                  have a call to esKernIsrEpilogueI() at the end of the ISR.
  * @note        2) Rescheduling is prevented when the scheduler is locked
  *                  (see esKernLockEnterI())
+ * @details     This function is used to notify kernel that you have completed
+ *              servicing an interrupt. When the last nested ISR has completed,
+ *              the function will call the scheduler to determine whether a new,
+ *              high-priority task, is ready to run.
  * @iclass
  */
 void esKernIsrEpilogueI(
@@ -412,10 +412,9 @@ void esKernLockExit(
  *              The structure will be used as information container for the
  *              thread. It is assumed that storage for the `esThd` structure is
  *              allocated by the user code.
- * @param       thdf
- *              Thread Function: is a pointer to thread function. Thread
- *              function must have the following signature: `void thread
- *              (void * arg)`.
+ * @param       fn
+ *              Function: is a pointer to thread function. Thread function must
+ *              have the following signature: `void thread (void * arg)`.
  * @param       arg
  *              Argument: is a void pointer to an optional data area. It's usage
  *              is application defined and it is intended to pass arguments to
@@ -435,13 +434,6 @@ void esKernLockExit(
  *              Priority: is the priority of the thread. The higher the number,
  *              the higher the priority (the importance) of the thread. Several
  *              threads can have the same priority.
- * @details     Threads must be created in order for kernel to recognize them as
- *              threads. Initialize a thread by calling esThdInit() and
- *              provide arguments specifying to kernel how the thread will be
- *              managed. Threads are always created in the @c ready-to-run state.
- *              Threads can be created either prior to the start of
- *              multi-threading (before calling esKernStart()), or by a running
- *              thread.
  * @pre         1) `The kernel state ES_KERN_INACTIVE`, see @ref states.
  * @pre         2) `thd != NULL`
  * @pre         3) `thdf != NULL`
@@ -451,11 +443,18 @@ void esKernLockExit(
  *                  @ref CFG_SCHED_PRIO_LVL.
  * @post        1) `thd->signature == THD_CONTRACT_SIGNATURE`, each @ref esThd
  *                  structure will have valid signature after initialization.
+ * @details     Threads must be created in order for kernel to recognize them as
+ *              threads. Initialize a thread by calling esThdInit() and
+ *              provide arguments specifying to kernel how the thread will be
+ *              managed. Threads are always created in the @c ready-to-run state.
+ *              Threads can be created either prior to the start of
+ *              multi-threading (before calling esKernStart()), or by a running
+ *              thread.
  * @api
  */
 void esThdInit(
     esThd_T *       thd,
-    void (* thdf)(void *),
+    void (* fn)(void *),
     void *          arg,
     portStck_T *    stck,
     size_t          stckSize,
@@ -562,14 +561,12 @@ void esThdWait(
 void esThdQInit(
     esThdQ_T *      thdQ);
 
-/**@brief       Add a thread to the begin of the Thread Queue
+/**@brief       Add a thread to the Thread Queue
  * @param       thdQ
  *              Thread Queue: is a pointer to thread queue structure,
  *              @ref esThdQ.
  * @param       thd
  *              Thread: is a pointer to the thread ID structure, @ref esThd.
- * @details     This function adds a thread at the begin of the specified Thread
- *              Queue.
  * @pre         1) `thdQ != NULL`
  * @pre         2) `thdQ->signature == THDQ_CONTRACT_SIGNATURE`, the pointer
  *                  must point to a @ref esThdQ structure.
@@ -579,6 +576,7 @@ void esThdQInit(
  * @pre         5) `thd->thdL.q == NULL`, thread must not be in any queue.
  * @pre         6) `0 <= thd->prio <= CFG_SCHED_PRIO_LVL`, see
  *                  @ref CFG_SCHED_PRIO_LVL.
+ * @details     This function adds a thread at the specified Thread Queue.
  * @iclass
  */
 void esThdQAddI(
@@ -784,14 +782,14 @@ void esVTmrTermI(
  * @param       expr
  *              Expression: is pointer to the string containing the expression
  *              that failed to evaluate to `TRUE`.
- * @details     Function will just print the information which was given by
- *              the macros. After the function informs the user it **must** go
- *              into infinite loop or HALT the processor.
  * @pre         1) `NULL != fnName`
  * @pre         2) `NULL != expr`
  * @note        1) The definition of this function must be written by the user.
  * @note        2) This function is called only if @ref CFG_API_VALIDATION is
  *              active.
+ * @details     Function will just print the information which was given by
+ *              the macros. After the function informs the user it **must** go
+ *              into infinite loop or HALT the processor.
  */
 PORT_C_NORETURN extern void userAssert(
     const char *    fnName,
@@ -799,39 +797,39 @@ PORT_C_NORETURN extern void userAssert(
 
 /**@brief       System timer hook function, called from system system timer ISR
  *              function.
- * @details     This function is called whenever a system event is generated.
  * @note        1) The definition of this function must be written by the user.
  * @note        2) This function is called only if @ref CFG_HOOK_SYSTMR_EVENT is
  *              active.
+ * @details     This function is called whenever a system event is generated.
  */
 extern void userSysTmr(
     void);
 
 /**@brief       Kernel initialization hook function, called from esKernInit()
  *              function.
- * @details     This function is called before kernel initialization.
  * @note        1) The definition of this function must be written by the user.
  * @note        2) This function is called only if @ref CFG_HOOK_KERN_INIT is
  *              active.
+ * @details     This function is called before kernel initialization.
  */
 extern void userKernInit(
     void);
 
 /**@brief       Kernel start hook function, called from esKernStart() function.
- * @details     This function is called before kernel start.
  * @note        1) The definition of this function must be written by the user.
  * @note        2) This function is called only if @ref CFG_HOOK_KERN_START is
  *              active.
+ * @details     This function is called before kernel start.
  */
 extern void userKernStart(
     void);
 
 /**@brief       Thread initialization end hook function, called from esThdInit()
  *              function.
- * @details     This function is called after the thread initialization.
  * @note        1) The definition of this function must be written by the user.
  * @note        2) This function is called only if @ref CFG_HOOK_THD_INIT_END is
  *              active.
+ * @details     This function is called after the thread initialization.
  */
 extern void userThdInitEnd(
     void);
@@ -847,7 +845,6 @@ extern void userThdTerm(
 
 /**@brief       Kernel context switch hook function, called from esSchedYieldI()
  *              and esSchedYieldIsrI() functions.
- * @details     This function is called at each context switch.
  * @param       oldThd
  *              Pointer to the thread being switched out.
  * @param       newThd
@@ -855,6 +852,7 @@ extern void userThdTerm(
  * @note        1) The definition of this function must be written by the user.
  * @note        2) This function is called only if @ref CFG_HOOK_CTX_SW is
  *              active.
+ * @details     This function is called at each context switch.
  */
 extern void userCtxSw(
     esThd_T *       oldThd,
