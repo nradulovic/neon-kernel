@@ -581,7 +581,7 @@ static PORT_C_INLINE void schedStart(
     esThd_T * nthd;
 
     PORT_CRITICAL_ENTER();
-    nthd = esThdQFetchI(                                                   /* Get the highest priority thread                          */
+    nthd = esThdQFetchI(                                                        /* Get the highest priority thread                          */
         &gRdyQueue);
 
 #if (1U == SCHED_POWER_SAVE)
@@ -617,7 +617,7 @@ static void schedQmI(
                 esThd_T * nthd;
 
                 cthd->qCnt = cthd->qRld;                                        /* Reload thread time quantum                               */
-                nthd = esThdQFetchRotateI(                                           /* Fetch the next thread and rotate this priority group     */
+                nthd = esThdQFetchRotateI(                                      /* Fetch the next thread and rotate this priority group     */
                     &gRdyQueue,
                     cthd->prio);
 
@@ -944,7 +944,7 @@ void esKernIsrEpilogueI(
 
 void esThdInit(
     esThd_T *       thd,
-    void (* thdf)(void *),
+    void (* fn)(void *),
     void *          arg,
     portStck_T *    stck,
     size_t          stckSize,
@@ -954,12 +954,12 @@ void esThdInit(
 
     ES_API_REQUIRE(ES_KERN_INACTIVE > gKernCtrl.state);
     ES_API_REQUIRE(NULL != thd);
-    ES_API_REQUIRE(NULL != thdf);
+    ES_API_REQUIRE(NULL != fn);
     ES_API_REQUIRE(NULL != stck);
     ES_API_REQUIRE(PORT_STCK_MINSIZE_VAL <= (stckSize * sizeof(portReg_T)));
     ES_API_REQUIRE(CFG_SCHED_PRIO_LVL >= prio);
 
-    thd->stck   = PORT_CTX_INIT(stck, stckSize, thdf, arg);                     /* Make a fake thread stack.                                */
+    thd->stck   = PORT_CTX_INIT(stck, stckSize, fn, arg);                     /* Make a fake thread stack.                                */
     thd->thdL.q = NULL;                                                         /* This thread is not in any thread queue.                  */
     DLIST_ENTRY_INIT(thdL, thd);
     thd->prio   = prio;                                                         /* Set the priority.                                        */
@@ -1007,6 +1007,11 @@ void esThdTerm(
 void esThdSetPrioI(
     esThd_T *       thd,
     uint8_t         prio) {
+
+    /*
+     * TODO: This function should be altered to take into account the case when
+     * a thread is not in any queue (sleeping).
+     */
 
     ES_API_REQUIRE(ES_KERN_INACTIVE > gKernCtrl.state);
     ES_API_REQUIRE(NULL != thd);
@@ -1104,7 +1109,7 @@ void esThdQInit(
         &thdQ->prioOcc);
 
     for (group = 0U; group < CFG_SCHED_PRIO_LVL; group++) {
-        thdQ->grp[group].begin = NULL;
+        thdQ->grp[group].head = NULL;
         thdQ->grp[group].next  = NULL;
     }
     ES_API_OBLIGATION(thdQ->signature = THDQ_CONTRACT_SIGNATURE);
@@ -1125,14 +1130,14 @@ void esThdQAddI(
 
     sentinel = &(thdQ->grp[thd->prio]);                                         /* Get the sentinel from thread priority level.             */
 
-    if (NULL == sentinel->begin) {                                              /* Is thdL list empty?                                      */
-        sentinel->begin = thd;                                                  /* This thread becomes first in the list.                   */
-        sentinel->next  = thd;
+    if (NULL == sentinel->head) {                                               /* Is thdL list empty?                                      */
+        sentinel->head = thd;                                                   /* This thread becomes first in the list.                   */
+        sentinel->next = thd;
         prioBMSet(
             &thdQ->prioOcc,
             thd->prio);                                                         /* Mark the priority group as used.                         */
     } else {
-        DLIST_ENTRY_ADD_AFTER(thdL, sentinel->begin, thd);                      /* Thread is added at the next of the list.                 */
+        DLIST_ENTRY_ADD_AFTER(thdL, sentinel->head, thd);                       /* Thread is added at the next of the list.                 */
     }
     thd->thdL.q = thdQ;                                                         /* Set the pointer to the thread queue being used.          */
 }
@@ -1152,15 +1157,15 @@ void esThdQRmI(
 
     sentinel = &(thdQ->grp[thd->prio]);                                         /* Get the sentinel from thread priority level.             */
 
-    if (DLIST_IS_ENTRY_FIRST(thdL, thd)) {                                      /* Is this thread last one in the thdL list?                */
-        sentinel->begin = NULL;                                                  /* Make the list empty.                                     */
+    if (DLIST_IS_ENTRY_LAST(thdL, thd)) {                                       /* Is this thread last one in the thdL list?                */
+        sentinel->head = NULL;                                                  /* Make the list empty.                                     */
         prioBMClear(
             &thdQ->prioOcc,
             thd->prio);                                                         /* Remove the mark since this group is not used.            */
     } else {                                                                    /* This thread is not the last one in the thdL list.        */
 
-        if (sentinel->begin == thd) {                                           /* In case we are removing thread from the beginning of the */
-            sentinel->begin = DLIST_ENTRY_NEXT(thdL, thd);                      /* list we need to advance begin to point to the next one in */
+        if (sentinel->head == thd) {                                            /* In case we are removing thread from the beginning of the */
+            sentinel->head = DLIST_ENTRY_NEXT(thdL, thd);                       /* list we need to advance head to point to the next one in */
         }                                                                       /* the list.                                                */
 
         if (sentinel->next == thd) {                                            /* In case we are removing thread from the end of the list  */
