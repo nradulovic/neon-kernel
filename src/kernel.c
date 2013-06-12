@@ -32,8 +32,7 @@
 
 /*=========================================================  LOCAL MACRO's  ==*/
 
-/**@brief       Priority Bit Map log base 2:
- *              <code>log2(PORT_DATA_WIDTH_VAL)</code>
+/**@brief       Priority Bit Map log base 2: `log2(PORT_DATA_WIDTH_VAL)`
  */
 #define PRIO_BM_DATA_WIDTH_LOG2                                                 \
     (PORT_DATA_WIDTH_VAL <   2 ? 0 :                                            \
