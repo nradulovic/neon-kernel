@@ -239,8 +239,7 @@ static PORT_C_INLINE_ALWAYS void portIntSet_(
     __asm__ __volatile__ (
         "   msr    basepri, %0                              \n\t"
         :
-        : "r"(val)
-        : "memory");
+        : "r"(val));
 #else
     __asm__ __volatile__ (
         "   msr    primask, %0                              \n\t"
@@ -266,15 +265,13 @@ static PORT_C_INLINE_ALWAYS portReg_T portIntGetSet_(
         "   mrs     %0, basepri                             \n\t"
         "   msr     basepri, %1                             \n\t"
         : "=&r"(result)                                                         /* earlyclobber operand `&` is needed to provent GCC to     */
-        : "r"(val)                                                              /* optimize input=output register                           */
-        : "memory");
+        : "r"(val));                                                            /* optimize input=output register                           */
 
 #else
     __asm__ __volatile__ (
         "   mrs     %0, primask                             \n\t"
         "   cpsid   i                                       \n\t"
-        : "=r"(result)
-        : "memery");
+        : "=r"(result));
 #endif
 
     return (result);
