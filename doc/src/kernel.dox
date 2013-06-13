@@ -50,7 +50,7 @@
 */
 /*----------------------------------------------------------------------------*/
 /** @mainpage   eSolid Real-Time Kernel
-@section        kernel_specs eSolid RT Kernel Specification
+@section        kernel_specs eSolid RT Kernel Features
 @subsection     spec_source Source code
 
 The source code of the kernel and all of it's ports are published under **free 
@@ -109,10 +109,11 @@ This scheduling is only used when there are two or more threads of the same
 priority ready for execution.
 
 @subsection     spec_deterministic Deterministic
-All algorithms used in eSolid RT Kernel implementation are belonging to 
+Majority of algorithms used in eSolid RT Kernel implementation are belonging to 
 **Constant Time Complexity** category. Constant Time `O(1)` functions needs 
-fixed amount of time to execute an algorithm. Their execution time does not 
-depend on number of inputs. For more information see @ref time_complexity.
+fixed amount of time to execute an algorithm. In other words the execution time 
+of Constant Time Complexity functions does not depend on number of inputs. For 
+more information see @ref time_complexity.
 
 @subsection     spec_cfg Configurable
 The kernel provides two configuration files kernel_cfg.h and cpu_cfg.h which can
@@ -136,6 +137,14 @@ verify the application.
 eSolid RT Kernel allows applications to have any number of threads. The only 
 limiting factors for the maximum number of threads are the amount of RAM and 
 ROM memory capacity and required processing time.
+
+@subsection     spec_prio Up to 256 thread priority levels
+Each thread has a defined priority. Lowest priority level is 0, while the 
+highest available level is configurable. If Round-Robin scheduling is used then 
+multiple threads can be in the same priority level. If Round-Robin scheduling is
+disabled then each thread must have unique priority level. The priority sorting
+algorithm has constant time complexity which means it always executes in the 
+same time period regardles of the levels of priority used.
 
 @subsection     spec_errchk Error checking
 All eSolid software is using design methods very similar to approaches of
@@ -241,9 +250,10 @@ files are the following:
 @n
 @section        states_intro Intro
 A Kernel state machine is a behavior model of the kernel core. Each state
-defines which functions can be called and what methods are allowed. 
+defines what methods are allowed. 
 
 @section        states_fsm eSolid RT Kernel states
+The kernel can be in one of the following states:
 @dot
 digraph state {
     size = "6,6";
@@ -270,49 +280,41 @@ digraph state {
 }
 @enddot
 @par            INACTIVE
-Inactive state of the kernel - Level 5
-
-This state is entered after a physical reset. When the system is in this state 
-all the maskable interrupt sources are disabled. In this state none of kernel 
-internal data structures are initialized. In this state it is not possible to 
-use any Kernel API except esKernInit().
+Inactive state of the kernel (Level 5). This state is entered after a physical 
+reset. When the system is in this state all the maskable interrupt sources are 
+disabled. In this state none of kernel internal data structures are initialized. 
+In this state it is not possible to use any Kernel API except esKernInit().
 
 @par            INIT
-Initialization state of the kernel - Level 4
-
-In this state all internal data structures are initialized but the kernel is 
-still not running. In this stage new threads can be created by calling 
-esThdInit() function. Also, the application is allowed to use API which is
-used to create kernel structures like Thread Queues @ref esThdQ. All the 
-maskable interrupt sources are DISABLED.
+Initialization state of the kernel (Level 4). In this state all internal data 
+structures are initialized but the kernel is still not running. In this stage 
+new threads can be created by calling esThdInit() function. Also, the 
+application is allowed to use API which is used to create kernel structures like 
+Thread Queues @ref esThdQ. All the maskable interrupt sources are DISABLED.
 
 @par            RUN
-Normal, running state of the kernel - Level 0
-
-To start multi-threading just call the esKernStart() function. This function 
-will switch the kernel into `RUN` state and multi-threading of created threads 
-will commence. During the `RUN` state you are allowed to create other task as 
-well. All the interrupt sources are enabled and the system APIs are accessible, 
-threads are running. All the maskable interrupt sources are ENABLED.
+Normal, running state of the kernel (Level 0). To start multi-threading just 
+call the esKernStart() function. This function will switch the kernel into `RUN` 
+state and multi-threading of created threads will commence. During the `RUN` 
+state you are allowed to create other task as well. All the interrupt sources 
+are enabled and the system APIs are accessible, threads are running. All the 
+maskable interrupt sources are ENABLED.
 
 @par            LOCK
-Scheduler locked state, no context switching - Level 2
-
-The running state of the kernel can be switched to `LOCK` state where the 
-scheduler is locked and no context switching is allowed. `LOCK` state is one 
-way of preventing the access to a shared resource. One more reason to lock the
-scheduler would be during the accessing of special hardware (like programming 
-the FLASH memory) which does not allow interruption of the running operation. 
-Usage of scheduler locks should be kept at minimum. All the maskable interrupt 
-sources are ENABLED.
+Scheduler locked state, no context switching (Level 2). The running state of the 
+kernel can be switched to `LOCK` state where the scheduler is locked and no 
+context switching is allowed. `LOCK` state is one way of preventing the access 
+to a shared resource. One more reason to lock the scheduler would be during the 
+accessing of special hardware (e.g. programming the FLASH memory) which does not 
+allow interruption of the running operation. Usage of scheduler locks should be 
+kept at minimum. All the maskable interrupt sources are ENABLED.
  
-@par            INTSRV
-Interrupt Service state, no context switching - Levels 1 and 3
-
-During the both states `RUN` and `LOCK`, an interrupt event can occur. 
-When Interrupt Service Routine is executing the kernel is in `INTSRV_*` state. 
-Each INTSRV state corresponds to the state where the execution was interrupted 
-from and the kernel will return to it's original state.
+@par            INTSRV_RUN or INTSRV_LOCK
+Interrupt Service state, no context switching (Levels 1 and 3). During the both 
+states `RUN` and `LOCK`, an interrupt event can occur. When Interrupt Service 
+Routine is executing the kernel is in `INTSRV_RUN` or `INTSRV_LOCK` state. 
+Each state corresponds to the state where the execution was interrupted from and 
+the kernel will return to it's original state.
 
 @note           The level of state `INACTIVE` is the highest. As the kernel
 boots up the level is decremented. The running state is level 0.
@@ -328,7 +330,7 @@ boots up the level is decremented. The running state is level 0.
 @section        threads_intro Intro
 A thread, also called a thread of execution is the smallest sequence of program
 instructions that can be managed by an operating system scheduler. 
-Multi-threading is usually implemented by time-division multiplexing where the 
+Multi-threading is implemented by time-division multiplexing where the 
 processor switches between threads. Context switching occurs fast enough that 
 the user perceives the threads as running at the same time. By using threads a
 programmer can split the work into the threads, each responsible for a smaller
@@ -339,6 +341,17 @@ to itself.
 eSolid RT Kernel supports multi-threading and allows applications to have any
 number of threads. The only limiting factors for the maximum number of threads 
 are the amount of RAM and ROM memory and processing time.
+
+Threads are implemented as normal `C` functions. Thread functions must have the 
+following prototype: 
+
+@code
+void fn (void *);
+@endcode
+
+Which in plain english means: *fn is a function (pointer to void) returning void*.
+
+
 
 @subsection     kern_threads_state Thread states
 A thread can be in one of the following states:
@@ -364,6 +377,38 @@ digraph thdState {
     inactive [style="bold", label="Inactive"];
 }
 @enddot
+@par            Inactive
+This is thread initial state. Threads in this state are still not activated 
+(**inactive**) by esThdInit() function or they were deleted by esThdTerm() 
+function. The scheduler does not recognize these threads and they will never 
+execute.
+
+@par            Ready
+Threads waiting to execute. There are the threads that are **ready** to execute 
+but are not currently executing because a different thread (equal or higher 
+priority) is already executing. 
+
+@par            Run
+Thread is currently executing. When the thread is in this state then the code is 
+actually being **run** on the processor.
+ 
+@par            Sleep
+Thread is sleeping. These threads are **sleeping** while waiting for an event to 
+occur. 
+
+@section        thd_create Initializing Threads
+@subsection     thd_create_init esThdInit() API function
+Threads are initialized by using esThdInit() API function. 
+
+@par            Stack size
+
+There is no easy way to determine the stack size required by a thread. It is
+possible to calculate approximate stack size for simple threads, but for more
+complex ones (e.g. which calls library API function) this can be a daunting 
+task. In this case stack size will be set to a size more than adequate for the
+thread and then use the profiling features provided by the kernel to ensure both 
+that the space allocated is adequate, and that RAM space is not being 
+unnecessarily wasted.
 */
 /*----------------------------------------------------------------------------*/
 /** @page       critical_section Critical sections
@@ -413,8 +458,8 @@ different semaphores.
 
 @subsection     cs_interrupt_lock Disabling interrupts
 In order to properly disable interrupts the application must follow these steps:
-- declare an @c auto variable which will hold interrupt state
-- save interrupt status into @c auto variable and disable interrupts
+- declare an `auto` variable which will hold interrupt state
+- save interrupt status into `auto` variable and disable interrupts
 - access the shared resource
 - restore previously saved interrupt state
 
@@ -439,12 +484,10 @@ previously saved interrupt state.
     ES_CRITICAL_EXIT();                 /* Restore previous state unlocking the interrupts */
 @endcode
 @par            When to use this scheme
-
 - If interrupt service routine *changes* the shared resource state.
 - If the processing time of critical section is very small.
 
 @par            When not to use this scheme
-
 - If interrupt service routine takes a lot of CPU time to process critical 
 section. If a critical section is long, then the system clock will drift every 
 time a critical section is executed because the system timer interrupt is no 
@@ -466,12 +509,10 @@ can not be used when data is modified by interrupt service routines.
     esKernLockExit();                   /* Enable kernel scheduler */
 @endcode
 @par            When to use this scheme
-
 - If interrupt service routine *never changes* the shared resource state.
 - If the processing time of critical section is very small.
 
 @par            When not to use this scheme
-
 - If interrupt service routine takes a lot of CPU time to process critical 
 section. If a critical section is long, then the system will be partially 
 responsive to other events since interrupt service routines can be invoked, but 
@@ -560,14 +601,28 @@ threads concurrently.
 
 @section        sched_thdL Threads List
 Each thread structure @ref esThd contains Thread List structure @ref esThd::thdL. 
-All threads of same priority are linked together via `next` and `prev` members in
-@ref esThd::thdL structure. The first member of the structure `q` points back to
-the Threads Queue which contains the threads. Sentinel points to the first entry
-of the list. When the list is rotated using esThdQFetchRotateI() the sentinel is
-advanced forward and points to the next thread in list.
+All threads of the same priority are linked together via *next* and *prev* 
+members in @ref esThd::thdL structure. The first member of the structure is 
+pointer *q* which points back to the Threads Queue structure (@ref esThdQ)
+which contains the threads.
 
-@image html     thdL.png "Detailed view of Threads List"
-@image latex    thdL.png "Detailed view of Threads List" width=15cm
+The list is organized as **circular doubly linked list**, which means that *tail* 
+and *head* nodes are linked together just like every other node in the list. 
+This provides easy and efficient traversal of the list.  
+
+@image html     thdL.png "Detailed view of Threads List (sentinel.next pointers not shown)"
+@image latex    thdL.png "Detailed view of Threads List (sentinel.next pointers not shown)" width=12cm
+
+Each sentinel of a list has two pointers, *head* and *next*. Pointer 
+*sentinel.head* always points to the first entry of the list which is called 
+*head*. Every new thread is added at the *tail* of the list which is essentialy 
+just after the node *head*. When a first thread is added to the list the pointer 
+*sentinel.next* points to the thread, too. When the list is rotated using 
+function esThdQFetchRotateI() the pointer *sentinel.next* is advanced forward 
+and points to the next thread in list.
+
+@image html     thdL-rotate.png "Detailed view of the sentinel and linked list"
+@image latex    thdL-rotate.png "Detailed view of the sentinel and linked list" width=12cm
 
 @section        sched_thdQ Threads Queue 
 Based on the number of configured priority levels (see @ref CFG_SCHED_PRIO_LVL) 
@@ -585,15 +640,73 @@ Ready Threads Queue configuration since 8-bit register cannot carry 9 bits of
 data.
 
 @subsection     sched_rdyThdQ_simple Simple Ready Threads Queue
-Each bit in `bit[0]` variable represents each priority level. The 
-number of bits used in this variable depends on @ref CFG_SCHED_PRIO_LVL value. 
-If a bit at `Nth` position is set then there is a thread inserted in
-Thread List at `Nth` priority.
+Each bit in `bit[0]` variable represents one priority level. The number of bits 
+used in this variable depends on @ref CFG_SCHED_PRIO_LVL value. If a bit at `Nth` 
+position is set then there is a thread inserted in Thread List at `Nth` priority
+level. 
 
+@n
 @image html     thdQ-simple.png "Ready Threads Queue - low number of priority levels"
 @image latex    thdQ-simple.png "Ready Threads Queue - low number of priority levels" width=15cm
 
+@par            Inserting a thread
+The process of a thread insertion into a thread queue can be described using the
+following pseudo-code:
+@code{.c}
+function insert(thread)
+    priority := thread.priority                             # Get the priority of the thread
+    
+    if (grp[priority].head == NULL)                         # If this priority level has a list
+        grp[priority].head := thread                        # Create a list with this thread as head
+        grp[priority].next := thread
+        bitIndx := 2^priority                               # bitIndx equals to 2 raised to the power of priority
+        bit[0]  := bit[0] or bitIndx                        # Set the calculated bit in Bit Map
+    else
+        listInsertAtTail(grp[priority].head, thread)        # Add thread at tail of existing list
+    end if
+end function
+@endcode
+
+@par            Removing a thread
+The process of a thread removal can be described with the following pseudo-code:
+@code{.c}
+function remove(thread)
+    priority := thread.priority                             # Get the priority of the thread
+    
+    if (listIsEntryLast(thread))                            # In case we are removing the last entry
+        grp[priority].head := NULL                          # List is deleted
+        bitIndx := 2^priority                               # bitIndx equals to 2 raised to the power of priority
+        bit[0]  := bit[0] and not bitIndx                   # Clear the calculated bit in Bit Map
+    else
+        listRemove(thread)                                  # Remove the thread from list
+    end if
+end function
+@endcode
+
+@par            Fetching the highest priority thread
+The process of fetching the highest priority thread is inverse function of 
+`2^priority` which was used in `insert()` function:
+@code{.c}
+function fetch()
+    priority := log2(bit[0])                                # Find Last Set bit position in bit[0]
+
+    return grp[priority]
+end function
+@endcode
+
+@par            Rotating the threads queue
+The process can be described with the following algorithm:
+@code{.c}
+function rotate()
+    priority := log2(bit[0])                                # Find Last Set bit position in bit[0]
+
+    grp[priority].next := grp[priority].next.next
+    
+    return grp[priority].next
+end function
+@endcode
 @subsection     sched_rdyThdQ_complex Complex Ready Threads Queue
+
 @image html     thdQ-complex.png "Ready Threads Queue - high number of priority levels"
 @image latex    thdQ-complex.png "Ready Threads Queue - high number of priority levels" width=17cm
 
