@@ -264,8 +264,8 @@ static PORT_C_INLINE_ALWAYS portReg_T portIntGetSet_(
     __asm__ __volatile__ (
         "   mrs     %0, basepri                             \n\t"
         "   msr     basepri, %1                             \n\t"
-        : "=&r"(result)                                                         /* earlyclobber operand `&` is needed to provent GCC to     */
-        : "r"(val));                                                            /* optimize input=output register                           */
+        : "=&r"(result)                                                         /* earlyclobber operand `&` is needed to prevent GCC to     */
+        : "r"(val));                                                            /* optimize input=output registers                          */
 
 #else
     __asm__ __volatile__ (
