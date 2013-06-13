@@ -160,9 +160,15 @@ enum sysTmrState {
 };
 
 /**@brief       Main System Timer structure
+ * @note        1) Member `tick` exists only if FIXED mode is selected. When
+ *              this mode is selected then kernel supports time ticking tracking.
+ * @note        2) When INHIBITED or ADAPTIVE mode is selected members `qm` and
+ *              `state` are used to manage Quantum intervals.
  */
 struct sysTmr {
+#if (0U == CFG_SYSTMR_MODE)
     esTick_T            tick;                                                   /**< @brief Current system tick counter.                    */
+#endif
     uint_fast16_t       vTmr;                                                   /**< @brief The number of virtual timers in system.         */
 #if (0U != CFG_SYSTMR_MODE)
     uint_fast8_t        qm;                                                     /**< @brief Number of system timer quantum users.           */
@@ -381,7 +387,9 @@ static esThdQ_T gRdyQueue;
 /**@brief       Main System Timer structure
  */
 static sysTmr_T gSysTmr = {
+#if (0U == CFG_SYSTMR_MODE)
     0U,
+#endif
     0U,
 #if (0U != CFG_SYSTMR_MODE)
     0U,
@@ -389,11 +397,12 @@ static sysTmr_T gSysTmr = {
 #endif
 };
 
-/**@brief       Waiting list of virtual timers to expire
+/**@brief       List of virtual timers to armed expire
  */
-static esVTmr_T gVTmrWait = {
-   {    &gVTmrWait,
-        &gVTmrWait
+static esVTmr_T gVTmrArmed = {
+   {    &gVTmrArmed,
+        &gVTmrArmed,
+        &gVTmrArmed
    },
 
 #if (0U == CFG_SYSTMR_TICK_TYPE)
@@ -414,6 +423,7 @@ static esVTmr_T gVTmrWait = {
  */
 static esVTmr_T gVTmrPend = {
    {    &gVTmrPend,
+        &gVTmrPend,
         &gVTmrPend
    },
    0U,
@@ -576,10 +586,10 @@ static PORT_C_INLINE void schedInit(
 static PORT_C_INLINE void schedStart(
     void) {
 
-    PORT_CRITICAL_DECL();
+    ES_CRITICAL_DECL();
     esThd_T * nthd;
 
-    PORT_CRITICAL_ENTER();
+    ES_CRITICAL_ENTER();
     nthd = esThdQFetchI(                                                        /* Get the highest priority thread                          */
         &gRdyQueue);
 
@@ -590,7 +600,7 @@ static PORT_C_INLINE void schedStart(
     ((volatile esKernCtrl_T *)&gKernCtrl)->cthd  = nthd;
     ((volatile esKernCtrl_T *)&gKernCtrl)->pthd  = nthd;
     ((volatile esKernCtrl_T *)&gKernCtrl)->state = ES_KERN_RUN;
-    PORT_CRITICAL_EXIT();
+    ES_CRITICAL_EXIT();
 }
 
 static void schedRdyAddInitI(
@@ -703,10 +713,22 @@ static void sysTmrTryDeactivate(
             PORT_SYSTMR_ISR_DISABLE();
         }
     }
+
+
 # else
-    /*
-     * TODO: Write adaptive mode
-     */
+    if (SYSTMR_ACTIVE == gSysTmr.state) {
+        if (0U == (gSysTmr.vTmr + gSysTmr.qm)) {
+            gSysTmr.state = SYSTMR_INACTIVE;
+            PORT_SYSTMR_ISR_DISABLE();
+            PORT_SYSTMR_DISABLE();
+        } else if (0U != gSysTmr.vTmr) {
+            esTick_T tick;
+
+            gSysTmr.state = SYSTMR_INACTIVE;
+            tick = vTmrEvaluate();
+            PORT_SYSTMR_RELOAD(tick);
+        }
+    }
 # endif
 }
 #endif
@@ -714,13 +736,32 @@ static void sysTmrTryDeactivate(
 
 /*--  Timer  -----------------------------------------------------------------*/
 
+static void vTmrExecHandlers(
+    void) {
+
+    if (!DLIST_IS_ENTRY_LAST(tmrL, &gVTmrArmed)) {
+        esVTmr_T * tmr;
+
+        tmr = DLIST_ENTRY_NEXT(tmrL, &gVTmrArmed);
+        --tmr->rtick;
+
+        while (0U == tmr->rtick) {
+            DLIST_ENTRY_RM(tmrL, tmr);
+            --gSysTmr.vTmr;
+            (* tmr->fn)(tmr->arg);
+            tmr = DLIST_ENTRY_NEXT(tmrL, &gVTmrArmed);
+        }
+    }
+}
+
 static void vTmrListAddSort(
-    esVTmr_T *       list,
-    esVTmr_T *       vTmr) {
+    esVTmr_T *      list,
+    esVTmr_T *      vTmr) {
 
-    esVTmr_T *   tmp;
-    esTick_T    tick;
+    esVTmr_T *      tmp;
+    esTick_T        tick;
 
+    vTmr->tmrL.q = list;
     tmp = DLIST_ENTRY_NEXT(tmrL, list);
     tick = vTmr->rtick;
 
@@ -736,6 +777,25 @@ static void vTmrListAddSort(
     }
 }
 
+static void vTmrImport(
+    void) {
+
+    ES_CRITICAL_DECL();
+
+    ES_CRITICAL_ENTER();
+    while (!DLIST_IS_ENTRY_LAST(tmrL, &gVTmrPend)) {
+        esVTmr_T * tmr;
+
+        tmr = DLIST_ENTRY_NEXT(tmrL, &gVTmrPend);
+        DLIST_ENTRY_RM(tmrL, tmr);
+        ES_CRITICAL_EXIT();
+        vTmrListAddSort(
+            &gVTmrArmed,
+            tmr);
+        ES_CRITICAL_ENTER();
+    }
+    ES_CRITICAL_EXIT();
+}
 
 /*--  Kernel threads  --------------------------------------------------------*/
 
@@ -761,28 +821,8 @@ static void kVTmr(
     while (TRUE) {
 
         esThdWait();
-        ++gSysTmr.tick;
-
-        while (!DLIST_IS_ENTRY_LAST(tmrL, &gVTmrPend)) {
-            esVTmr_T * tmr;
-
-            tmr = DLIST_ENTRY_NEXT(tmrL, &gVTmrPend);
-            DLIST_ENTRY_RM(tmrL, tmr);
-            vTmrListAddSort(&gVTmrWait, tmr);
-        }
-
-        if (!DLIST_IS_ENTRY_LAST(tmrL, &gVTmrWait)) {
-            esVTmr_T * tmr;
-
-            tmr = DLIST_ENTRY_NEXT(tmrL, &gVTmrWait);
-            --tmr->rtick;
-
-            while (0U == tmr->rtick) {
-                DLIST_ENTRY_RM(tmrL, tmr);
-                (* tmr->fn)(tmr->arg);
-                tmr = DLIST_ENTRY_NEXT(tmrL, &gVTmrWait);
-            }
-        }
+        vTmrExecHandlers();
+        vTmrImport();
     }
 }
 
@@ -806,14 +846,14 @@ static void kIdle(
     (void)arg;
 
     while (TRUE) {
-        PORT_CRITICAL_DECL();
+        ES_CRITICAL_DECL();
 
-        PORT_CRITICAL_ENTER();
+        ES_CRITICAL_ENTER();
         esKernLockEnterI();
         PORT_CRITICAL_EXIT_SLEEP();
-        PORT_CRITICAL_ENTER();
+        ES_CRITICAL_ENTER();
         esKernLockExitI();
-        PORT_CRITICAL_EXIT();
+        ES_CRITICAL_EXIT();
     }
 }
 
@@ -868,6 +908,9 @@ void esKernSysTmrI(
     userSysTmr();
 #endif
 
+#if (0U == CFG_SYSTMR_MODE)
+    ++gSysTmr.tick;
+#endif
     if (0U != gSysTmr.vTmr) {
         esSchedRdyAddI(
             &gKVTmrId);
@@ -902,21 +945,21 @@ void esKernLockExitI(
 void esKernLockEnter(
     void) {
 
-    PORT_CRITICAL_DECL();
+    ES_CRITICAL_DECL();
 
-    PORT_CRITICAL_ENTER();
+    ES_CRITICAL_ENTER();
     esKernLockEnterI();
-    PORT_CRITICAL_EXIT();
+    ES_CRITICAL_EXIT();
 }
 
 void esKernLockExit(
     void) {
 
-    PORT_CRITICAL_DECL();
+    ES_CRITICAL_DECL();
 
-    PORT_CRITICAL_ENTER();
+    ES_CRITICAL_ENTER();
     esKernLockExitI();
-    PORT_CRITICAL_EXIT();
+    ES_CRITICAL_EXIT();
 }
 
 void esKernIsrPrologueI(
@@ -949,7 +992,7 @@ void esThdInit(
     size_t          stckSize,
     uint8_t         prio) {
 
-	PORT_CRITICAL_DECL();
+	ES_CRITICAL_DECL();
 
     ES_API_REQUIRE(ES_KERN_INACTIVE > gKernCtrl.state);
     ES_API_REQUIRE(NULL != thd);
@@ -966,13 +1009,13 @@ void esThdInit(
     thd->qCnt   = CFG_SCHED_TIME_QUANTUM;
     thd->qRld   = CFG_SCHED_TIME_QUANTUM;
     ES_API_OBLIGATION(thd->signature = THD_CONTRACT_SIGNATURE);                 /* Make thread structure valid.                             */
-    PORT_CRITICAL_ENTER();
+    ES_CRITICAL_ENTER();
     schedRdyAddInitI(
         thd);                                                                   /* Initialize thread before adding it to Ready Thread queue.*/
     esSchedRdyAddI(
         thd);                                                                   /* Add the thread to Ready Thread queue.                    */
     esSchedYieldI();                                                            /* Invoke the scheduler.                                    */
-    PORT_CRITICAL_EXIT();
+    ES_CRITICAL_EXIT();
 
 #if (1U == CFG_HOOK_THD_INIT_END)
     userThdInitEnd();
@@ -982,7 +1025,7 @@ void esThdInit(
 void esThdTerm(
     esThd_T *       thd) {
 
-    PORT_CRITICAL_DECL();
+    ES_CRITICAL_DECL();
 
     ES_API_REQUIRE(ES_KERN_INACTIVE > gKernCtrl.state);
     ES_API_REQUIRE(NULL != thd);
@@ -992,7 +1035,7 @@ void esThdTerm(
 #if (1U == CFG_HOOK_THD_TERM)
     userThdTerm();
 #endif
-    PORT_CRITICAL_ENTER();
+    ES_CRITICAL_ENTER();
 
     if (&gRdyQueue == thd->thdL.q) {
         esSchedRdyRmI(
@@ -1000,7 +1043,7 @@ void esThdTerm(
     }
     ES_API_OBLIGATION(thd->signature = 0U);                                     /* Mark the thread ID structure as invalid.                 */
     esSchedYieldI();
-    PORT_CRITICAL_EXIT();
+    ES_CRITICAL_EXIT();
 }
 
 void esThdSetPrioI(
@@ -1068,12 +1111,12 @@ void esThdPostI(
 void esThdPost(
     esThd_T *       thd) {
 
-    PORT_CRITICAL_DECL();
+    ES_CRITICAL_DECL();
 
-    PORT_CRITICAL_ENTER();
+    ES_CRITICAL_ENTER();
     esThdPostI(
         thd);
-    PORT_CRITICAL_EXIT();
+    ES_CRITICAL_EXIT();
 }
 
 void esThdWaitI(
@@ -1087,11 +1130,11 @@ void esThdWaitI(
 void esThdWait(
     void) {
 
-    PORT_CRITICAL_DECL();
+    ES_CRITICAL_DECL();
 
-    PORT_CRITICAL_ENTER();
+    ES_CRITICAL_ENTER();
     esThdWaitI();
-    PORT_CRITICAL_EXIT();
+    ES_CRITICAL_EXIT();
 }
 
 
@@ -1334,12 +1377,12 @@ void esSysTmrEnable(
     void) {
 
 #if (0U != CFG_SYSTMR_MODE)
-    PORT_CRITICAL_DECL();
+    ES_CRITICAL_DECL();
 
-    PORT_CRITICAL_ENTER();
+    ES_CRITICAL_ENTER();
     sysTmrTryActivate();
     gSysTmr.qm |= SYSTMR_USR_QM_MSK;
-    PORT_CRITICAL_EXIT();
+    ES_CRITICAL_EXIT();
 #endif
 }
 
@@ -1347,12 +1390,12 @@ void esSysTmrDisable(
     void) {
 
 #if (0U != CFG_SYSTMR_MODE)
-    PORT_CRITICAL_DECL();
+    ES_CRITICAL_DECL();
 
-    PORT_CRITICAL_ENTER();
+    ES_CRITICAL_ENTER();
     gSysTmr.qm &= ~SYSTMR_USR_QM_MSK;
     sysTmrTryDeactivate();
-    PORT_CRITICAL_EXIT();
+    ES_CRITICAL_EXIT();
 #endif
 }
 
@@ -1365,10 +1408,10 @@ void esVTmrInitI(
     void (* fn)(void *),
     void *          arg) {
 
-    ES_API_ENSURE(ES_KERN_INACTIVE > gKernCtrl.state);
-    ES_API_ENSURE(NULL != vTmr);
-    ES_API_ENSURE(1U < tick);
-    ES_API_ENSURE(NULL != fn);
+    ES_API_REQUIRE(ES_KERN_INACTIVE > gKernCtrl.state);
+    ES_API_REQUIRE(NULL != vTmr);
+    ES_API_REQUIRE(1U < tick);
+    ES_API_REQUIRE(NULL != fn);
 
     vTmr->rtick = tick;
     vTmr->fn    = fn;
@@ -1383,12 +1426,74 @@ void esVTmrInitI(
     ES_API_OBLIGATION(vTmr->signature = VTMR_CONTRACT_SIGNATURE);
 }
 
-void esVTmrTermI(
-    esVTmr_T *       vTmr) {
+void esVTmrInit(
+    esVTmr_T *      vTmr,
+    esTick_T        tick,
+    void (* fn)(void *),
+    void *          arg) {
 
-    ES_API_ENSURE(ES_KERN_INACTIVE > gKernCtrl.state);
-    ES_API_ENSURE(NULL != vTmr);
-    ES_API_ENSURE(VTMR_CONTRACT_SIGNATURE == vTmr->signature);
+    ES_CRITICAL_DECL();
+
+    ES_API_REQUIRE(ES_KERN_INACTIVE > gKernCtrl.state);
+    ES_API_REQUIRE(NULL != vTmr);
+    ES_API_REQUIRE(1U < tick);
+    ES_API_REQUIRE(NULL != fn);
+
+    vTmr->rtick = tick;
+    vTmr->fn    = fn;
+    vTmr->arg   = arg;
+    ES_API_OBLIGATION(vTmr->signature = VTMR_CONTRACT_SIGNATURE);
+    vTmr->tmrL.q = &gVTmrPend;
+    ES_CRITICAL_ENTER();
+    DLIST_ENTRY_ADD_AFTER(tmrL, &gVTmrPend, vTmr);
+
+#if (0U != CFG_SYSTMR_MODE)
+    sysTmrTryActivate();
+#endif
+    ++gSysTmr.vTmr;
+    ES_CRITICAL_EXIT();
+}
+
+
+
+void esVTmrTerm(
+    esVTmr_T *      vTmr) {
+
+    ES_CRITICAL_DECL();
+
+    ES_API_REQUIRE(ES_KERN_INACTIVE > gKernCtrl.state);
+    ES_API_REQUIRE(NULL != vTmr);
+    ES_API_REQUIRE(VTMR_CONTRACT_SIGNATURE == vTmr->signature);
+
+    ES_CRITICAL_ENTER();
+    ES_API_OBLIGATION(vTmr->signature = 0U);
+    --gSysTmr.vTmr;
+
+    if (&gVTmrPend == vTmr->tmrL.q) {
+        DLIST_ENTRY_RM(tmrL, vTmr);
+    } else {
+        esVTmr_T *      nextVTmr;
+
+        ES_CRITICAL_EXIT_LOCK_ENTER();
+        nextVTmr = DLIST_ENTRY_NEXT(tmrL, vTmr);
+        nextVTmr->rtick += vTmr->rtick;
+        DLIST_ENTRY_RM(tmrL, vTmr);
+        ES_CRITICAL_ENTER_LOCK_EXIT();
+    }
+    ES_CRITICAL_EXIT();
+}
+
+void esVTmrDelay(
+    esTick_T        tick) {
+
+    esVTmr_T        vTmr;
+
+    esVTmrInit(
+        &vTmr,
+        tick,
+        (void (*)(void *))esThdPost,
+        (void *)esThdGetId());
+    esThdWait();
 }
 
 /*================================*//** @cond *//*==  CONFIGURATION ERRORS  ==*/

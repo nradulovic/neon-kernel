@@ -66,6 +66,18 @@
  */
 #define ES_CRITICAL_EXIT()				PORT_CRITICAL_EXIT()
 
+#define ES_CRITICAL_ENTER_LOCK_EXIT()                                           \
+    do {                                                                        \
+        PORT_CRITICAL_ENTER();                                                  \
+        esKernLockExitI();                                                      \
+    } while (0U)
+
+#define ES_CRITICAL_EXIT_LOCK_ENTER()                                           \
+    do {                                                                        \
+        esKernLockEnterI();                                                     \
+        PORT_CRITICAL_EXIT();                                                   \
+    } while (0U)
+
 /*------------------------------------------------------------------------*//**
  * @name        Error checking
  * @brief       Some basic infrastructure for error checking
@@ -147,7 +159,7 @@ struct esThd {
 /**@brief       Thread linked List structure
  */
     struct thdL {
-        struct esThdQ * q;                                                      /**< @brief Indicates which queue is used                   */
+        struct esThdQ * q;                                                      /**< @brief Points to parent thread queue                   */
         struct esThd *  next;                                                   /**< @brief Next thread in linked list                      */
         struct esThd *  prev;                                                   /**< @brief Previous thread in linked list                  */
     }               thdL;                                                       /**< @brief Thread linked list                              */
@@ -179,6 +191,7 @@ struct esVTmr {
 /**@brief       Virtual Timer linked list structure
  */
     struct tmrL {
+        struct esVTmr * q;                                                      /**< @brief Points to parent timer list                     */
         struct esVTmr * next;                                                   /**< @brief Next thread in Virtual Timer linked list.       */
         struct esVTmr * prev;                                                   /**< @brief Previous thread in virtual timer linked list.   */
     }               tmrL;                                                       /**< @brief Virtual Timer linked List.                      */
@@ -764,10 +777,22 @@ void esVTmrInitI(
  * @pre         2) `vTmr != NULL`
  * @pre         3) `vTmr->signature == VTMR_CONTRACT_SIGNATURE`, the pointer
  *                  must point to a @ref esVTmr structure.
+ * @iclass
+ */
+void esVTmrTerm(
+    esVTmr_T *       vTmr);
+
+/**@brief       Delay for specified amount of ticks
+ * @param       tick
+ *              Tick: number of system ticks to delay.
+ * @details     This function will create a virtual timer with count down time
+ *              specified in argument `tick` and put the calling thread into
+ *              `sleep` state. When timeout expires the thread will be placed
+ *              back into `ready` state.
  * @api
  */
-void esVTmrTermI(
-    esVTmr_T *       vTmr);
+void esVTmrDelay(
+    esTick_T        tick);
 
 /**@} *//*----------------------------------------------------------------*//**
  * @name        Kernel hook functions
