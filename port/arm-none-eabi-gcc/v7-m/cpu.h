@@ -81,7 +81,7 @@
 
 #define PORT_CRITICAL_ENTER()                                                   \
     do {                                                                        \
-        intStatus_ = portIntGetSet_();                                          \
+        intStatus_ = portIntGetSet_();                                             \
     } while (0U);
 
 #define PORT_CRITICAL_EXIT()            portIntSet_(intStatus_)
@@ -239,7 +239,8 @@ static PORT_C_INLINE_ALWAYS void portIntSet_(
     __asm__ __volatile__ (
         "   msr    basepri, %0                              \n\t"
         :
-        : "r"(val));
+        : "r"(val)
+        : "memory");
 #else
     __asm__ __volatile__ (
         "   msr    primask, %0                              \n\t"
@@ -264,13 +265,16 @@ static PORT_C_INLINE_ALWAYS portReg_T portIntGetSet_(
     __asm__ __volatile__ (
         "   mrs     %0, basepri                             \n\t"
         "   msr     basepri, %1                             \n\t"
-        : "=r"(result)
-        : "r"(val));
+        : "=&r"(result)                                                         /* earlyclobber operand `&` is needed to provent GCC to     */
+        : "r"(val)                                                              /* optimize input=output register                           */
+        : "memory");
+
 #else
     __asm__ __volatile__ (
         "   mrs     %0, primask                             \n\t"
         "   cpsid   i                                       \n\t"
-        : "=r"(result));
+        : "=r"(result)
+        : "memery");
 #endif
 
     return (result);
