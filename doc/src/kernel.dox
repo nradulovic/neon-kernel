@@ -146,6 +146,20 @@ disabled then each thread must have unique priority level. The priority sorting
 algorithm has constant time complexity which means it always executes in the 
 same time period regardles of the levels of priority used.
 
+@subsection     spec_tickless Tickless idle
+Classic kernel architectures periodically interrupted CPU at a predetermined 
+frequency — 100 Hz, 250 Hz, or 1000 Hz, depending on the application needs. 
+Known as the system timer tick, the kernel performed this interrupt regardless 
+of the power state of the CPU. Therefore, even an idle CPU was responding to up 
+to 1000 of these requests every second. On systems that implemented power saving 
+measures for idle CPUs, the timer tick prevented the CPU from remaining idle 
+long enough for the system to benefit from these power savings. 
+
+The eSolid RT kernel runs in tickless idle: that is, it replaces the old 
+periodic timer interrupts with on-demand interrupts. Therefore, idle CPUs are 
+allowed to remain idle until a new task is queued for processing, and CPUs that 
+have entered lower power states can remain in these states longer. 
+
 @subsection     spec_errchk Error checking
 All eSolid software is using design methods very similar to approaches of
 **contract programming** paradigm for software design. The contract
