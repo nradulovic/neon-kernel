@@ -70,6 +70,9 @@
 #endif
 
 /**@brief       Port constant: interrupt priority bits implemented in MCU
+ * @note        It is also recommended to ensure that all priority bits are
+ *              assigned as being preemption priority bits, and none as sub
+ *              priority bits
  */
 # define CPU_ISR_PRIO_BITS              4U
 
