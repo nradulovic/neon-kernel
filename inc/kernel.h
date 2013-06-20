@@ -259,8 +259,9 @@ enum esKernState {
     ES_KERN_INTSRV_RUN  = 0x01U,                                                /**< Servicing an interrupt  return to ES_KERN_RUN state    */
     ES_KERN_LOCK        = 0x02U,                                                /**< Kernel is locked                                       */
     ES_KERN_INTSRV_LOCK = 0x03U,                                                /**< Servicing an interrupt, return to ES_KERN_LOCK state   */
-    ES_KERN_INIT        = 0x04U,                                                /**< Kernel is in initialization state                      */
-    ES_KERN_INACTIVE    = 0x05U                                                 /**< Kernel data structures are not initialized             */
+    ES_KERN_SLEEP       = 0x04U,
+    ES_KERN_INIT        = 0x08U,                                                /**< Kernel is in initialization state                      */
+    ES_KERN_INACTIVE    = 0x09U                                                 /**< Kernel data structures are not initialized             */
 };
 
 /**@brief       Kernel state type
@@ -725,22 +726,6 @@ void esSchedYieldIsrI(
  * @name        System timer management
  * @{ *//*--------------------------------------------------------------------*/
 
-/**@brief       Enable system timer tick events
- * @details     This function will override scheduler power savings algorithm
- *              and force the system timer into running (active) state.
- * @api
- */
-void esSysTmrEnable(
-    void);
-
-/**@brief       Disable system timer tick events
- * @details     This function will try to switch off the system timer. If the
- *              system timer is used by scheduler than the scheduler will take
- *              control of the system timer.
- * @api
- */
-void esSysTmrDisable(
-    void);
 
 /**@} *//*----------------------------------------------------------------*//**
  * @name        Virtual Timer management
