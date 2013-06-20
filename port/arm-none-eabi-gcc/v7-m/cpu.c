@@ -201,8 +201,8 @@ void portSysTmrInit_(
     void) {
 
     SYST->csr &= ~SYST_CSR_ENABLE_MSK;                                          /* Disable SYST Timer                                       */
-    SYST->rvr = PORT_SYSTMR_RELOAD_VAL - 1U;                                    /* set systick reload register                              */
-    SYST->cvr = SYST->rvr;
+    SYST->rvr = PORT_SYSTMR_ONE_TICK_VAL - 1U;                                  /* set systick reload register                              */
+    SYST->cvr = PORT_SYSTMR_ONE_TICK_VAL - 1U;
     SYST->csr = SYST_CSR_CLKSOURCE_MSK;                                         /* SysTick uses the processor clock.                        */
 }
 
@@ -213,12 +213,21 @@ void portSysTmrTerm_(
     SYST->csr &= ~SYST_CSR_ENABLE_MSK;                                          /* Disable SYST Timer                                       */
 }
 
-void portSysTmrReload_(
-    esTick_T      ticks) {
+void portSysTmrActv_(
+    void) {
 
     SYST->csr &= ~SYST_CSR_ENABLE_MSK;                                          /* Disable SYST Timer                                       */
-    SYST->rvr = (PORT_SYSTMR_RELOAD_VAL * ticks) - 1U;
-    SYST->cvr = SYST->rvr;
+    SYST->rvr = PORT_SYSTMR_ONE_TICK_VAL - 1U;
+    SYST->cvr %= PORT_SYSTMR_ONE_TICK_VAL;
+    SYST->csr |= SYST_CSR_ENABLE_MSK;                                           /* Enable SYST Timer                                        */
+}
+
+void portSysTmrDActv_(
+    portSysTmrReg_T val) {
+
+    SYST->csr &= ~SYST_CSR_ENABLE_MSK;                                          /* Disable SYST Timer                                       */
+    SYST->rvr = val - 1U;
+    SYST->cvr += val - 1U;
     SYST->csr |= SYST_CSR_ENABLE_MSK;                                           /* Enable SYST Timer                                        */
 }
 
@@ -252,7 +261,7 @@ PORT_C_NORETURN void portThdStart_(
 void * portCtxInit_(
     void *          stck,
     size_t          stckSize,
-    void (* thread)(void *),
+    void (* fn)(void *),
     void *          arg) {
 
     struct portCtx * sp;
@@ -260,7 +269,7 @@ void * portCtxInit_(
     sp = (struct portCtx *)((uint8_t *)stck + stckSize);
     sp--;
     sp->xpsr = (portReg_T)(PSR_THUMB_STATE_MSK | CPU_PSR_DATA);
-    sp->pc = (portReg_T)thread;
+    sp->pc = (portReg_T)fn;
     sp->lr = (portReg_T)threadExit;
     sp->r0 = (portReg_T)arg;
 

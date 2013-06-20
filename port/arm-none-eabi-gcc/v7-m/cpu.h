@@ -49,7 +49,7 @@
 
 /**@brief       System timer reload value
  */
-#define PORT_SYSTMR_RELOAD_VAL                                                  \
+#define PORT_SYSTMR_ONE_TICK_VAL                                                \
     (CFG_SYSTMR_CLOCK_FREQUENCY / CFG_SYSTMR_EVENT_FREQUENCY)
 
 /**@brief       System timer maximum value
@@ -59,7 +59,11 @@
 /**@brief       Maximum number of ticks the system timer can accept
  */
 #define PORT_SYSTMR_MAX_TICKS_VAL                                               \
-    (PORT_SYSTMR_MAX_VAL / PORT_SYSTMR_RELOAD_VAL)
+    (PORT_SYSTMR_MAX_VAL / PORT_SYSTMR_ONE_TICK_VAL)
+
+/**@brief       Is system timer running during CPU sleep state
+ */
+#define PORT_SYSTMR_RUN_SLEEP           1U
 
 /** @} *//*---------------------------------------------------------------*//**
  * @name        Interrupt management
@@ -98,7 +102,11 @@
 
 #define PORT_SYSTMR_TERM()              portSysTmrTerm_()
 
-#define PORT_SYSTMR_RELOAD(ticks)       portSysTmrReload_(ticks)
+#define PORT_SYSTMR_GET()               portSysTmrGet_()
+
+#define PORT_SYSTMR_ACTV(val)           portSysTmrActv_(val)
+
+#define PORT_SYSTMR_DACTV(val)          portSysTmrDActv_(val)
 
 #define PORT_SYSTMR_ENABLE()            portSysTmrEnable_()
 
@@ -129,8 +137,8 @@
     ((((size + PORT_STCK_MINSIZE_VAL) + (sizeof(struct portStck) /              \
     sizeof(portReg_T))) - 1U) / (sizeof(struct portStck)/sizeof(portReg_T)))
 
-#define PORT_CRITICAL_EXIT_SLEEP()                                              \
-    PORT_CRITICAL_EXIT()
+#define PORT_CRITICAL_EXIT_SLEEP_ENTER()                                        \
+    portCriticalExitSleepEnter_(intStatus_)
 
 #define PORT_INIT_EARLY()               portInitEarly_()                        /**< @brief This port does not need this function call      */
 
@@ -158,8 +166,12 @@
 #define CPU_SCB_ICSR_RETTOBASE_MSK      (1UL << CPU_SCB_ICSR_RETTOBASE_POS)     /**< @brief SCB icsr: RETTOBASE Mask                        */
 
 #define CPU_SYST_BASE                   (CPU_SCS_BASE + 0x0010UL)               /**< @brief System Timer Base Addr                          */
-#define CPU_SYST_CSR_OFFSET             (0x0UL)                                 /**< @brief Control and Status Register Base Addr Offset    */
+#define CPU_SYST_CSR_OFFSET             (0x00UL)                                /**< @brief Control and Status Register Base Addr Offset    */
+#define CPU_SYST_RVR_OFFSET             (0x04UL)                                /**< @brief Control and Status Register Base Addr Offset    */
+#define CPU_SYST_CVR_OFFSET             (0x08UL)                                /**< @brief Control and Status Register Base Addr Offset    */
 #define CPU_SYST_CSR                    ((portReg_T *)(CPU_SYST_BASE + CPU_SYST_CSR_OFFSET))
+#define CPU_SYST_RVR                    ((portReg_T *)(CPU_SYST_BASE + CPU_SYST_RVR_OFFSET))
+#define CPU_SYST_CVR                    ((portReg_T *)(CPU_SYST_BASE + CPU_SYST_CVR_OFFSET))
 
 #define CPU_SYST_CSR_TICKINT_POS        1                                       /**< @brief SYSTMR csr: TICKINT Position                    */
 #define CPU_SYST_CSR_TICKINT_MSK        (1UL << CPU_SYST_CSR_TICKINT_POS)       /**< @brief SYSTMR csr: TICKINT Mask                        */
@@ -175,6 +187,8 @@ extern "C" {
 /*============================================================  DATA TYPES  ==*/
 
 typedef uint32_t portReg_T;                                                     /**< @brief General purpose registers are 32bit wide.       */
+
+typedef uint32_t portSysTmrReg_T;
 
 /**@brief       Stack structure used for stack in order to force the alignment
  */
@@ -334,12 +348,21 @@ void portSysTmrInit_(
 void portSysTmrTerm_(
     void);
 
-/**@brief       Reload the system timer
- * @param       ticks
- *              How much ticks is needed to delay
+static PORT_C_INLINE_ALWAYS portSysTmrReg_T portSysTmrGet_(
+    void) {
+
+    return (*CPU_SYST_CVR);
+}
+
+void portSysTmrActv_(
+    void);
+
+/**@brief       Deactivate the system timer and reload a wait time
+ * @param       val
+ *              Value: reload register value
  */
-void portSysTmrReload_(
-    esTick_T      ticks);
+void portSysTmrDActv_(
+    portSysTmrReg_T val);
 
 /**@brief       Enable the system timer
  * @inline
@@ -414,7 +437,7 @@ static PORT_C_INLINE_ALWAYS void portCtxSw_(
  *              type.
  * @param       stckSize
  *              The size of allocated stack in bytes.
- * @param       thdf
+ * @param       fn
  *              Pointer to the thread function.
  * @param       arg
  *              Argument that will be passed to thread function at the starting
@@ -426,12 +449,31 @@ static PORT_C_INLINE_ALWAYS void portCtxSw_(
 void * portCtxInit_(
     void *          stck,
     size_t          stckSize,
-    void (* thdf)(void *),
+    void (* fn)(void *),
     void *          arg);
 
 /** @} *//*---------------------------------------------------------------*//**
  * @name        Generic port functions
  * @{ *//*--------------------------------------------------------------------*/
+
+static PORT_C_INLINE_ALWAYS void portCriticalExitSleepEnter_(
+    portReg_T     val) {
+
+#if (0 != CFG_CRITICAL_PRIO)
+    __asm__ __volatile__ (
+        "   cpsid   i                                       \n\t"
+        "   msr    basepri, %0                              \n\t"
+        "   cpsie   i                                       \n\t"
+        :
+        : "r"(val));
+#else
+    __asm__ __volatile__ (
+        "   wfi                                             \n\t"
+        "   msr    primask, %0                              \n\t"
+        :
+        : "r"(val));
+#endif
+}
 
 /**@brief       Initialize port
  * @details     Function will set up sub-priority bits to zero and handlers
@@ -479,7 +521,7 @@ void portSysTmr(
 
 /*================================*//** @cond *//*==  CONFIGURATION ERRORS  ==*/
 
-#if (PORT_SYSTMR_MAX_VAL < PORT_SYSTMR_RELOAD_VAL)
+#if (PORT_SYSTMR_MAX_VAL < PORT_SYSTMR_ONE_TICK_VAL)
 # error "eSolid RT Kernel port: System Timer overflow, please check CFG_SYSTMR_CLOCK_FREQUENCY and CFG_SYSTMR_EVENT_FREQUENCY options."
 #endif
 
