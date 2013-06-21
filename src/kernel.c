@@ -168,7 +168,8 @@ enum sysTmrState {
 struct sysTmr {
     uint_fast16_t       vTmr;                                                   /**< @brief The number of virtual timers in system.         */
 #if (0U != CFG_SYSTMR_MODE)
-    esTick_T            rtick;
+    esTick_T            ctick;
+    esTick_T            ptick;
     portSysTmrReg_T     tmrVal;
 #endif
 };
@@ -614,7 +615,6 @@ static PORT_C_INLINE void schedWakeUpI(
     void) {
 
     ((esKernCtrl_T *)&gKernCtrl)->state = ES_KERN_RUN;
-    sysTmrActivate();
 }
 
 static PORT_C_INLINE void schedRdyAddInitI(
@@ -679,15 +679,15 @@ static void sysTmrActivate(
 #elif (1U == CFG_SYSTMR_MODE)
     portSysTmrReg_T tmrVal;
 
-    tmrVal = PORT_SYSTMR_GET();
+    tmrVal = PORT_SYSTMR_GET_RVAL();
 
     if (tmrVal < (gSysTmr.tmrVal - (SYSTMR_KEEPBACK_VAL * PORT_SYSTMR_ONE_TICK_VAL))) {
         /*
          * Preempted timer activation
          */
-        gSysTmr.rtick = tmrVal / PORT_SYSTMR_ONE_TICK_VAL;
+        gSysTmr.ctick = tmrVal / PORT_SYSTMR_ONE_TICK_VAL;
     }
-    PORT_SYSTMR_ACTV();
+    PORT_SYSTMR_RLD();
 #endif
 }
 
@@ -706,11 +706,11 @@ static void sysTmrTryDeactivate(
         vTmr = DLIST_ENTRY_NEXT(tmrL, &gVTmrArmed);
 
         if ((PORT_SYSTMR_MAX_TICKS_VAL - SYSTMR_KEEPBACK_VAL) < vTmr->rtick) {
-            gSysTmr.rtick = PORT_SYSTMR_MAX_TICKS_VAL - SYSTMR_KEEPBACK_VAL;
+            gSysTmr.ctick = PORT_SYSTMR_MAX_TICKS_VAL - SYSTMR_KEEPBACK_VAL;
             gSysTmr.tmrVal = (PORT_SYSTMR_MAX_TICKS_VAL - SYSTMR_KEEPBACK_VAL) * PORT_SYSTMR_ONE_TICK_VAL;
         } else {
-            gSysTmr.rtick = vTmr->rtick;
-            gSysTmr.tmrVal = PORT_SYSTMR_ONE_TICK_VAL * gSysTmr.rtick;
+            gSysTmr.ctick = vTmr->rtick;
+            gSysTmr.tmrVal = PORT_SYSTMR_ONE_TICK_VAL * gSysTmr.ctick;
         }
         PORT_SYSTMR_DACTV(gSysTmr.tmrVal);
     }
@@ -729,10 +729,7 @@ static void vTmrExecHandlers(
         tmr = DLIST_ENTRY_NEXT(tmrL, &gVTmrArmed);
 
 #if (0U == CFG_SYSTMR_MODE)
-        --tmr->rtick;
-#elif (1U == CFG_SYSTMR_MODE)
-        tmr->rtick -= gSysTmr.rtick;
-        gSysTmr.rtick = 1U;
+        --tmr->ctick;
 #endif
 
         while (0U == tmr->rtick) {
@@ -779,9 +776,16 @@ static void vTmrImport(
         tmr = DLIST_ENTRY_NEXT(tmrL, &gVTmrPend);
         DLIST_ENTRY_RM(tmrL, tmr);
         ES_CRITICAL_EXIT();
-        vTmrListAddSort(
-            &gVTmrArmed,
-            tmr);
+
+        if (!DLIST_IS_ENTRY_SINGLE(tmrL, &gVTmrArmed)) {
+            vTmrListAddSort(
+                &gVTmrArmed,
+                tmr);
+        } else {
+            DLIST_ENTRY_ADD_AFTER(tmrL, &gVTmrArmed, tmr);
+            gSysTmr.ctick = 0U;
+            gSysTmr.ptick = tmr->rtick;
+        }
         ES_CRITICAL_ENTER();
     }
     ES_CRITICAL_EXIT();
@@ -867,7 +871,7 @@ void esKernInit(
 }
 
 /* 1)       Since this function will never return it is marked with `noreturn`
- *          attribute to allow compiler optimizations.
+ *          attribute to allow for compiler optimizations.
  */
 PORT_C_NORETURN void esKernStart(
     void) {
@@ -890,18 +894,48 @@ PORT_C_NORETURN void esKernStart(
 void esKernSysTmrI(
     void) {
 
+    if (0U != gSysTmr.ptick) {
+        gSysTmr.ptick -= gSysTmr.ctick;
+
+        if (0U != gSysTmr.ptick) {
+            portSysTmrReg_T tmp;
+
+            gSysTmr.ctick = gSysTmr.ptick;
+
+            if (PORT_SYSTMR_MAX_TICKS_VAL < gSysTmr.ctick) {
+                gSysTmr.ctick = PORT_SYSTMR_MAX_TICKS_VAL;
+            }
+            tmp = PORT_SYSTMR_ONE_TICK_VAL * gSysTmr.ctick;
+
+            if (tmp != PORT_SYSTMR_GET_RVAL()) {
+                PORT_SYSTMR_RLD(tmp);
+            }
+        } else {
+            PORT_SYSTMR_RLD(PORT_SYSTMR_ONE_TICK_VAL);
+            gSysTmr.ctick = 1U;
+            schedWakeUpI();
+        }
+    } else if (0U != gSysTmr.vTmr) {
+        esVTmr_T * vTmr;
+
+        vTmr = DLIST_ENTRY_NEXT(tmrL, &gVTmrArmed);
+
+        if (!DLIST_IS_ENTRY_SINGLE(tmrL, vTmr)) {
+            vTmr->rtick -= gSysTmr.ctick;
+
+            if (0U == vTmr->rtick) {
+                esSchedRdyAddI(
+                    &gKVTmrId);
+            }
+        } else {
+            esSchedRdyAddI(
+                &gKVTmrId);
+        }
+    }
+
 #if (1U == CFG_HOOK_SYSTMR_EVENT)
     userSysTmr();
 #endif
-
-    if (0U != gSysTmr.vTmr) {
-
-        if (1U != gSysTmr.rtick) {
-            PORT_SYSTMR_ACTV(gSysTmr.rtick);
-        }
-        esSchedRdyAddI(
-            &gKVTmrId);
-    }
     schedQmI();
 }
 
