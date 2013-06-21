@@ -102,9 +102,11 @@
 
 #define PORT_SYSTMR_TERM()              portSysTmrTerm_()
 
-#define PORT_SYSTMR_GET()               portSysTmrGet_()
+#define PORT_SYSTMR_GET_RVAL()          portSysTmrGetRVal_()
 
-#define PORT_SYSTMR_ACTV(val)           portSysTmrActv_(val)
+#define PORT_SYSTMR_GET_CVAL()          portSysTmrGetCVal_()
+
+#define PORT_SYSTMR_RLD(val)            portSysTmrRld_(val)
 
 #define PORT_SYSTMR_DACTV(val)          portSysTmrDActv_(val)
 
@@ -348,13 +350,19 @@ void portSysTmrInit_(
 void portSysTmrTerm_(
     void);
 
-static PORT_C_INLINE_ALWAYS portSysTmrReg_T portSysTmrGet_(
+static PORT_C_INLINE_ALWAYS portSysTmrReg_T portSysTmrGetCVal_(
     void) {
 
     return (*CPU_SYST_CVR);
 }
 
-void portSysTmrActv_(
+static PORT_C_INLINE_ALWAYS portSysTmrReg_T portSysTmrGetRVal_(
+    void) {
+
+    return (*CPU_SYST_RVR);
+}
+
+void portSysTmrRld_(
     void);
 
 /**@brief       Deactivate the system timer and reload a wait time

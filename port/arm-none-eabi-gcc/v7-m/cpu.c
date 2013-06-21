@@ -213,12 +213,12 @@ void portSysTmrTerm_(
     SYST->csr &= ~SYST_CSR_ENABLE_MSK;                                          /* Disable SYST Timer                                       */
 }
 
-void portSysTmrActv_(
+void portSysTmrRld_(
     void) {
 
     SYST->csr &= ~SYST_CSR_ENABLE_MSK;                                          /* Disable SYST Timer                                       */
     SYST->rvr = PORT_SYSTMR_ONE_TICK_VAL - 1U;
-    SYST->cvr %= PORT_SYSTMR_ONE_TICK_VAL;
+    SYST->cvr = 0U;
     SYST->csr |= SYST_CSR_ENABLE_MSK;                                           /* Enable SYST Timer                                        */
 }
 
