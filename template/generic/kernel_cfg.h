@@ -96,8 +96,7 @@
 /**@brief       System timer mode
  * @details     Possible values are:
  *              - 0U - fixed mode
- *              - 1U - inhibited mode
- *              - 2U - adaptive mode
+ *              - 1U - semi-adaptive mode
  */
 #if !defined(CFG_SYSTMR_MODE)
 # define CFG_SYSTMR_MODE                1U
