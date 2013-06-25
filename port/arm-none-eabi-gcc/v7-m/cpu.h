@@ -47,7 +47,7 @@
 #define PORT_STCK_MINSIZE_VAL                                                   \
     (sizeof(struct portCtx) / sizeof(portReg_T))
 
-/**@brief       System timer reload value
+/**@brief       System timer one tick value
  */
 #define PORT_SYSTMR_ONE_TICK_VAL                                                \
     (CFG_SYSTMR_CLOCK_FREQUENCY / CFG_SYSTMR_EVENT_FREQUENCY)
@@ -60,10 +60,6 @@
  */
 #define PORT_SYSTMR_MAX_TICKS_VAL                                               \
     (PORT_SYSTMR_MAX_VAL / PORT_SYSTMR_ONE_TICK_VAL)
-
-/**@brief       Is system timer running during CPU sleep state
- */
-#define PORT_SYSTMR_RUN_SLEEP           1U
 
 /** @} *//*---------------------------------------------------------------*//**
  * @name        Interrupt management
@@ -107,8 +103,6 @@
 #define PORT_SYSTMR_GET_CVAL()          portSysTmrGetCVal_()
 
 #define PORT_SYSTMR_RLD(val)            portSysTmrRld_(val)
-
-#define PORT_SYSTMR_DACTV(val)          portSysTmrDActv_(val)
 
 #define PORT_SYSTMR_ENABLE()            portSysTmrEnable_()
 
@@ -154,12 +148,14 @@
 
 /**@brief       Calculate interrupt priority value
  */
-#define CPU_ISR_PRIO                    (CFG_CRITICAL_PRIO << (8 - CPU_ISR_PRIO_BITS))
+#define CPU_ISR_PRIO                                                            \
+    (CFG_CRITICAL_PRIO << (8 - CPU_ISR_PRIO_BITS))
 
 #define CPU_SCS_BASE                    (0xE000E000UL)                          /**< @brief System Control Space Base Addr                  */
 #define CPU_SCB_BASE                    (CPU_SCS_BASE + 0x0D00UL)               /**< @brief System Control Block Base Addr                  */
 #define CPU_SCB_ICSR_OFFSET             (0x04UL)                                /**< @brief Interrupt Control and State Register Base Addr  */
-#define CPU_SCB_ICSR                    ((portReg_T *)(CPU_SCB_BASE + CPU_SCB_ICSR_OFFSET))
+#define CPU_SCB_ICSR                                                            \
+    ((volatile portReg_T *)(CPU_SCB_BASE + CPU_SCB_ICSR_OFFSET))
 #define CPU_SCB_ICSR_PENDSVSET_POS      28                                      /**< @brief SCB icsr: PENDSVSET Position                    */
 #define CPU_SCB_ICSR_PENDSVSET_MSK      (1UL << CPU_SCB_ICSR_PENDSVSET_POS)     /**< @brief SCB icsr: PENDSVSET Mask                        */
 #define CPU_SCB_ICSR_PENDSTCLR_POS      25                                      /**< @brief SCB icsr: PENDSTCLR Position                    */
@@ -169,17 +165,21 @@
 
 #define CPU_SYST_BASE                   (CPU_SCS_BASE + 0x0010UL)               /**< @brief System Timer Base Addr                          */
 #define CPU_SYST_CSR_OFFSET             (0x00UL)                                /**< @brief Control and Status Register Base Addr Offset    */
-#define CPU_SYST_RVR_OFFSET             (0x04UL)                                /**< @brief Control and Status Register Base Addr Offset    */
-#define CPU_SYST_CVR_OFFSET             (0x08UL)                                /**< @brief Control and Status Register Base Addr Offset    */
-#define CPU_SYST_CSR                    ((portReg_T *)(CPU_SYST_BASE + CPU_SYST_CSR_OFFSET))
-#define CPU_SYST_RVR                    ((portReg_T *)(CPU_SYST_BASE + CPU_SYST_RVR_OFFSET))
-#define CPU_SYST_CVR                    ((portReg_T *)(CPU_SYST_BASE + CPU_SYST_CVR_OFFSET))
-
+#define CPU_SYST_CSR                                                            \
+    ((volatile portReg_T *)(CPU_SYST_BASE + CPU_SYST_CSR_OFFSET))
+#define CPU_SYST_CSR_CLKSOURCE_POS      2                                       /**< @brief SYSTMR csr: CLKSOURCE Position                  */
+#define CPU_SYST_CSR_CLKSOURCE_MSK      (1UL << CPU_SYST_CSR_CLKSOURCE_POS)     /**< @brief SYSTMR csr: CLKSOURCE Mask                      */
 #define CPU_SYST_CSR_TICKINT_POS        1                                       /**< @brief SYSTMR csr: TICKINT Position                    */
 #define CPU_SYST_CSR_TICKINT_MSK        (1UL << CPU_SYST_CSR_TICKINT_POS)       /**< @brief SYSTMR csr: TICKINT Mask                        */
-
 #define CPU_SYST_CSR_ENABLE_POS         0                                       /**< @brief SYSTMR csr: ENABLE Position                     */
 #define CPU_SYST_CSR_ENABLE_MSK         (1UL << CPU_SYST_CSR_ENABLE_POS)        /**< @brief SYSTMR csr: ENABLE Mask                         */
+#define CPU_SYST_RVR_OFFSET             (0x04UL)                                /**< @brief Control and Status Register Base Addr Offset    */
+#define CPU_SYST_RVR                                                            \
+    ((volatile portReg_T *)(CPU_SYST_BASE + CPU_SYST_RVR_OFFSET))
+#define CPU_SYST_CVR_OFFSET             (0x08UL)                                /**< @brief Control and Status Register Base Addr Offset    */
+#define CPU_SYST_CVR                                                            \
+    ((volatile portReg_T *)(CPU_SYST_BASE + CPU_SYST_CVR_OFFSET))
+
 
 /** @} *//*---------------------------------------------  C++ extern begin  --*/
 #ifdef __cplusplus
@@ -342,13 +342,14 @@ static PORT_C_INLINE_ALWAYS uint_fast8_t portFindLastSet_(
 
 /**@brief       Initialize and start the system timer
  */
-void portSysTmrInit_(
-    void);
+static PORT_C_INLINE_ALWAYS void portSysTmrInit_(
+    void) {
 
-/**@brief       Stop the system timer
- */
-void portSysTmrTerm_(
-    void);
+    *CPU_SYST_CSR &= ~CPU_SYST_CSR_ENABLE_MSK;                                  /* Disable SysTick Timer                                    */
+    *CPU_SYST_RVR = PORT_SYSTMR_ONE_TICK_VAL - 1U;                              /* Set SysTick reload register                              */
+    *CPU_SYST_CVR = 0;
+    *CPU_SYST_CSR = CPU_SYST_CSR_CLKSOURCE_MSK;                                 /* SysTick uses the processor clock.                        */
+}
 
 static PORT_C_INLINE_ALWAYS portSysTmrReg_T portSysTmrGetCVal_(
     void) {
@@ -362,15 +363,18 @@ static PORT_C_INLINE_ALWAYS portSysTmrReg_T portSysTmrGetRVal_(
     return (*CPU_SYST_RVR);
 }
 
-void portSysTmrRld_(
-    void);
-
-/**@brief       Deactivate the system timer and reload a wait time
- * @param       val
- *              Value: reload register value
+/**@brief       Load the system timer Reload value register
+ * @inline
  */
-void portSysTmrDActv_(
-    portSysTmrReg_T val);
+static PORT_C_INLINE_ALWAYS void portSysTmrRld_(
+    portSysTmrReg_T val) {
+
+    --val;
+    *CPU_SYST_CSR &= ~CPU_SYST_CSR_ENABLE_MSK;
+    *CPU_SYST_RVR = val;
+    *CPU_SYST_CVR = 0U;
+    *CPU_SYST_CSR |= CPU_SYST_CSR_ENABLE_MSK;
+}
 
 /**@brief       Enable the system timer
  * @inline
@@ -387,8 +391,7 @@ static PORT_C_INLINE_ALWAYS void portSysTmrEnable_(
 static PORT_C_INLINE_ALWAYS void portSysTmrDisable_(
     void) {
 
-    *CPU_SCB_ICSR |= CPU_SCB_ICSR_PENDSTCLR_MSK;
-    *CPU_SYST_CSR &= ~(CPU_SYST_CSR_TICKINT_MSK | CPU_SYST_CSR_ENABLE_MSK);
+    *CPU_SYST_CSR &= ~CPU_SYST_CSR_ENABLE_MSK;
 }
 
 /**@brief       Disable the system timer interrupt
@@ -496,9 +499,10 @@ void portInitEarly_(
 
 /**@brief       Pop the first thread stack
  * @details     During the thread initialization a false stack was created
- *              mimicking the real interrupt stack described in @ref portCtx. With
- *              this function we restore the false stack and start the thread.
- *              This function is invoked only once from esKernStart() function.
+ *              mimicking the real interrupt stack described in @ref portCtx.
+ *              With this function we restore the false stack and start the
+ *              thread. This function is invoked only once from esKernStart()
+ *              function.
  */
 PORT_C_NAKED void portSVC(
     void);

@@ -39,27 +39,27 @@
 #define R__                             volatile const                          /**< @brief Defines 'read only' permissions                 */
 #define RW_                             volatile                                /**< @brief Defines 'read/write' permissions                */
 
-#define PSR_THUMB_STATE_Pos             24                                      /**< @brief PSR Thumb state: Position                       */
-#define PSR_THUMB_STATE_MSK             (1UL << PSR_THUMB_STATE_Pos)            /**< @brief PSR Thumb state: Mask                           */
+#define PSR_THUMB_STATE_POS             24                                      /**< @brief PSR Thumb state: Position                       */
+#define PSR_THUMB_STATE_MSK             (1UL << PSR_THUMB_STATE_POS)            /**< @brief PSR Thumb state: Mask                           */
 
 /**@brief       Exception return value
  * @details     This value must is set to:
- *              - Exception return gets multiOcc from the process stck, thread
+ *              - Exception return gets stack from the process stack, thread
  *              mode
  */
-#define EXC_RETURN                      0xFFFFFFFDUL
+#define CONST_EXC_RETURN                0xFFFFFFFDUL
 
 /**@brief       On AIRCR register writes, write 0x5FA, otherwise the write is
  *              ignored
  */
-#define SCB_AIRCR_VECTKEY               0x5FAUL
+#define CONST_SCB_AIRCR_VECTKEY         0x5FAUL
 
 /**@brief       This field determines the split of group priority from
  *              subpriority.
  * @warning     Change this value only if you are familiar with Cortex interrupt
  *              priority system and how kernel protects its critical sections.
  */
-#define CPU_SCB_AIRCR_PRIGROUP          0U
+#define CFG_SCB_AIRCR_PRIGROUP          0U
 
 /**@brief       This is the data that will be placed on task context at its
  *              creation
@@ -67,7 +67,7 @@
  *              for Interruptible-continuable instructions. The setting is done
  *              in PSR register.
  */
-#define CPU_PSR_DATA                    0UL
+#define CFG_PSR_DATA                    0UL
 
 /** @} *//*---------------------------------------------------------------*//**
  * @name        System Control Block (SCB)
@@ -85,22 +85,6 @@
 #define SCB_CCR_STKALIGN_POS            9                                       /**< @brief SCB ccr: STKALIGN Position                      */
 #define SCB_CCR_STKALIGN_MSK            (1UL << SCB_CCR_STKALIGN_POS)           /**< @brief SCB ccr: STKALIGN Mask                          */
 
-/** @} *//*---------------------------------------------------------------*//**
- * @name        System Timer (SYSTMR)
- * @{ *//*--------------------------------------------------------------------*/
-
-#define SYST                            ((sysTick_T *)CPU_SYST_BASE)            /**< @brief SYSTMR configuration struct                     */
-
-#define SYST_CSR_COUNTFLAG_POS          16                                      /**< @brief SYSTMR csr: COUNTFLAG Position                  */
-#define SYST_CSR_COUNTFLAG_MSK          (1UL << SYST_CSR_COUNTFLAG_POS)         /**< @brief SYSTMR csr: COUNTFLAG Mask                      */
-
-#define SYST_CSR_CLKSOURCE_POS          2                                       /**< @brief SYSTMR csr: CLKSOURCE Position                  */
-#define SYST_CSR_CLKSOURCE_MSK          (1UL << SYST_CSR_CLKSOURCE_POS)         /**< @brief SYSTMR csr: CLKSOURCE Mask                      */
-
-#define SYST_CSR_ENABLE_POS             0                                       /**< @brief SYSTMR csr: ENABLE Position                     */
-#define SYST_CSR_ENABLE_MSK             (1UL << SYST_CSR_ENABLE_POS)            /**< @brief SYSTMR csr: ENABLE Mask                         */
-
-/** @} *//*-------------------------------------------------------------------*/
 /*======================================================  LOCAL DATA TYPES  ==*/
 
 /**@brief       Interrupt Number Definition
@@ -119,37 +103,28 @@ typedef enum irqN {
 /**@brief       Structure type to access the System Control Block (SCB).
  */
 typedef struct scb {
-    R__ uint32_t    cpuid;                                                      /**< @brief cpuid Base Register                                   */
-    RW_ uint32_t    icsr;                                                       /**< @brief Interrupt Control and State Register                  */
-    RW_ uint32_t    vtor;                                                       /**< @brief Vector Table Offset Register                          */
-    RW_ uint32_t    aircr;                                                      /**< @brief Application Interrupt and Reset Control Register      */
-    RW_ uint32_t    scr;                                                        /**< @brief System Control Register                               */
-    RW_ uint32_t    ccr;                                                        /**< @brief Configuration Control Register                        */
-    RW_ uint8_t     shp[12];                                                    /**< @brief System Handlers Priority Registers (4-7, 8-11, 12-15) */
-    RW_ uint32_t    shcsr;                                                      /**< @brief System Handler Control and State Register             */
-    RW_ uint32_t    cfsr;                                                       /**< @brief Configurable Fault Status Register                    */
-    RW_ uint32_t    hfsr;                                                       /**< @brief HardFault Status Register                             */
-    RW_ uint32_t    dfsr;                                                       /**< @brief Debug Fault Status Register                           */
-    RW_ uint32_t    mmfar;                                                      /**< @brief MemManage Fault Address Register                      */
-    RW_ uint32_t    bfar;                                                       /**< @brief BusFault Address Register                             */
-    RW_ uint32_t    afsr;                                                       /**< @brief Auxiliary Fault Status Register                       */
-    R__ uint32_t    pfr[2];                                                     /**< @brief Processor Feature Register                            */
-    R__ uint32_t    dfr;                                                        /**< @brief Debug Feature Register                                */
-    R__ uint32_t    adr;                                                        /**< @brief Auxiliary Feature Register                            */
-    R__ uint32_t    mmfr[4];                                                    /**< @brief Memory Model Feature Register                         */
-    R__ uint32_t    isar[5];                                                    /**< @brief Instruction Set Attributes Register                   */
-    uint32_t        RESERVED0[5];                                               /**< @brief Reserved                                              */
-    RW_ uint32_t    cpacr;                                                      /**< @brief Coprocessor Access Control Register                   */
+    R__ uint32_t    cpuid;                                                      /**< @brief cpuid Base Register                             */
+    RW_ uint32_t    icsr;                                                       /**< @brief Interrupt Control and State Register            */
+    RW_ uint32_t    vtor;                                                       /**< @brief Vector Table Offset Register                    */
+    RW_ uint32_t    aircr;                                                      /**< @brief Application Interrupt and Reset Control Register*/
+    RW_ uint32_t    scr;                                                        /**< @brief System Control Register                         */
+    RW_ uint32_t    ccr;                                                        /**< @brief Configuration Control Register                  */
+    RW_ uint8_t     shp[12];                                                    /**< @brief System Handlers Priority Registers              */
+    RW_ uint32_t    shcsr;                                                      /**< @brief System Handler Control and State Register       */
+    RW_ uint32_t    cfsr;                                                       /**< @brief Configurable Fault Status Register              */
+    RW_ uint32_t    hfsr;                                                       /**< @brief HardFault Status Register                       */
+    RW_ uint32_t    dfsr;                                                       /**< @brief Debug Fault Status Register                     */
+    RW_ uint32_t    mmfar;                                                      /**< @brief MemManage Fault Address Register                */
+    RW_ uint32_t    bfar;                                                       /**< @brief BusFault Address Register                       */
+    RW_ uint32_t    afsr;                                                       /**< @brief Auxiliary Fault Status Register                 */
+    R__ uint32_t    pfr[2];                                                     /**< @brief Processor Feature Register                      */
+    R__ uint32_t    dfr;                                                        /**< @brief Debug Feature Register                          */
+    R__ uint32_t    adr;                                                        /**< @brief Auxiliary Feature Register                      */
+    R__ uint32_t    mmfr[4];                                                    /**< @brief Memory Model Feature Register                   */
+    R__ uint32_t    isar[5];                                                    /**< @brief Instruction Set Attributes Register             */
+    uint32_t        RESERVED0[5];                                               /**< @brief Reserved                                        */
+    RW_ uint32_t    cpacr;                                                      /**< @brief Coprocessor Access Control Register             */
 } scb_T;
-
-/**@brief       Structure type to access the System Timer (SYSTMR).
- */
-typedef struct sysTick {
-    RW_ uint32_t    csr;                                                        /**< @brief SYSTMR Control and Status Register              */
-    RW_ uint32_t    rvr;                                                        /**< @brief SYSTMR Reload Value Register                    */
-    RW_ uint32_t    cvr;                                                        /**< @brief SYSTMR Current Value Register                   */
-    R__ uint32_t    calib;                                                      /**< @brief SYSTMR Calibration Register                     */
-} sysTick_T;
 
 /*=============================================  LOCAL FUNCTION PROTOTYPES  ==*/
 
@@ -197,40 +172,6 @@ static PORT_C_INLINE void intPrioSet(
 /*===================================  GLOBAL PRIVATE FUNCTION DEFINITIONS  ==*/
 /*====================================  GLOBAL PUBLIC FUNCTION DEFINITIONS  ==*/
 
-void portSysTmrInit_(
-    void) {
-
-    SYST->csr &= ~SYST_CSR_ENABLE_MSK;                                          /* Disable SYST Timer                                       */
-    SYST->rvr = PORT_SYSTMR_ONE_TICK_VAL - 1U;                                  /* set systick reload register                              */
-    SYST->cvr = PORT_SYSTMR_ONE_TICK_VAL - 1U;
-    SYST->csr = SYST_CSR_CLKSOURCE_MSK;                                         /* SysTick uses the processor clock.                        */
-}
-
-void portSysTmrTerm_(
-    void) {
-
-    portSysTmrIsrDisable_();
-    SYST->csr &= ~SYST_CSR_ENABLE_MSK;                                          /* Disable SYST Timer                                       */
-}
-
-void portSysTmrRld_(
-    void) {
-
-    SYST->csr &= ~SYST_CSR_ENABLE_MSK;                                          /* Disable SYST Timer                                       */
-    SYST->rvr = PORT_SYSTMR_ONE_TICK_VAL - 1U;
-    SYST->cvr = 0U;
-    SYST->csr |= SYST_CSR_ENABLE_MSK;                                           /* Enable SYST Timer                                        */
-}
-
-void portSysTmrDActv_(
-    portSysTmrReg_T val) {
-
-    SYST->csr &= ~SYST_CSR_ENABLE_MSK;                                          /* Disable SYST Timer                                       */
-    SYST->rvr = val - 1U;
-    SYST->cvr += val - 1U;
-    SYST->csr |= SYST_CSR_ENABLE_MSK;                                           /* Enable SYST Timer                                        */
-}
-
 /*
  * - 1-4    get the beginning of MSP stack from SCB->vtor register
  * - 5      enable interrupts so we can call SVC 0
@@ -268,7 +209,7 @@ void * portCtxInit_(
 
     sp = (struct portCtx *)((uint8_t *)stck + stckSize);
     sp--;
-    sp->xpsr = (portReg_T)(PSR_THUMB_STATE_MSK | CPU_PSR_DATA);
+    sp->xpsr = (portReg_T)(PSR_THUMB_STATE_MSK | CFG_PSR_DATA);
     sp->pc = (portReg_T)fn;
     sp->lr = (portReg_T)threadExit;
     sp->r0 = (portReg_T)arg;
@@ -282,8 +223,8 @@ void portInitEarly_(
     PORT_HWREG_SET(
         SCB->aircr,
         SCB_AIRCR_VECTKEY_MSK | SCB_AIRCR_PRIGROUP_MSK,
-        (SCB_AIRCR_VECTKEY << SCB_AIRCR_VECTKEY_POS) |
-           (CPU_SCB_AIRCR_PRIGROUP << SCB_AIRCR_PRIGROUP_POS));                 /* Setup priority subgroup to zero bits                     */
+        (CONST_SCB_AIRCR_VECTKEY << SCB_AIRCR_VECTKEY_POS) |
+           (CFG_SCB_AIRCR_PRIGROUP << SCB_AIRCR_PRIGROUP_POS));                 /* Setup priority subgroup to zero bits                     */
     intPrioSet(
         PENDSV_IRQN,
         CFG_CRITICAL_PRIO);
@@ -302,7 +243,7 @@ void portInitEarly_(
  * - 7      pop the thread stack from PSP stack
  * - 8      save thread top of stack to PSP register
  * - 9      restore previous interrupt priority
- * - 10     Load LR wih @ref EXC_RETURN value indicating that we want to
+ * - 10     Load LR wih @ref CONST_EXC_RETURN value indicating that we want to
  *          return to thread mode and on return use the PSP stack
  */
 PORT_C_NAKED void portSVC(
@@ -323,7 +264,7 @@ PORT_C_NAKED void portSVC(
         "   bx      lr                                      \n\t"               /* Return to first thread                                   */
         :
         :   "i"(&gKernCtrl.cthd),
-            "i"(EXC_RETURN),
+            "i"(CONST_EXC_RETURN),
             "i"(CPU_ISR_PRIO));
 #else
     __asm__ __volatile__ (
@@ -338,7 +279,7 @@ PORT_C_NAKED void portSVC(
         "   bx      lr                                      \n\t"               /* Return to first thread                                   */
         :
         :   "i"(&gKernCtrl.cthd),
-            "i"(EXC_RETURN));
+            "i"(CONST_EXC_RETURN));
 #endif
 }
 
@@ -350,7 +291,7 @@ PORT_C_NAKED void portSVC(
  * - 9-10   Make gKernCtrl.cthd == gKernCtrl.pthd
  * - 11-13  restore new context
  * - 14     restore previous interrupt priority from main stck
- * Note:    LR was already loaded with valid EXC_RETURN value
+ * Note:    LR was already loaded with valid CONST_EXC_RETURN value
  */
 PORT_C_NAKED void portPendSV(
     void) {
@@ -403,7 +344,7 @@ void portSysTmr(
     void) {
 
     PORT_ISR_ENTER();
-    esKernSysTmrI();
+    esKernSysTmr();
     PORT_ISR_EXIT();
 }
 
