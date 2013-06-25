@@ -259,7 +259,7 @@ enum esKernState {
     ES_KERN_INTSRV_RUN  = 0x01U,                                                /**< Servicing an interrupt  return to ES_KERN_RUN state    */
     ES_KERN_LOCK        = 0x02U,                                                /**< Kernel is locked                                       */
     ES_KERN_INTSRV_LOCK = 0x03U,                                                /**< Servicing an interrupt, return to ES_KERN_LOCK state   */
-    ES_KERN_SLEEP       = 0x04U,
+    ES_KERN_SLEEP       = 0x04U,                                                /**< Kernel is sleeping                                     */
     ES_KERN_INIT        = 0x08U,                                                /**< Kernel is in initialization state                      */
     ES_KERN_INACTIVE    = 0x09U                                                 /**< Kernel data structures are not initialized             */
 };
@@ -345,7 +345,7 @@ PORT_C_NORETURN void esKernStart(
  * @details     This function will be called only by port system timer interrupt.
  * @notapi
  */
-void esKernSysTmrI(
+void esKernSysTmr(
     void);
 
 /**@brief       Enter Interrupt Service Routine
@@ -723,16 +723,11 @@ void esSchedYieldIsrI(
     void);
 
 /**@} *//*----------------------------------------------------------------*//**
- * @name        System timer management
- * @{ *//*--------------------------------------------------------------------*/
-
-
-/**@} *//*----------------------------------------------------------------*//**
  * @name        Virtual Timer management
  * @{ *//*--------------------------------------------------------------------*/
 
 /**@brief       Add and start a new virtual timer
- * @param       vTmr
+ * @param       vTmrArmed
  *              Virtual Timer: is pointer to the timer ID structure, @ref esVTmr.
  * @param       tick
  *              Tick: the timer delay expressed in system ticks
@@ -741,10 +736,10 @@ void esSchedYieldIsrI(
  * @param       arg
  *              Argument: is pointer to the arguments of callback function
  * @pre         1) `The kernel state < ES_KERN_INACTIVE`, see @ref states.
- * @pre         2) `vTmr != NULL`
+ * @pre         2) `vTmrArmed != NULL`
  * @pre         3) `tick > 1U`
  * @pre         4) `fn != NULL`
- * @post        1) `vTmr->signature == VTMR_CONTRACT_SIGNATURE`, each
+ * @post        1) `vTmrArmed->signature == VTMR_CONTRACT_SIGNATURE`, each
  *                  @ref esVTmr structure will have valid signature after
  *                  initialization.
  * @api
@@ -756,11 +751,11 @@ void esVTmrInitI(
     void *          arg);
 
 /**@brief       Cancel and remove a virtual timer
- * @param       vTmr
+ * @param       vTmrArmed
  *              Timer: is pointer to the timer ID structure, @ref esVTmr.
  * @pre         1) `The kernel state < ES_KERN_INACTIVE`, see @ref states.
- * @pre         2) `vTmr != NULL`
- * @pre         3) `vTmr->signature == VTMR_CONTRACT_SIGNATURE`, the pointer
+ * @pre         2) `vTmrArmed != NULL`
+ * @pre         3) `vTmrArmed->signature == VTMR_CONTRACT_SIGNATURE`, the pointer
  *                  must point to a @ref esVTmr structure.
  * @iclass
  */
@@ -820,7 +815,7 @@ extern void userSysTmr(
  * @note        1) The definition of this function must be written by the user.
  * @note        2) This function is called only if @ref CFG_HOOK_KERN_INIT is
  *              active.
- * @details     This function is called before kernel initialization.
+ * @details     This function is called before the kernel initialization.
  */
 extern void userKernInit(
     void);
