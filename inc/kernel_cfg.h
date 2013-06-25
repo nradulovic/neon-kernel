@@ -42,12 +42,18 @@
  * @{ *//*--------------------------------------------------------------------*/
 
 /**@brief       Enable/disable API arguments validation
+ * @details     Possible values:
+ *              - 0U - API validation is OFF
+ *              - 1U - API validation is ON
  */
 #if !defined(CFG_API_VALIDATION)
 # define CFG_API_VALIDATION             1U
 #endif
 
 /**@brief       Scheduler priority levels
+ * @details     Possible values:
+ *              - Min: 3U (three priority levels)
+ *              - Max: 256U
  */
 #if !defined(CFG_SCHED_PRIO_LVL)
 # define CFG_SCHED_PRIO_LVL             8U
@@ -60,6 +66,9 @@
 #endif
 
 /**@brief       System timer mode
+ * @details     Possible values are:
+ *              - 0U - fixed mode
+ *              - 1U - semi-adaptive mode
  */
 #if !defined(CFG_SYSTMR_MODE)
 # define CFG_SYSTMR_MODE                1U
@@ -75,6 +84,10 @@
 #endif
 
 /**@brief       The size of the system timer tick event counter
+ * @details     Possible values are:
+ *              - 0U - 8 bit counter
+ *              - 1U - 16 bit counter
+ *              - 2U - 32 bit counter
  */
 #if !defined(CFG_SYSTMR_TICK_TYPE)
 # define CFG_SYSTMR_TICK_TYPE           2U
