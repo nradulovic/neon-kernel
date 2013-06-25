@@ -140,11 +140,11 @@
 
 /**@brief       System Timer kernel thread stack size
  */
-#define KVTMR_STCK_SIZE                 PORT_STCK_SIZE(40U)
+#define KVTMR_STCK_SIZE                 ES_STCK_SIZE(40U)
 
 /**@brief       Idle kernel thread stack size
  */
-#define KIDLE_STCK_SIZE                 PORT_STCK_SIZE(40U)
+#define KIDLE_STCK_SIZE                 ES_STCK_SIZE(40U)
 
 /*======================================================  LOCAL DATA TYPES  ==*/
 
@@ -152,25 +152,17 @@
  * @name        System Timer
  * @{ *//*--------------------------------------------------------------------*/
 
-/**@brief       System timer state enumeration
- */
-enum sysTmrState {
-    SYSTMR_ACTIVE,                                                              /**< @brief System timer is running.                        */
-    SYSTMR_INACTIVE                                                             /**< @brief System timer is stopped.                        */
-};
-
 /**@brief       Main System Timer structure
- * @note        1) Member `tick` exists only if FIXED mode is selected. When
+ * @note        1) Member `ptick` exists only if FIXED mode is selected. When
  *              this mode is selected then kernel supports time ticking tracking.
  * @note        2) When INHIBITED or ADAPTIVE mode is selected members `qm` and
  *              `state` are used to manage Quantum intervals.
  */
 struct sysTmr {
-    uint_fast16_t       vTmr;                                                   /**< @brief The number of virtual timers in system.         */
+    uint_fast16_t       vTmrArmed;                                              /**< @brief The number of armed virtual timers in system.   */
+    uint_fast16_t       vTmrPend;                                               /**< @brief The number of pending timers for arming.        */
 #if (0U != CFG_SYSTMR_MODE)
-    esTick_T            ctick;
     esTick_T            ptick;
-    portSysTmrReg_T     tmrVal;
 #endif
 };
 
@@ -300,7 +292,7 @@ static void sysTmrInit(
 /**@brief       Try to deactivate system timer
  */
 #if (0 != CFG_SYSTMR_MODE) || defined(__DOXYGEN__)
-static void sysTmrTryDeactivate(
+static void sysTmrDeactivateI(
     void);
 #endif
 
@@ -315,17 +307,20 @@ static void sysTmrActivate(
  * @name        Virtual Timer kernel thread
  * @{ *//*--------------------------------------------------------------------*/
 
-static void vTmrImport(
+static void vTmrSleep(
+    esTick_T        ticks);
+
+static void vTmrImportPendI(
+    void);
+
+static void vTmrImportPend(
     void);
 
 /**@brief       Add a virtual timer into sorted list
- * @param       list
- *              List: pointer to sorted list
  * @param       tmr
  *              Virtual timer: pointer to virtual timer to add
  */
-static void vTmrListAddSort(
-    esVTmr_T *       list,
+static void vTmrAddArmed(
     esVTmr_T *       vTmr);
 
 /**@brief       Initialization of Virtual Timer kernel thread
@@ -375,9 +370,9 @@ static esThdQ_T gRdyQueue;
  */
 static sysTmr_T gSysTmr = {
     0U,
+    0U,
 #if (0U != CFG_SYSTMR_MODE)
-    1U,
-    PORT_SYSTMR_ONE_TICK_VAL
+    0U
 #endif
 };
 
@@ -593,7 +588,7 @@ static PORT_C_INLINE void schedSleep(
 
         if (DLIST_IS_ENTRY_SINGLE(thdL, gKernCtrl.cthd)) {
             ((esKernCtrl_T *)&gKernCtrl)->state = ES_KERN_SLEEP;
-            sysTmrTryDeactivate();
+            sysTmrDeactivateI();
             PORT_CRITICAL_EXIT_SLEEP_ENTER();
         } else {
             schedQmNextI();
@@ -615,6 +610,7 @@ static PORT_C_INLINE void schedWakeUpI(
     void) {
 
     ((esKernCtrl_T *)&gKernCtrl)->state = ES_KERN_RUN;
+    sysTmrActivate();
 }
 
 static PORT_C_INLINE void schedRdyAddInitI(
@@ -671,59 +667,75 @@ static void sysTmrInit(
     PORT_SYSTMR_ISR_ENABLE();
 }
 
-#define SYSTMR_KEEPBACK_VAL            1U
-
 static void sysTmrActivate(
     void) {
-#if (0U == CFG_SYSTMR_MODE) || defined(__DOXYGEN__)
-#elif (1U == CFG_SYSTMR_MODE)
-    portSysTmrReg_T tmrVal;
 
-    tmrVal = PORT_SYSTMR_GET_RVAL();
+    if (0U == gSysTmr.ptick) {                                                  /* Normal wake up.                                          */
 
-    if (tmrVal < (gSysTmr.tmrVal - (SYSTMR_KEEPBACK_VAL * PORT_SYSTMR_ONE_TICK_VAL))) {
-        /*
-         * Preempted timer activation
-         */
-        gSysTmr.ctick = tmrVal / PORT_SYSTMR_ONE_TICK_VAL;
+        if (0U != gSysTmr.vTmrArmed) {                                          /* System timer was enabled during sleep.                   */
+            portSysTmrReg_T tmrVal;
+
+            tmrVal = PORT_SYSTMR_GET_CVAL() % PORT_SYSTMR_ONE_TICK_VAL;
+            PORT_SYSTMR_RLD(tmrVal);
+        } else {                                                                /* System timer was disabled during sleep.                  */
+            PORT_SYSTMR_RLD(PORT_SYSTMR_ONE_TICK_VAL);                          /* Reload macro will also re-enable the timer               */
+            PORT_SYSTMR_ISR_ENABLE();
+        }
+    } else {                                                                    /* Preempted wake up, system timer was enabled during sleep.*/
+        esVTmr_T * vTmr;
+        portSysTmrReg_T tmrVal;
+
+        vTmr = DLIST_ENTRY_NEXT(tmrL, &gVTmrArmed);
+        vTmr->rtick -= PORT_SYSTMR_GET_CVAL() / PORT_SYSTMR_ONE_TICK_VAL;
+        tmrVal = PORT_SYSTMR_GET_CVAL() % PORT_SYSTMR_ONE_TICK_VAL;
+        gSysTmr.ptick = 0U;
+        PORT_SYSTMR_RLD(tmrVal);
     }
-    PORT_SYSTMR_RLD();
-#endif
+
 }
 
-static void sysTmrTryDeactivate(
+static void sysTmrDeactivateI(
     void) {
 
-#if (0U == CFG_SYSTMR_MODE) || defined(__DOXYGEN__)
-#elif (1U == CFG_SYSTMR_MODE)
-    if (0U == gSysTmr.vTmr) {
-        PORT_SYSTMR_ISR_DISABLE();
-        PORT_SYSTMR_DISABLE();
-    } else {
+    vTmrImportPendI();
+
+    if (0U != gSysTmr.vTmrArmed) {
         esVTmr_T * vTmr;
 
-        vTmrImport();
         vTmr = DLIST_ENTRY_NEXT(tmrL, &gVTmrArmed);
-
-        if ((PORT_SYSTMR_MAX_TICKS_VAL - SYSTMR_KEEPBACK_VAL) < vTmr->rtick) {
-            gSysTmr.ctick = PORT_SYSTMR_MAX_TICKS_VAL - SYSTMR_KEEPBACK_VAL;
-            gSysTmr.tmrVal = (PORT_SYSTMR_MAX_TICKS_VAL - SYSTMR_KEEPBACK_VAL) * PORT_SYSTMR_ONE_TICK_VAL;
-        } else {
-            gSysTmr.ctick = vTmr->rtick;
-            gSysTmr.tmrVal = PORT_SYSTMR_ONE_TICK_VAL * gSysTmr.ctick;
-        }
-        PORT_SYSTMR_DACTV(gSysTmr.tmrVal);
+        vTmrSleep(
+            vTmr->rtick);
+    } else {
+        PORT_SYSTMR_ISR_DISABLE();
+        PORT_SYSTMR_DISABLE();
     }
-#endif
 }
 
 
 /*--  Timer  -----------------------------------------------------------------*/
 
-static void vTmrExecHandlers(
+static void vTmrSleep(
+    esTick_T        ticks) {
+
+    portSysTmrReg_T sysTmrVal;
+
+    gSysTmr.ptick = ticks;
+
+    if (PORT_SYSTMR_MAX_TICKS_VAL < gSysTmr.ptick) {
+        gSysTmr.ptick = PORT_SYSTMR_MAX_TICKS_VAL;
+    }
+    sysTmrVal = PORT_SYSTMR_ONE_TICK_VAL * gSysTmr.ptick;
+    sysTmrVal += PORT_SYSTMR_GET_CVAL() % PORT_SYSTMR_ONE_TICK_VAL;
+
+    if (PORT_SYSTMR_GET_RVAL() != sysTmrVal) {
+        PORT_SYSTMR_RLD(sysTmrVal);
+    }
+}
+
+static void vTmrExecCallback(
     void) {
 
-    if (!DLIST_IS_ENTRY_LAST(tmrL, &gVTmrArmed)) {
+    if (0U != gSysTmr.vTmrArmed) {
         esVTmr_T * tmr;
 
         tmr = DLIST_ENTRY_NEXT(tmrL, &gVTmrArmed);
@@ -733,7 +745,7 @@ static void vTmrExecHandlers(
 #endif
 
         while (0U == tmr->rtick) {
-            --gSysTmr.vTmr;
+            --gSysTmr.vTmrArmed;
             DLIST_ENTRY_RM(tmrL, tmr);
             (* tmr->fn)(tmr->arg);
             tmr = DLIST_ENTRY_NEXT(tmrL, &gVTmrArmed);
@@ -741,15 +753,14 @@ static void vTmrExecHandlers(
     }
 }
 
-static void vTmrListAddSort(
-    esVTmr_T *      list,
+static void vTmrAddArmed(
     esVTmr_T *      vTmr) {
 
     esVTmr_T *      tmp;
     esTick_T        tick;
 
-    vTmr->tmrL.q = list;
-    tmp = DLIST_ENTRY_NEXT(tmrL, list);
+    vTmr->tmrL.q = &gVTmrArmed;
+    tmp = DLIST_ENTRY_NEXT(tmrL, &gVTmrArmed);
     tick = vTmr->rtick;
 
     while (tmp->rtick < tick) {
@@ -759,37 +770,48 @@ static void vTmrListAddSort(
     vTmr->rtick = tick;
     DLIST_ENTRY_ADD_AFTER(tmrL, tmp, vTmr);
 
-    if (list != tmp) {
+    if (&gVTmrArmed != tmp) {
         tmp->rtick -= vTmr->rtick;
     }
 }
 
-static void vTmrImport(
+static void vTmrImportPendI(
+    void) {
+
+    while (0U != gSysTmr.vTmrPend) {
+        esVTmr_T * tmr;
+
+        ++gSysTmr.vTmrArmed;
+        --gSysTmr.vTmrPend;
+        tmr = DLIST_ENTRY_NEXT(tmrL, &gVTmrPend);
+        DLIST_ENTRY_RM(tmrL, tmr);
+        vTmrAddArmed(
+            tmr);
+    }
+}
+
+static void vTmrImportPend(
     void) {
 
     ES_CRITICAL_DECL();
 
     ES_CRITICAL_ENTER();
-    while (!DLIST_IS_ENTRY_LAST(tmrL, &gVTmrPend)) {
+
+    while (0U != gSysTmr.vTmrPend) {
         esVTmr_T * tmr;
 
+        ++gSysTmr.vTmrArmed;
+        --gSysTmr.vTmrPend;
         tmr = DLIST_ENTRY_NEXT(tmrL, &gVTmrPend);
         DLIST_ENTRY_RM(tmrL, tmr);
         ES_CRITICAL_EXIT();
-
-        if (!DLIST_IS_ENTRY_SINGLE(tmrL, &gVTmrArmed)) {
-            vTmrListAddSort(
-                &gVTmrArmed,
-                tmr);
-        } else {
-            DLIST_ENTRY_ADD_AFTER(tmrL, &gVTmrArmed, tmr);
-            gSysTmr.ctick = 0U;
-            gSysTmr.ptick = tmr->rtick;
-        }
+        vTmrAddArmed(
+            tmr);
         ES_CRITICAL_ENTER();
     }
     ES_CRITICAL_EXIT();
 }
+
 
 /*--  Kernel threads  --------------------------------------------------------*/
 
@@ -813,8 +835,8 @@ static void kVTmr(
     while (TRUE) {
 
         esThdWait();
-        vTmrExecHandlers();
-        vTmrImport();
+        vTmrExecCallback();
+        vTmrImportPend();
     }
 }
 
@@ -891,52 +913,58 @@ PORT_C_NORETURN void esKernStart(
     }
 }
 
-void esKernSysTmrI(
+void esKernSysTmr(
     void) {
 
-    if (0U != gSysTmr.ptick) {
-        gSysTmr.ptick -= gSysTmr.ctick;
-
-        if (0U != gSysTmr.ptick) {
-            portSysTmrReg_T tmp;
-
-            gSysTmr.ctick = gSysTmr.ptick;
-
-            if (PORT_SYSTMR_MAX_TICKS_VAL < gSysTmr.ctick) {
-                gSysTmr.ctick = PORT_SYSTMR_MAX_TICKS_VAL;
-            }
-            tmp = PORT_SYSTMR_ONE_TICK_VAL * gSysTmr.ctick;
-
-            if (tmp != PORT_SYSTMR_GET_RVAL()) {
-                PORT_SYSTMR_RLD(tmp);
-            }
-        } else {
-            PORT_SYSTMR_RLD(PORT_SYSTMR_ONE_TICK_VAL);
-            gSysTmr.ctick = 1U;
-            schedWakeUpI();
-        }
-    } else if (0U != gSysTmr.vTmr) {
-        esVTmr_T * vTmr;
-
-        vTmr = DLIST_ENTRY_NEXT(tmrL, &gVTmrArmed);
-
-        if (!DLIST_IS_ENTRY_SINGLE(tmrL, vTmr)) {
-            vTmr->rtick -= gSysTmr.ctick;
-
-            if (0U == vTmr->rtick) {
-                esSchedRdyAddI(
-                    &gKVTmrId);
-            }
-        } else {
-            esSchedRdyAddI(
-                &gKVTmrId);
-        }
-    }
+    ES_CRITICAL_DECL();
 
 #if (1U == CFG_HOOK_SYSTMR_EVENT)
     userSysTmr();
 #endif
+
+    if (0U != gSysTmr.vTmrArmed) {
+        esVTmr_T * vTmr;
+
+        vTmr = DLIST_ENTRY_NEXT(tmrL, &gVTmrArmed);
+
+        if (0U == gSysTmr.ptick) {
+            /*
+             * Normal system tick
+             */
+            if (PORT_SYSTMR_ONE_TICK_VAL != PORT_SYSTMR_GET_RVAL()) {
+                PORT_SYSTMR_RLD(PORT_SYSTMR_ONE_TICK_VAL);
+            }
+            --vTmr->rtick;
+        } else {
+            /*
+             * Low power tick
+             */
+            vTmr->rtick -= gSysTmr.ptick;
+
+            if (0U != vTmr->rtick) {
+                vTmrSleep(
+                    vTmr->rtick);
+            }
+        }
+
+        if (0U == vTmr->rtick) {
+            ES_CRITICAL_ENTER();
+            esSchedRdyAddI(
+                &gKVTmrId);
+            ES_CRITICAL_EXIT();
+        }
+    }
+
+    ES_CRITICAL_ENTER();
+    if (0U != gSysTmr.vTmrPend) {
+
+        if (NULL == gKVTmrId.thdL.q) {
+            esSchedRdyAddI(
+                &gKVTmrId);
+        }
+    }
     schedQmI();
+    ES_CRITICAL_EXIT();
 }
 
 void esKernLockEnterI(
@@ -1404,8 +1432,7 @@ void esVTmrInitI(
     vTmr->fn    = fn;
     vTmr->arg   = arg;
     DLIST_ENTRY_ADD_AFTER(tmrL, &gVTmrPend, vTmr);
-    ++gSysTmr.vTmr;
-
+    ++gSysTmr.vTmrPend;
     ES_API_OBLIGATION(vTmr->signature = VTMR_CONTRACT_SIGNATURE);
 }
 
@@ -1429,7 +1456,7 @@ void esVTmrInit(
     vTmr->tmrL.q = &gVTmrPend;
     ES_CRITICAL_ENTER();
     DLIST_ENTRY_ADD_AFTER(tmrL, &gVTmrPend, vTmr);
-    ++gSysTmr.vTmr;
+    ++gSysTmr.vTmrPend;
     ES_CRITICAL_EXIT();
 }
 
@@ -1444,10 +1471,10 @@ void esVTmrTerm(
 
     ES_CRITICAL_ENTER();
     ES_API_OBLIGATION(vTmr->signature = 0U);
-    --gSysTmr.vTmr;
 
     if (&gVTmrPend == vTmr->tmrL.q) {
         DLIST_ENTRY_RM(tmrL, vTmr);
+        --gSysTmr.vTmrPend;
     } else {
         esVTmr_T *      nextVTmr;
 
@@ -1456,6 +1483,7 @@ void esVTmrTerm(
         nextVTmr->rtick += vTmr->rtick;
         DLIST_ENTRY_RM(tmrL, vTmr);
         ES_CRITICAL_ENTER_LOCK_EXIT();
+        --gSysTmr.vTmrArmed;
     }
     ES_CRITICAL_EXIT();
 }
