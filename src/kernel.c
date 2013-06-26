@@ -1067,7 +1067,7 @@ void esThdInit(
     thd->cprio  = prio;                                                         /* This is constant priority, it never changes.             */
     thd->qCnt   = CFG_SCHED_TIME_QUANTUM;
     thd->qRld   = CFG_SCHED_TIME_QUANTUM;
-    ES_K_API_OBLIGATION(thd->signature = THD_CONTRACT_SIGNATURE);                 /* Make thread structure valid.                             */
+    ES_K_API_OBLIGATION(thd->signature = THD_CONTRACT_SIGNATURE);               /* Make thread structure valid.                             */
     ES_CRITICAL_ENTER();
     schedRdyAddInitI(
         thd);                                                                   /* Initialize thread before adding it to Ready Thread queue.*/
@@ -1131,7 +1131,7 @@ void esThdSetPrioI(
         if (&gRdyQueue == thd->thdL.q) {                                        /* If thread is actually in ready thread queue              */
 
             if (thd->prio > gKernCtrl.pthd->prio) {                             /* If new prio is higher than the current prio              */
-                ((esKernCtrl_T *)&gKernCtrl)->pthd = thd;              /* Notify scheduler about new thread                        */
+                ((esKernCtrl_T *)&gKernCtrl)->pthd = thd;                       /* Notify scheduler about new thread                        */
             }
         }
     } else {
@@ -1151,8 +1151,8 @@ void esThdSetPrioI(
 }
 
 /* 1)       Since this function can be called multiple times with the same
- *          thread then it needs to check if the thread is not already in a
- *          queue.
+ *          thread then it needs to check if the thread is not already added in
+ *          a queue.
  */
 void esThdPostI(
     esThd_T *       thd) {
@@ -1315,7 +1315,7 @@ esThd_T * esThdQFetchRotateI(
 bool_T esThdQIsEmpty(
     const esThdQ_T *    thdQ) {
 
-    bool_T ans;
+    bool_T          ans;
 
     ES_K_API_REQUIRE(NULL != thdQ);
     ES_K_API_REQUIRE(THDQ_CONTRACT_SIGNATURE == thdQ->signature);
