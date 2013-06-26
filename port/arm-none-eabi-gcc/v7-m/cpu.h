@@ -482,6 +482,7 @@ static PORT_C_INLINE_ALWAYS void portCriticalExitSleepEnter_(
     __asm__ __volatile__ (
         "   cpsid   i                                       \n\t"
         "   msr    basepri, %0                              \n\t"
+        "   wfi                                             \n\t"
         "   cpsie   i                                       \n\t"
         :
         : "r"(val));
