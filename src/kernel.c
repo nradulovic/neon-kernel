@@ -960,9 +960,7 @@ PORT_C_NORETURN void esKernStart(
     schedStart();                                                               /* Initialize scheduler data structures for multi-threading */
     PORT_THD_START();                                                           /* Start the first thread                                   */
 
-    while (TRUE) {
-        ;
-    }
+    while (TRUE);
 }
 
 void esKernSysTmr(
