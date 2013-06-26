@@ -53,22 +53,6 @@
  */
 #define SCHED_STATE_LOCK_MSK            (1U << 1)
 
-/**@brief       Scheduler is using system timer Quantum mask
- */
-#define SYSTMR_SCHED_QM_MSK             (1U << 0)
-
-/**@brief       User is using system timer Quantum mask
- */
-#define SYSTMR_USR_QM_MSK               (1U << 1)
-
-/**@brief       Enable/disable scheduler power savings mode
- */
-#if (0U == CFG_SYSTMR_MODE) || defined(__DOXYGEN__)
-# define SCHED_POWER_SAVE               0U
-#else
-# define SCHED_POWER_SAVE               1U
-#endif
-
 /**@brief       Thread structure signature
  * @details     The signature is used to confirm that a structure passed to a
  *              kernel function is indeed a esThd_T thread structure.
@@ -102,17 +86,17 @@
 #define DLIST_IS_ENTRY_SINGLE(list, entry)                                      \
     DLIST_IS_ENTRY_FIRST(list, entry)
 
-/**@brief       Get the previous entry
+/**@brief       DList macro: get the previous entry
  */
 #define DLIST_ENTRY_PREV(list, entry)                                           \
     (entry)->list.prev
 
-/**@brief       Get the next entry
+/**@brief       DList macro: get the next entry
  */
 #define DLIST_ENTRY_NEXT(list, entry)                                           \
     (entry)->list.next
 
-/**@brief       Initialize entry
+/**@brief       DList macro: initialize entry
  */
 #define DLIST_ENTRY_INIT(list, entry)\
     do {                                                                        \
@@ -120,7 +104,7 @@
         (entry)->list.prev = (entry);                                           \
     } while (0U)
 
-/**@brief       Add new @c entry after @c current entry
+/**@brief       DList macro: add new @c entry after @c current entry
  */
 #define DLIST_ENTRY_ADD_AFTER(list, current, entry)                             \
     do {                                                                        \
@@ -130,7 +114,7 @@
         (entry)->list.prev->list.next = (entry);                                \
     } while (0U)
 
-/**@brief       Remove the @c entry from a list
+/**@brief       DList macro: remove the @c entry from a list
  */
 #define DLIST_ENTRY_RM(list, entry)                                             \
     do {                                                                        \
@@ -153,16 +137,15 @@
  * @{ *//*--------------------------------------------------------------------*/
 
 /**@brief       Main System Timer structure
- * @note        1) Member `ptick` exists only if FIXED mode is selected. When
- *              this mode is selected then kernel supports time ticking tracking.
- * @note        2) When INHIBITED or ADAPTIVE mode is selected members `qm` and
- *              `state` are used to manage Quantum intervals.
+ * @note        1) Member `ptick` exists only if ADAPTIVE mode is selected. When
+ *              this mode is selected then kernel supports more aggresive power
+ *              savings.
  */
 struct sysTmr {
     uint_fast16_t       vTmrArmed;                                              /**< @brief The number of armed virtual timers in system.   */
     uint_fast16_t       vTmrPend;                                               /**< @brief The number of pending timers for arming.        */
-#if (0U != CFG_SYSTMR_MODE)
-    esTick_T            ptick;
+#if (1U == CFG_SYSTMR_ADAPTIVE_MODE) || defined(__DOXYGEN__)
+    esTick_T            ptick;                                                  /**< @brief Pending ticks during the timer sleep mode.      */
 #endif
 };
 
@@ -249,18 +232,25 @@ static PORT_C_INLINE bool_T prioBMIsEmpty(
 static PORT_C_INLINE void schedInit(
     void);
 
-/**@brief       Set scheduler data structures ready for multi-threading
- * @details     This function is called just before multi-threading has
- *              commenced.
+/**@brief       Set the scheduler data structures for multi-threading
+ * @details     This function is called just before multi-threading will start.
  */
 static PORT_C_INLINE void schedStart(
     void);
 
+/**@brief       Set the scheduler to sleep
+ */
+#if (1U == CFG_SCHED_POWER_SAVE) || defined(__DOXYGEN__)
 static PORT_C_INLINE void schedSleep(
     void);
+#endif
 
+/**@brief       Wake up the scheduler
+ */
+#if (1U == CFG_SCHED_POWER_SAVE) || defined(__DOXYGEN__)
 static PORT_C_INLINE void schedWakeUpI(
     void);
+#endif
 
 /**@brief       Initialize scheduler ready structure during the thread add
  *              operation
@@ -269,15 +259,18 @@ static PORT_C_INLINE void schedWakeUpI(
  * @details     Function will initialize scheduler structures during the init
  *              phase of the kernel.
  */
-static void schedRdyAddInitI(
+static PORT_C_INLINE void schedRdyAddInitI(
     esThd_T *       thd);
 
-static void schedQmNextI(
+/**@brief       Fetch and try to schedule the next thread of the same priority
+ *              as the current thread
+ */
+static PORT_C_INLINE void schedQmNextI(
     void);
 
 /**@brief       Do the Quantum (Round-Robin) scheduling
  */
-static void schedQmI(
+static PORT_C_INLINE void schedQmI(
     void);
 
 /**@} *//*----------------------------------------------------------------*//**
@@ -286,20 +279,20 @@ static void schedQmI(
 
 /**@brief       Initialize system timer hardware
  */
-static void sysTmrInit(
+static PORT_C_INLINE void sysTmrInit(
     void);
-
-/**@brief       Try to deactivate system timer
- */
-#if (0 != CFG_SYSTMR_MODE) || defined(__DOXYGEN__)
-static void sysTmrDeactivateI(
-    void);
-#endif
 
 /**@brief       Try to activate system timer
  */
-#if (0 != CFG_SYSTMR_MODE) || defined(__DOXYGEN__)
-static void sysTmrActivate(
+#if (1U == CFG_SYSTMR_ADAPTIVE_MODE) || defined(__DOXYGEN__)
+static PORT_C_INLINE void sysTmrActivate(
+    void);
+#endif
+
+/**@brief       Try to deactivate system timer
+ */
+#if (1U == CFG_SYSTMR_ADAPTIVE_MODE) || defined(__DOXYGEN__)
+static PORT_C_INLINE void sysTmrDeactivateI(
     void);
 #endif
 
@@ -307,13 +300,16 @@ static void sysTmrActivate(
  * @name        Virtual Timer kernel thread
  * @{ *//*--------------------------------------------------------------------*/
 
-static void vTmrSleep(
+/**@brief       Set up system timer for different tick period during sleeping
+ */
+#if (1U == CFG_SYSTMR_ADAPTIVE_MODE) || defined(__DOXYGEN__)
+static PORT_C_INLINE void vTmrSleep(
     esTick_T        ticks);
+#endif
 
-static void vTmrImportPendI(
-    void);
-
-static void vTmrImportPend(
+/**@brief       Evaluate armed virtual timers
+ */
+static PORT_C_INLINE void vTmrEvaluateI(
     void);
 
 /**@brief       Add a virtual timer into sorted list
@@ -323,6 +319,14 @@ static void vTmrImportPend(
 static void vTmrAddArmed(
     esVTmr_T *       vTmr);
 
+#if (1U == CFG_SYSTMR_ADAPTIVE_MODE) || defined(__DOXYGEN__)
+static PORT_C_INLINE void vTmrImportPendI(
+    void);
+#endif
+
+static void vTmrImportPend(
+    void);
+
 /**@brief       Initialization of Virtual Timer kernel thread
  */
 static void kVTmrInit(
@@ -331,6 +335,8 @@ static void kVTmrInit(
 /**@brief       Virtual Timer thread code
  * @param       arg
  *              Argument: thread does not use argument
+ * @details     This thread is responsible for virtual timer callback invocation
+ *              and to import pending timers into armed linked list.
  */
 static void kVTmr(
     void *          arg);
@@ -371,7 +377,7 @@ static esThdQ_T gRdyQueue;
 static sysTmr_T gSysTmr = {
     0U,
     0U,
-#if (0U != CFG_SYSTMR_MODE)
+#if (1U == CFG_SYSTMR_ADAPTIVE_MODE)
     0U
 #endif
 };
@@ -388,7 +394,7 @@ static esVTmr_T gVTmrArmed = {
    UINT_FAST8_MAX,
 #elif (1U == CFG_SYSTMR_TICK_TYPE)
    UINT_FAST16_MAX,
-#else
+#elif (2U == CFG_SYSTMR_TICK_TYPE)
    UINT_FAST32_MAX,
 #endif
    NULL,
@@ -415,11 +421,7 @@ static esVTmr_T gVTmrPend = {
 
 /**@brief       Virtual timer thread ID
  */
-static esThd_T gKVTmrId;
-
-/**@brief       Virtual timer kernel thread stack
- */
-static portStck_T gKVTmrStck[KVTMR_STCK_SIZE];
+static esThd_T gKVTmr;
 
 /**@} *//*----------------------------------------------------------------*//**
  * @name        Idle kernel thread
@@ -427,11 +429,7 @@ static portStck_T gKVTmrStck[KVTMR_STCK_SIZE];
 
 /**@brief       Idle thread ID
  */
-static esThd_T gKIdleId;
-
-/**@brief       Idle kernel thread stack
- */
-static portStck_T gKIdleStck[KIDLE_STCK_SIZE];
+static esThd_T gKIdle;
 
 /**@} *//*--------------------------------------------------------------------*/
 
@@ -577,41 +575,37 @@ static PORT_C_INLINE void schedStart(
     ES_CRITICAL_EXIT();
 }
 
+#if (1U == CFG_SCHED_POWER_SAVE) || defined(__DOXYGEN__)
 static PORT_C_INLINE void schedSleep(
     void) {
 
-#if (1U == SCHED_POWER_SAVE)
-    ES_CRITICAL_DECL();
-
-    if (ES_KERN_SLEEP != gKernCtrl.state) {
-        ES_CRITICAL_ENTER();
-
-        if (DLIST_IS_ENTRY_SINGLE(thdL, gKernCtrl.cthd)) {
-            ((esKernCtrl_T *)&gKernCtrl)->state = ES_KERN_SLEEP;
-            sysTmrDeactivateI();
-            PORT_CRITICAL_EXIT_SLEEP_ENTER();
-        } else {
-            schedQmNextI();
-            esSchedYieldI();
-            ES_CRITICAL_EXIT();
-        }
-    }
-#else
     ES_CRITICAL_DECL();
 
     ES_CRITICAL_ENTER();
-    schedQmNextI();
-    esSchedYieldI();
-    ES_CRITICAL_EXIT();
-#endif
-}
 
+    if (ES_KERN_SLEEP != gKernCtrl.state) {
+
+        ((esKernCtrl_T *)&gKernCtrl)->state = ES_KERN_SLEEP;
+# if (1U == CFG_SYSTMR_ADAPTIVE_MODE)
+            sysTmrDeactivateI();
+# endif
+        PORT_CRITICAL_EXIT_SLEEP_ENTER();
+    } else {
+        ES_CRITICAL_EXIT();
+    }
+}
+#endif
+
+#if (1U == CFG_SCHED_POWER_SAVE) || defined(__DOXYGEN__)
 static PORT_C_INLINE void schedWakeUpI(
     void) {
 
     ((esKernCtrl_T *)&gKernCtrl)->state = ES_KERN_RUN;
+# if (1U == CFG_SYSTMR_ADAPTIVE_MODE)
     sysTmrActivate();
+# endif
 }
+#endif
 
 static PORT_C_INLINE void schedRdyAddInitI(
     esThd_T *       thd) {
@@ -621,7 +615,7 @@ static PORT_C_INLINE void schedRdyAddInitI(
     }
 }
 
-static void schedQmNextI(
+static PORT_C_INLINE void schedQmNextI(
     void) {
 
     esThd_T * nthd;
@@ -637,7 +631,7 @@ static void schedQmNextI(
     }
 }
 
-static void schedQmI(
+static PORT_C_INLINE void schedQmI(
     void) {
 
     if (ES_KERN_LOCK > gKernCtrl.state) {                                       /* Round-Robin is not enabled in kernel LOCK state          */
@@ -659,7 +653,7 @@ static void schedQmI(
 
 /*--  System timer  ----------------------------------------------------------*/
 
-static void sysTmrInit(
+static PORT_C_INLINE void sysTmrInit(
     void) {
 
     PORT_SYSTMR_INIT();
@@ -667,7 +661,8 @@ static void sysTmrInit(
     PORT_SYSTMR_ISR_ENABLE();
 }
 
-static void sysTmrActivate(
+#if (1U == CFG_SYSTMR_ADAPTIVE_MODE) || defined(__DOXYGEN__)
+static PORT_C_INLINE void sysTmrActivate(
     void) {
 
     if (0U == gSysTmr.ptick) {                                                  /* Normal wake up.                                          */
@@ -691,30 +686,33 @@ static void sysTmrActivate(
         gSysTmr.ptick = 0U;
         PORT_SYSTMR_RLD(tmrVal);
     }
-
 }
+#endif
 
-static void sysTmrDeactivateI(
+#if (1U == CFG_SYSTMR_ADAPTIVE_MODE) || defined(__DOXYGEN__)
+static PORT_C_INLINE void sysTmrDeactivateI(
     void) {
 
-    vTmrImportPendI();
+    vTmrImportPendI();                                                          /* Import any pending timers.                               */
 
-    if (0U != gSysTmr.vTmrArmed) {
+    if (0U != gSysTmr.vTmrArmed) {                                              /* There is an armed timer: put system timer to sleep sleep.*/
         esVTmr_T * vTmr;
 
         vTmr = DLIST_ENTRY_NEXT(tmrL, &gVTmrArmed);
         vTmrSleep(
             vTmr->rtick);
-    } else {
+    } else {                                                                    /* No virtual timer is armed: set system timer to disabled. */
         PORT_SYSTMR_ISR_DISABLE();
         PORT_SYSTMR_DISABLE();
     }
 }
+#endif
 
 
 /*--  Timer  -----------------------------------------------------------------*/
 
-static void vTmrSleep(
+#if (1U == CFG_SYSTMR_ADAPTIVE_MODE) || defined(__DOXYGEN__)
+static PORT_C_INLINE void vTmrSleep(
     esTick_T        ticks) {
 
     portSysTmrReg_T sysTmrVal;
@@ -731,24 +729,46 @@ static void vTmrSleep(
         PORT_SYSTMR_RLD(sysTmrVal);
     }
 }
-
-static void vTmrExecCallback(
-    void) {
-
-    if (0U != gSysTmr.vTmrArmed) {
-        esVTmr_T * tmr;
-
-        tmr = DLIST_ENTRY_NEXT(tmrL, &gVTmrArmed);
-
-#if (0U == CFG_SYSTMR_MODE)
-        --tmr->ctick;
 #endif
 
-        while (0U == tmr->rtick) {
-            --gSysTmr.vTmrArmed;
-            DLIST_ENTRY_RM(tmrL, tmr);
-            (* tmr->fn)(tmr->arg);
-            tmr = DLIST_ENTRY_NEXT(tmrL, &gVTmrArmed);
+static PORT_C_INLINE void vTmrEvaluateI(
+    void) {
+
+    if (0U != gSysTmr.vTmrArmed) {                                              /* There is an armed timer waiting.                         */
+        esVTmr_T * vTmr;
+
+        vTmr = DLIST_ENTRY_NEXT(tmrL, &gVTmrArmed);
+
+#if (0U == CFG_SYSTMR_ADAPTIVE_MODE)
+        --vTmr->rtick;
+#elif (1U == CFG_SYSTMR_ADAPTIVE_MODE)
+        if (0U == gSysTmr.ptick) {                                              /* Normal system tick.                                      */
+
+            if (PORT_SYSTMR_ONE_TICK_VAL != PORT_SYSTMR_GET_RVAL()) {           /* If system timer is in adaptive mode switch it to fixed   */
+                PORT_SYSTMR_RLD(PORT_SYSTMR_ONE_TICK_VAL);                      /* mode.                                                    */
+            }
+            --vTmr->rtick;
+        } else {                                                                /* Low power tick.                                          */
+            vTmr->rtick -= gSysTmr.ptick;                                       /* Substract pending ticks from current timer.              */
+
+            if (0U != vTmr->rtick) {                                            /* If the timer still hasn't expired schedule another sleep */
+                vTmrSleep(                                                      /* time period.                                             */
+                    vTmr->rtick);
+            }
+        }
+#endif
+
+        if (0U == vTmr->rtick) {                                                /* A timer has expired, start kVTmr thread.                 */
+            esSchedRdyAddI(
+                &gKVTmr);
+        }
+    }
+
+    if (0U != gSysTmr.vTmrPend) {                                               /* There is a timer pending, start kVTmr thread.            */
+
+        if (NULL == gKVTmr.thdL.q) {
+            esSchedRdyAddI(
+                &gKVTmr);
         }
     }
 }
@@ -775,7 +795,8 @@ static void vTmrAddArmed(
     }
 }
 
-static void vTmrImportPendI(
+#if (1U == CFG_SYSTMR_ADAPTIVE_MODE) || defined(__DOXYGEN__)
+static PORT_C_INLINE void vTmrImportPendI(
     void) {
 
     while (0U != gSysTmr.vTmrPend) {
@@ -789,7 +810,11 @@ static void vTmrImportPendI(
             tmr);
     }
 }
+#endif
 
+/*
+ * TODO: What will happen if a timer is canceled/added during sleep periods?
+ */
 static void vTmrImportPend(
     void) {
 
@@ -815,18 +840,26 @@ static void vTmrImportPend(
 
 /*--  Kernel threads  --------------------------------------------------------*/
 
+/* 1)       Kernel Virtual Timer thread must have the highest priority available.
+ */
 static void kVTmrInit(
     void) {
 
+    static portStck_T kVTmrStck[KVTMR_STCK_SIZE];                               /* Virtual timer kernel thread stack.                       */
+
     esThdInit(
-        &gKVTmrId,
+        &gKVTmr,
         kVTmr,
         NULL,
-        gKVTmrStck,
-        sizeof(gKVTmrStck),
+        kVTmrStck,
+        sizeof(kVTmrStck),
         CFG_SCHED_PRIO_LVL - 1U);
 }
 
+/* 1)       This thread is just waiting continuously on thread semaphore and
+ *          execute virtual timers callback functions if there are any available
+ *          and then import pending virtual timers into armed linked list.
+ */
 static void kVTmr(
     void *          arg) {
 
@@ -835,25 +868,41 @@ static void kVTmr(
     while (TRUE) {
 
         esThdWait();
-        vTmrExecCallback();
-        vTmrImportPend();
+
+        if (0U != gSysTmr.vTmrArmed) {                                          /* There is at least one armed timer.                       */
+            esVTmr_T * tmr;
+
+            tmr = DLIST_ENTRY_NEXT(tmrL, &gVTmrArmed);
+
+            while (0U == tmr->rtick) {
+                --gSysTmr.vTmrArmed;
+                DLIST_ENTRY_RM(tmrL, tmr);
+                (* tmr->fn)(tmr->arg);
+                tmr = DLIST_ENTRY_NEXT(tmrL, &gVTmrArmed);
+            }
+        }
+        vTmrImportPend();                                                       /* Import pending timers if there are any.                  */
     }
 }
 
+/* 1)       Kernel Idle thread must have the lowest priority.
+ */
 static void kIdleInit(
     void) {
 
+    static portStck_T kIdleStck[KIDLE_STCK_SIZE];                               /* Idle kernel thread stack.                                */
+
     esThdInit(
-        &gKIdleId,
+        &gKIdle,
         kIdle,
         NULL,
-        gKIdleStck,
-        sizeof(gKIdleStck),
+        kIdleStck,
+        sizeof(kIdleStck),
         0U);
-    gKIdleId.qCnt = 1U;
-    gKIdleId.qRld = 1U;
 }
 
+/* 1)       Idle thread must be the only thread at this priority level.
+ */
 static void kIdle(
     void *          arg){
 
@@ -863,7 +912,18 @@ static void kIdle(
 
 #if (1U == CFG_HOOK_IDLE_BEGIN)
 #endif
+
+#if (0U == CFG_SCHED_POWER_SAVE)
+        ES_CRITICAL_DECL();
+
+        ES_CRITICAL_ENTER();
+        schedQmNextI();
+        esSchedYieldI();
+        ES_CRITICAL_EXIT();
+#elif (1U == CFG_SCHED_POWER_SAVE)
         schedSleep();
+#endif
+
 #if (1U == CFG_HOOK_IDLE_END)
 #endif
     }
@@ -878,7 +938,7 @@ static void kIdle(
 void esKernInit(
     void) {
 
-    ES_API_REQUIRE(ES_KERN_INACTIVE == gKernCtrl.state);
+    ES_K_API_REQUIRE(ES_KERN_INACTIVE == gKernCtrl.state);
 
 #if (1U == CFG_HOOK_KERN_INIT)
     userKernInit();
@@ -898,8 +958,8 @@ void esKernInit(
 PORT_C_NORETURN void esKernStart(
     void) {
 
-    ES_API_REQUIRE(ES_KERN_INIT == gKernCtrl.state);
-    ES_API_REQUIRE(FALSE == esThdQIsEmpty(&gRdyQueue));
+    ES_K_API_REQUIRE(ES_KERN_INIT == gKernCtrl.state);
+    ES_K_API_REQUIRE(FALSE == esThdQIsEmpty(&gRdyQueue));
 
 #if (1U == CFG_HOOK_KERN_START)
     userKernStart();
@@ -921,48 +981,8 @@ void esKernSysTmr(
 #if (1U == CFG_HOOK_SYSTMR_EVENT)
     userSysTmr();
 #endif
-
-    if (0U != gSysTmr.vTmrArmed) {
-        esVTmr_T * vTmr;
-
-        vTmr = DLIST_ENTRY_NEXT(tmrL, &gVTmrArmed);
-
-        if (0U == gSysTmr.ptick) {
-            /*
-             * Normal system tick
-             */
-            if (PORT_SYSTMR_ONE_TICK_VAL != PORT_SYSTMR_GET_RVAL()) {
-                PORT_SYSTMR_RLD(PORT_SYSTMR_ONE_TICK_VAL);
-            }
-            --vTmr->rtick;
-        } else {
-            /*
-             * Low power tick
-             */
-            vTmr->rtick -= gSysTmr.ptick;
-
-            if (0U != vTmr->rtick) {
-                vTmrSleep(
-                    vTmr->rtick);
-            }
-        }
-
-        if (0U == vTmr->rtick) {
-            ES_CRITICAL_ENTER();
-            esSchedRdyAddI(
-                &gKVTmrId);
-            ES_CRITICAL_EXIT();
-        }
-    }
-
     ES_CRITICAL_ENTER();
-    if (0U != gSysTmr.vTmrPend) {
-
-        if (NULL == gKVTmrId.thdL.q) {
-            esSchedRdyAddI(
-                &gKVTmrId);
-        }
-    }
+    vTmrEvaluateI();
     schedQmI();
     ES_CRITICAL_EXIT();
 }
@@ -1010,7 +1030,7 @@ void esKernLockExit(
 void esKernIsrPrologueI(
     void) {
 
-    ES_API_REQUIRE(ES_KERN_INIT > gKernCtrl.state);
+    ES_K_API_REQUIRE(ES_KERN_INIT > gKernCtrl.state);
 
     ((esKernCtrl_T *)&gKernCtrl)->state |= SCHED_STATE_INTSRV_MSK;
 }
@@ -1018,7 +1038,7 @@ void esKernIsrPrologueI(
 void esKernIsrEpilogueI(
     void) {
 
-    ES_API_REQUIRE(ES_KERN_INIT > gKernCtrl.state);
+    ES_K_API_REQUIRE(ES_KERN_INIT > gKernCtrl.state);
 
     if (TRUE == PORT_ISR_IS_LAST()) {
         ((esKernCtrl_T *)&gKernCtrl)->state &= ~SCHED_STATE_INTSRV_MSK;
@@ -1039,21 +1059,23 @@ void esThdInit(
 
 	ES_CRITICAL_DECL();
 
-    ES_API_REQUIRE(ES_KERN_INACTIVE > gKernCtrl.state);
-    ES_API_REQUIRE(NULL != thd);
-    ES_API_REQUIRE(NULL != fn);
-    ES_API_REQUIRE(NULL != stck);
-    ES_API_REQUIRE(PORT_STCK_MINSIZE_VAL <= (stckSize * sizeof(portReg_T)));
-    ES_API_REQUIRE(CFG_SCHED_PRIO_LVL >= prio);
+    ES_K_API_REQUIRE(ES_KERN_INACTIVE > gKernCtrl.state);
+    ES_K_API_REQUIRE(NULL != thd);
+    ES_K_API_REQUIRE(NULL != fn);
+    ES_K_API_REQUIRE(NULL != stck);
+    ES_K_API_REQUIRE(PORT_STCK_MINSIZE_VAL <= (stckSize * sizeof(portReg_T)));
+    ES_K_API_REQUIRE(CFG_SCHED_PRIO_LVL > prio);
+    ES_K_API_REQUIRE(((&gKVTmr != thd) && ((CFG_SCHED_PRIO_LVL - 1U) > prio)) || (&gKVTmr == thd));
+    ES_K_API_REQUIRE(((&gKIdle != thd) && (0U < prio)) || (&gKIdle == thd));
 
-    thd->stck   = PORT_CTX_INIT(stck, stckSize, fn, arg);                     /* Make a fake thread stack.                                */
+    thd->stck   = PORT_CTX_INIT(stck, stckSize, fn, arg);                       /* Make a fake thread stack.                                */
     thd->thdL.q = NULL;                                                         /* This thread is not in any thread queue.                  */
     DLIST_ENTRY_INIT(thdL, thd);
     thd->prio   = prio;                                                         /* Set the priority.                                        */
     thd->cprio  = prio;                                                         /* This is constant priority, it never changes.             */
     thd->qCnt   = CFG_SCHED_TIME_QUANTUM;
     thd->qRld   = CFG_SCHED_TIME_QUANTUM;
-    ES_API_OBLIGATION(thd->signature = THD_CONTRACT_SIGNATURE);                 /* Make thread structure valid.                             */
+    ES_K_API_OBLIGATION(thd->signature = THD_CONTRACT_SIGNATURE);                 /* Make thread structure valid.                             */
     ES_CRITICAL_ENTER();
     schedRdyAddInitI(
         thd);                                                                   /* Initialize thread before adding it to Ready Thread queue.*/
@@ -1072,10 +1094,10 @@ void esThdTerm(
 
     ES_CRITICAL_DECL();
 
-    ES_API_REQUIRE(ES_KERN_INACTIVE > gKernCtrl.state);
-    ES_API_REQUIRE(NULL != thd);
-    ES_API_REQUIRE(THD_CONTRACT_SIGNATURE == thd->signature);
-    ES_API_REQUIRE((NULL == thd->thdL.q) || (&gRdyQueue == thd->thdL.q));
+    ES_K_API_REQUIRE(ES_KERN_INACTIVE > gKernCtrl.state);
+    ES_K_API_REQUIRE(NULL != thd);
+    ES_K_API_REQUIRE(THD_CONTRACT_SIGNATURE == thd->signature);
+    ES_K_API_REQUIRE((NULL == thd->thdL.q) || (&gRdyQueue == thd->thdL.q));
 
 #if (1U == CFG_HOOK_THD_TERM)
     userThdTerm();
@@ -1086,7 +1108,7 @@ void esThdTerm(
         esSchedRdyRmI(
             thd);
     }
-    ES_API_OBLIGATION(thd->signature = 0U);                                     /* Mark the thread ID structure as invalid.                 */
+    ES_K_API_OBLIGATION(thd->signature = 0U);                                     /* Mark the thread ID structure as invalid.                 */
     esSchedYieldI();
     ES_CRITICAL_EXIT();
 }
@@ -1100,10 +1122,10 @@ void esThdSetPrioI(
      * a thread is not in any queue (sleeping).
      */
 
-    ES_API_REQUIRE(ES_KERN_INACTIVE > gKernCtrl.state);
-    ES_API_REQUIRE(NULL != thd);
-    ES_API_REQUIRE(THD_CONTRACT_SIGNATURE == thd->signature);
-    ES_API_REQUIRE(CFG_SCHED_PRIO_LVL >= prio);
+    ES_K_API_REQUIRE(ES_KERN_INACTIVE > gKernCtrl.state);
+    ES_K_API_REQUIRE(NULL != thd);
+    ES_K_API_REQUIRE(THD_CONTRACT_SIGNATURE == thd->signature);
+    ES_K_API_REQUIRE(CFG_SCHED_PRIO_LVL >= prio);
 
     if (prio >= thd->prio) {                                                    /* If new prio is higher than we may need to notify sched.  */
         esThdQRmI(
@@ -1190,7 +1212,7 @@ void esThdQInit(
 
     uint8_t         group;
 
-    ES_API_REQUIRE(NULL != thdQ);
+    ES_K_API_REQUIRE(NULL != thdQ);
 
     prioBMInit(
         &thdQ->prioOcc);
@@ -1199,7 +1221,7 @@ void esThdQInit(
         thdQ->grp[group].head = NULL;
         thdQ->grp[group].next  = NULL;
     }
-    ES_API_OBLIGATION(thdQ->signature = THDQ_CONTRACT_SIGNATURE);
+    ES_K_API_OBLIGATION(thdQ->signature = THDQ_CONTRACT_SIGNATURE);
 }
 
 void esThdQAddI(
@@ -1208,12 +1230,12 @@ void esThdQAddI(
 
     thdLSentinel_T * sentinel;
 
-    ES_API_REQUIRE(NULL != thdQ);
-    ES_API_REQUIRE(THDQ_CONTRACT_SIGNATURE == thdQ->signature);
-    ES_API_REQUIRE(NULL != thd);
-    ES_API_REQUIRE(THD_CONTRACT_SIGNATURE == thd->signature);
-    ES_API_REQUIRE(NULL == thd->thdL.q);
-    ES_API_REQUIRE(CFG_SCHED_PRIO_LVL >= thd->prio);
+    ES_K_API_REQUIRE(NULL != thdQ);
+    ES_K_API_REQUIRE(THDQ_CONTRACT_SIGNATURE == thdQ->signature);
+    ES_K_API_REQUIRE(NULL != thd);
+    ES_K_API_REQUIRE(THD_CONTRACT_SIGNATURE == thd->signature);
+    ES_K_API_REQUIRE(NULL == thd->thdL.q);
+    ES_K_API_REQUIRE(CFG_SCHED_PRIO_LVL >= thd->prio);
 
     sentinel = &(thdQ->grp[thd->prio]);                                         /* Get the sentinel from thread priority level.             */
 
@@ -1235,12 +1257,12 @@ void esThdQRmI(
 
     thdLSentinel_T * sentinel;
 
-    ES_API_REQUIRE(NULL != thd);
-    ES_API_REQUIRE(THD_CONTRACT_SIGNATURE == thd->signature);
-    ES_API_REQUIRE(NULL != thdQ);
-    ES_API_REQUIRE(THDQ_CONTRACT_SIGNATURE == thdQ->signature);
-    ES_API_REQUIRE(thdQ == thd->thdL.q);
-    ES_API_REQUIRE(CFG_SCHED_PRIO_LVL >= thd->prio);
+    ES_K_API_REQUIRE(NULL != thd);
+    ES_K_API_REQUIRE(THD_CONTRACT_SIGNATURE == thd->signature);
+    ES_K_API_REQUIRE(NULL != thdQ);
+    ES_K_API_REQUIRE(THDQ_CONTRACT_SIGNATURE == thdQ->signature);
+    ES_K_API_REQUIRE(thdQ == thd->thdL.q);
+    ES_K_API_REQUIRE(CFG_SCHED_PRIO_LVL >= thd->prio);
 
     sentinel = &(thdQ->grp[thd->prio]);                                         /* Get the sentinel from thread priority level.             */
 
@@ -1270,9 +1292,9 @@ esThd_T * esThdQFetchI(
     thdLSentinel_T * sentinel;
     uint_fast8_t    prio;
 
-    ES_API_REQUIRE(NULL != thdQ);
-    ES_API_REQUIRE(THDQ_CONTRACT_SIGNATURE == thdQ->signature);
-    ES_API_REQUIRE(FALSE == prioBMIsEmpty(&thdQ->prioOcc));
+    ES_K_API_REQUIRE(NULL != thdQ);
+    ES_K_API_REQUIRE(THDQ_CONTRACT_SIGNATURE == thdQ->signature);
+    ES_K_API_REQUIRE(FALSE == prioBMIsEmpty(&thdQ->prioOcc));
 
     prio = prioBMGet(
         &thdQ->prioOcc);                                                        /* Get the highest priority ready to run.                   */
@@ -1287,10 +1309,10 @@ esThd_T * esThdQFetchRotateI(
 
     thdLSentinel_T * sentinel;
 
-    ES_API_REQUIRE(NULL != thdQ);
-    ES_API_REQUIRE(THDQ_CONTRACT_SIGNATURE == thdQ->signature);
-    ES_API_REQUIRE(CFG_SCHED_PRIO_LVL >= prio);
-    ES_API_REQUIRE(NULL != thdQ->grp[prio].next);
+    ES_K_API_REQUIRE(NULL != thdQ);
+    ES_K_API_REQUIRE(THDQ_CONTRACT_SIGNATURE == thdQ->signature);
+    ES_K_API_REQUIRE(CFG_SCHED_PRIO_LVL >= prio);
+    ES_K_API_REQUIRE(NULL != thdQ->grp[prio].next);
 
     sentinel = &(thdQ->grp[prio]);                                              /* Get the Group Head pointer from thread priority.         */
     sentinel->next = DLIST_ENTRY_NEXT(thdL, sentinel->next);
@@ -1303,8 +1325,8 @@ bool_T esThdQIsEmpty(
 
     bool_T ans;
 
-    ES_API_REQUIRE(NULL != thdQ);
-    ES_API_REQUIRE(THDQ_CONTRACT_SIGNATURE == thdQ->signature);
+    ES_K_API_REQUIRE(NULL != thdQ);
+    ES_K_API_REQUIRE(THDQ_CONTRACT_SIGNATURE == thdQ->signature);
 
     ans = prioBMIsEmpty(
         &thdQ->prioOcc);
@@ -1318,10 +1340,10 @@ bool_T esThdQIsEmpty(
 void esSchedRdyAddI(
     esThd_T *       thd) {
 
-    ES_API_REQUIRE(ES_KERN_INACTIVE > gKernCtrl.state);
-    ES_API_REQUIRE(NULL != thd);
-    ES_API_REQUIRE(THD_CONTRACT_SIGNATURE == thd->signature);
-    ES_API_REQUIRE(NULL == thd->thdL.q);
+    ES_K_API_REQUIRE(ES_KERN_INACTIVE > gKernCtrl.state);
+    ES_K_API_REQUIRE(NULL != thd);
+    ES_K_API_REQUIRE(THD_CONTRACT_SIGNATURE == thd->signature);
+    ES_K_API_REQUIRE(NULL == thd->thdL.q);
 
     esThdQAddI(
         &gRdyQueue,
@@ -1338,10 +1360,10 @@ void esSchedRdyAddI(
 void esSchedRdyRmI(
     esThd_T *       thd) {
 
-    ES_API_REQUIRE(ES_KERN_INACTIVE > gKernCtrl.state);
-    ES_API_REQUIRE(NULL != thd);
-    ES_API_REQUIRE(THD_CONTRACT_SIGNATURE == thd->signature);
-    ES_API_REQUIRE(&gRdyQueue == thd->thdL.q);
+    ES_K_API_REQUIRE(ES_KERN_INACTIVE > gKernCtrl.state);
+    ES_K_API_REQUIRE(NULL != thd);
+    ES_K_API_REQUIRE(THD_CONTRACT_SIGNATURE == thd->signature);
+    ES_K_API_REQUIRE(&gRdyQueue == thd->thdL.q);
 
     esThdQRmI(
         &gRdyQueue,
@@ -1360,7 +1382,7 @@ void esSchedRdyRmI(
 void esSchedYieldI(
     void) {
 
-    ES_API_REQUIRE(ES_KERN_INACTIVE > gKernCtrl.state);
+    ES_K_API_REQUIRE(ES_KERN_INACTIVE > gKernCtrl.state);
 
     if (gKernCtrl.cthd != gKernCtrl.pthd) {                                     /* Context switching is needed only when cthd and nthd are  */
                                                                                 /* different.                                               */
@@ -1384,7 +1406,7 @@ void esSchedYieldI(
 void esSchedYieldIsrI(
     void) {
 
-    ES_API_REQUIRE(ES_KERN_INACTIVE > gKernCtrl.state);
+    ES_K_API_REQUIRE(ES_KERN_INACTIVE > gKernCtrl.state);
 
     if (gKernCtrl.cthd != gKernCtrl.pthd) {
 
@@ -1397,7 +1419,7 @@ void esSchedYieldIsrI(
 #endif
             PORT_CTX_SW_ISR();
 
-#if (1U == SCHED_POWER_SAVE)
+#if (1U == CFG_SCHED_POWER_SAVE)
         } else if (ES_KERN_SLEEP == gKernCtrl.state) {
             schedWakeUpI();
 
@@ -1413,8 +1435,6 @@ void esSchedYieldIsrI(
 }
 
 
-/*--  System timer functions  ------------------------------------------------*/
-
 /*--  Timer functions  -------------------------------------------------------*/
 
 void esVTmrInitI(
@@ -1423,17 +1443,17 @@ void esVTmrInitI(
     void (* fn)(void *),
     void *          arg) {
 
-    ES_API_REQUIRE(ES_KERN_INACTIVE > gKernCtrl.state);
-    ES_API_REQUIRE(NULL != vTmr);
-    ES_API_REQUIRE(1U < tick);
-    ES_API_REQUIRE(NULL != fn);
+    ES_K_API_REQUIRE(ES_KERN_INACTIVE > gKernCtrl.state);
+    ES_K_API_REQUIRE(NULL != vTmr);
+    ES_K_API_REQUIRE(1U < tick);
+    ES_K_API_REQUIRE(NULL != fn);
 
     vTmr->rtick = tick;
     vTmr->fn    = fn;
     vTmr->arg   = arg;
     DLIST_ENTRY_ADD_AFTER(tmrL, &gVTmrPend, vTmr);
     ++gSysTmr.vTmrPend;
-    ES_API_OBLIGATION(vTmr->signature = VTMR_CONTRACT_SIGNATURE);
+    ES_K_API_OBLIGATION(vTmr->signature = VTMR_CONTRACT_SIGNATURE);
 }
 
 void esVTmrInit(
@@ -1444,15 +1464,15 @@ void esVTmrInit(
 
     ES_CRITICAL_DECL();
 
-    ES_API_REQUIRE(ES_KERN_INACTIVE > gKernCtrl.state);
-    ES_API_REQUIRE(NULL != vTmr);
-    ES_API_REQUIRE(1U < tick);
-    ES_API_REQUIRE(NULL != fn);
+    ES_K_API_REQUIRE(ES_KERN_INACTIVE > gKernCtrl.state);
+    ES_K_API_REQUIRE(NULL != vTmr);
+    ES_K_API_REQUIRE(1U < tick);
+    ES_K_API_REQUIRE(NULL != fn);
 
     vTmr->rtick = tick - 1U;                                                    /* Timer thread requires one tick less than original value. */
     vTmr->fn    = fn;
     vTmr->arg   = arg;
-    ES_API_OBLIGATION(vTmr->signature = VTMR_CONTRACT_SIGNATURE);
+    ES_K_API_OBLIGATION(vTmr->signature = VTMR_CONTRACT_SIGNATURE);
     vTmr->tmrL.q = &gVTmrPend;
     ES_CRITICAL_ENTER();
     DLIST_ENTRY_ADD_AFTER(tmrL, &gVTmrPend, vTmr);
@@ -1465,12 +1485,12 @@ void esVTmrTerm(
 
     ES_CRITICAL_DECL();
 
-    ES_API_REQUIRE(ES_KERN_INACTIVE > gKernCtrl.state);
-    ES_API_REQUIRE(NULL != vTmr);
-    ES_API_REQUIRE(VTMR_CONTRACT_SIGNATURE == vTmr->signature);
+    ES_K_API_REQUIRE(ES_KERN_INACTIVE > gKernCtrl.state);
+    ES_K_API_REQUIRE(NULL != vTmr);
+    ES_K_API_REQUIRE(VTMR_CONTRACT_SIGNATURE == vTmr->signature);
 
     ES_CRITICAL_ENTER();
-    ES_API_OBLIGATION(vTmr->signature = 0U);
+    ES_K_API_OBLIGATION(vTmr->signature = 0U);
 
     if (&gVTmrPend == vTmr->tmrL.q) {
         DLIST_ENTRY_RM(tmrL, vTmr);

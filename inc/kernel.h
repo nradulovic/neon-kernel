@@ -66,12 +66,16 @@
  */
 #define ES_CRITICAL_EXIT()				PORT_CRITICAL_EXIT()
 
+/**@brief       Enter critical section and exit scheduler lock
+ */
 #define ES_CRITICAL_ENTER_LOCK_EXIT()                                           \
     do {                                                                        \
         PORT_CRITICAL_ENTER();                                                  \
         esKernLockExitI();                                                      \
     } while (0U)
 
+/**@brief       Exit critical section and enter scheduler lock
+ */
 #define ES_CRITICAL_EXIT_LOCK_ENTER()                                           \
     do {                                                                        \
         esKernLockEnterI();                                                     \
@@ -91,7 +95,7 @@
  * @param       expr
  *              Expression which must be TRUE
  */
-# define ES_ASSERT(expr)                                                        \
+# define ES_K_ASSERT(expr)                                                      \
     do {                                                                        \
         if (!(expr)) {                                                          \
             userAssert(PORT_C_FUNC, #expr);                                     \
@@ -102,25 +106,25 @@
  * @param       expr
  *              Expression to be executed only if contracts need to be validated.
  */
-# define ES_API_OBLIGATION(expr)        expr
+# define ES_K_API_OBLIGATION(expr)      expr
 
 /**@brief       Make sure the caller has fulfilled all contract preconditions
  * @param       expr
  *              Expression which must be satisfied
  */
-# define ES_API_REQUIRE(expr)           ES_ASSERT(expr)
+# define ES_K_API_REQUIRE(expr)         ES_K_ASSERT(expr)
 
 /**@brief       Make sure the callee has fulfilled all contract postconditions
  * @param       expr
  *              Expression which must be satisfied
  */
-# define ES_API_ENSURE(expr)            ES_ASSERT(expr)
+# define ES_K_API_ENSURE(expr)          ES_K_ASSERT(expr)
 
 #else
-# define ES_ASSERT(expr)                (void)0
-# define ES_API_OBLIGATION(expr)        (void)0
-# define ES_API_REQUIRE(expr)           (void)0
-# define ES_API_ENSURE(expr)            (void)0
+# define ES_K_ASSERT(expr)              (void)0
+# define ES_K_API_OBLIGATION(expr)      (void)0
+# define ES_K_API_REQUIRE(expr)         (void)0
+# define ES_K_API_ENSURE(expr)          (void)0
 #endif
 
 /**@} *//*----------------------------------------------------------------*//**
