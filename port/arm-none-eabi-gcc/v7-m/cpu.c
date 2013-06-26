@@ -36,11 +36,21 @@
  * @name        Port specific constants
  * @{ *//*--------------------------------------------------------------------*/
 
-#define R__                             volatile const                          /**< @brief Defines 'read only' permissions                 */
-#define RW_                             volatile                                /**< @brief Defines 'read/write' permissions                */
+/**@brief       Defines 'read only' permissions.
+ */
+#define R__                             volatile const
 
-#define PSR_THUMB_STATE_POS             24                                      /**< @brief PSR Thumb state: Position                       */
-#define PSR_THUMB_STATE_MSK             (1UL << PSR_THUMB_STATE_POS)            /**< @brief PSR Thumb state: Mask                           */
+/**@brief       Defines 'read/write' permissions
+ */
+#define RW_                             volatile
+
+/**@brief       PSR Thumb state: Position.
+ */
+#define PSR_THUMB_STATE_POS             24
+
+/**@brief       PSR Thumb state: Mask.
+ */
+#define PSR_THUMB_STATE_MSK             (1UL << PSR_THUMB_STATE_POS)
 
 /**@brief       Exception return value
  * @details     This value must is set to:
@@ -73,17 +83,37 @@
  * @name        System Control Block (SCB)
  * @{ *//*--------------------------------------------------------------------*/
 
-#define SCB                             ((scb_T *)CPU_SCB_BASE)                 /**< @brief SCB configuration struct                        */
+/**@brief       SCB configuration struct.
+ */
+#define SCB                             ((scb_T *)CPU_SCB_BASE)
 
-#define SCB_VTOR                        (CPU_SCB_BASE + 0x08UL)                 /**< @brief SCB Vector table offset register                */
+/**@brief       SCB Vector table offset register
+ */
+#define SCB_VTOR                        (CPU_SCB_BASE + 0x08UL)
 
-#define SCB_AIRCR_PRIGROUP_POS          8                                       /**< @brief SCB aircr: PRIGROUP Position                    */
-#define SCB_AIRCR_PRIGROUP_MSK          (7UL << SCB_AIRCR_PRIGROUP_POS)         /**< @brief SCB aircr: PRIGROUP Mask                        */
-#define SCB_AIRCR_VECTKEY_POS           16                                      /**< @brief SCB aircr: VECTKEY Position                     */
-#define SCB_AIRCR_VECTKEY_MSK           (0xFFFFUL << SCB_AIRCR_VECTKEY_POS)     /**< @brief SCB aircr: VECTKEY Mask                         */
+/**@brief       SCB aircr: PRIGROUP Position
+ */
+#define SCB_AIRCR_PRIGROUP_POS          8
 
-#define SCB_CCR_STKALIGN_POS            9                                       /**< @brief SCB ccr: STKALIGN Position                      */
-#define SCB_CCR_STKALIGN_MSK            (1UL << SCB_CCR_STKALIGN_POS)           /**< @brief SCB ccr: STKALIGN Mask                          */
+/**@brief       SCB aircr: PRIGROUP Mask
+ */
+#define SCB_AIRCR_PRIGROUP_MSK          (7UL << SCB_AIRCR_PRIGROUP_POS)
+
+/**@brief       SCB aircr: VECTKEY Position
+ */
+#define SCB_AIRCR_VECTKEY_POS           16
+
+/**@brief       SCB aircr: VECTKEY Mask
+ */
+#define SCB_AIRCR_VECTKEY_MSK           (0xFFFFUL << SCB_AIRCR_VECTKEY_POS)
+
+/**@brief       SCB ccr: STKALIGN Position
+ */
+#define SCB_CCR_STKALIGN_POS            9
+
+/**@brief       SCB ccr: STKALIGN Mask
+ */
+#define SCB_CCR_STKALIGN_MSK            (1UL << SCB_CCR_STKALIGN_POS)
 
 /*======================================================  LOCAL DATA TYPES  ==*/
 

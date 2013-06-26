@@ -39,7 +39,9 @@
  * @name        Port constants
  * @{ *//*--------------------------------------------------------------------*/
 
-#define PORT_DATA_WIDTH_VAL             32U                                     /**< @brief General purpose registers are 32bit wide        */
+/**@brief       General purpose registers are 32bit wide.
+ */
+#define PORT_DATA_WIDTH_VAL             32U
 
 /**@brief       Minimal stack size value is the number of elements in struct
  *              @ref portCtx
@@ -75,12 +77,18 @@
 
 #define PORT_INT_DISABLE()              portIntDisable_()
 
-#define PORT_ISR_ENTER()                esKernIsrPrologueI()                    /**< @brief This port just invokes kernel function          */
+/**@brief       This port just invokes kernel function
+ */
+#define PORT_ISR_ENTER()                esKernIsrPrologueI()
 
-#define PORT_ISR_EXIT()                 esKernIsrEpilogueI()                    /**< @brief This port just invokes kernel function          */
+/**@brief       This port just invokes kernel function
+ */
+#define PORT_ISR_EXIT()                 esKernIsrEpilogueI()
 
-#define PORT_ISR_IS_LAST()              portIsrIsLast_()                        /**< @brief Returns TRUE when last ISR is executing by
-                                                                                            looking at status register.                     */
+/**@brief       Returns TRUE when last ISR is executing by looking at status
+ *              register.
+ */
+#define PORT_ISR_IS_LAST()              portIsrIsLast_()
 /*------------------------------------------------------------------------*//**
  * @name        Critical section management
  * @{ *//*--------------------------------------------------------------------*/
@@ -89,7 +97,7 @@
 
 #define PORT_CRITICAL_ENTER()                                                   \
     do {                                                                        \
-        intStatus_ = portIntGetSet_();                                             \
+        intStatus_ = portIntGetSet_();                                          \
     } while (0U);
 
 #define PORT_CRITICAL_EXIT()            portIntSet_(intStatus_)
@@ -129,7 +137,9 @@
 
 #define PORT_CTX_SW()                   portCtxSw_()
 
-#define PORT_CTX_SW_ISR()               PORT_CTX_SW()                           /**< @brief This port has identical context switch functions*/
+/**@brief       This port has identical context switch functions.
+ */
+#define PORT_CTX_SW_ISR()               PORT_CTX_SW()
 
 #define PORT_THD_START()                portThdStart_()
 
@@ -144,11 +154,15 @@
 #define PORT_CRITICAL_EXIT_SLEEP_ENTER()                                        \
     portIntSetSleepEnter_(intStatus_)
 
-#define PORT_INIT_EARLY()               portInitEarly_()                        /**< @brief This port does not need this function call      */
+/**@brief       This port does not need this function call.
+ */
+#define PORT_INIT_EARLY()               portInitEarly_()
 
 #define PORT_INIT()                     (void)0
 
-#define PORT_INIT_LATE()                (void)0                                 /**< @brief This port does not need this function call      */
+/**@brief       This port does not need this function call.
+ */
+#define PORT_INIT_LATE()                (void)0
 
 /** @} *//*---------------------------------------------------------------*//**
  * @name        Port specific macros
@@ -159,32 +173,91 @@
 #define CPU_ISR_PRIO                                                            \
     (CFG_CRITICAL_PRIO << (8 - CPU_ISR_PRIO_BITS))
 
-#define CPU_SCS_BASE                    (0xE000E000UL)                          /**< @brief System Control Space Base Addr                  */
-#define CPU_SCB_BASE                    (CPU_SCS_BASE + 0x0D00UL)               /**< @brief System Control Block Base Addr                  */
-#define CPU_SCB_ICSR_OFFSET             (0x04UL)                                /**< @brief Interrupt Control and State Register Base Addr  */
+/**@brief       System Control Space Base Address.
+ */
+#define CPU_SCS_BASE                    (0xE000E000UL)
+
+/**@brief       System Control Block Base Address.
+ */
+#define CPU_SCB_BASE                    (CPU_SCS_BASE + 0x0D00UL)
+
+/**@brief       Interrupt Control and State Register Base Address.
+ */
+#define CPU_SCB_ICSR_OFFSET             (0x04UL)
+
 #define CPU_SCB_ICSR                                                            \
     ((volatile portReg_T *)(CPU_SCB_BASE + CPU_SCB_ICSR_OFFSET))
-#define CPU_SCB_ICSR_PENDSVSET_POS      28                                      /**< @brief SCB icsr: PENDSVSET Position                    */
-#define CPU_SCB_ICSR_PENDSVSET_MSK      (1UL << CPU_SCB_ICSR_PENDSVSET_POS)     /**< @brief SCB icsr: PENDSVSET Mask                        */
-#define CPU_SCB_ICSR_PENDSTCLR_POS      25                                      /**< @brief SCB icsr: PENDSTCLR Position                    */
-#define CPU_SCB_ICSR_PENDSTCLR_MSK      (1UL << CPU_SCB_ICSR_PENDSTCLR_POS)     /**< @brief SCB icsr: PENDSTCLR Mask                        */
-#define CPU_SCB_ICSR_RETTOBASE_POS      11                                      /**< @brief SCB icsr: RETTOBASE Position                    */
-#define CPU_SCB_ICSR_RETTOBASE_MSK      (1UL << CPU_SCB_ICSR_RETTOBASE_POS)     /**< @brief SCB icsr: RETTOBASE Mask                        */
 
-#define CPU_SYST_BASE                   (CPU_SCS_BASE + 0x0010UL)               /**< @brief System Timer Base Addr                          */
-#define CPU_SYST_CSR_OFFSET             (0x00UL)                                /**< @brief Control and Status Register Base Addr Offset    */
+/**@brief       SCB icsr: PENDSVSET Position.
+ */
+#define CPU_SCB_ICSR_PENDSVSET_POS      28
+
+/**@brief       SCB icsr: PENDSVSET Mask.
+ */
+#define CPU_SCB_ICSR_PENDSVSET_MSK      (1UL << CPU_SCB_ICSR_PENDSVSET_POS)
+
+/**@brief       SCB icsr: PENDSTCLR Position.
+ */
+#define CPU_SCB_ICSR_PENDSTCLR_POS      25
+
+/**@brief       SCB icsr: PENDSTCLR Mask.
+ */
+#define CPU_SCB_ICSR_PENDSTCLR_MSK      (1UL << CPU_SCB_ICSR_PENDSTCLR_POS)
+
+/**@brief       SCB icsr: RETTOBASE Position.
+ */
+#define CPU_SCB_ICSR_RETTOBASE_POS      11
+
+/**@brief       SCB icsr: RETTOBASE Mask.
+ */
+#define CPU_SCB_ICSR_RETTOBASE_MSK      (1UL << CPU_SCB_ICSR_RETTOBASE_POS)
+
+/**@brief       System Timer Base Address.
+ */
+#define CPU_SYST_BASE                   (CPU_SCS_BASE + 0x0010UL)
+
+/**@brief       Control and Status Register Base Addr Offset.
+ */
+#define CPU_SYST_CSR_OFFSET             (0x00UL)
+
 #define CPU_SYST_CSR                                                            \
     ((volatile portReg_T *)(CPU_SYST_BASE + CPU_SYST_CSR_OFFSET))
-#define CPU_SYST_CSR_CLKSOURCE_POS      2                                       /**< @brief SYSTMR csr: CLKSOURCE Position                  */
-#define CPU_SYST_CSR_CLKSOURCE_MSK      (1UL << CPU_SYST_CSR_CLKSOURCE_POS)     /**< @brief SYSTMR csr: CLKSOURCE Mask                      */
-#define CPU_SYST_CSR_TICKINT_POS        1                                       /**< @brief SYSTMR csr: TICKINT Position                    */
-#define CPU_SYST_CSR_TICKINT_MSK        (1UL << CPU_SYST_CSR_TICKINT_POS)       /**< @brief SYSTMR csr: TICKINT Mask                        */
-#define CPU_SYST_CSR_ENABLE_POS         0                                       /**< @brief SYSTMR csr: ENABLE Position                     */
-#define CPU_SYST_CSR_ENABLE_MSK         (1UL << CPU_SYST_CSR_ENABLE_POS)        /**< @brief SYSTMR csr: ENABLE Mask                         */
-#define CPU_SYST_RVR_OFFSET             (0x04UL)                                /**< @brief Control and Status Register Base Addr Offset    */
+
+/**@brief       SYSTMR csr: CLKSOURCE Position.
+ */
+#define CPU_SYST_CSR_CLKSOURCE_POS      2
+
+/**@brief       SYSTMR csr: CLKSOURCE Mask.
+ */
+#define CPU_SYST_CSR_CLKSOURCE_MSK      (1UL << CPU_SYST_CSR_CLKSOURCE_POS)
+
+/**@brief       SYSTMR csr: TICKINT Position.
+ */
+#define CPU_SYST_CSR_TICKINT_POS        1
+
+/**@brief       SYSTMR csr: TICKINT Mask.
+ */
+#define CPU_SYST_CSR_TICKINT_MSK        (1UL << CPU_SYST_CSR_TICKINT_POS)
+
+/**@brief       SYSTMR csr: ENABLE Position.
+ */
+#define CPU_SYST_CSR_ENABLE_POS         0
+
+/**@brief       SYSTMR csr: ENABLE Mask.
+ */
+#define CPU_SYST_CSR_ENABLE_MSK         (1UL << CPU_SYST_CSR_ENABLE_POS)
+
+/**@brief       Control and Status Register Base Addr Offset.
+ */
+#define CPU_SYST_RVR_OFFSET             (0x04UL)
+
 #define CPU_SYST_RVR                                                            \
     ((volatile portReg_T *)(CPU_SYST_BASE + CPU_SYST_RVR_OFFSET))
-#define CPU_SYST_CVR_OFFSET             (0x08UL)                                /**< @brief Control and Status Register Base Addr Offset    */
+
+/**@brief       Control and Status Register Base Addr Offset.
+ */
+#define CPU_SYST_CVR_OFFSET             (0x08UL)
+
 #define CPU_SYST_CVR                                                            \
     ((volatile portReg_T *)(CPU_SYST_BASE + CPU_SYST_CVR_OFFSET))
 
@@ -196,8 +269,12 @@ extern "C" {
 
 /*============================================================  DATA TYPES  ==*/
 
-typedef uint32_t portReg_T;                                                     /**< @brief General purpose registers are 32bit wide.       */
+/**@brief       General purpose registers are 32bit wide.
+ */
+typedef uint32_t portReg_T;
 
+/**@brief       System timer hardware register type.
+ */
 typedef uint32_t portSysTmrReg_T;
 
 /**@brief       Stack structure used for stack in order to force the alignment
@@ -206,7 +283,9 @@ struct portStck {
     portReg_T       reg;
 } __attribute__ ((aligned (8)));
 
-typedef struct portStck portStck_T;                                             /**< @brief Stack type                                      */
+/**@brief       Stack type
+ */
+typedef struct portStck portStck_T;
 
 /**@brief       Structure of the context switch
  * @details     There are 16, 32-bit core (integer) registers visible to the ARM
@@ -311,8 +390,8 @@ static PORT_C_INLINE_ALWAYS portReg_T portIntGetSet_(
     __asm__ __volatile__ (
         "   mrs     %0, basepri                             \n\t"
         "   msr     basepri, %1                             \n\t"
-        : "=&r"(result)                                                         /* earlyclobber operand `&` is needed to prevent GCC to     */
-        : "r"(val));                                                            /* optimize input=output registers                          */
+        : "=&r"(result)                                                         /* Earlyclobber operand `&` is needed to prevent GCC to     */
+        : "r"(val));                                                            /* optimize input=output registers.                         */
 
 #else
     __asm__ __volatile__ (
