@@ -56,8 +56,8 @@
  *              error condition.
  *
  *              Possible values:
- *              - 0U - API validation is OFF
- *              - 1U - API validation is ON
+ *              - 0U - API validation is disabled
+ *              - 1U - API validation is enabled
  *
  * @note        The error checking use userAssert() hook function to provide the
  *              information about the error condition.
@@ -69,12 +69,8 @@
 /**@brief       Scheduler priority levels
  * @details     The number of priority levels. Each priority level can have
  *              several threads. Possible values:
- *              - Min: 2U (two priority levels)
+ *              - Min: 3U (three priority levels)
  *              - Max: 256U
- *
- * @warning     Scheduler will have undefined behavior if there is no ready
- *              thread to run (e.g. empty @ref sched_rdyThdQ) at the time it is
- *              invoked.
  */
 #if !defined(CFG_SCHED_PRIO_LVL)
 # define CFG_SCHED_PRIO_LVL             8U
@@ -93,13 +89,22 @@
 # define CFG_SCHED_TIME_QUANTUM         10U
 #endif
 
+/**@brief       Enable/disable scheduler power savings mode
+ * @details     Possible values are:
+ *              - 0U - power saving is disabled
+ *              - 1U - power saving is enabled
+ */
+#if !defined(CFG_SCHED_POWER_SAVE)
+# define CFG_SCHED_POWER_SAVE           0U
+#endif
+
 /**@brief       System timer mode
  * @details     Possible values are:
- *              - 0U - fixed mode
- *              - 1U - semi-adaptive mode
+ *              - 0U - adaptive mode is disabled
+ *              - 1U - adaptive mode is enabled
  */
 #if !defined(CFG_SYSTMR_MODE)
-# define CFG_SYSTMR_MODE                1U
+# define CFG_SYSTMR_ADAPTIVE_MODE       0U
 #endif
 
 /**@brief       The frequency of system tick event
@@ -182,8 +187,12 @@
 # error "eSolid RT Kernel: Configuration option CFG_API_VALIDATION is out of range."
 #endif
 
-#if ((2U > CFG_SCHED_PRIO_LVL) || (256U < CFG_SCHED_PRIO_LVL))
+#if ((3U > CFG_SCHED_PRIO_LVL) || (256U < CFG_SCHED_PRIO_LVL))
 # error "eSolid RT Kernel: Configuration option CFG_SCHED_PRIO_LVL is out of range."
+#endif
+
+#if ((0U == CFG_SCHED_POWER_SAVE) && (1U == CFG_SYSTMR_ADAPTIVE_MODE))
+# error "eSolid RT Kernel: Configuration option CFG_SCHED_PRIO_LVL must be enabled when CFG_SYSTMR_ADAPTIVE_MODE is enabled, too."
 #endif
 
 #if ((1U != CFG_HOOK_SYSTMR_EVENT) && (0U != CFG_HOOK_SYSTMR_EVENT))
