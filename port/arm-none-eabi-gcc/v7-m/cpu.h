@@ -142,7 +142,7 @@
     sizeof(portReg_T))) - 1U) / (sizeof(struct portStck)/sizeof(portReg_T)))
 
 #define PORT_CRITICAL_EXIT_SLEEP_ENTER()                                        \
-    portCriticalExitSleepEnter_(intStatus_)
+    portIntSetSleepEnter_(intStatus_)
 
 #define PORT_INIT_EARLY()               portInitEarly_()                        /**< @brief This port does not need this function call      */
 
@@ -267,6 +267,29 @@ static PORT_C_INLINE_ALWAYS void portIntSet_(
 #else
     __asm__ __volatile__ (
         "   msr    primask, %0                              \n\t"
+        :
+        : "r"(val));
+#endif
+}
+
+/**@brief       Set the interrupt priority mask and enter sleep state
+ * @param       val
+ *              New interrupt priority mask
+ * @inline
+ */
+static PORT_C_INLINE_ALWAYS void portIntSetSleepEnter_(
+    portReg_T     val) {
+
+#if (0 != CFG_CRITICAL_PRIO)
+    __asm__ __volatile__ (
+        "   msr    basepri, %0                              \n\t"
+        "   wfi                                             \n\t"
+        :
+        : "r"(val));
+#else
+    __asm__ __volatile__ (
+        "   msr    primask, %0                              \n\t"
+        "   wfi                                             \n\t"
         :
         : "r"(val));
 #endif
@@ -474,26 +497,6 @@ void * portCtxInit_(
 /** @} *//*---------------------------------------------------------------*//**
  * @name        Generic port functions
  * @{ *//*--------------------------------------------------------------------*/
-
-static PORT_C_INLINE_ALWAYS void portCriticalExitSleepEnter_(
-    portReg_T     val) {
-
-#if (0 != CFG_CRITICAL_PRIO)
-    __asm__ __volatile__ (
-        "   cpsid   i                                       \n\t"
-        "   msr    basepri, %0                              \n\t"
-        "   wfi                                             \n\t"
-        "   cpsie   i                                       \n\t"
-        :
-        : "r"(val));
-#else
-    __asm__ __volatile__ (
-        "   wfi                                             \n\t"
-        "   msr    primask, %0                              \n\t"
-        :
-        : "r"(val));
-#endif
-}
 
 /**@brief       Initialize port
  * @details     Function will set up sub-priority bits to zero and handlers
