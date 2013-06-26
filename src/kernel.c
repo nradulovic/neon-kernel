@@ -1109,17 +1109,14 @@ void esThdSetPrioI(
     esThd_T *       thd,
     uint8_t         prio) {
 
-    /*
-     * TODO: This function should be altered to take into account the case when
-     * a thread is not in any queue (sleeping).
-     */
-
     ES_K_API_REQUIRE(ES_KERN_INACTIVE > gKernCtrl.state);
     ES_K_API_REQUIRE(NULL != thd);
     ES_K_API_REQUIRE(THD_CONTRACT_SIGNATURE == thd->signature);
     ES_K_API_REQUIRE(CFG_SCHED_PRIO_LVL >= prio);
 
-    if (prio >= thd->prio) {                                                    /* If new prio is higher than we may need to notify sched.  */
+    if (NULL == thd->thdL.q) {
+        thd->prio = prio;
+    } else {
         esThdQRmI(
             thd->thdL.q,
             thd);
@@ -1132,20 +1129,10 @@ void esThdSetPrioI(
 
             if (thd->prio > gKernCtrl.pthd->prio) {                             /* If new prio is higher than the current prio              */
                 ((esKernCtrl_T *)&gKernCtrl)->pthd = thd;                       /* Notify scheduler about new thread                        */
+            } else {
+                ((esKernCtrl_T *)&gKernCtrl)->pthd = esThdQFetchI(
+                    &gRdyQueue);
             }
-        }
-    } else {
-        esThdQRmI(
-            thd->thdL.q,
-            thd);
-        thd->prio = prio;
-        esThdQAddI(
-            thd->thdL.q,
-            thd);
-
-        if (&gRdyQueue == thd->thdL.q) {
-            ((esKernCtrl_T *)&gKernCtrl)->pthd = esThdQFetchI(
-                &gRdyQueue);
         }
     }
 }
