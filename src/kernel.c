@@ -98,7 +98,7 @@
 
 /**@brief       DList macro: initialize entry
  */
-#define DLIST_ENTRY_INIT(list, entry)\
+#define DLIST_ENTRY_INIT(list, entry)                                           \
     do {                                                                        \
         (entry)->list.next = (entry);                                           \
         (entry)->list.prev = (entry);                                           \
@@ -121,14 +121,6 @@
         (entry)->list.next->list.prev = (entry)->list.prev;                     \
         (entry)->list.prev->list.next = (entry)->list.next;                     \
     } while (0U)
-
-/**@brief       System Timer kernel thread stack size
- */
-#define KVTMR_STCK_SIZE                 ES_STCK_SIZE(40U)
-
-/**@brief       Idle kernel thread stack size
- */
-#define KIDLE_STCK_SIZE                 ES_STCK_SIZE(40U)
 
 /*======================================================  LOCAL DATA TYPES  ==*/
 
@@ -845,7 +837,7 @@ static void vTmrImportPend(
 static void kVTmrInit(
     void) {
 
-    static portStck_T kVTmrStck[KVTMR_STCK_SIZE];                               /* Virtual timer kernel thread stack.                       */
+    static portStck_T kVTmrStck[ES_STCK_SIZE(PORT_KVTMR_STCK_SIZE)];            /* Virtual timer kernel thread stack.                       */
 
     esThdInit(
         &gKVTmr,
@@ -890,7 +882,7 @@ static void kVTmr(
 static void kIdleInit(
     void) {
 
-    static portStck_T kIdleStck[KIDLE_STCK_SIZE];                               /* Idle kernel thread stack.                                */
+    static portStck_T kIdleStck[ES_STCK_SIZE(PORT_KIDLE_STCK_SIZE)];            /* Idle kernel thread stack.                                */
 
     esThdInit(
         &gKIdle,

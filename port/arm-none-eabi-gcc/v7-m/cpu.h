@@ -61,6 +61,14 @@
 #define PORT_SYSTMR_MAX_TICKS_VAL                                               \
     (PORT_SYSTMR_MAX_VAL / PORT_SYSTMR_ONE_TICK_VAL)
 
+/**@brief       Kernel Virtual Timer Thread stack size
+ */
+#define PORT_KVTMR_STCK_SIZE            40U
+
+/**@brief       Kernel Idle Thread stack size
+ */
+#define PORT_KIDLE_STCK_SIZE            40U
+
 /** @} *//*---------------------------------------------------------------*//**
  * @name        Interrupt management
  * @{ *//*--------------------------------------------------------------------*/
