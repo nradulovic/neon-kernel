@@ -86,11 +86,6 @@
 #define DLIST_IS_ENTRY_SINGLE(list, entry)                                      \
     DLIST_IS_ENTRY_FIRST(list, entry)
 
-/**@brief       DList macro: get the previous entry
- */
-#define DLIST_ENTRY_PREV(list, entry)                                           \
-    (entry)->list.prev
-
 /**@brief       DList macro: get the next entry
  */
 #define DLIST_ENTRY_NEXT(list, entry)                                           \
@@ -579,7 +574,8 @@ static PORT_C_INLINE void schedSleep(
 
         ((esKernCtrl_T *)&gKernCtrl)->state = ES_KERN_SLEEP;
 # if (1U == CFG_SYSTMR_ADAPTIVE_MODE)
-            sysTmrDeactivateI();
+        vTmrImportPendI();                                                      /* Import any pending timers.                               */
+        sysTmrDeactivateI();
 # endif
         PORT_CRITICAL_EXIT_SLEEP_ENTER();
     } else {
@@ -673,8 +669,9 @@ static PORT_C_INLINE void sysTmrActivate(
         portSysTmrReg_T tmrVal;
 
         vTmr = DLIST_ENTRY_NEXT(tmrL, &gVTmrArmed);
-        vTmr->rtick -= PORT_SYSTMR_GET_CVAL() / PORT_SYSTMR_ONE_TICK_VAL;
-        tmrVal = PORT_SYSTMR_GET_CVAL() % PORT_SYSTMR_ONE_TICK_VAL;
+        tmrVal = (PORT_SYSTMR_GET_RVAL() - PORT_SYSTMR_GET_CVAL());
+        vTmr->rtick -= tmrVal / PORT_SYSTMR_ONE_TICK_VAL;
+        tmrVal %= PORT_SYSTMR_ONE_TICK_VAL;
         gSysTmr.ptick = 0U;
         PORT_SYSTMR_RLD(tmrVal);
     }
@@ -684,8 +681,6 @@ static PORT_C_INLINE void sysTmrActivate(
 #if (1U == CFG_SYSTMR_ADAPTIVE_MODE) || defined(__DOXYGEN__)
 static PORT_C_INLINE void sysTmrDeactivateI(
     void) {
-
-    vTmrImportPendI();                                                          /* Import any pending timers.                               */
 
     if (0U != gSysTmr.vTmrArmed) {                                              /* There is an armed timer: put system timer to sleep sleep.*/
         esVTmr_T * vTmr;
@@ -804,9 +799,6 @@ static PORT_C_INLINE void vTmrImportPendI(
 }
 #endif
 
-/*
- * TODO: What will happen if a timer is canceled/added during sleep periods?
- */
 static void vTmrImportPend(
     void) {
 
@@ -1430,6 +1422,13 @@ void esVTmrInitI(
     vTmr->arg   = arg;
     DLIST_ENTRY_ADD_AFTER(tmrL, &gVTmrPend, vTmr);
     ++gSysTmr.vTmrPend;
+
+#if (1U == CFG_SYSTMR_ADAPTIVE_MODE)
+    if (0U != gSysTmr.ptick) {                                                  /* If system is sleeping we need to wake up VTmt thread.    */
+        esThdPostI(
+            &gKVTmr);
+    }
+#endif
     ES_K_API_OBLIGATION(vTmr->signature = VTMR_CONTRACT_SIGNATURE);
 }
 
@@ -1454,6 +1453,13 @@ void esVTmrInit(
     ES_CRITICAL_ENTER();
     DLIST_ENTRY_ADD_AFTER(tmrL, &gVTmrPend, vTmr);
     ++gSysTmr.vTmrPend;
+
+#if   (1U == CFG_SYSTMR_ADAPTIVE_MODE)
+    if (0U != gSysTmr.ptick) {                                                  /* If system is sleeping we need to wake up VTmt thread.    */
+        esThdPostI(
+            &gKVTmr);
+    }
+#endif
     ES_CRITICAL_EXIT();
 }
 
@@ -1469,18 +1475,47 @@ void esVTmrTerm(
     ES_CRITICAL_ENTER();
     ES_K_API_OBLIGATION(vTmr->signature = 0U);
 
-    if (&gVTmrPend == vTmr->tmrL.q) {
+    if (&gVTmrPend == vTmr->tmrL.q) {                                           /* A pending timer is being deleted.                        */
         DLIST_ENTRY_RM(tmrL, vTmr);
         --gSysTmr.vTmrPend;
-    } else {
+    } else {                                                                    /* An armed timer is being deleted.                         */
+
+#if   (0U == CFG_SYSTMR_ADAPTIVE_MODE)
         esVTmr_T *      nextVTmr;
 
-        ES_CRITICAL_EXIT_LOCK_ENTER();
-        nextVTmr = DLIST_ENTRY_NEXT(tmrL, vTmr);
-        nextVTmr->rtick += vTmr->rtick;
-        DLIST_ENTRY_RM(tmrL, vTmr);
-        ES_CRITICAL_ENTER_LOCK_EXIT();
         --gSysTmr.vTmrArmed;
+        nextVTmr = DLIST_ENTRY_NEXT(tmrL, vTmr);
+
+        if (&gVTmrArmed != nextVTmr) {
+            nextVTmr->rtick += vTmr->rtick;
+        }
+        DLIST_ENTRY_RM(tmrL, vTmr);
+#elif (1U == CFG_SYSTMR_ADAPTIVE_MODE)
+        --gSysTmr.vTmrArmed;
+
+        if ((0U != gSysTmr.ptick) &&
+            (DLIST_ENTRY_NEXT(tmrL, &gVTmrArmed) == vTmr)) {                    /* System timer was sleeping and vTmr is the current timer. */
+            DLIST_ENTRY_RM(tmrL, vTmr);
+
+            if (0U != gSysTmr.vTmrArmed) {                                      /* The last timer is not being deleted: remaining time is   */
+                esVTmr_T * nextVTmr;                                            /* calculated to add to next timer in list.                 */
+
+                vTmr->rtick -= (PORT_SYSTMR_GET_RVAL() - PORT_SYSTMR_GET_CVAL()) / PORT_SYSTMR_ONE_TICK_VAL;
+                nextVTmr = DLIST_ENTRY_NEXT(tmrL, &gVTmrArmed);
+                nextVTmr->rtick += vTmr->rtick;
+            }
+            sysTmrDeactivateI();
+        } else {
+            esVTmr_T * nextVTmr;
+
+            nextVTmr = DLIST_ENTRY_NEXT(tmrL, vTmr);
+
+            if (&gVTmrArmed != nextVTmr) {
+                nextVTmr->rtick += vTmr->rtick;
+            }
+            DLIST_ENTRY_RM(tmrL, vTmr);
+        }
+#endif
     }
     ES_CRITICAL_EXIT();
 }
