@@ -71,7 +71,7 @@
  *              - 1U - power saving is enabled
  */
 #if !defined(CFG_SCHED_POWER_SAVE)
-# define CFG_SCHED_POWER_SAVE           1U
+# define CFG_SCHED_POWER_SAVE           0U
 #endif
 
 /**@brief       System timer adaptive mode
@@ -80,7 +80,7 @@
  *              - 1U - adaptive mode is enabled
  */
 #if !defined(CFG_SYSTMR_ADAPTIVE_MODE)
-# define CFG_SYSTMR_ADAPTIVE_MODE       1U
+# define CFG_SYSTMR_ADAPTIVE_MODE       0U
 #endif
 
 /**@brief       The frequency of system timer tick event
