@@ -44,11 +44,11 @@
 /**@brief       Identifies the underlying kernel version number
  * @details     Kernel identification and version (main [31:16] .sub [15:0])
  */
-#define ES_KERNEL_VER                   0x10000UL
+#define ES_KERN_VER                     0x10000UL
 
 /**@brief       Kernel identification string
  */
-#define ES_KERNEL_ID                    "eSolid Kernel v1.0"
+#define ES_KERN_ID                      "eSolid Kernel v1.0"
 
 /**@} *//*----------------------------------------------------------------*//**
  * @name        Critical section management
@@ -95,10 +95,10 @@
  * @param       expr
  *              Expression which must be TRUE
  */
-# define ES_K_ASSERT(expr)                                                      \
+# define ES_KERN_ASSERT(msg, expr)                                              \
     do {                                                                        \
         if (!(expr)) {                                                          \
-            userAssert(PORT_C_FUNC, #expr);                                     \
+            esKAssert(PORT_C_FUNC, #expr, msg);                                 \
         }                                                                       \
     } while (0U)
 
@@ -106,25 +106,35 @@
  * @param       expr
  *              Expression to be executed only if contracts need to be validated.
  */
-# define ES_K_API_OBLIGATION(expr)      expr
+# define ES_KERN_API_OBLIGATION(expr)                                           \
+    expr
 
 /**@brief       Make sure the caller has fulfilled all contract preconditions
  * @param       expr
  *              Expression which must be satisfied
  */
-# define ES_K_API_REQUIRE(expr)         ES_K_ASSERT(expr)
+# define ES_KERN_API_REQUIRE(msg, expr)                                         \
+    ES_KERN_ASSERT(msg, expr)
 
 /**@brief       Make sure the callee has fulfilled all contract postconditions
  * @param       expr
  *              Expression which must be satisfied
  */
-# define ES_K_API_ENSURE(expr)          ES_K_ASSERT(expr)
+# define ES_KERN_API_ENSURE(msg, expr)                                          \
+    ES_KERN_ASSERT(msg, expr)
 
 #else
-# define ES_K_ASSERT(expr)              (void)0
-# define ES_K_API_OBLIGATION(expr)      (void)0
-# define ES_K_API_REQUIRE(expr)         (void)0
-# define ES_K_API_ENSURE(expr)          (void)0
+# define ES_KERN_ASSERT(msg, expr)                                              \
+    (void)0
+
+# define ES_KERN_API_OBLIGATION(expr)                                           \
+    (void)0
+
+# define ES_KERN_API_REQUIRE(msg, expr)                                         \
+    (void)0
+
+# define ES_KERN_API_ENSURE(msg, expr)                                          \
+    (void)0
 #endif
 
 /**@} *//*----------------------------------------------------------------*//**
@@ -141,6 +151,15 @@ extern "C" {
 #endif
 
 /*============================================================  DATA TYPES  ==*/
+
+enum esKernMsg {
+    ES_KERN_MSG_ARG_OUT_OF_RANGE,
+    ES_KERN_MSG_ARG_NOT_VALID,
+    ES_KERN_MSG_ARG_NULL,
+    ES_KERN_MSG_USAGE_FAILURE,
+    ES_KERN_MSG_NOT_ENOUGH_MEM,
+    ES_KERN_MSG_UNKNOWN_ERROR
+};
 
 /*------------------------------------------------------------------------*//**
  * @name        Thread management
@@ -330,8 +349,6 @@ void esKernInit(
 
 /**@brief       Start the multi-threading
  * @pre         1) `The kernel state == ES_KERN_INIT`, see @ref states.
- * @pre         2) At least one thread must be initialized and be in Threads
- *                  Ready Queue before starting multi-threading, see esThdInit().
  * @post        1) `The kernel state == ES_KERN_RUN`
  * @post        2) The multi-threading execution will commence.
  * @note        1) Once this function is called the execution of threads will
@@ -740,15 +757,43 @@ void esSchedYieldIsrI(
  * @param       arg
  *              Argument: is pointer to the arguments of callback function
  * @pre         1) `The kernel state < ES_KERN_INACTIVE`, see @ref states.
- * @pre         2) `vTmrArmed != NULL`
- * @pre         3) `tick > 1U`
- * @pre         4) `fn != NULL`
- * @post        1) `vTmrArmed->signature == VTMR_CONTRACT_SIGNATURE`, each
+ * @pre         2) `vTmr != NULL`
+ * @pre         3) `vTmr->signature != VTMR_CONTRACT_SIGNATURE`, the structure
+ *                  must not be used by other timer.
+ * @pre         4) `tick > 1U`
+ * @pre         5) `fn != NULL`
+ * @post        1) `vTmr->signature == VTMR_CONTRACT_SIGNATURE`, each
+ *                  @ref esVTmr structure will have valid signature after
+ *                  initialization.
+ * @iclass
+ */
+void esVTmrInitI(
+    esVTmr_T *      vTmr,
+    esTick_T        tick,
+    void (* fn)(void *),
+    void *          arg);
+
+/**@brief       Add and start a new virtual timer
+ * @param       vTmrArmed
+ *              Virtual Timer: is pointer to the timer ID structure, @ref esVTmr.
+ * @param       tick
+ *              Tick: the timer delay expressed in system ticks
+ * @param       fn
+ *              Function: is pointer to the callback function
+ * @param       arg
+ *              Argument: is pointer to the arguments of callback function
+ * @pre         1) `The kernel state < ES_KERN_INACTIVE`, see @ref states.
+ * @pre         2) `vTmr != NULL`
+ * @pre         3) `vTmr->signature != VTMR_CONTRACT_SIGNATURE`, the structure
+ *                  must not be used by other timer.
+ * @pre         4) `tick > 1U`
+ * @pre         5) `fn != NULL`
+ * @post        1) `vTmr->signature == VTMR_CONTRACT_SIGNATURE`, each
  *                  @ref esVTmr structure will have valid signature after
  *                  initialization.
  * @api
  */
-void esVTmrInitI(
+void esVTmrInit(
     esVTmr_T *      vTmr,
     esTick_T        tick,
     void (* fn)(void *),
@@ -758,10 +803,26 @@ void esVTmrInitI(
  * @param       vTmrArmed
  *              Timer: is pointer to the timer ID structure, @ref esVTmr.
  * @pre         1) `The kernel state < ES_KERN_INACTIVE`, see @ref states.
- * @pre         2) `vTmrArmed != NULL`
- * @pre         3) `vTmrArmed->signature == VTMR_CONTRACT_SIGNATURE`, the pointer
+ * @pre         2) `vTmr != NULL`
+ * @pre         3) `vTmr->signature == VTMR_CONTRACT_SIGNATURE`, the pointer
  *                  must point to a @ref esVTmr structure.
+ * @post        1) `vTmr->signature = ~VTMR_CONTRACT_SIGNATURE`, mark the
+ *                  structure as invalid.
  * @iclass
+ */
+void esVTmrTermI(
+    esVTmr_T *       vTmr);
+
+/**@brief       Cancel and remove a virtual timer
+ * @param       vTmrArmed
+ *              Timer: is pointer to the timer ID structure, @ref esVTmr.
+ * @pre         1) `The kernel state < ES_KERN_INACTIVE`, see @ref states.
+ * @pre         2) `vTmr != NULL`
+ * @pre         3) `vTmr->signature == VTMR_CONTRACT_SIGNATURE`, the pointer
+ *                  must point to a @ref esVTmr structure.
+ * @post        1) `vTmr->signature = ~VTMR_CONTRACT_SIGNATURE`, mark the
+ *                  structure as invalid.
+ * @api
  */
 void esVTmrTerm(
     esVTmr_T *       vTmr);
@@ -778,6 +839,11 @@ void esVTmrTerm(
 void esVTmrDelay(
     esTick_T        tick);
 
+PORT_C_NORETURN void esKAssert(
+    const char *    fnName,
+    const char *    expr,
+    enum esKernMsg  msg);
+
 /**@} *//*----------------------------------------------------------------*//**
  * @name        Kernel hook functions
  * @{ *//*--------------------------------------------------------------------*/
@@ -788,6 +854,9 @@ void esVTmrDelay(
  *              Function name: is pointer to the function name string where the
  *              assertion has failed. Macro will automatically fill in the
  *              function name.
+ * @param       msg
+ *              Message: is a pointer to the string containing some information
+ *              about the error.
  * @param       expr
  *              Expression: is pointer to the string containing the expression
  *              that failed to evaluate to `TRUE`.
@@ -800,8 +869,9 @@ void esVTmrDelay(
  *              the macros. After the function informs the user it **must** go
  *              into infinite loop or HALT the processor.
  */
-PORT_C_NORETURN extern void userAssert(
+extern void userAssert(
     const char *    fnName,
+    const char *    msg,
     const char *    expr);
 
 /**@brief       System timer hook function, called from system system timer ISR
@@ -835,13 +905,16 @@ extern void userKernStart(
 
 /**@brief       Thread initialization end hook function, called from esThdInit()
  *              function.
+ * @param       thd
+ *              Thread: pointer to thread Id structure that has just been
+ *              initialized.
  * @note        1) The definition of this function must be written by the user.
- * @note        2) This function is called only if @ref CFG_HOOK_THD_INIT_END is
+ * @note        2) This function is called only if @ref CFG_HOOK_THD_INIT_POST is
  *              active.
  * @details     This function is called after the thread initialization.
  */
-extern void userThdInitEnd(
-    void);
+extern void userThdInitPost(
+    esThd_T *       thd);
 
 /**@brief       Thread terminate hook function, called from esThdTerm() or when
  *              a thread terminates itself.
