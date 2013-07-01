@@ -126,8 +126,8 @@
 
 /**@brief       Thread initialization end hook function
  */
-#if !defined(CFG_HOOK_THD_INIT_END)
-# define CFG_HOOK_THD_INIT_END          0U
+#if !defined(CFG_HOOK_THD_INIT_POST)
+# define CFG_HOOK_THD_INIT_POST          0U
 #endif
 
 /**@brief       Thread termination hook function
@@ -169,8 +169,8 @@
 # error "eSolid RT Kernel: Configuration option CFG_HOOK_KERN_START is out of range."
 #endif
 
-#if ((1U != CFG_HOOK_THD_INIT_END) && (0U != CFG_HOOK_THD_INIT_END))
-# error "eSolid RT Kernel: Configuration option CFG_HOOK_THD_INIT_END is out of range."
+#if ((1U != CFG_HOOK_THD_INIT_POST) && (0U != CFG_HOOK_THD_INIT_POST))
+# error "eSolid RT Kernel: Configuration option CFG_HOOK_THD_INIT_POST is out of range."
 #endif
 
 #if ((1U != CFG_HOOK_CTX_SW) && (0U != CFG_HOOK_CTX_SW))
