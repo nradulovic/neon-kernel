@@ -168,14 +168,11 @@ static void threadExit(
  * @brief       Set Interrupt Priority
  * @param       irqN
  *              Interrupt number.
- * @param       prio
- *              Priority to set.
  * @details     The function sets the priority of an interrupt.
  * @note        The priority cannot be set for every core interrupt.
  */
 static PORT_C_INLINE void intPrioSet(
-    irqN_T          irqN,
-    uint32_t        prio);
+    irqN_T          irqN);
 
 /*=======================================================  LOCAL VARIABLES  ==*/
 /*======================================================  GLOBAL VARIABLES  ==*/
@@ -187,16 +184,13 @@ static void threadExit(
     esThdTerm(
         esThdGetId());
 
-    while (TRUE) {
-        ;
-    }
+    while (TRUE);
 }
 
 static PORT_C_INLINE void intPrioSet(
-    irqN_T          irqN,
-    uint32_t        prio) {
+    irqN_T          irqN) {
 
-    SCB->shp[((uint32_t)(irqN) & 0x0FUL) - 4U] = prio << (8U - CPU_ISR_PRIO_BITS); /* set Priority for Cortex-M  System Interrupts          */
+    SCB->shp[((uint32_t)(irqN) & 0x0FUL) - 4U] = CPU_ISR_PRIO;                  /* set Priority for Cortex-M  System Interrupts          */
 }
 
 /*===================================  GLOBAL PRIVATE FUNCTION DEFINITIONS  ==*/
@@ -224,9 +218,7 @@ PORT_C_NORETURN void portThdStart_(
         : "i"(SCB_VTOR)
         : "sp", "r0", "memory");
 
-    while (TRUE) {
-        ;
-    }
+    while (TRUE);
 }
 
 void * portCtxInit_(
@@ -256,14 +248,11 @@ void portInitEarly_(
         (CONST_SCB_AIRCR_VECTKEY << SCB_AIRCR_VECTKEY_POS) |
            (CFG_SCB_AIRCR_PRIGROUP << SCB_AIRCR_PRIGROUP_POS));                 /* Setup priority subgroup to zero bits                     */
     intPrioSet(
-        PENDSV_IRQN,
-        CFG_CRITICAL_PRIO);
+        PENDSV_IRQN);
     intPrioSet(
-        SVCALL_IRQN,
-        CFG_CRITICAL_PRIO);
+        SVCALL_IRQN);
     intPrioSet(
-        SYST_IRQN,
-        CFG_CRITICAL_PRIO);
+        SYST_IRQN);
 }
 
 /*
