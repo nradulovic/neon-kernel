@@ -89,6 +89,7 @@
  *              register.
  */
 #define PORT_ISR_IS_LAST()              portIsrIsLast_()
+
 /*------------------------------------------------------------------------*//**
  * @name        Critical section management
  * @{ *//*--------------------------------------------------------------------*/
@@ -171,7 +172,7 @@
 /**@brief       Calculate interrupt priority value
  */
 #define CPU_ISR_PRIO                                                            \
-    (CFG_CRITICAL_PRIO << (8 - CPU_ISR_PRIO_BITS))
+    ((CFG_CRITICAL_PRIO << (8 - CPU_ISR_PRIO_BITS)) & 0xFFUL)
 
 /**@brief       System Control Space Base Address.
  */
@@ -181,10 +182,12 @@
  */
 #define CPU_SCB_BASE                    (CPU_SCS_BASE + 0x0D00UL)
 
-/**@brief       Interrupt Control and State Register Base Address.
+/**@brief       Interrupt Control and State Register Base Address Offset.
  */
 #define CPU_SCB_ICSR_OFFSET             (0x04UL)
 
+/**@brief       SCB Interrupt Control State Register
+ */
 #define CPU_SCB_ICSR                                                            \
     ((volatile portReg_T *)(CPU_SCB_BASE + CPU_SCB_ICSR_OFFSET))
 
@@ -216,10 +219,12 @@
  */
 #define CPU_SYST_BASE                   (CPU_SCS_BASE + 0x0010UL)
 
-/**@brief       Control and Status Register Base Addr Offset.
+/**@brief       Control and Status Register Base Address Offset.
  */
 #define CPU_SYST_CSR_OFFSET             (0x00UL)
 
+/**@brief       SysTick Control and Status Register
+ */
 #define CPU_SYST_CSR                                                            \
     ((volatile portReg_T *)(CPU_SYST_BASE + CPU_SYST_CSR_OFFSET))
 
@@ -247,17 +252,21 @@
  */
 #define CPU_SYST_CSR_ENABLE_MSK         (1UL << CPU_SYST_CSR_ENABLE_POS)
 
-/**@brief       Control and Status Register Base Addr Offset.
+/**@brief       Control and Status Register Base Address Offset.
  */
 #define CPU_SYST_RVR_OFFSET             (0x04UL)
 
+/**@brief       SysTick Reload Value Register
+ */
 #define CPU_SYST_RVR                                                            \
     ((volatile portReg_T *)(CPU_SYST_BASE + CPU_SYST_RVR_OFFSET))
 
-/**@brief       Control and Status Register Base Addr Offset.
+/**@brief       Control and Status Register Base Address Offset.
  */
 #define CPU_SYST_CVR_OFFSET             (0x08UL)
 
+/**@brief       SysTick Current Value Register
+ */
 #define CPU_SYST_CVR                                                            \
     ((volatile portReg_T *)(CPU_SYST_BASE + CPU_SYST_CVR_OFFSET))
 
@@ -451,6 +460,7 @@ static PORT_C_INLINE_ALWAYS uint_fast8_t portFindLastSet_(
 }
 
 /**@brief       Initialize and start the system timer
+ * @inline
  */
 static PORT_C_INLINE_ALWAYS void portSysTmrInit_(
     void) {
@@ -461,12 +471,18 @@ static PORT_C_INLINE_ALWAYS void portSysTmrInit_(
     *CPU_SYST_CSR = CPU_SYST_CSR_CLKSOURCE_MSK;                                 /* SysTick uses the processor clock.                        */
 }
 
+/**@brief       Get current counter value
+ * @inline
+ */
 static PORT_C_INLINE_ALWAYS portSysTmrReg_T portSysTmrGetCVal_(
     void) {
 
     return (*CPU_SYST_CVR);
 }
 
+/**@brief       Get reload counter value
+ * @inline
+ */
 static PORT_C_INLINE_ALWAYS portSysTmrReg_T portSysTmrGetRVal_(
     void) {
 
