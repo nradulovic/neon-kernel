@@ -188,7 +188,7 @@ typedef struct esVTmr esVTmr_T;
 /**@brief       Priority Bit Map Group Index
  * @notapi
  */
-# define PRIO_BM_GRP_INDX                                                       \
+#define PRIO_BM_GRP_INDX                                                        \
     ((CFG_SCHED_PRIO_LVL + PORT_DATA_WIDTH_VAL - 1U) / PORT_DATA_WIDTH_VAL)
 
 /**@brief       Thread Queue structure
@@ -415,7 +415,8 @@ void esKernLockExit(
  * @param       stckSize
  *              Stack Size: specifies the size of allocated stack memory. Size
  *              is expressed in bytes. Please see port documentation about
- *              minimal stack size.
+ *              minimal stack size. Usage of C unary operator `sizeof` is the
+ *              recommended way of specifying stack size.
  * @param       prio
  *              Priority: is the priority of the thread. The higher the number,
  *              the higher the priority (the importance) of the thread. Several
