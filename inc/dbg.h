@@ -1,0 +1,204 @@
+/*
+ * This file is part of eSolid-Kernel
+ *
+ * Copyright (C) 2011, 2012 - Nenad Radulovic
+ *
+ * eSolid-Kernel is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * eSolid-Kernel is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with eSolid-Kernel; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin St, Fifth Floor,
+ * Boston, MA  02110-1301  USA
+ *
+ * web site:    http://blueskynet.dyndns-server.com
+ * e-mail  :    blueskyniss@gmail.com
+ *//***********************************************************************//**
+ * @file
+ * @author  	Nenad Radulovic
+ * @brief       Debug basic functionality.
+ * @addtogroup  dbg_intf
+ *********************************************************************//** @{ */
+
+#if !defined(DBG_H_)
+#define DBG_H_
+
+/*=========================================================  INCLUDE FILES  ==*/
+#include "compiler.h"
+#include "dbg_cfg.h"
+
+/*===============================================================  MACRO's  ==*/
+
+/*------------------------------------------------------------------------*//**
+ * @name        Error checking
+ *              datails see @ref errors.
+ * @{ *//*--------------------------------------------------------------------*/
+
+#if (1U == CFG_DBG_ENABLE)
+/**@brief       Generic assert macro.
+ * @param       msg
+ *              Enumerator enum esDbgMsg: enumerated kernel message.
+ * @param       expr
+ *              Condition expression which must be TRUE.
+ */
+# define ES_DBG_ASSERT(msg, expr)                                               \
+    do {                                                                        \
+        if (!(expr)) {                                                          \
+            esDbgAssert(PORT_C_FUNC, #expr, msg);                               \
+        }                                                                       \
+    } while (0U)
+
+/**@brief       Assert macro that will always execute (no conditional).
+ * @param       msg
+ *              Enumerator enum esDbgMsg: enumerated kernel message.
+ * @param       text
+ *              Pointer to string: a text which will be printed when this assert
+ *              macro is executed.
+ */
+# define ES_DBG_ASSERT_ALWAYS(msg, text)                                        \
+    do {                                                                        \
+        esDbgAssert(PORT_C_FUNC, text, msg);                                    \
+    } while (0U)
+
+#else
+# define ES_DBG_ASSERT(msg, expr)                                               \
+    (void)0
+
+# define ES_DBG_ASSERT_ALWAYS(msg, text)                                        \
+    (void)0
+#endif
+
+#if (1U == CFG_DBG_API_VALIDATION) || defined(__DOXYGEN__)
+
+/**@brief       Execute code to fulfill the contract
+ * @param       expr
+ *              Expression to be executed only if contracts need to be validated.
+ */
+# define ES_DBG_API_OBLIGATION(expr)                                            \
+    expr
+
+/**@brief       Make sure the caller has fulfilled all contract preconditions
+ * @param       expr
+ *              Expression which must be satisfied
+ */
+# define ES_DBG_API_REQUIRE(msg, expr)                                          \
+    ES_DBG_ASSERT(msg, expr)
+
+/**@brief       Make sure the callee has fulfilled all contract postconditions
+ * @param       expr
+ *              Expression which must be satisfied
+ */
+# define ES_DBG_API_ENSURE(msg, expr)                                           \
+    ES_DBG_ASSERT(msg, expr)
+
+#else
+# define ES_DBG_API_OBLIGATION(expr)                                            \
+    (void)0
+
+# define ES_DBG_API_REQUIRE(msg, expr)                                          \
+    (void)0
+
+# define ES_DBG_API_ENSURE(msg, expr)                                           \
+    (void)0
+#endif
+
+/*------------------------------------------------------  C++ extern begin  --*/
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/*============================================================  DATA TYPES  ==*/
+
+/**@brief       Debug messages
+ */
+enum esDbgMsg {
+    ES_DBG_ARG_OUT_OF_RANGE,                                                    /**< @brief Argument is out of range.                       */
+    ES_DBG_ARG_NOT_VALID,                                                       /**< @brief Argument is not valid.                          */
+    ES_DBG_ARG_NULL,                                                            /**< @brief Argument is NULL.                               */
+    ES_DBG_USAGE_FAILURE,                                                       /**< @brief Object usage failure.                           */
+    ES_DBG_NOT_ENOUGH_MEM,                                                      /**< @brief Not enough memory available.                    */
+    ES_DBG_UNKNOWN_ERROR = 0xFFFFU                                              /**< @brief Unknown error.                                  */
+};
+
+/*======================================================  GLOBAL VARIABLES  ==*/
+/*===================================================  FUNCTION PROTOTYPES  ==*/
+
+
+/**@} *//*----------------------------------------------------------------*//**
+ * @name        Error checking
+ * @brief       Some basic infrastructure for error checking
+ * @details     These macros provide basic detection of errors. For more
+ *              datails see @ref errors.
+ * @{ *//*--------------------------------------------------------------------*/
+
+/**@brief       An assertion has failed
+ * @param       fnName
+ *              Function name: is pointer to the function name string where the
+ *              assertion has failed. Macro will automatically fill in the
+ *              function name.
+ * @param       expr
+ *              Expression: is pointer to the string containing the expression
+ *              that failed to evaluate to `TRUE`.
+ * @param       msg
+ *              Message: is enum esDbgMsg containing some information about the
+ *              error.
+ * @pre         1) `NULL != fnName`
+ * @pre         2) `NULL != expr`
+ * @note        1) This function is called only if @ref CFG_DBG_API_VALIDATION
+ *              is active.
+ * @details     Function will just print the information which was given by the
+ *              macros.
+ */
+PORT_C_NORETURN void esDbgAssert(
+    const char *    fnName,
+    const char *    expr,
+    enum esDbgMsg   msg);
+
+/**@} *//*----------------------------------------------------------------*//**
+ * @name        Debug hook functions
+ * @{ *//*--------------------------------------------------------------------*/
+
+/**@brief       An assertion has failed. This function should inform the user
+ *              about failed assertion.
+ * @param       fnName
+ *              Function name: is pointer to the function name string where the
+ *              assertion has failed. Macro will automatically fill in the
+ *              function name.
+ * @param       expr
+ *              Expression: is pointer to the string containing the expression
+ *              that failed to evaluate to `TRUE`.
+ * @param       msg
+ *              Message: is a pointer to the string containing some information
+ *              about the error.
+ * @pre         1) `NULL != fnName`
+ * @pre         2) `NULL != expr`
+ * @pre         3) `NULL != msg`
+ * @note        1) The definition of this function must be written by the user.
+ * @note        2) This function is called only if @ref CFG_DBG_API_VALIDATION
+ *              is active.
+ * @note        3) The function is called with interrupts disabled.
+ * @details     Function will just print the information which was given by the
+ *              macros.
+ */
+extern void userAssert(
+    const char *    fnName,
+    const char *    expr,
+    const char *    msg);
+
+/** @} *//*-----------------------------------------------  C++ extern end  --*/
+#ifdef __cplusplus
+}
+#endif
+
+/*================================*//** @cond *//*==  CONFIGURATION ERRORS  ==*/
+/** @endcond *//** @} *//******************************************************
+ * END of dbg.h
+ ******************************************************************************/
+#endif /* DBG_H_ */
