@@ -805,6 +805,7 @@ static void vTmrImportPend(
     ES_CRITICAL_DECL();
 
     ES_CRITICAL_ENTER();
+    esKernLockEnterI();
 
     while (0U != gSysTmr.vTmrPend) {
         esVTmr_T * tmr;
@@ -816,8 +817,9 @@ static void vTmrImportPend(
         ES_CRITICAL_EXIT();
         vTmrAddArmed(
             tmr);
-        ES_CRITICAL_ENTER();
+        ES_CRITICAL_EXIT();
     }
+    esKernLockExitI();
     ES_CRITICAL_EXIT();
 }
 
