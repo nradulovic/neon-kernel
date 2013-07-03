@@ -27,7 +27,7 @@
  * @addtogroup  kern_cfg
  *********************************************************************//** @{ */
 
-#ifndef KERNEL_CONFIG_H_
+#if !defined(KERNEL_CONFIG_H_)
 #define KERNEL_CONFIG_H_
 
 /*=========================================================  INCLUDE FILES  ==*/
@@ -40,15 +40,6 @@
 /*------------------------------------------------------------------------*//**
  * @name        Kernel configuration options and settings
  * @{ *//*--------------------------------------------------------------------*/
-
-/**@brief       Enable/disable API arguments validation
- * @details     Possible values:
- *              - 0U - API validation is disabled
- *              - 1U - API validation is enabled
- */
-#if !defined(CFG_API_VALIDATION)
-# define CFG_API_VALIDATION             1U
-#endif
 
 /**@brief       Scheduler priority levels
  * @details     Possible values:
@@ -103,51 +94,59 @@
 #endif
 
 /** @} *//*---------------------------------------------------------------*//**
- * @name        Kernel hooks
+ * @name        Kernel pre hooks
  * @{ *//*--------------------------------------------------------------------*/
 
 /**@brief       System timer event hook function
  */
-#if !defined(CFG_HOOK_SYSTMR_EVENT)
-# define CFG_HOOK_SYSTMR_EVENT          0U
+#if !defined(CFG_HOOK_PRE_SYSTMR_EVENT)
+# define CFG_HOOK_PRE_SYSTMR_EVENT      0U
 #endif
 
-/**@brief       Kernel initialization hook function
+/**@brief       Pre kernel initialization hook function
  */
-#if !defined(CFG_HOOK_KERN_INIT)
-# define CFG_HOOK_KERN_INIT             0U
+#if !defined(CFG_HOOK_PRE_KERN_INIT)
+# define CFG_HOOK_PRE_KERN_INIT         0U
 #endif
 
-/**@brief       Kernel start hook function
+/**@brief       Post kernel initialization hook function
  */
-#if !defined(CFG_HOOK_KERN_START)
-# define CFG_HOOK_KERN_START            0U
+#if !defined(CFG_HOOK_PORT_KERN_INIT)
+# define CFG_HOOK_POST_KERN_INIT        0U
 #endif
 
-/**@brief       Thread initialization end hook function
+/**@brief       Pre kernel start hook function
  */
-#if !defined(CFG_HOOK_THD_INIT_POST)
-# define CFG_HOOK_THD_INIT_POST          0U
+#if !defined(CFG_HOOK_PRE_KERN_START)
+# define CFG_HOOK_PRE_KERN_START        0U
 #endif
 
-/**@brief       Thread termination hook function
+/**@brief       Post thread initialization hook function
  */
-#if !defined(CFG_HOOK_THD_TERM)
-# define CFG_HOOK_THD_TERM              0U
+#if !defined(CFG_HOOK_POST_THD_INIT)
+# define CFG_HOOK_POST_THD_INIT         0U
 #endif
 
-/**@brief       Context switch hook function
+/**@brief       Pre thread termination hook function
  */
-#if !defined(CFG_HOOK_CTX_SW)
-# define CFG_HOOK_CTX_SW                0U
+#if !defined(CFG_HOOK_PRE_THD_TERM)
+# define CFG_HOOK_PRE_THD_TERM          0U
+#endif
+
+/**@brief       Pre idle hook function
+ */
+#if !defined(CFG_HOOK_PRE_IDLE)
+# define CFG_HOOK_PRE_IDLE              0U
+#endif
+
+/**@brief       Pre context switch hook function
+ */
+#if !defined(CFG_HOOK_PRE_CTX_SW)
+# define CFG_HOOK_PRE_CTX_SW            0U
 #endif
 
 /** @} *//*-------------------------------------------------------------------*/
 /*================================*//** @cond *//*==  CONFIGURATION ERRORS  ==*/
-
-#if ((1U != CFG_API_VALIDATION) && (0U != CFG_API_VALIDATION))
-# error "eSolid RT Kernel: Configuration option CFG_API_VALIDATION is out of range."
-#endif
 
 #if ((3U > CFG_SCHED_PRIO_LVL) || (256U < CFG_SCHED_PRIO_LVL))
 # error "eSolid RT Kernel: Configuration option CFG_SCHED_PRIO_LVL is out of range."
@@ -157,24 +156,40 @@
 # error "eSolid RT Kernel: Configuration option CFG_SCHED_PRIO_LVL must be enabled when CFG_SYSTMR_ADAPTIVE_MODE is enabled, too."
 #endif
 
-#if ((1U != CFG_HOOK_SYSTMR_EVENT) && (0U != CFG_HOOK_SYSTMR_EVENT))
-# error "eSolid RT Kernel: Configuration option CFG_HOOK_SYSTMR_EVENT is out of range."
+#if ((1U != CFG_HOOK_PRE_SYSTMR_EVENT) && (0U != CFG_HOOK_PRE_SYSTMR_EVENT))
+# error "eSolid RT Kernel: Configuration option CFG_HOOK_PRE_SYSTMR_EVENT is out of range."
 #endif
 
-#if ((1U != CFG_HOOK_KERN_INIT) && (0U != CFG_HOOK_KERN_INIT))
-# error "eSolid RT Kernel: Configuration option CFG_HOOK_KERN_INIT is out of range."
+#if ((1U != CFG_HOOK_PRE_KERN_INIT) && (0U != CFG_HOOK_PRE_KERN_INIT))
+# error "eSolid RT Kernel: Configuration option CFG_HOOK_PRE_KERN_INIT is out of range."
 #endif
 
-#if ((1U != CFG_HOOK_KERN_START) && (0U != CFG_HOOK_KERN_START))
-# error "eSolid RT Kernel: Configuration option CFG_HOOK_KERN_START is out of range."
+#if ((1U != CFG_HOOK_POST_KERN_INIT) && (0U != CFG_HOOK_POST_KERN_INIT))
+# error "eSolid RT Kernel: Configuration option CFG_HOOK_POST_KERN_INIT is out of range."
 #endif
 
-#if ((1U != CFG_HOOK_THD_INIT_POST) && (0U != CFG_HOOK_THD_INIT_POST))
-# error "eSolid RT Kernel: Configuration option CFG_HOOK_THD_INIT_POST is out of range."
+#if ((1U != CFG_HOOK_PRE_KERN_START) && (0U != CFG_HOOK_PRE_KERN_START))
+# error "eSolid RT Kernel: Configuration option CFG_HOOK_PRE_KERN_START is out of range."
 #endif
 
-#if ((1U != CFG_HOOK_CTX_SW) && (0U != CFG_HOOK_CTX_SW))
-# error "eSolid RT Kernel: Configuration option CFG_HOOK_CTX_SW is out of range."
+#if ((1U != CFG_HOOK_POST_THD_INIT) && (0U != CFG_HOOK_POST_THD_INIT))
+# error "eSolid RT Kernel: Configuration option CFG_HOOK_POST_THD_INIT is out of range."
+#endif
+
+#if ((1U != CFG_HOOK_PRE_THD_TERM) && (0U != CFG_HOOK_PRE_THD_TERM))
+# error "eSolid RT Kernel: Configuration option CFG_HOOK_PRE_THD_TERM is out of range."
+#endif
+
+#if ((1U != CFG_HOOK_PRE_THD_TERM) && (0U != CFG_HOOK_PRE_THD_TERM))
+# error "eSolid RT Kernel: Configuration option CFG_HOOK_PRE_THD_TERM is out of range."
+#endif
+
+#if ((1U != CFG_HOOK_PRE_IDLE) && (0U != CFG_HOOK_PRE_IDLE))
+# error "eSolid RT Kernel: Configuration option CFG_HOOK_PRE_IDLE is out of range."
+#endif
+
+#if ((1U != CFG_HOOK_PRE_CTX_SW) && (0U != CFG_HOOK_PRE_CTX_SW))
+# error "eSolid RT Kernel: Configuration option CFG_HOOK_PRE_CTX_SW is out of range."
 #endif
 
 #if (0 > CFG_SYSTMR_TICK_TYPE) || (2U < CFG_SYSTMR_TICK_TYPE)
