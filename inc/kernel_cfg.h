@@ -196,16 +196,6 @@
 # error "eSolid RT Kernel: Configuration option CFG_SYSTMR_TICK_TYPE is out of range."
 #endif
 
-#if (2U == CFG_SYSTMR_TICK_TYPE) || defined(__DOXYGEN__)
-/**@brief       Timer tick type
- */
-typedef uint_fast32_t esTick_T;
-#elif (1U == CFG_SYSTMR_TICK_TYPE)
-typedef uint_fast16_t esTick_T;
-#elif (0U == CFG_SYSTMR_TICK_TYPE)
-typedef uint_fast8_t esTick_T;
-#endif
-
 /** @endcond *//** @} *//******************************************************
  * END of kernel_config.h
  ******************************************************************************/

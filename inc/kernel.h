@@ -148,6 +148,16 @@ typedef portStck_T esStck_T;
  * @name        Virtual Timer management
  * @{ *//*--------------------------------------------------------------------*/
 
+/**@brief       Timer tick type
+ */
+#if (2U == CFG_SYSTMR_TICK_TYPE) || defined(__DOXYGEN__)
+typedef uint_fast32_t esTick_T;
+#elif (1U == CFG_SYSTMR_TICK_TYPE)
+typedef uint_fast16_t esTick_T;
+#elif (0U == CFG_SYSTMR_TICK_TYPE)
+typedef uint_fast8_t esTick_T;
+#endif
+
 /**@brief       Virtual Timer structure
  */
 struct esVTmr {
