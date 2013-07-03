@@ -27,13 +27,14 @@
  * @addtogroup  kern_intf
  *********************************************************************//** @{ */
 
-#ifndef KERNEL_H_
+#if !defined(KERNEL_H_)
 #define KERNEL_H_
 
 /*=========================================================  INCLUDE FILES  ==*/
 #include "compiler.h"
 #include "kernel_cfg.h"
 #include "cpu.h"
+#include "dbg.h"
 
 /*===============================================================  MACRO's  ==*/
 
@@ -82,66 +83,15 @@
         PORT_CRITICAL_EXIT();                                                   \
     } while (0U)
 
-/*------------------------------------------------------------------------*//**
- * @name        Error checking
- * @brief       Some basic infrastructure for error checking
- * @details     These macros provide basic detection of errors. For more
- *              datails see @ref errors.
- * @{ *//*--------------------------------------------------------------------*/
-
-#if (1U == CFG_API_VALIDATION) || defined(__DOXYGEN__)
-
-/**@brief       Generic assert macro
- * @param       expr
- *              Expression which must be TRUE
- */
-# define ES_KERN_ASSERT(msg, expr)                                              \
-    do {                                                                        \
-        if (!(expr)) {                                                          \
-            esKAssert(PORT_C_FUNC, #expr, msg);                                 \
-        }                                                                       \
-    } while (0U)
-
-/**@brief       Execute code to fulfill the contract
- * @param       expr
- *              Expression to be executed only if contracts need to be validated.
- */
-# define ES_KERN_API_OBLIGATION(expr)                                           \
-    expr
-
-/**@brief       Make sure the caller has fulfilled all contract preconditions
- * @param       expr
- *              Expression which must be satisfied
- */
-# define ES_KERN_API_REQUIRE(msg, expr)                                         \
-    ES_KERN_ASSERT(msg, expr)
-
-/**@brief       Make sure the callee has fulfilled all contract postconditions
- * @param       expr
- *              Expression which must be satisfied
- */
-# define ES_KERN_API_ENSURE(msg, expr)                                          \
-    ES_KERN_ASSERT(msg, expr)
-
-#else
-# define ES_KERN_ASSERT(msg, expr)                                              \
-    (void)0
-
-# define ES_KERN_API_OBLIGATION(expr)                                           \
-    (void)0
-
-# define ES_KERN_API_REQUIRE(msg, expr)                                         \
-    (void)0
-
-# define ES_KERN_API_ENSURE(msg, expr)                                          \
-    (void)0
-#endif
-
 /**@} *//*----------------------------------------------------------------*//**
  * @name        Thread management
  * @{ *//*--------------------------------------------------------------------*/
 
-/**@brief       Converts the required stack elements into the stack array index
+/**@brief       Converts the required stack elements into the stack array index.
+ * @param       elem
+ *              Number of stack elements: the stack size is expressed in number
+ *              of elements regardles of the size of port general purpose
+ *              registers.
  */
 #define ES_STCK_SIZE(elem)              PORT_STCK_SIZE(elem)
 
@@ -151,15 +101,6 @@ extern "C" {
 #endif
 
 /*============================================================  DATA TYPES  ==*/
-
-enum esKernMsg {
-    ES_KERN_MSG_ARG_OUT_OF_RANGE,
-    ES_KERN_MSG_ARG_NOT_VALID,
-    ES_KERN_MSG_ARG_NULL,
-    ES_KERN_MSG_USAGE_FAILURE,
-    ES_KERN_MSG_NOT_ENOUGH_MEM,
-    ES_KERN_MSG_UNKNOWN_ERROR = 0xFFFFU
-};
 
 /*------------------------------------------------------------------------*//**
  * @name        Thread management
@@ -190,7 +131,7 @@ struct esThd {
     uint_fast8_t    cprio;                                                      /**< @brief Constant Thread Priority level                  */
     uint_fast8_t    qCnt;                                                       /**< @brief Quantum counter                                 */
     uint_fast8_t    qRld;                                                       /**< @brief Quantum counter reload value                    */
-#if (1U == CFG_API_VALIDATION) || defined(__DOXYGEN__)
+#if (1U == CFG_DBG_API_VALIDATION) || defined(__DOXYGEN__)
     portReg_T		signature;                                                  /**< @brief Thread structure signature, see @ref errors     */
 #endif
 };
@@ -221,7 +162,7 @@ struct esVTmr {
     esTick_T        rtick;                                                      /**< @brief Relative tick value                             */
     void (* fn)(void *);                                                        /**< @brief Callback function pointer                       */
     void *          arg;                                                        /**< @brief Callback function argument                      */
-#if (1U == CFG_API_VALIDATION) || defined(__DOXYGEN__)
+#if (1U == CFG_DBG_API_VALIDATION) || defined(__DOXYGEN__)
     portReg_T       signature;                                                  /**< @brief Timer structure signature, see @ref errors      */
 #endif
 };
@@ -260,7 +201,7 @@ struct esThdQ {
         struct esThd *  head;                                                   /**< @brief Points to the first thread in linked list.      */
         struct esThd *  next;                                                   /**< @brief Points to the next thread in linked list.       */
     }               grp[CFG_SCHED_PRIO_LVL];                                    /**< @brief Array of thread linked list sentinel structures.*/
-#if (1U == CFG_API_VALIDATION) || defined(__DOXYGEN__)
+#if (1U == CFG_DBG_API_VALIDATION) || defined(__DOXYGEN__)
     portReg_T       signature;                                                  /**< @brief Thread Queue struct signature, see @ref errors. */
 #endif
 };
@@ -471,10 +412,12 @@ void esKernLockExit(
  *              threads can have the same priority.
  * @pre         1) `The kernel state ES_KERN_INACTIVE`, see @ref states.
  * @pre         2) `thd != NULL`
- * @pre         3) `thdf != NULL`
- * @pre         4) `stckSize >= PORT_STCK_MINSIZE_VAL`, see
+ * @pre         3) `thd->signature != THD_CONTRACT_SIGNATURE`, the thread
+ *                  structure can't be initialized more than once.
+ * @pre         4) `thdf != NULL`
+ * @pre         5) `stckSize >= PORT_STCK_MINSIZE_VAL`, see
  *                  @ref PORT_STCK_MINSIZE_VAL.
- * @pre         5) `0 <= prio <= CFG_SCHED_PRIO_LVL`, see
+ * @pre         6) `0 <= prio <= CFG_SCHED_PRIO_LVL`, see
  *                  @ref CFG_SCHED_PRIO_LVL.
  * @post        1) `thd->signature == THD_CONTRACT_SIGNATURE`, each @ref esThd
  *                  structure will have valid signature after initialization.
@@ -501,10 +444,13 @@ void esThdInit(
  * @pre         1) `The kernel state ES_KERN_INACTIVE`, see @ref states.
  * @pre         2) `thd != NULL`
  * @pre         3) `thd->signature == THD_CONTRACT_SIGNATURE`, the pointer must
- *                  point to a @ref esThd structure.
+ *                  point to a valid @ref esThd structure.
  * @pre         4) `(thd->thdL.q == NULL) OR (thd->thdL.q == gRdyQueue)`, thread
  *                  must be either in Ready Threads Queue or not be in any queue
  *                  (e.g. not waiting for a synchronization mechanism).
+ * @post        1) `thd->signature == ~THD_CONTRACT_SIGNATURE`,  each
+ *                  @ref esThd structure will have invalid signature after
+ *                  termination.
  * @api
  */
 void esThdTerm(
@@ -542,7 +488,7 @@ static PORT_C_INLINE uint8_t esThdGetPrio(
  * @pre         1) `The kernel state < ES_KERN_INACTIVE`, see @ref states.
  * @pre         2) `thd != NULL`
  * @pre         3) `thd->signature == THD_CONTRACT_SIGNATURE`, the pointer must
- *                  point to a @ref esThd structure.
+ *                  point to a valid @ref esThd structure.
  * @pre         4) `0 <= prio <= CFG_SCHED_PRIO_LVL`, see
  *                  @ref CFG_SCHED_PRIO_LVL.
  * @iclass
@@ -554,6 +500,10 @@ void esThdSetPrioI(
 /**@brief       Post to thread semaphore
  * @param       thd
  *              Pointer to the thread ID structure
+ * @pre         1) `The kernel state < ES_KERN_INACTIVE`, see @ref states.
+ * @pre         2) `thd != NULL`
+ * @pre         3) `thd->signature == THD_CONTRACT_SIGNATURE`, the pointer must
+ *                  point to a valid @ref esThd structure.
  * @iclass
  */
 void esThdPostI(
@@ -562,18 +512,24 @@ void esThdPostI(
 /**@brief       Post to thread semaphore
  * @param       thd
  *              Pointer to the thread ID structure
+ * @pre         1) `The kernel state < ES_KERN_INACTIVE`, see @ref states.
+ * @pre         2) `thd != NULL`
+ * @pre         3) `thd->signature == THD_CONTRACT_SIGNATURE`, the pointer must
+ *                  point to a valid @ref esThd structure.
  * @api
  */
 void esThdPost(
     esThd_T *       thd);
 
 /**@brief       Wait for thread semaphore
+ * @pre         1) `The kernel state < ES_KERN_INACTIVE`, see @ref states.
  * @iclass
  */
 void esThdWaitI(
     void);
 
 /**@brief       Wait for thread semaphore
+ * @pre         1) `The kernel state < ES_KERN_INACTIVE`, see @ref states.
  * @api
  */
 void esThdWait(
@@ -588,12 +544,29 @@ void esThdWait(
  *              Thread Queue: is a pointer to thread queue structure,
  *              @ref esThdQ.
  * @pre         1) `thdQ != NULL`
+ * @pre         2) `thdQ->signature != THDQ_CONTRACT_SIGNATURE`, the thread
+ *                  queue structure can't be initialized more than once.
  * @post        1) `thdQ->signature == THDQ_CONTRACT_SIGNATURE`, each
  *                  @ref esThdQ structure will have valid signature after
  *                  initialization.
  * @api
  */
 void esThdQInit(
+    esThdQ_T *      thdQ);
+
+/**@brief       Terminate Thread Queue
+ * @param       thdQ
+ *              Thread Queue: is a pointer to thread queue structure,
+ *              @ref esThdQ.
+ * @pre         1) `thdQ != NULL`
+ * @pre         2) `thdQ->signature == THDQ_CONTRACT_SIGNATURE`, the thread
+ *                  queue structure must be already initialized.
+ * @post        1) `thdQ->signature == ~THDQ_CONTRACT_SIGNATURE`, each
+ *                  @ref esThdQ structure will have invalid signature after
+ *                  termination.
+ * @api
+ */
+void esThdQTerm(
     esThdQ_T *      thdQ);
 
 /**@brief       Add a thread to the Thread Queue
@@ -604,10 +577,10 @@ void esThdQInit(
  *              Thread: is a pointer to the thread ID structure, @ref esThd.
  * @pre         1) `thdQ != NULL`
  * @pre         2) `thdQ->signature == THDQ_CONTRACT_SIGNATURE`, the pointer
- *                  must point to a @ref esThdQ structure.
+ *                  must point to a valid @ref esThdQ structure.
  * @pre         3) `thd != NULL`
  * @pre         4) `thd->signature == THD_CONTRACT_SIGNATURE`, the pointer must
- *                  point to a @ref esThd structure.
+ *                  point to a valid @ref esThd structure.
  * @pre         5) `thd->thdL.q == NULL`, thread must not be in any queue.
  * @pre         6) `0 <= thd->prio <= CFG_SCHED_PRIO_LVL`, see
  *                  @ref CFG_SCHED_PRIO_LVL.
@@ -626,10 +599,10 @@ void esThdQAddI(
  *              Thread: is a pointer to the thread ID structure, @ref esThd.
  * @pre         1) `thd != NULL`
  * @pre         2) `thd->signature == THD_CONTRACT_SIGNATURE`, the pointer must
- *                  point to a @ref esThd structure.
+ *                  point to a valid @ref esThd structure.
  * @pre         3) `thdQ != NULL`
  * @pre         4) `thdQ->signature == THDQ_CONTRACT_SIGNATURE`, the pointer
- *                  must point to a @ref esThdQ structure.
+ *                  must point to a valid @ref esThdQ structure.
  * @pre         5) `thd->thdL.q == thdQ`, thread must be in the `thdQ` queue.
  * @pre         6) `0 <= thd->prio <= CFG_SCHED_PRIO_LVL`, see
  *                  @ref CFG_SCHED_PRIO_LVL.
@@ -646,7 +619,7 @@ void esThdQRmI(
  * @return      A pointer to the thread ID structure with the highest priority.
  * @pre         1) `thdQ != NULL`
  * @pre         2) `thdQ->signature == THDQ_CONTRACT_SIGNATURE`, the pointer
- *                  must point to a @ref esThdQ structure.
+ *                  must point to a valid @ref esThdQ structure.
  * @pre         3) `prioBM != 0`, priority bit map must not be empty
  * @iclass
  */
@@ -662,7 +635,7 @@ esThd_T * esThdQFetchI(
  * @return      Pointer to the next thread in queue.
  * @pre         1) `thdQ != NULL`
  * @pre         2) `thdQ->signature == THDQ_CONTRACT_SIGNATURE`, the pointer
- *                  must point to a @ref esThdQ structure.
+ *                  must point to a valid @ref esThdQ structure.
  * @pre         3) `0 <= prio <= CFG_SCHED_PRIO_LVL`, see
  *                  @ref CFG_SCHED_PRIO_LVL.
  * @pre         4) `sentinel != NULL`, at least one thread must be in the
@@ -682,7 +655,7 @@ esThd_T * esThdQFetchRotateI(
  *  @retval     FALSE - thread queue is not empty
  * @pre         1) `thdQ != NULL`
  * @pre         2) `thdQ->signature == THDQ_CONTRACT_SIGNATURE`, the pointer
- *                  must point to a @ref esThdQ structure.
+ *                  must point to a valid @ref esThdQ structure.
  * @api
  */
 bool_T esThdQIsEmpty(
@@ -699,7 +672,7 @@ bool_T esThdQIsEmpty(
  * @pre         1) `The kernel state < ES_KERN_INACTIVE`, see @ref states.
  * @pre         2) `thd != NULL`
  * @pre         3) `thd->signature == THD_CONTRACT_SIGNATURE`, the pointer must
- *                  point to a @ref esThd structure.
+ *                  point to a valid @ref esThd structure.
  * @pre         4) `thd->thdL.q == NULL`, thread must not be in a queue.
  * @iclass
  */
@@ -713,7 +686,7 @@ void esSchedRdyAddI(
  * @pre         1) `The kernel state < ES_KERN_INACTIVE`, see @ref states.
  * @pre         2) `thd != NULL`
  * @pre         3) `thd->signature == THD_CONTRACT_SIGNATURE`, the pointer must
- *                  point to a @ref esThd structure.
+ *                  point to a valid @ref esThd structure.
  * @pre         4) `thd->thdL.q == &gRdyQueue`, thread must be in Ready Threads
  *                  queue.
  * @iclass
@@ -724,9 +697,6 @@ void esSchedRdyRmI(
 /**@brief       Force the scheduler invocation which will evaluate all ready
  *              threads and switch to ready thread with the highest priority
  * @pre         1) `The kernel state < ES_KERN_INACTIVE`, see @ref states.
- * @warning     Scheduler will have undefined behavior if there is no ready
- *              thread to run (e.g. empty @ref gRdyQueue) at the time it is
- *              invoked.
  * @iclass
  */
 void esSchedYieldI(
@@ -735,9 +705,6 @@ void esSchedYieldI(
 /**@brief       Force the scheduler invocation which will evaluate all ready
  *              threads and switch to ready thread with the highest priority
  * @pre         1) `The kernel state < ES_KERN_INACTIVE`, see @ref states.
- * @warning     Scheduler will have undefined behavior if there is no ready
- *              thread to run (e.g. empty @ref gRdyQueue) at the time it is
- *              invoked.
  * @iclass
  */
 void esSchedYieldIsrI(
@@ -758,8 +725,8 @@ void esSchedYieldIsrI(
  *              Argument: is pointer to the arguments of callback function
  * @pre         1) `The kernel state < ES_KERN_INACTIVE`, see @ref states.
  * @pre         2) `vTmr != NULL`
- * @pre         3) `vTmr->signature != VTMR_CONTRACT_SIGNATURE`, the structure
- *                  must not be used by other timer.
+ * @pre         3) `vTmr->signature != VTMR_CONTRACT_SIGNATURE`, the timer
+ *                  structure can't be initialized more than once.
  * @pre         4) `tick > 1U`
  * @pre         5) `fn != NULL`
  * @post        1) `vTmr->signature == VTMR_CONTRACT_SIGNATURE`, each
@@ -784,8 +751,8 @@ void esVTmrInitI(
  *              Argument: is pointer to the arguments of callback function
  * @pre         1) `The kernel state < ES_KERN_INACTIVE`, see @ref states.
  * @pre         2) `vTmr != NULL`
- * @pre         3) `vTmr->signature != VTMR_CONTRACT_SIGNATURE`, the structure
- *                  must not be used by other timer.
+ * @pre         3) `vTmr->signature != VTMR_CONTRACT_SIGNATURE`, the timer
+ *                  structure can't be initialized more than once.
  * @pre         4) `tick > 1U`
  * @pre         5) `fn != NULL`
  * @post        1) `vTmr->signature == VTMR_CONTRACT_SIGNATURE`, each
@@ -805,9 +772,10 @@ void esVTmrInit(
  * @pre         1) `The kernel state < ES_KERN_INACTIVE`, see @ref states.
  * @pre         2) `vTmr != NULL`
  * @pre         3) `vTmr->signature == VTMR_CONTRACT_SIGNATURE`, the pointer
- *                  must point to a @ref esVTmr structure.
- * @post        1) `vTmr->signature = ~VTMR_CONTRACT_SIGNATURE`, mark the
- *                  structure as invalid.
+ *                  must point to a valid @ref esVTmr structure.
+ * @post        1) `vTmr->signature = ~VTMR_CONTRACT_SIGNATURE`, each
+ *                  @ref esVTmr structure will have invalid signature after
+ *                  termination.
  * @iclass
  */
 void esVTmrTermI(
@@ -819,9 +787,10 @@ void esVTmrTermI(
  * @pre         1) `The kernel state < ES_KERN_INACTIVE`, see @ref states.
  * @pre         2) `vTmr != NULL`
  * @pre         3) `vTmr->signature == VTMR_CONTRACT_SIGNATURE`, the pointer
- *                  must point to a @ref esVTmr structure.
- * @post        1) `vTmr->signature = ~VTMR_CONTRACT_SIGNATURE`, mark the
- *                  structure as invalid.
+ *                  must point to a valid @ref esVTmr structure.
+ * @post        1) `vTmr->signature = ~VTMR_CONTRACT_SIGNATURE`, each
+ *                  @ref esVTmr structure will have invalid signature after
+ *                  termination.
  * @api
  */
 void esVTmrTerm(
@@ -834,75 +803,50 @@ void esVTmrTerm(
  *              specified in argument `tick` and put the calling thread into
  *              `sleep` state. When timeout expires the thread will be placed
  *              back into `ready` state.
+ * @pre         1) `tick > 1U`
  * @api
  */
 void esVTmrDelay(
     esTick_T        tick);
 
-PORT_C_NORETURN void esKAssert(
-    const char *    fnName,
-    const char *    expr,
-    enum esKernMsg  msg);
-
 /**@} *//*----------------------------------------------------------------*//**
  * @name        Kernel hook functions
+ * @note        1) The definition of this functions must be written by the user.
  * @{ *//*--------------------------------------------------------------------*/
 
-/**@brief       An assertion has failed. This function should inform the user
- *              about failed assertion.
- * @param       fnName
- *              Function name: is pointer to the function name string where the
- *              assertion has failed. Macro will automatically fill in the
- *              function name.
- * @param       msg
- *              Message: is a pointer to the string containing some information
- *              about the error.
- * @param       expr
- *              Expression: is pointer to the string containing the expression
- *              that failed to evaluate to `TRUE`.
- * @pre         1) `NULL != fnName`
- * @pre         2) `NULL != msg`
- * @pre         3) `NULL != expr`
- * @note        1) The definition of this function must be written by the user.
- * @note        2) This function is called only if @ref CFG_API_VALIDATION is
- *              active.
- * @note        3) The function is called with interrupts disabled.
- * @details     Function will just print the information which was given by
- *              the macros. After the function informs the user it **must** go
- *              into infinite loop or HALT the processor.
- */
-extern void userAssert(
-    const char *    fnName,
-    const char *    msg,
-    const char *    expr);
-
 /**@brief       System timer hook function, called from system system timer ISR
- *              function.
- * @note        1) The definition of this function must be written by the user.
- * @note        2) This function is called only if @ref CFG_HOOK_SYSTMR_EVENT is
- *              active.
+ *              function before the kernel functions.
+ * @note        1) This function is called only if
+ *              @ref CFG_HOOK_PRE_SYSTMR_EVENT is active.
  * @details     This function is called whenever a system event is generated.
  */
-extern void userSysTmr(
+extern void userPreSysTmr(
     void);
 
 /**@brief       Kernel initialization hook function, called from esKernInit()
- *              function.
- * @note        1) The definition of this function must be written by the user.
- * @note        2) This function is called only if @ref CFG_HOOK_KERN_INIT is
- *              active.
+ *              function before kernel initialization.
+ * @note        1) This function is called only if @ref CFG_HOOK_PRE_KERN_INIT
+ *              is active.
  * @details     This function is called before the kernel initialization.
  */
-extern void userKernInit(
+extern void userPreKernInit(
+    void);
+
+/**@brief       Kernel initialization hook function, called from esKernInit()
+ *              function after kernel initialization.
+ * @note        1) This function is called only if
+ *              @ref CFG_HOOK_POST_KERN_INIT is active.
+ * @details     This function is called after the kernel initialization.
+ */
+extern void userPostKernInit(
     void);
 
 /**@brief       Kernel start hook function, called from esKernStart() function.
- * @note        1) The definition of this function must be written by the user.
- * @note        2) This function is called only if @ref CFG_HOOK_KERN_START is
- *              active.
+ * @note        1) This function is called only if @ref CFG_HOOK_PRE_KERN_START
+ *              is active.
  * @details     This function is called before kernel start.
  */
-extern void userKernStart(
+extern void userPreKernStart(
     void);
 
 /**@brief       Thread initialization end hook function, called from esThdInit()
@@ -910,35 +854,39 @@ extern void userKernStart(
  * @param       thd
  *              Thread: pointer to thread Id structure that has just been
  *              initialized.
- * @note        1) The definition of this function must be written by the user.
- * @note        2) This function is called only if @ref CFG_HOOK_THD_INIT_POST is
- *              active.
+ * @note        1) This function is called only if @ref CFG_HOOK_POST_THD_INIT
+ *              is active.
  * @details     This function is called after the thread initialization.
  */
-extern void userThdInitPost(
+extern void userPostThdInit(
     esThd_T *       thd);
 
 /**@brief       Thread terminate hook function, called from esThdTerm() or when
  *              a thread terminates itself.
- * @note        1) The definition of this function must be written by the user.
- * @note        2) This function is called only if @ref CFG_HOOK_THD_TERM is
+ * @note        1) This function is called only if @ref CFG_HOOK_PRE_THD_TERM is
  *              active.
  */
-extern void userThdTerm(
+extern void userPreThdTerm(
+    void);
+
+/**@brief       Pre Idle hook function, called from idle thread.
+ * @note        1) This function is called only if @ref CFG_HOOK_PRE_IDLE is
+ *              active.
+ */
+extern void userPreIdle(
     void);
 
 /**@brief       Kernel context switch hook function, called from esSchedYieldI()
- *              and esSchedYieldIsrI() functions.
+ *              and esSchedYieldIsrI() functions just before context switch.
  * @param       oldThd
  *              Pointer to the thread being switched out.
  * @param       newThd
  *              Pointer to the thread being switched in.
- * @note        1) The definition of this function must be written by the user.
- * @note        2) This function is called only if @ref CFG_HOOK_CTX_SW is
+ * @note        1) This function is called only if @ref CFG_HOOK_PRE_CTX_SW is
  *              active.
  * @details     This function is called at each context switch.
  */
-extern void userCtxSw(
+extern void userPreCtxSw(
     esThd_T *       oldThd,
     esThd_T *       newThd);
 
