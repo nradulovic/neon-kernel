@@ -28,7 +28,7 @@
  * @addtogroup  sem_intf
  *********************************************************************//** @{ */
 
-#ifndef SEMAPHORE_H_
+#if !defined(SEMAPHORE_H_)
 #define SEMAPHORE_H_
 
 /*=========================================================  INCLUDE FILES  ==*/
