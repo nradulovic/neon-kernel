@@ -158,7 +158,7 @@ enum esKernMsg {
     ES_KERN_MSG_ARG_NULL,
     ES_KERN_MSG_USAGE_FAILURE,
     ES_KERN_MSG_NOT_ENOUGH_MEM,
-    ES_KERN_MSG_UNKNOWN_ERROR
+    ES_KERN_MSG_UNKNOWN_ERROR = 0xFFFFU
 };
 
 /*------------------------------------------------------------------------*//**
@@ -861,10 +861,12 @@ PORT_C_NORETURN void esKAssert(
  *              Expression: is pointer to the string containing the expression
  *              that failed to evaluate to `TRUE`.
  * @pre         1) `NULL != fnName`
- * @pre         2) `NULL != expr`
+ * @pre         2) `NULL != msg`
+ * @pre         3) `NULL != expr`
  * @note        1) The definition of this function must be written by the user.
  * @note        2) This function is called only if @ref CFG_API_VALIDATION is
  *              active.
+ * @note        3) The function is called with interrupts disabled.
  * @details     Function will just print the information which was given by
  *              the macros. After the function informs the user it **must** go
  *              into infinite loop or HALT the processor.

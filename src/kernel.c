@@ -1536,6 +1536,7 @@ PORT_C_NORETURN void esKAssert(
 
     const char * assertText;
 
+    PORT_INT_DISABLE();
     switch (msg) {
 
         case ES_KERN_MSG_ARG_OUT_OF_RANGE : {
