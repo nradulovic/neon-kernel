@@ -75,6 +75,11 @@
     (void)0
 #endif
 
+#if (1U == CFG_DBG_INTERNAL_CHECK)
+# define ES_DBG_INTERNAL(msg, expr)                                             \
+    ES_DBG_ASSERT(msg, expr)
+#endif
+
 #if (1U == CFG_DBG_API_VALIDATION) || defined(__DOXYGEN__)
 
 /**@brief       Execute code to fulfill the contract
@@ -119,9 +124,9 @@ extern "C" {
 /**@brief       Debug messages
  */
 enum esDbgMsg {
-    ES_DBG_ARG_OUT_OF_RANGE,                                                    /**< @brief Argument is out of range.                       */
-    ES_DBG_ARG_NOT_VALID,                                                       /**< @brief Argument is not valid.                          */
-    ES_DBG_ARG_NULL,                                                            /**< @brief Argument is NULL.                               */
+    ES_DBG_OUT_OF_RANGE,                                                    /**< @brief Argument is out of range.                       */
+    ES_DBG_OBJECT_NOT_VALID,                                                       /**< @brief Argument is not valid.                          */
+    ES_DBG_POINTER_NULL,                                                            /**< @brief Argument is NULL.                               */
     ES_DBG_USAGE_FAILURE,                                                       /**< @brief Object usage failure.                           */
     ES_DBG_NOT_ENOUGH_MEM,                                                      /**< @brief Not enough memory available.                    */
     ES_DBG_UNKNOWN_ERROR = 0xFFFFU                                              /**< @brief Unknown error.                                  */
@@ -155,6 +160,7 @@ enum esDbgMsg {
  *              is active.
  * @details     Function will just print the information which was given by the
  *              macros.
+ * @notapi
  */
 PORT_C_NORETURN void esDbgAssert(
     const char *    fnName,
@@ -163,6 +169,7 @@ PORT_C_NORETURN void esDbgAssert(
 
 /**@} *//*----------------------------------------------------------------*//**
  * @name        Debug hook functions
+ * @note        1) The definition of this functions must be written by the user.
  * @{ *//*--------------------------------------------------------------------*/
 
 /**@brief       An assertion has failed. This function should inform the user
@@ -180,10 +187,8 @@ PORT_C_NORETURN void esDbgAssert(
  * @pre         1) `NULL != fnName`
  * @pre         2) `NULL != expr`
  * @pre         3) `NULL != msg`
- * @note        1) The definition of this function must be written by the user.
- * @note        2) This function is called only if @ref CFG_DBG_API_VALIDATION
- *              is active.
- * @note        3) The function is called with interrupts disabled.
+ * @note        1) This function is called only if @ref CFG_DBG_ENABLE is active.
+ * @note        2) The function is called with interrupts disabled.
  * @details     Function will just print the information which was given by the
  *              macros.
  */
