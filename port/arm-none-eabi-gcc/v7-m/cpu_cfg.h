@@ -28,7 +28,7 @@
  * @brief		Configuration of CPU module.
  *********************************************************************//** @{ */
 
-#ifndef CPU_CONFIG_H_
+#if !defined(CPU_CONFIG_H_)
 #define CPU_CONFIG_H_
 
 /*=========================================================  INCLUDE FILES  ==*/

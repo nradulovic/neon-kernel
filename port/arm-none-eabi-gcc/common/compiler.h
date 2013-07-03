@@ -27,7 +27,7 @@
  * @addtogroup  arm-none-eabi-gcc-v7-m_impl
  *********************************************************************//** @{ */
 
-#ifndef ARM_NONE_EABI_GCC_H_
+#if !defined(ARM_NONE_EABI_GCC_H_)
 #define ARM_NONE_EABI_GCC_H_
 
 /*=========================================================  INCLUDE FILES  ==*/
