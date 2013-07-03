@@ -152,6 +152,14 @@
 # error "eSolid RT Kernel: Configuration option CFG_SCHED_PRIO_LVL is out of range."
 #endif
 
+#if ((1U != CFG_SCHED_POWER_SAVE) && (0U != CFG_SCHED_POWER_SAVE))
+# error "eSolid RT Kernel: Configuration option CFG_SCHED_POWER_SAVE is out of range."
+#endif
+
+#if ((1U != CFG_SYSTMR_ADAPTIVE_MODE) && (0U != CFG_SYSTMR_ADAPTIVE_MODE))
+# error "eSolid RT Kernel: Configuration option CFG_SYSTMR_ADAPTIVE_MODE is out of range."
+#endif
+
 #if ((0U == CFG_SCHED_POWER_SAVE) && (1U == CFG_SYSTMR_ADAPTIVE_MODE))
 # error "eSolid RT Kernel: Configuration option CFG_SCHED_PRIO_LVL must be enabled when CFG_SYSTMR_ADAPTIVE_MODE is enabled, too."
 #endif
