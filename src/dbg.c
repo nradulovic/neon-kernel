@@ -55,17 +55,17 @@ PORT_C_NORETURN void esDbgAssert(
     PORT_INT_DISABLE();
     switch (msg) {
 
-        case ES_DBG_ARG_OUT_OF_RANGE : {
+        case ES_DBG_OUT_OF_RANGE : {
             assertText = "Argument is out valid range";
             break;
         }
 
-        case ES_DBG_ARG_NOT_VALID : {
+        case ES_DBG_OBJECT_NOT_VALID : {
             assertText = "Argument is not valid";
             break;
         }
 
-        case ES_DBG_ARG_NULL : {
+        case ES_DBG_POINTER_NULL : {
             assertText = "Argument is NULL pointer";
             break;
         }

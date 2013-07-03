@@ -386,7 +386,7 @@ static esVTmr_T gVTmrArmed = {
 #endif
    NULL,
    NULL,
-#if (1U == CFG_API_VALIDATION)
+#if (1U == CFG_DBG_API_VALIDATION)
    VTMR_CONTRACT_SIGNATURE
 #endif
 };
@@ -401,7 +401,7 @@ static esVTmr_T gVTmrPend = {
    0U,
    NULL,
    NULL,
-#if (1U == CFG_API_VALIDATION)
+#if (1U == CFG_DBG_API_VALIDATION)
    VTMR_CONTRACT_SIGNATURE
 #endif
 };
@@ -897,7 +897,8 @@ static void kIdle(
 
     while (TRUE) {
 
-#if (1U == CFG_HOOK_IDLE_BEGIN)
+#if (1U == CFG_HOOK_PRE_IDLE)
+    userPreIdle();
 #endif
 
 #if (0U == CFG_SCHED_POWER_SAVE)
@@ -912,6 +913,7 @@ static void kIdle(
 #endif
 
 #if (1U == CFG_HOOK_IDLE_END)
+    userIdlePost();
 #endif
     }
 }
@@ -925,10 +927,10 @@ static void kIdle(
 void esKernInit(
     void) {
 
-    ES_KERN_API_REQUIRE(ES_KERN_MSG_USAGE_FAILURE, ES_KERN_INACTIVE == gKernCtrl.state);
+    ES_DBG_API_REQUIRE(ES_DBG_USAGE_FAILURE, ES_KERN_INACTIVE == gKernCtrl.state);
 
-#if (1U == CFG_HOOK_KERN_INIT)
-    userKernInit();
+#if (1U == CFG_HOOK_PRE_KERN_INIT)
+    userPreKernInit();
 #endif
     PORT_INT_DISABLE();
     PORT_INIT_EARLY();
@@ -937,6 +939,10 @@ void esKernInit(
     kIdleInit();
     kVTmrInit();
     PORT_INIT();
+
+#if (1U == CFG_HOOK_POST_KERN_INIT)
+    userPostKernInit();
+#endif
 }
 
 /* 1)       Since this function will never return it is marked with `noreturn`
@@ -945,10 +951,10 @@ void esKernInit(
 PORT_C_NORETURN void esKernStart(
     void) {
 
-    ES_KERN_API_REQUIRE(ES_KERN_MSG_USAGE_FAILURE, ES_KERN_INIT == gKernCtrl.state);
+    ES_DBG_API_REQUIRE(ES_DBG_USAGE_FAILURE, ES_KERN_INIT == gKernCtrl.state);
 
-#if (1U == CFG_HOOK_KERN_START)
-    userKernStart();
+#if (1U == CFG_HOOK_PRE_KERN_START)
+    userPreKernStart();
 #endif
     PORT_INIT_LATE();
     schedStart();                                                               /* Initialize scheduler data structures for multi-threading */
@@ -962,8 +968,8 @@ void esKernSysTmr(
 
     ES_CRITICAL_DECL();
 
-#if (1U == CFG_HOOK_SYSTMR_EVENT)
-    userSysTmr();
+#if (1U == CFG_HOOK_PRE_SYSTMR_EVENT)
+    userPreSysTmr();
 #endif
     ES_CRITICAL_ENTER();
     vTmrEvaluateI();
@@ -987,8 +993,8 @@ void esKernLockExitI(
 
     if (0U == gKernLockCnt) {
         ((esKernCtrl_T *)&gKernCtrl)->state &= ~SCHED_STATE_LOCK_MSK;
+        esSchedYieldI();
     }
-    esSchedYieldI();
 }
 
 void esKernLockEnter(
@@ -1014,7 +1020,7 @@ void esKernLockExit(
 void esKernIsrPrologueI(
     void) {
 
-    ES_KERN_API_REQUIRE(ES_KERN_MSG_USAGE_FAILURE, ES_KERN_INIT > gKernCtrl.state);
+    ES_DBG_API_REQUIRE(ES_DBG_USAGE_FAILURE, ES_KERN_INIT > gKernCtrl.state);
 
     ((esKernCtrl_T *)&gKernCtrl)->state |= SCHED_STATE_INTSRV_MSK;
 }
@@ -1022,7 +1028,7 @@ void esKernIsrPrologueI(
 void esKernIsrEpilogueI(
     void) {
 
-    ES_KERN_API_REQUIRE(ES_KERN_MSG_USAGE_FAILURE, ES_KERN_INIT > gKernCtrl.state);
+    ES_DBG_API_REQUIRE(ES_DBG_USAGE_FAILURE, ES_KERN_INIT > gKernCtrl.state);
 
     if (TRUE == PORT_ISR_IS_LAST()) {
         ((esKernCtrl_T *)&gKernCtrl)->state &= ~SCHED_STATE_INTSRV_MSK;
@@ -1043,14 +1049,15 @@ void esThdInit(
 
 	ES_CRITICAL_DECL();
 
-    ES_KERN_API_REQUIRE(ES_KERN_MSG_USAGE_FAILURE, ES_KERN_INACTIVE > gKernCtrl.state);
-    ES_KERN_API_REQUIRE(ES_KERN_MSG_ARG_NULL, NULL != thd);
-    ES_KERN_API_REQUIRE(ES_KERN_MSG_ARG_NULL, NULL != fn);
-    ES_KERN_API_REQUIRE(ES_KERN_MSG_ARG_NULL, NULL != stck);
-    ES_KERN_API_REQUIRE(ES_KERN_MSG_ARG_OUT_OF_RANGE, PORT_STCK_MINSIZE_VAL <= (stckSize * sizeof(portReg_T)));
-    ES_KERN_API_REQUIRE(ES_KERN_MSG_ARG_OUT_OF_RANGE, CFG_SCHED_PRIO_LVL > prio);
-    ES_KERN_API_REQUIRE(ES_KERN_MSG_ARG_OUT_OF_RANGE, ((&gKVTmr != thd) && ((CFG_SCHED_PRIO_LVL - 1U) > prio)) || (&gKVTmr == thd));
-    ES_KERN_API_REQUIRE(ES_KERN_MSG_ARG_OUT_OF_RANGE, ((&gKIdle != thd) && (0U < prio)) || (&gKIdle == thd));
+    ES_DBG_API_REQUIRE(ES_DBG_USAGE_FAILURE, ES_KERN_INACTIVE > gKernCtrl.state);
+    ES_DBG_API_REQUIRE(ES_DBG_POINTER_NULL, NULL != thd);
+    ES_DBG_API_REQUIRE(ES_DBG_OBJECT_NOT_VALID, THD_CONTRACT_SIGNATURE != thd->signature);
+    ES_DBG_API_REQUIRE(ES_DBG_POINTER_NULL, NULL != fn);
+    ES_DBG_API_REQUIRE(ES_DBG_POINTER_NULL, NULL != stck);
+    ES_DBG_API_REQUIRE(ES_DBG_OUT_OF_RANGE, PORT_STCK_MINSIZE_VAL <= (stckSize * sizeof(portReg_T)));
+    ES_DBG_API_REQUIRE(ES_DBG_OUT_OF_RANGE, CFG_SCHED_PRIO_LVL > prio);
+    ES_DBG_API_REQUIRE(ES_DBG_OUT_OF_RANGE, ((&gKVTmr != thd) && ((CFG_SCHED_PRIO_LVL - 1U) > prio)) || (&gKVTmr == thd));
+    ES_DBG_API_REQUIRE(ES_DBG_OUT_OF_RANGE, ((&gKIdle != thd) && (0U < prio)) || (&gKIdle == thd));
 
     thd->stck   = PORT_CTX_INIT(stck, stckSize, fn, arg);                       /* Make a fake thread stack.                                */
     thd->thdL.q = NULL;                                                         /* This thread is not in any thread queue.                  */
@@ -1059,7 +1066,9 @@ void esThdInit(
     thd->cprio  = prio;                                                         /* This is constant priority, it never changes.             */
     thd->qCnt   = CFG_SCHED_TIME_QUANTUM;
     thd->qRld   = CFG_SCHED_TIME_QUANTUM;
-    ES_KERN_API_OBLIGATION(thd->signature = THD_CONTRACT_SIGNATURE);               /* Make thread structure valid.                             */
+
+    ES_DBG_API_OBLIGATION(thd->signature = THD_CONTRACT_SIGNATURE);             /* Make thread structure valid.                             */
+
     ES_CRITICAL_ENTER();
     schedRdyAddInitI(
         thd);                                                                   /* Initialize thread before adding it to Ready Thread queue.*/
@@ -1068,8 +1077,8 @@ void esThdInit(
     esSchedYieldI();                                                            /* Invoke the scheduler.                                    */
     ES_CRITICAL_EXIT();
 
-#if (1U == CFG_HOOK_THD_INIT_POST)
-    userThdInitPost();
+#if (1U == CFG_HOOK_POST_THD_INIT)
+    userPostThdInit();
 #endif
 }
 
@@ -1078,21 +1087,27 @@ void esThdTerm(
 
     ES_CRITICAL_DECL();
 
-    ES_KERN_API_REQUIRE(ES_KERN_MSG_USAGE_FAILURE, ES_KERN_INACTIVE > gKernCtrl.state);
-    ES_KERN_API_REQUIRE(ES_KERN_MSG_ARG_NULL, NULL != thd);
-    ES_KERN_API_REQUIRE(ES_KERN_MSG_ARG_NOT_VALID, THD_CONTRACT_SIGNATURE == thd->signature);
-    ES_KERN_API_REQUIRE(ES_KERN_MSG_ARG_NULL, (NULL == thd->thdL.q) || (&gRdyQueue == thd->thdL.q));
+    ES_DBG_API_REQUIRE(ES_DBG_USAGE_FAILURE, ES_KERN_INACTIVE > gKernCtrl.state);
+    ES_DBG_API_REQUIRE(ES_DBG_POINTER_NULL, NULL != thd);
+    ES_DBG_API_REQUIRE(ES_DBG_OBJECT_NOT_VALID, THD_CONTRACT_SIGNATURE == thd->signature);
+    ES_DBG_API_REQUIRE(ES_DBG_POINTER_NULL, (NULL == thd->thdL.q) || (&gRdyQueue == thd->thdL.q));
 
-#if (1U == CFG_HOOK_THD_TERM)
-    userThdTerm();
+#if (1U == CFG_HOOK_PRE_THD_TERM)
+    userPreThdTerm();
 #endif
     ES_CRITICAL_ENTER();
 
     if (&gRdyQueue == thd->thdL.q) {
         esSchedRdyRmI(
             thd);
+    } else if (NULL != thd->thdL.q) {
+        esThdQRmI(
+            thd->thdL.q,
+            thd);
     }
-    ES_KERN_API_OBLIGATION(thd->signature = 0U);                                     /* Mark the thread ID structure as invalid.                 */
+
+    ES_DBG_API_OBLIGATION(thd->signature = ~THD_CONTRACT_SIGNATURE);            /* Mark the thread ID structure as invalid.                 */
+
     esSchedYieldI();
     ES_CRITICAL_EXIT();
 }
@@ -1101,13 +1116,13 @@ void esThdSetPrioI(
     esThd_T *       thd,
     uint8_t         prio) {
 
-    ES_KERN_API_REQUIRE(ES_KERN_MSG_USAGE_FAILURE, ES_KERN_INACTIVE > gKernCtrl.state);
-    ES_KERN_API_REQUIRE(ES_KERN_MSG_ARG_NULL, NULL != thd);
-    ES_KERN_API_REQUIRE(ES_KERN_MSG_ARG_NOT_VALID, THD_CONTRACT_SIGNATURE == thd->signature);
-    ES_KERN_API_REQUIRE(ES_KERN_MSG_ARG_OUT_OF_RANGE, CFG_SCHED_PRIO_LVL >= prio);
+    ES_DBG_API_REQUIRE(ES_DBG_USAGE_FAILURE, ES_KERN_INACTIVE > gKernCtrl.state);
+    ES_DBG_API_REQUIRE(ES_DBG_POINTER_NULL, NULL != thd);
+    ES_DBG_API_REQUIRE(ES_DBG_OBJECT_NOT_VALID, THD_CONTRACT_SIGNATURE == thd->signature);
+    ES_DBG_API_REQUIRE(ES_DBG_OUT_OF_RANGE, CFG_SCHED_PRIO_LVL >= prio);
 
-    if (NULL == thd->thdL.q) {
-        thd->prio = prio;
+    if (NULL == thd->thdL.q) {                                                  /* Is thread inserted in any queue?                         */
+        thd->prio = prio;                                                       /* Just change it's prio value.                             */
     } else {
         esThdQRmI(
             thd->thdL.q,
@@ -1117,10 +1132,10 @@ void esThdSetPrioI(
             thd->thdL.q,
             thd);
 
-        if (&gRdyQueue == thd->thdL.q) {                                        /* If thread is actually in ready thread queue              */
+        if (&gRdyQueue == thd->thdL.q) {                                        /* Is thread in ready thread queue?                         */
 
-            if (thd->prio > gKernCtrl.pthd->prio) {                             /* If new prio is higher than the current prio              */
-                ((esKernCtrl_T *)&gKernCtrl)->pthd = thd;                       /* Notify scheduler about new thread                        */
+            if (thd->prio > gKernCtrl.pthd->prio) {                             /* If new prio is higher than the current prio notify the   */
+                ((esKernCtrl_T *)&gKernCtrl)->pthd = thd;                       /* scheduler about new thread.                              */
             } else {
                 ((esKernCtrl_T *)&gKernCtrl)->pthd = esThdQFetchI(
                     &gRdyQueue);
@@ -1141,7 +1156,6 @@ void esThdPostI(
             thd);
         esSchedYieldI();
     }
-
 }
 
 /* 1)       See notes for esThdPostI()
@@ -1181,9 +1195,10 @@ void esThdWait(
 void esThdQInit(
     esThdQ_T *      thdQ) {
 
-    uint8_t         group;
+    uint_fast8_t    group;
 
-    ES_KERN_API_REQUIRE(ES_KERN_MSG_ARG_NULL, NULL != thdQ);
+    ES_DBG_API_REQUIRE(ES_DBG_POINTER_NULL, NULL != thdQ);
+    ES_DBG_API_REQUIRE(ES_DBG_OBJECT_NOT_VALID, THDQ_CONTRACT_SIGNATURE != thdQ->signature);
 
     prioBMInit(
         &thdQ->prioOcc);
@@ -1192,7 +1207,22 @@ void esThdQInit(
         thdQ->grp[group].head = NULL;
         thdQ->grp[group].next  = NULL;
     }
-    ES_KERN_API_OBLIGATION(thdQ->signature = THDQ_CONTRACT_SIGNATURE);
+    ES_DBG_API_OBLIGATION(thdQ->signature = THDQ_CONTRACT_SIGNATURE);
+}
+
+/* 1)       When API validation is not used then this function will become empty.
+ */
+void esThdQTerm(
+    esThdQ_T *      thdQ) {
+
+    ES_DBG_API_REQUIRE(ES_DBG_POINTER_NULL, NULL != thdQ);
+    ES_DBG_API_REQUIRE(ES_DBG_OBJECT_NOT_VALID, THDQ_CONTRACT_SIGNATURE == thdQ->signature);
+
+    ES_DBG_API_OBLIGATION(thdQ->signature = ~THDQ_CONTRACT_SIGNATURE);
+
+#if (0U == CFG_DBG_API_VALIDATION)
+    (void)thdQ;                                                                 /* Prevent compiler warning about unused argument.          */
+#endif
 }
 
 void esThdQAddI(
@@ -1201,12 +1231,12 @@ void esThdQAddI(
 
     thdLSentinel_T * sentinel;
 
-    ES_KERN_API_REQUIRE(ES_KERN_MSG_ARG_NULL, NULL != thdQ);
-    ES_KERN_API_REQUIRE(ES_KERN_MSG_ARG_NOT_VALID, THDQ_CONTRACT_SIGNATURE == thdQ->signature);
-    ES_KERN_API_REQUIRE(ES_KERN_MSG_ARG_NULL, NULL != thd);
-    ES_KERN_API_REQUIRE(ES_KERN_MSG_ARG_NOT_VALID, THD_CONTRACT_SIGNATURE == thd->signature);
-    ES_KERN_API_REQUIRE(ES_KERN_MSG_ARG_NULL, NULL == thd->thdL.q);
-    ES_KERN_API_REQUIRE(ES_KERN_MSG_ARG_OUT_OF_RANGE, CFG_SCHED_PRIO_LVL >= thd->prio);
+    ES_DBG_API_REQUIRE(ES_DBG_POINTER_NULL, NULL != thdQ);
+    ES_DBG_API_REQUIRE(ES_DBG_OBJECT_NOT_VALID, THDQ_CONTRACT_SIGNATURE == thdQ->signature);
+    ES_DBG_API_REQUIRE(ES_DBG_POINTER_NULL, NULL != thd);
+    ES_DBG_API_REQUIRE(ES_DBG_OBJECT_NOT_VALID, THD_CONTRACT_SIGNATURE == thd->signature);
+    ES_DBG_API_REQUIRE(ES_DBG_POINTER_NULL, NULL == thd->thdL.q);
+    ES_DBG_API_REQUIRE(ES_DBG_OUT_OF_RANGE, CFG_SCHED_PRIO_LVL >= thd->prio);
 
     sentinel = &(thdQ->grp[thd->prio]);                                         /* Get the sentinel from thread priority level.             */
 
@@ -1228,28 +1258,28 @@ void esThdQRmI(
 
     thdLSentinel_T * sentinel;
 
-    ES_KERN_API_REQUIRE(ES_KERN_MSG_ARG_NULL, NULL != thd);
-    ES_KERN_API_REQUIRE(ES_KERN_MSG_ARG_NOT_VALID, THD_CONTRACT_SIGNATURE == thd->signature);
-    ES_KERN_API_REQUIRE(ES_KERN_MSG_ARG_NULL, NULL != thdQ);
-    ES_KERN_API_REQUIRE(ES_KERN_MSG_ARG_NOT_VALID, THDQ_CONTRACT_SIGNATURE == thdQ->signature);
-    ES_KERN_API_REQUIRE(ES_KERN_MSG_USAGE_FAILURE, thdQ == thd->thdL.q);
-    ES_KERN_API_REQUIRE(ES_KERN_MSG_ARG_OUT_OF_RANGE, CFG_SCHED_PRIO_LVL >= thd->prio);
+    ES_DBG_API_REQUIRE(ES_DBG_POINTER_NULL, NULL != thd);
+    ES_DBG_API_REQUIRE(ES_DBG_OBJECT_NOT_VALID, THD_CONTRACT_SIGNATURE == thd->signature);
+    ES_DBG_API_REQUIRE(ES_DBG_POINTER_NULL, NULL != thdQ);
+    ES_DBG_API_REQUIRE(ES_DBG_OBJECT_NOT_VALID, THDQ_CONTRACT_SIGNATURE == thdQ->signature);
+    ES_DBG_API_REQUIRE(ES_DBG_USAGE_FAILURE, thdQ == thd->thdL.q);
+    ES_DBG_API_REQUIRE(ES_DBG_OUT_OF_RANGE, CFG_SCHED_PRIO_LVL >= thd->prio);
 
     sentinel = &(thdQ->grp[thd->prio]);                                         /* Get the sentinel from thread priority level.             */
 
     if (DLIST_IS_ENTRY_LAST(thdL, thd)) {                                       /* Is this thread last one in the thdL list?                */
-        sentinel->head = NULL;                                                  /* Make the list empty.                                     */
+        sentinel->head = NULL;                                                  /* Make the list sentinel empty.                            */
         prioBMClear(
             &thdQ->prioOcc,
             thd->prio);                                                         /* Remove the mark since this group is not used.            */
     } else {                                                                    /* This thread is not the last one in the thdL list.        */
 
-        if (sentinel->head == thd) {                                            /* In case we are removing thread from the beginning of the */
-            sentinel->head = DLIST_ENTRY_NEXT(thdL, thd);                       /* list we need to advance head to point to the next one in */
-        }                                                                       /* the list.                                                */
+        if (sentinel->head == thd) {                                            /* In case we are removing first thread in linked list then */
+            sentinel->head = DLIST_ENTRY_NEXT(thdL, thd);                       /* advance the head to point to the next one in the list.   */
+        }
 
-        if (sentinel->next == thd) {                                            /* In case we are removing thread from the end of the list  */
-            sentinel->next = DLIST_ENTRY_NEXT(thdL, thd);                       /* we need to move next to point to a next one in the list. */
+        if (sentinel->next == thd) {                                            /* In case we are removing next thread in the linked list   */
+            sentinel->next = DLIST_ENTRY_NEXT(thdL, thd);                       /* then move next to point to a next one in the list.       */
         }
         DLIST_ENTRY_RM(thdL, thd);
         DLIST_ENTRY_INIT(thdL, thd);
@@ -1263,14 +1293,16 @@ esThd_T * esThdQFetchI(
     thdLSentinel_T * sentinel;
     uint_fast8_t    prio;
 
-    ES_KERN_API_REQUIRE(ES_KERN_MSG_ARG_NULL, NULL != thdQ);
-    ES_KERN_API_REQUIRE(ES_KERN_MSG_ARG_NOT_VALID, THDQ_CONTRACT_SIGNATURE == thdQ->signature);
-    ES_KERN_API_REQUIRE(ES_KERN_MSG_USAGE_FAILURE, FALSE == prioBMIsEmpty(&thdQ->prioOcc));
+    ES_DBG_API_REQUIRE(ES_DBG_POINTER_NULL, NULL != thdQ);
+    ES_DBG_API_REQUIRE(ES_DBG_OBJECT_NOT_VALID, THDQ_CONTRACT_SIGNATURE == thdQ->signature);
+    ES_DBG_API_REQUIRE(ES_DBG_USAGE_FAILURE, FALSE == prioBMIsEmpty(&thdQ->prioOcc));
 
     prio = prioBMGet(
         &thdQ->prioOcc);                                                        /* Get the highest priority ready to run.                   */
     sentinel = (thdLSentinel_T *)&(thdQ->grp[prio]);                            /* Get the Group Head pointer for that priority.            */
                                                                                 /* The type cast is needed to avoid compiler warnings.      */
+    ES_DBG_API_ENSURE(ES_DBG_OBJECT_NOT_VALID, THD_CONTRACT_SIGNATURE == sentinel->next->signature);
+
     return (sentinel->next);
 }
 
@@ -1280,13 +1312,15 @@ esThd_T * esThdQFetchRotateI(
 
     thdLSentinel_T * sentinel;
 
-    ES_KERN_API_REQUIRE(ES_KERN_MSG_ARG_NULL, NULL != thdQ);
-    ES_KERN_API_REQUIRE(ES_KERN_MSG_ARG_NOT_VALID, THDQ_CONTRACT_SIGNATURE == thdQ->signature);
-    ES_KERN_API_REQUIRE(ES_KERN_MSG_ARG_OUT_OF_RANGE, CFG_SCHED_PRIO_LVL >= prio);
-    ES_KERN_API_REQUIRE(ES_KERN_MSG_ARG_NULL, NULL != thdQ->grp[prio].next);
+    ES_DBG_API_REQUIRE(ES_DBG_POINTER_NULL, NULL != thdQ);
+    ES_DBG_API_REQUIRE(ES_DBG_OBJECT_NOT_VALID, THDQ_CONTRACT_SIGNATURE == thdQ->signature);
+    ES_DBG_API_REQUIRE(ES_DBG_OUT_OF_RANGE, CFG_SCHED_PRIO_LVL >= prio);
+    ES_DBG_API_REQUIRE(ES_DBG_POINTER_NULL, NULL != thdQ->grp[prio].next);
 
     sentinel = &(thdQ->grp[prio]);                                              /* Get the Group Head pointer from thread priority.         */
     sentinel->next = DLIST_ENTRY_NEXT(thdL, sentinel->next);
+
+    ES_DBG_API_ENSURE(ES_DBG_OBJECT_NOT_VALID, THD_CONTRACT_SIGNATURE == sentinel->next->signature);
 
     return (sentinel->next);
 }
@@ -1296,8 +1330,8 @@ bool_T esThdQIsEmpty(
 
     bool_T          ans;
 
-    ES_KERN_API_REQUIRE(ES_KERN_MSG_ARG_NULL, NULL != thdQ);
-    ES_KERN_API_REQUIRE(ES_KERN_MSG_ARG_NOT_VALID, THDQ_CONTRACT_SIGNATURE == thdQ->signature);
+    ES_DBG_API_REQUIRE(ES_DBG_POINTER_NULL, NULL != thdQ);
+    ES_DBG_API_REQUIRE(ES_DBG_OBJECT_NOT_VALID, THDQ_CONTRACT_SIGNATURE == thdQ->signature);
 
     ans = prioBMIsEmpty(
         &thdQ->prioOcc);
@@ -1311,10 +1345,10 @@ bool_T esThdQIsEmpty(
 void esSchedRdyAddI(
     esThd_T *       thd) {
 
-    ES_KERN_API_REQUIRE(ES_KERN_MSG_USAGE_FAILURE, ES_KERN_INACTIVE > gKernCtrl.state);
-    ES_KERN_API_REQUIRE(ES_KERN_MSG_ARG_NULL, NULL != thd);
-    ES_KERN_API_REQUIRE(ES_KERN_MSG_ARG_NOT_VALID, THD_CONTRACT_SIGNATURE == thd->signature);
-    ES_KERN_API_REQUIRE(ES_KERN_MSG_ARG_NULL, NULL == thd->thdL.q);
+    ES_DBG_API_REQUIRE(ES_DBG_USAGE_FAILURE, ES_KERN_INACTIVE > gKernCtrl.state);
+    ES_DBG_API_REQUIRE(ES_DBG_POINTER_NULL, NULL != thd);
+    ES_DBG_API_REQUIRE(ES_DBG_OBJECT_NOT_VALID, THD_CONTRACT_SIGNATURE == thd->signature);
+    ES_DBG_API_REQUIRE(ES_DBG_POINTER_NULL, NULL == thd->thdL.q);
 
     esThdQAddI(
         &gRdyQueue,
@@ -1325,16 +1359,17 @@ void esSchedRdyAddI(
     }
 }
 
-/* 1)       If this function is removing current thread or pending thread then
- *          the scheduler will be invoked to get new highest priority thread.
+/* 1)       If this function is removing currently executed thread or the
+ *          pending thread then the scheduler will be invoked to get new highest
+ *          priority thread.
  */
 void esSchedRdyRmI(
     esThd_T *       thd) {
 
-    ES_KERN_API_REQUIRE(ES_KERN_MSG_USAGE_FAILURE, ES_KERN_INACTIVE > gKernCtrl.state);
-    ES_KERN_API_REQUIRE(ES_KERN_MSG_ARG_NULL, NULL != thd);
-    ES_KERN_API_REQUIRE(ES_KERN_MSG_ARG_NOT_VALID, THD_CONTRACT_SIGNATURE == thd->signature);
-    ES_KERN_API_REQUIRE(ES_KERN_MSG_USAGE_FAILURE, &gRdyQueue == thd->thdL.q);
+    ES_DBG_API_REQUIRE(ES_DBG_USAGE_FAILURE, ES_KERN_INACTIVE > gKernCtrl.state);
+    ES_DBG_API_REQUIRE(ES_DBG_POINTER_NULL, NULL != thd);
+    ES_DBG_API_REQUIRE(ES_DBG_OBJECT_NOT_VALID, THD_CONTRACT_SIGNATURE == thd->signature);
+    ES_DBG_API_REQUIRE(ES_DBG_USAGE_FAILURE, &gRdyQueue == thd->thdL.q);
 
     esThdQRmI(
         &gRdyQueue,
@@ -1342,25 +1377,21 @@ void esSchedRdyRmI(
 
     if ((gKernCtrl.cthd == thd) || (gKernCtrl.pthd == thd)) {
         ((esKernCtrl_T *)&gKernCtrl)->pthd = esThdQFetchI(
-            &gRdyQueue);
+            &gRdyQueue);                                                        /* Get new highest priority thread.                         */
     }
 }
 
-/* 1)       The scheduler must always evaluate Qm regardless of the need to do
- *          context switching. Therefore schedQmEvaluateI() must be called
- *          before condition: `(newThd != gKernCtrl.cthd)`.
- */
 void esSchedYieldI(
     void) {
 
-    ES_KERN_API_REQUIRE(ES_KERN_MSG_USAGE_FAILURE, ES_KERN_INACTIVE > gKernCtrl.state);
+    ES_DBG_API_REQUIRE(ES_DBG_USAGE_FAILURE, ES_KERN_INACTIVE > gKernCtrl.state);
 
     if (gKernCtrl.cthd != gKernCtrl.pthd) {                                     /* Context switching is needed only when cthd and nthd are  */
                                                                                 /* different.                                               */
         if (ES_KERN_RUN == gKernCtrl.state) {
 
-#if (1U == CFG_HOOK_CTX_SW)
-            userCtxSw(
+#if (1U == CFG_HOOK_PRE_CTX_SW)
+            userPreCtxSw(
                 gKernCtrl.cthd,
                 newThd);
 #endif
@@ -1369,22 +1400,21 @@ void esSchedYieldI(
     }
 }
 
-/* 1)       See notes for esSchedYieldI()
- * 2)       This function is similar to esSchedYieldI() except it calls
+/* 1)       This function is similar to esSchedYieldI() except it calls
  *          context switching macro for ISR and can wake up scheduler after
  *          idle sleep.
  */
 void esSchedYieldIsrI(
     void) {
 
-    ES_KERN_API_REQUIRE(ES_KERN_MSG_USAGE_FAILURE, ES_KERN_INACTIVE > gKernCtrl.state);
+    ES_DBG_API_REQUIRE(ES_DBG_USAGE_FAILURE, ES_KERN_INACTIVE > gKernCtrl.state);
 
     if (gKernCtrl.cthd != gKernCtrl.pthd) {
 
         if (ES_KERN_RUN == gKernCtrl.state) {
 
-#if (1U == CFG_HOOK_CTX_SW)
-        userCtxSw(
+#if (1U == CFG_HOOK_PRE_CTX_SW)
+        userPreCtxSw(
             gKernCtrl.cthd,
             gKernCtrl.pthd);
 #endif
@@ -1394,8 +1424,8 @@ void esSchedYieldIsrI(
         } else if (ES_KERN_SLEEP == gKernCtrl.state) {
             schedWakeUpI();
 
-# if (1U == CFG_HOOK_CTX_SW)
-        userCtxSw(
+# if (1U == CFG_HOOK_PRE_CTX_SW)
+        userPreCtxSw(
             gKernCtrl.cthd,
             gKernCtrl.pthd);
 # endif
@@ -1414,11 +1444,11 @@ void esVTmrInitI(
     void (* fn)(void *),
     void *          arg) {
 
-    ES_KERN_API_REQUIRE(ES_KERN_MSG_USAGE_FAILURE, ES_KERN_INACTIVE > gKernCtrl.state);
-    ES_KERN_API_REQUIRE(ES_KERN_MSG_ARG_NULL, NULL != vTmr);
-    ES_KERN_API_REQUIRE(ES_KERN_MSG_ARG_NOT_VALID, VTMR_CONTRACT_SIGNATURE != vTmr->signature);
-    ES_KERN_API_REQUIRE(ES_KERN_MSG_ARG_OUT_OF_RANGE, 1U < tick);
-    ES_KERN_API_REQUIRE(ES_KERN_MSG_ARG_NULL, NULL != fn);
+    ES_DBG_API_REQUIRE(ES_DBG_USAGE_FAILURE, ES_KERN_INACTIVE > gKernCtrl.state);
+    ES_DBG_API_REQUIRE(ES_DBG_POINTER_NULL, NULL != vTmr);
+    ES_DBG_API_REQUIRE(ES_DBG_OBJECT_NOT_VALID, VTMR_CONTRACT_SIGNATURE != vTmr->signature);
+    ES_DBG_API_REQUIRE(ES_DBG_OUT_OF_RANGE, 1U < tick);
+    ES_DBG_API_REQUIRE(ES_DBG_POINTER_NULL, NULL != fn);
 
     vTmr->rtick = tick - 1U;                                                    /* Timer thread requires one tick less than original value. */
     vTmr->fn    = fn;
@@ -1432,7 +1462,7 @@ void esVTmrInitI(
             &gKVTmr);
     }
 #endif
-    ES_KERN_API_OBLIGATION(vTmr->signature = VTMR_CONTRACT_SIGNATURE);
+    ES_DBG_API_OBLIGATION(vTmr->signature = VTMR_CONTRACT_SIGNATURE);
 }
 
 void esVTmrInit(
@@ -1455,11 +1485,11 @@ void esVTmrInit(
 void esVTmrTermI(
     esVTmr_T *      vTmr) {
 
-    ES_KERN_API_REQUIRE(ES_KERN_MSG_USAGE_FAILURE, ES_KERN_INACTIVE > gKernCtrl.state);
-    ES_KERN_API_REQUIRE(ES_KERN_MSG_ARG_NULL, NULL != vTmr);
-    ES_KERN_API_REQUIRE(ES_KERN_MSG_ARG_NOT_VALID, VTMR_CONTRACT_SIGNATURE == vTmr->signature);
+    ES_DBG_API_REQUIRE(ES_DBG_USAGE_FAILURE, ES_KERN_INACTIVE > gKernCtrl.state);
+    ES_DBG_API_REQUIRE(ES_DBG_POINTER_NULL, NULL != vTmr);
+    ES_DBG_API_REQUIRE(ES_DBG_OBJECT_NOT_VALID, VTMR_CONTRACT_SIGNATURE == vTmr->signature);
 
-    ES_KERN_API_OBLIGATION(vTmr->signature = ~VTMR_CONTRACT_SIGNATURE);
+    ES_DBG_API_OBLIGATION(vTmr->signature = ~VTMR_CONTRACT_SIGNATURE);
 
     if (&gVTmrPend == vTmr->tmrL.q) {                                           /* A pending timer is being deleted.                        */
         DLIST_ENTRY_RM(tmrL, vTmr);
@@ -1527,55 +1557,6 @@ void esVTmrDelay(
         (void (*)(void *))esThdPost,
         (void *)esThdGetId());
     esThdWait();
-}
-
-PORT_C_NORETURN void esKAssert(
-    const char *    fnName,
-    const char *    expr,
-    enum esKernMsg  msg) {
-
-    const char * assertText;
-
-    PORT_INT_DISABLE();
-    switch (msg) {
-
-        case ES_KERN_MSG_ARG_OUT_OF_RANGE : {
-            assertText = "Argument is out valid range";
-            break;
-        }
-
-        case ES_KERN_MSG_ARG_NOT_VALID : {
-            assertText = "Argument is not valid";
-            break;
-        }
-
-        case ES_KERN_MSG_ARG_NULL : {
-            assertText = "Argument is NULL pointer";
-            break;
-        }
-
-        case ES_KERN_MSG_USAGE_FAILURE : {
-            assertText = "Object usage failure";
-            break;
-        }
-
-        case ES_KERN_MSG_NOT_ENOUGH_MEM : {
-            assertText = "Not enough free memory";
-            break;
-        }
-
-        default : {
-            assertText = "Unknown error has occured";
-            break;
-        }
-
-    }
-    userAssert(
-        fnName,
-        assertText,
-        expr);
-
-    while (TRUE);
 }
 
 /*================================*//** @cond *//*==  CONFIGURATION ERRORS  ==*/
