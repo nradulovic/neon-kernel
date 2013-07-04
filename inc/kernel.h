@@ -53,6 +53,11 @@
 
 /**@} *//*----------------------------------------------------------------*//**
  * @name        Critical section management
+ * @details     These macros are used to prevent interrupts on entry into the
+ *              critical section, and restoring interrupts to their previous
+ *              state on exit from critical section.
+ *
+ *              For more details see @ref critical_section.
  * @{ *//*--------------------------------------------------------------------*/
 
 /**@brief		Critical section status variable declaration
@@ -72,14 +77,14 @@
 #define ES_CRITICAL_ENTER_LOCK_EXIT()                                           \
     do {                                                                        \
         PORT_CRITICAL_ENTER();                                                  \
-        esKernLockExitI();                                                      \
+        esSchedLockExitI();                                                     \
     } while (0U)
 
 /**@brief       Exit critical section and enter scheduler lock
  */
 #define ES_CRITICAL_EXIT_LOCK_ENTER()                                           \
     do {                                                                        \
-        esKernLockEnterI();                                                     \
+        esSchedLockEnterI();                                                    \
         PORT_CRITICAL_EXIT();                                                   \
     } while (0U)
 
@@ -233,9 +238,9 @@ enum esKernState {
     ES_KERN_INTSRV_RUN  = 0x01U,                                                /**< Servicing an interrupt  return to ES_KERN_RUN state    */
     ES_KERN_LOCK        = 0x02U,                                                /**< Kernel is locked                                       */
     ES_KERN_INTSRV_LOCK = 0x03U,                                                /**< Servicing an interrupt, return to ES_KERN_LOCK state   */
-    ES_KERN_SLEEP       = 0x04U,                                                /**< Kernel is sleeping                                     */
+    ES_KERN_SLEEP       = 0x06U,                                                /**< Kernel is sleeping                                     */
     ES_KERN_INIT        = 0x08U,                                                /**< Kernel is in initialization state                      */
-    ES_KERN_INACTIVE    = 0x09U                                                 /**< Kernel data structures are not initialized             */
+    ES_KERN_INACTIVE    = 0x10U                                                 /**< Kernel data structures are not initialized             */
 };
 
 /**@brief       Kernel state type
@@ -343,7 +348,7 @@ void esKernIsrPrologueI(
  *                  esKernIsrPrologueI() at the beginning of the ISR you must
  *                  have a call to esKernIsrEpilogueI() at the end of the ISR.
  * @note        2) Rescheduling is prevented when the scheduler is locked
- *                  (see esKernLockEnterI())
+ *                  (see esSchedLockEnterI())
  * @details     This function is used to notify kernel that you have completed
  *              servicing an interrupt. When the last nested ISR has completed,
  *              the function will call the scheduler to determine whether a new,
@@ -351,39 +356,6 @@ void esKernIsrPrologueI(
  * @iclass
  */
 void esKernIsrEpilogueI(
-    void);
-
-/**@} *//*----------------------------------------------------------------*//**
- * @name        Critical section management
- * @details     These macros are used to prevent interrupts on entry into the
- *              critical section, and restoring interrupts to their previous
- *              state on exit from critical section.
- *
- *              For more details see @ref critical_section.
- * @{ *//*--------------------------------------------------------------------*/
-
-/**@brief       Lock the scheduler
- * @iclass
- */
-void esKernLockEnterI(
-    void);
-
-/**@brief       Unlock the scheduler
- * @iclass
- */
-void esKernLockExitI(
-    void);
-
-/**@brief       Lock the scheduler
- * @api
- */
-void esKernLockEnter(
-    void);
-
-/**@brief       Unlock the scheduler
- * @api
- */
-void esKernLockExit(
     void);
 
 /**@} *//*----------------------------------------------------------------*//**
@@ -420,15 +392,17 @@ void esKernLockExit(
  * @param       prio
  *              Priority: is the priority of the thread. The higher the number,
  *              the higher the priority (the importance) of the thread. Several
- *              threads can have the same priority.
+ *              threads can have the same priority. Note that lowest (0) and
+ *              highest (CFG_SCHED_PRIO_LVL - 1) levels are reserved for kernel
+ *              threads only.
  * @pre         1) `The kernel state ES_KERN_INACTIVE`, see @ref states.
  * @pre         2) `thd != NULL`
  * @pre         3) `thd->signature != THD_CONTRACT_SIGNATURE`, the thread
  *                  structure can't be initialized more than once.
- * @pre         4) `thdf != NULL`
+ * @pre         4) `fn != NULL`
  * @pre         5) `stckSize >= PORT_STCK_MINSIZE_VAL`, see
  *                  @ref PORT_STCK_MINSIZE_VAL.
- * @pre         6) `0 <= prio <= CFG_SCHED_PRIO_LVL`, see
+ * @pre         6) `0 < prio < CFG_SCHED_PRIO_LVL - 1`, see
  *                  @ref CFG_SCHED_PRIO_LVL.
  * @post        1) `thd->signature == THD_CONTRACT_SIGNATURE`, each @ref esThd
  *                  structure will have valid signature after initialization.
@@ -500,7 +474,7 @@ static PORT_C_INLINE uint8_t esThdGetPrio(
  * @pre         2) `thd != NULL`
  * @pre         3) `thd->signature == THD_CONTRACT_SIGNATURE`, the pointer must
  *                  point to a valid @ref esThd structure.
- * @pre         4) `0 <= prio <= CFG_SCHED_PRIO_LVL`, see
+ * @pre         4) `0 < prio < CFG_SCHED_PRIO_LVL - 1`, see
  *                  @ref CFG_SCHED_PRIO_LVL.
  * @iclass
  */
@@ -533,14 +507,14 @@ void esThdPost(
     esThd_T *       thd);
 
 /**@brief       Wait for thread semaphore
- * @pre         1) `The kernel state < ES_KERN_INACTIVE`, see @ref states.
+ * @pre         1) `The kernel state == ES_KERN_RUN`, see @ref states.
  * @iclass
  */
 void esThdWaitI(
     void);
 
 /**@brief       Wait for thread semaphore
- * @pre         1) `The kernel state < ES_KERN_INACTIVE`, see @ref states.
+ * @pre         1) `The kernel state == ES_KERN_RUN`, see @ref states.
  * @api
  */
 void esThdWait(
@@ -721,6 +695,40 @@ void esSchedYieldI(
 void esSchedYieldIsrI(
     void);
 
+/**@brief       Lock the scheduler
+ * @pre         1) `The kernel state < ES_KERN_INIT`, see @ref states.
+ * @iclass
+ */
+void esSchedLockEnterI(
+    void);
+
+/**@brief       Unlock the scheduler
+ * @pre         1) `The kernel state < ES_KERN_INIT`, see @ref states.
+ * @pre         2) `gKernLockCnt > 0U`, current number of locks must be greater
+ *                  than zero, in other words: each call to kernel lock function
+ *                  must have its matching call to kernel unlock function.
+ * @iclass
+ */
+void esSchedLockExitI(
+    void);
+
+/**@brief       Lock the scheduler
+ * @pre         1) `The kernel state < ES_KERN_INIT`, see @ref states.
+ * @api
+ */
+void esSchedLockEnter(
+    void);
+
+/**@brief       Unlock the scheduler
+ * @pre         1) `The kernel state < ES_KERN_INIT`, see @ref states.
+ * @pre         2) `gKernLockCnt > 0U`, current number of locks must be greater
+ *                  than zero, in other words: each call to kernel lock function
+ *                  must have its matching call to kernel unlock function.
+ * @api
+ */
+void esSchedLockExit(
+    void);
+
 /**@} *//*----------------------------------------------------------------*//**
  * @name        Virtual Timer management
  * @{ *//*--------------------------------------------------------------------*/
@@ -880,11 +888,22 @@ extern void userPostThdInit(
 extern void userPreThdTerm(
     void);
 
-/**@brief       Pre Idle hook function, called from idle thread.
- * @note        1) This function is called only if @ref CFG_HOOK_PRE_IDLE is
- *              active.
+/**@brief       Pre Idle hook function, called from idle thread, just before
+ *              entering idle period.
+ * @note        1) This function is called only if @ref CFG_HOOK_PRE_IDLE and
+ *              @ref CFG_SCHED_POWER_SAVE are active.
+ * @note        2) This function is called with interrupts and scheduler locked.
  */
 extern void userPreIdle(
+    void);
+
+/**@brief       Post idle hook function, called from idle thread, just after
+ *              exiting idle period.
+ * @note        1) This function is called only if @ref CFG_HOOK_POST_IDLE and
+ *              @ref CFG_SCHED_POWER_SAVE are active.
+ * @note        2) This function is called with scheduler locked.
+ */
+extern void userPostIdle(
     void);
 
 /**@brief       Kernel context switch hook function, called from esSchedYieldI()
