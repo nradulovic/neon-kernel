@@ -306,11 +306,15 @@ static PORT_C_INLINE void vTmrEvaluateI(
 static void vTmrAddArmedS(
     esVTmr_T *      vTmr);
 
+/**@brief       Import timers from pending list to armed list
+ */
 #if (1U == CFG_SYSTMR_ADAPTIVE_MODE) || defined(__DOXYGEN__)
 static PORT_C_INLINE void vTmrImportPendI(
     void);
 #endif
 
+/**@brief       Import timers from pending list to armed list
+ */
 static void vTmrImportPend(
     void);
 
@@ -1191,7 +1195,6 @@ void esThdQAddI(
     ES_DBG_API_REQUIRE(ES_DBG_POINTER_NULL, NULL != thd);
     ES_DBG_API_REQUIRE(ES_DBG_OBJECT_NOT_VALID, THD_CONTRACT_SIGNATURE == thd->signature);
     ES_DBG_API_REQUIRE(ES_DBG_POINTER_NULL, NULL == thd->thdL.q);
-    ES_DBG_API_REQUIRE(ES_DBG_OUT_OF_RANGE, CFG_SCHED_PRIO_LVL >= thd->prio);
 
     sentinel = &(thdQ->grp[thd->prio]);                                         /* Get the sentinel from thread priority level.             */
 
@@ -1218,7 +1221,6 @@ void esThdQRmI(
     ES_DBG_API_REQUIRE(ES_DBG_POINTER_NULL, NULL != thdQ);
     ES_DBG_API_REQUIRE(ES_DBG_OBJECT_NOT_VALID, THDQ_CONTRACT_SIGNATURE == thdQ->signature);
     ES_DBG_API_REQUIRE(ES_DBG_USAGE_FAILURE, thdQ == thd->thdL.q);
-    ES_DBG_API_REQUIRE(ES_DBG_OUT_OF_RANGE, CFG_SCHED_PRIO_LVL >= thd->prio);
 
     sentinel = &(thdQ->grp[thd->prio]);                                         /* Get the sentinel from thread priority level.             */
 

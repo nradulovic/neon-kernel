@@ -567,8 +567,6 @@ void esThdQTerm(
  * @pre         4) `thd->signature == THD_CONTRACT_SIGNATURE`, the pointer must
  *                  point to a valid @ref esThd structure.
  * @pre         5) `thd->thdL.q == NULL`, thread must not be in any queue.
- * @pre         6) `0 <= thd->prio <= CFG_SCHED_PRIO_LVL`, see
- *                  @ref CFG_SCHED_PRIO_LVL.
  * @details     This function adds a thread at the specified Thread Queue.
  * @iclass
  */
@@ -589,8 +587,6 @@ void esThdQAddI(
  * @pre         4) `thdQ->signature == THDQ_CONTRACT_SIGNATURE`, the pointer
  *                  must point to a valid @ref esThdQ structure.
  * @pre         5) `thd->thdL.q == thdQ`, thread must be in the `thdQ` queue.
- * @pre         6) `0 <= thd->prio <= CFG_SCHED_PRIO_LVL`, see
- *                  @ref CFG_SCHED_PRIO_LVL.
  * @iclass
  */
 void esThdQRmI(
