@@ -3,6 +3,7 @@ PROJECT_NAME        =   "eSolid - Real-Time Kernel"
 PROJECT_BRIEF       =   "Event Based System"
 INPUT               =   ../doc/src/kernel-example.dox                           \
                         ../doc/src/kernel.dox                                   \
+                        ../doc/src/template.dox                                 \
                         ../doc/src/dbg.dox                                      \
                         ../inc/kernel.h                                         \
                         ../inc/kernel_cfg.h                                     \
@@ -12,6 +13,7 @@ INPUT               =   ../doc/src/kernel-example.dox                           
                         ../template/generic/port/cpu.c                          \
                         ../template/generic/port/cpu_cfg.h                      \
                         ../template/generic/kernel_cfg.h                        \
+                        ../template/generic/dbg_cfg.h                           \
                         ../inc/dbg.h                                            \
                         ../inc/dbg_cfg.h                                        \
                         ../src/dbg.c    

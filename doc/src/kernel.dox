@@ -4,7 +4,7 @@
 @{
 @defgroup       kern_intf Interface
 @defgroup       kern_impl Internals
-@defgroup       kern_cfg  Configuration
+@defgroup       kern_cfg Configuration
 @} */
 
 /** @addtogroup kern_intf
@@ -16,38 +16,9 @@
 */
 
 /** @addtogroup kern_cfg
-@brief          Configuration settings
+@brief          Kernel Configuration settings
 */
 
-/** @defgroup   template Port template
-@brief          Templates
-@{
-@defgroup       template_compiler   Compiler port
-@defgroup       template_cpu_intf   CPU port interface
-@defgroup       template_cpu_impl   CPU port internals
-@defgroup       template_cpu_cfg    CPU port configuration
-@defgroup       template_kern_cfg   Kernel configuration
-@} */
-
-/** @addtogroup template_compiler
-@brief          Compiler provided macros and data types
-*/
-
-/** @addtogroup template_cpu_intf
-@brief          CPU port macros and functions
-*/
-
-/** @addtogroup template_cpu_impl
-@brief          CPU port inner work
-*/
-
-/** @addtogroup template_cpu_cfg
-@brief          CPU port specific configuration options
-*/
-
-/** @addtogroup template_kern_cfg
-@brief          Default Kernel configuration options
-*/
 /*----------------------------------------------------------------------------*/
 /** @mainpage   eSolid Real-Time Kernel
 @section        kernel_specs eSolid RT Kernel Features

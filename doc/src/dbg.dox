@@ -1,0 +1,31 @@
+/** @file */
+/** @defgroup   dbg Debug
+@brief          Overview
+@{
+@defgroup       dbg_intf Interface
+@defgroup       dbg_impl Internals
+@defgroup       dbg_cfg  Configuration
+@} */
+
+/** @addtogroup dbg_intf
+@brief          Application programming interface
+*/
+
+/** @addtogroup dbg_impl
+@brief          Debug inner work
+*/
+
+/** @addtogroup dbg_cfg
+@brief          Debug configuration options
+*/
+
+/*----------------------------------------------------------------------------*/
+/** @page       errors Debug: Error checking
+@brief          How errors are detected
+
+@tableofcontents
+@n
+@n
+@n
+@section        errors_intro Intro
+*/
