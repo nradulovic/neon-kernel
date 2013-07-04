@@ -78,12 +78,13 @@
  * @details     Generally minimal stack size is equal to the size of context
  *              structure
  */
-#define PORT_STCK_MINSIZE_VAL           sizeof(struct portCtx)
+#define PORT_STCK_MINSIZE_VAL                                                   \
+    (sizeof(struct portCtx) / sizeof(portReg_T))
 
 /**@brief       System timer reload value for one tick
  * @details     This is a calculated value for one system tick period
  */
-#define PORT_SYSTMR_RELOAD_VAL                                                  \
+#define PORT_SYSTMR_ONE_TICK_VAL                                                  \
     (CFG_SYSTMR_CLOCK_FREQUENCY / CFG_SYSTMR_EVENT_FREQUENCY)
 
 /**@brief       System timer maximum value
@@ -98,6 +99,14 @@
 #define PORT_SYSTMR_MAX_TICKS_VAL                                               \
     (PORT_SYSTMR_MAX_VAL / PORT_SYSTMR_RELOAD_VAL)
 
+/**@brief       Kernel Virtual Timer Thread stack size
+ */
+#define PORT_KVTMR_STCK_SIZE            40U
+
+/**@brief       Kernel Idle Thread stack size
+ */
+#define PORT_KIDLE_STCK_SIZE            40U
+
 /** @} *//*---------------------------------------------------------------*//**
  * @name        Interrupt management
  * @details     PORT_ISR_... macros are used by esKernIsrEnter() and
@@ -108,7 +117,7 @@
 
 /**@brief       Disable all interrupt sources
  */
-#define PORT_INT_DISABLE()              portIntDisable_()
+#define PORT_INT_DISABLE()
 
 /**@brief       Enter ISR. Increment gPortIsrNesting_ variable to keep track of
  *              ISR nesting.
@@ -161,15 +170,11 @@
 
 /**@brief       Enter critical section
  */
-#define PORT_CRITICAL_ENTER()                                                   \
-    do {                                                                        \
-        intStatus_ = portIntGet_();                                             \
-        portIntDisable_();                                                      \
-    } while (0U)
+#define PORT_CRITICAL_ENTER()
 
 /**@brief       Exit critical section
  */
-#define PORT_CRITICAL_EXIT()            portIntSet_(intStatus_)
+#define PORT_CRITICAL_EXIT()
 
 /** @} *//*---------------------------------------------------------------*//**
  * @name        Scheduler support
@@ -192,50 +197,62 @@
 
 /**@brief       Initialize system timer and associated interrupt
  * @details     This macro will only initialize system timer and associated
- *              interrupt. It MUST NOT start the system timer in this stage.
+ *              interrupt. The macro is called from esKernStart() function.
  *              Responsibility:
  *              - initialize system timer
  *              - initialize system timer interrupt
+ * @note        This macro MUST NOT enable system timer events. System timer
+ *              events are enabled/disabled by PORT_SYSTMR_ISR_ENABLE() and
+ *              PORT_SYSTMR_ISR_DISABLE() macros.
  */
-#define PORT_SYSTMR_INIT()              portSysTmrInit_()
+#define PORT_SYSTMR_INIT()
 
 /**@brief       Stop the timer if it is running and disable associated interrupt.
  * @details     Responsibility:
  *              - disable system timer interrupt
  *              - stop and disable system timer
  */
-#define PORT_SYSTMR_TERM()              portSysTmrTerm_()
+#define PORT_SYSTMR_TERM()
 
-/**@brief       Reload the system timer with specified number of ticks
- * @details     Responsibility:
- *              - calculate the reload value based on PORT_SYSTMR_RELOAD_VAL
- *              - reload the system timer
+/**@brief       Get system timer reload value
  */
-#define PORT_SYSTMR_RELOAD(ticks)       portSysTmrReload_(ticks)
+#define PORT_SYSTMR_GET_RVAL()
+
+/**@brief       Get system timer current value
+ */
+#define PORT_SYSTMR_GET_CVAL()
+
+/**@brief       Reload the system timer with specified number
+ * @details     Responsibility:
+ *              - stop the system timer
+ *              - reload the system timer
+ *              - start the system timer
+ */
+#define PORT_SYSTMR_RLD(val)
 
 /**@brief       Enable the system timer
  * @details     Responsibility:
  *              - enable (run) the system timer counter
  */
-#define PORT_SYSTMR_ENABLE()            portSysTmrEnable_()
+#define PORT_SYSTMR_ENABLE()
 
 /**@brief       Disable the system timer
  * @details     Responsibility:
  *              - disable (stop) the system timer counter
  */
-#define PORT_SYSTMR_DISABLE()           portSysTmrDisable_()
+#define PORT_SYSTMR_DISABLE()
 
 /**@brief       Enable the system timer interrupt
  * @details     Responsibility:
  *              - allow system timer interrupt to occur
  */
-#define PORT_SYSTMR_ISR_ENABLE()        portSysTmrIsrEnable_()
+#define PORT_SYSTMR_ISR_ENABLE()
 
 /**@brief       Disable the system timer interrupt
  * @details     Responsibility:
  *              - disallow system timer interrupt to occur
  */
-#define PORT_SYSTMR_ISR_DISABLE()       portSysTmrIsrDisable_()
+#define PORT_SYSTMR_ISR_DISABLE()
 
 /** @} *//*---------------------------------------------------------------*//**
  * @name        Dispatcher context switching
@@ -256,20 +273,19 @@
  *              of execution.
  * @return      The new top of stck after thread context initialization.
  */
-#define PORT_CTX_INIT(stck, stackSize, thread, arg)                             \
-    portCtxInit_(stck, stackSize, thread, arg)
+#define PORT_CTX_INIT(stck, stackSize, thread, arg)
 
 /**@brief       Do the context switch - invoked from API level
  */
-#define PORT_CTX_SW()                   portCtxSw_()
+#define PORT_CTX_SW()
 
 /**@brief       Do the context switch - invoked from ISR level
  */
-#define PORT_CTX_SW_ISR()               portCtxSwIsr_()
+#define PORT_CTX_SW_ISR()
 
 /**@brief       Start the first thread
  */
-#define PORT_THD_START()                portThdStart_()
+#define PORT_THD_START()
 
 /** @} *//*---------------------------------------------------------------*//**
  * @name        General port macros
@@ -286,10 +302,10 @@
     ((((size + PORT_STCK_MINSIZE_VAL) + (sizeof(struct portStck) /                  \
     sizeof(portReg_T))) - 1U) / (sizeof(struct portStck)/sizeof(portReg_T)))
 
-/**@brief       TODO
+/**@brief       Exit critical section and enter sleep state
  */
 #define PORT_CRITICAL_EXIT_SLEEP()                                              \
-    PORT_CRITICAL_EXIT()
+    portIntSetSleepEnter_(intStatus_)
 
 /**@brief       Early port initialization
  * @details     This macro will be called at early initialization stage from
@@ -298,19 +314,19 @@
  *              memory space, fill the memory with debug value or something
  *              similar.
  */
-#define PORT_INIT_EARLY()               portInitEarly_()
+#define PORT_INIT_EARLY()
 
 /**@brief       Port initialization
  * @details     This macro will be called after kernel data structure
  *              initialization from esKernInit() function.
  */
-#define PORT_INIT()                     portInit_()
+#define PORT_INIT()
 
 /**@brief       Late port initialization
  * @details     This macro will be called just a moment before the multitasking
  *              is started. The macro is called from esKernStart() function.
  */
-#define PORT_INIT_LATE()                portInitLate_()
+#define PORT_INIT_LATE()
 
 /** @} *//*---------------------------------------------  C++ extern begin  --*/
 #ifdef __cplusplus
@@ -361,28 +377,6 @@ extern const PORT_C_ROM portReg_T pwr2LKP [PORT_DATA_WIDTH_VAL];
 /*===================================================  FUNCTION PROTOTYPES  ==*/
 
 /*------------------------------------------------------------------------*//**
- * @name        Interrupt management
- * @{ *//*--------------------------------------------------------------------*/
-
-/**@brief       Disable interrupts
- */
-void portIntDisable_(
-    void);
-
-/**@brief       Get the current status of enabled/disabled interrupts
- * @return      Interrupt status
- */
-portReg_T portIntGet_(
-    void);
-
-/**@brief       Set the status of interrupts according to the @c status argument
- * @param       status
- *              The status of interrupts that will be set by the function.
- */
-void portIntSet_(
-    portReg_T       status);
-
-/** @} *//*---------------------------------------------------------------*//**
  * @name        Scheduler support
  * @note        These functions are extensively used by the scheduler and
  *              therefore they should be optimized for the architecture being
@@ -401,72 +395,21 @@ void portIntSet_(
 uint_fast8_t portFindLastSet_(
     portReg_T       val);
 
-/**@brief       Initialize systick timer and associated interrupt
- * @details     This function will be called just a moment before the
- *              multitasking is started. The function is called from
- *              esKernStart() function. It should setup:
- *              - systick timer (scheduler uses tick event to switch between
- *                  threads of same priority)
- *              - systick timer interrupt
- * @note        This function MUST NOT enable system timer events. System timer
- *              events are enabled/disabled by portSysTmrEnable_() and
- *              portSysTmrDisable_() functions.
- */
-void portSysTmrInit_(
-    void);
-
-/**@brief       Stop the sistem timer
- */
-void portSysTmrTerm_(
-    void);
-
-/**@brief       Reload the system timer
- * @param       ticks
- *              How much ticks is needed to delay
- */
-void portSysTmrReload_(
-    esTick_T      ticks);
-
-/**@brief       Enable the system timer
- */
-void portSysTmrEnable_(
-    void);
-
-/**@brief       Disable the system timer
- */
-void portSysTmrDisable_(
-    void);
-
-/**@brief       Disable the system timer interrupt
- */
-void portSysTmrIsrEnable_(
-    void);
-
-/**@brief       Enable the system timer interrupt
- */
-void portSysTmrIsrDisable_(
-    void);
-
-/**@brief       Start the first thread
- */
-void portThdStart_(
-    void);
-
 /** @} *//*---------------------------------------------------------------*//**
  * @name        Dispatcher context switching
  * @{ *//*--------------------------------------------------------------------*/
 
 /**@brief       Initialize the thread context
- * @param       [inout] stck
+ * @param       stck
  *              Pointer to the allocated thread stck. The pointer points to the
  *              beginning of the memory as defined per C language. It's up to
  *              port function to adjust the pointer according to the stck type:
  *              full descending or full ascending one.
  * @param       stckSize
  *              The size of allocated stck in bytes.
- * @param       [in] thdf
+ * @param       fn
  *              Pointer to the thread function.
- * @param       [in] arg
+ * @param       arg
  *              Argument that will be passed to thread function at the starting
  *              of execution.
  * @return      The new top of stck after thread context initialization.
@@ -474,48 +417,8 @@ void portThdStart_(
 void * portCtxInit_(
     void *          stck,
     size_t          stckSize,
-    void (* thdf)(void *),
+    void (* fn)(void *),
     void *          arg);
-
-/**@brief       Do the context switch - invoked from API
- */
-void portCtxSw_(
-    void);
-
-/**@brief       Do the context switch - invoked from ISR
- */
-void portCtxSwIsr_(
-    void);
-
-/** @} *//*---------------------------------------------------------------*//**
- * @name        General port functions
- * @{ *//*--------------------------------------------------------------------*/
-
-/**@brief       Early port initialization
- * @details     This function will be called at early initialization stage from
- *              esKernInit() function. It is called before any kernel data
- *              initialization. Usually this function would be used to setup
- *              memory space, fill the memory with debug value or something
- *              similar.
- */
-void portInitEarly_(
-    void);
-
-/**@brief       Port initialization
- * @details     This function will be called after kernel data structure
- *              initialization from esKernInit() function.
- */
-void portInit_(
-    void);
-
-/**@brief       Late port initialization
- * @details     This function will be called just a moment before the
- *              multitasking is started. The function is called from
- *              esKernStart() function.
- */
-void portInitLate_(
-    void);
-
 
 /** @} *//*---------------------------------------------  C++ extern begin  --*/
 #ifdef __cplusplus

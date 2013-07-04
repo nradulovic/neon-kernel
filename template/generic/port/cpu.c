@@ -111,12 +111,12 @@ uint_fast8_t portFindLastSet_(
 void * portCtxInit_(
     void *          stck,
     size_t          stckSize,
-    void (* thdf)(void *),
+    void (* fn)(void *),
     void *          arg) {
 
     (void)stck;
     (void)stckSize;
-    (void)thdf;
+    (void)fn;
     (void)arg;
 
     return (NULL);
