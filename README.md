@@ -15,7 +15,6 @@ it can be viewed as a preemptive Round-Robin scheduler, only.
 ## TODO list
 
 - Integrate a profiling system (memory/stack usage, cpu usage...)
-- Time delay/management
 - test, test, test...
 
 
