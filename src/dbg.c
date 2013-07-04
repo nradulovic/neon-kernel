@@ -43,14 +43,15 @@
  *          interrupt to execute which can trigger another assert causing a very
  *          confusing situation of why it failed.
  */
-PORT_C_NORETURN void esDbgAssert(
+PORT_C_NORETURN void dbgAssert(
     const char *    fnName,
     const char *    expr,
-    enum esDbgMsg  msg) {
+    enum esDbgMsg   msg) {
 
-    const char * assertText;
+    const char *    assertText;
 
     PORT_INT_DISABLE();
+
     switch (msg) {
 
         case ES_DBG_OUT_OF_RANGE : {
@@ -79,15 +80,15 @@ PORT_C_NORETURN void esDbgAssert(
         }
 
         default : {
-            assertText = "Unknown error has occured";
+            assertText = "Unknown error has occurred";
             break;
         }
-
     }
     userAssert(
         fnName,
+        expr,
         assertText,
-        expr);
+        msg);
 
     while (TRUE);
 }
