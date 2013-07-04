@@ -300,7 +300,7 @@ static PORT_C_INLINE void vTmrEvaluateI(
     void);
 
 /**@brief       Add a virtual timer into sorted list
- * @param       tmr
+ * @param       vTmr
  *              Virtual timer: pointer to virtual timer to add
  */
 static void vTmrAddArmedS(

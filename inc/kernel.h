@@ -734,7 +734,7 @@ void esSchedLockExit(
  * @{ *//*--------------------------------------------------------------------*/
 
 /**@brief       Add and start a new virtual timer
- * @param       vTmrArmed
+ * @param       vTmr
  *              Virtual Timer: is pointer to the timer ID structure, @ref esVTmr.
  * @param       tick
  *              Tick: the timer delay expressed in system ticks
@@ -760,7 +760,7 @@ void esVTmrInitI(
     void *          arg);
 
 /**@brief       Add and start a new virtual timer
- * @param       vTmrArmed
+ * @param       vTmr
  *              Virtual Timer: is pointer to the timer ID structure, @ref esVTmr.
  * @param       tick
  *              Tick: the timer delay expressed in system ticks
@@ -786,7 +786,7 @@ void esVTmrInit(
     void *          arg);
 
 /**@brief       Cancel and remove a virtual timer
- * @param       vTmrArmed
+ * @param       vTmr
  *              Timer: is pointer to the timer ID structure, @ref esVTmr.
  * @pre         1) `The kernel state < ES_KERN_INACTIVE`, see @ref states.
  * @pre         2) `vTmr != NULL`
@@ -801,7 +801,7 @@ void esVTmrTermI(
     esVTmr_T *       vTmr);
 
 /**@brief       Cancel and remove a virtual timer
- * @param       vTmrArmed
+ * @param       vTmr
  *              Timer: is pointer to the timer ID structure, @ref esVTmr.
  * @pre         1) `The kernel state < ES_KERN_INACTIVE`, see @ref states.
  * @pre         2) `vTmr != NULL`

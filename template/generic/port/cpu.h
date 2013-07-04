@@ -328,7 +328,7 @@ typedef uint8_t portReg_T;
  */
 struct portStck {
     portReg_T       reg;                                                        /**< @brief A structure field representing stack data       */
-} __attribute__ ((aligned (1)));                                                /**< @brief Alignment of stack structure                    */
+};                                                                              /**< @brief Alignment of stack structure                    */
 
 typedef struct portStck portStck_T;                                             /**< @brief Stack type                                      */
 
