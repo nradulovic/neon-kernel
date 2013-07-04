@@ -125,8 +125,8 @@ between software components.
 
 @subsection     spec_portable Portable
 During the design stage of the kernel a special attention was given to achieve
-high portability of the kernel. Some data types and algorithms are tailored to
-exploit new hardware features.
+high portability of the kernel. Some data structures and algorithms are tailored 
+to exploit new hardware features.
 
 @subsection     spec_static Static object allocation
 All objects used in eSolid RT Kernel can be statically allocated. There is no
@@ -216,6 +216,9 @@ Port independent code lives under @c /inc and @c /src directories:
 - `inc/kernel.h`
 - `inc/kernel_cfg.h`
 - `src/kernel.c`
+- `inc/dbg.h`
+- `inc/dbg_cfg.h`
+- `src/dbg.c`
 
 Click on file name for further description of the file.
 
@@ -253,6 +256,7 @@ files are the following:
 - `template/generic/port/cpu.h`
 - `template/generic/port/cpu.c`
 - `template/generic/kernel_cfg.h`
+- `template/generic/dbg_cfg.h`
 */
 /*----------------------------------------------------------------------------*/
 /** @page       states Kernel states
@@ -283,12 +287,16 @@ digraph state {
     INTSRV_LOCK -> LOCK [fontname=Helvetica, style=dotted, label=" Reti "];
     INTSRV_LOCK -> INTSRV_RUN [fontname=courier, label=" esKernLockExit() "];
     INTSRV_RUN -> INTSRV_LOCK [fontname=courier, label=" esKernLockEnter() "];
+    RUN -> SLEEP [fontname=Helvetica, style=dotted, label=" Idle "];
+    SLEEP -> RUN [fontname=Helvetica, style=dotted, label=" Int "];
     INTSRV_RUN [label="INTSRV\nRUN\n- 1 -"];
     INTSRV_LOCK [label="INTSRV\nLOCK\n- 3 -"];
-    INACTIVE [style="bold", label="INACTIVE\n- 5 -"];
-    INIT [label="INIT\n- 4 -"];
+    INACTIVE [style="bold", label="INACTIVE\n- 16 -"];
+    INIT [label="INIT\n- 8 -"];
     RUN [shape=doublecircle, label="RUN\n- 0 -"];
     LOCK [label="LOCK\n- 2 -"];
+    SLEEP [label="SLEEP\n- 6 -"];
+    {rank = same; INIT; SLEEP; }
     {rank = same; RUN; LOCK; }
     {rank = same; INTSRV_RUN; INTSRV_LOCK; }
 }
@@ -330,6 +338,12 @@ Routine is executing the kernel is in `INTSRV_RUN` or `INTSRV_LOCK` state.
 Each state corresponds to the state where the execution was interrupted from and 
 the kernel will return to it's original state.
 
+@par            SLEEP
+When idle condition occurs the kernel will switch to `SLEEP` state (if power
+saving is enabled). In order to return to `RUN` state an interrupt must occur 
+whether from system timer or any other interrupt source which must request a 
+context switch upon exit from ISR.
+
 @note           The level of state `INACTIVE` is the highest. As the kernel
 boots up the level is decremented. The running state is level 0.
 */
@@ -364,8 +378,6 @@ void fn (void *);
 @endcode
 
 Which in plain english means: *fn is a function (pointer to void) returning void*.
-
-
 
 @subsection     kern_threads_state Thread states
 A thread can be in one of the following states:
@@ -726,14 +738,4 @@ end function
 
 @section        sched_rdyThdQ Ready Threads Queue
 Ready Threads Queue holds threads that are ready for execution. 
-*/
-/*----------------------------------------------------------------------------*/
-/** @page       errors Error checking
-@brief          How errors are detected
-
-@tableofcontents
-@n
-@n
-@n
-@section        errors_intro Intro
 */
