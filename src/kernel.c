@@ -43,8 +43,8 @@
          (PORT_DATA_WIDTH_VAL <  64 ? 5 :                                       \
           (PORT_DATA_WIDTH_VAL < 128 ? 6 : 7)))))))
 
-/**@brief       Kernel state variable bit position which defines if kernel is in
- *              interrupt servicing state
+/**@brief       Kernel state variable bit position which defines if the kernel
+ *              is in interrupt servicing state.
  */
 #define SCHED_STATE_INTSRV_MSK          (1U << 0)
 
@@ -53,23 +53,23 @@
  */
 #define SCHED_STATE_LOCK_MSK            (1U << 1)
 
-/**@brief       Thread structure signature
+/**@brief       Thread structure signature.
  * @details     The signature is used to confirm that a structure passed to a
  *              kernel function is indeed a esThd_T thread structure.
  */
-#define THD_CONTRACT_SIGNATURE          ((portReg_T)0xFEEDBEEFU)
+#define THD_CONTRACT_SIGNATURE          ((portReg_T)0xFEEDBEEFUL)
 
-/**@brief       Thread Queue structure signature
+/**@brief       Thread Queue structure signature.
  * @details     The signature is used to confirm that a structure passed to a
  *              kernel function is indeed a esThdQ_T thread queue structure.
  */
-#define THDQ_CONTRACT_SIGNATURE         ((portReg_T)0xFEEDBEEEU)
+#define THDQ_CONTRACT_SIGNATURE         ((portReg_T)0xFEEDBEEEUL)
 
-/**@brief       Timer structure signature
+/**@brief       Timer structure signature.
  * @details     The signature is used to confirm that a structure passed to a
  *              timer function is indeed a esVTmr_T timer structure.
  */
-#define VTMR_CONTRACT_SIGNATURE         ((portReg_T)0xFEEDBEEFU)
+#define VTMR_CONTRACT_SIGNATURE         ((portReg_T)0xFEEDBCCCUL)
 
 /**@brief       DList macro: is the thread the first one in the list
  */
@@ -125,7 +125,7 @@
 
 /**@brief       Main System Timer structure
  * @note        1) Member `ptick` exists only if ADAPTIVE mode is selected. When
- *              this mode is selected then kernel supports more aggresive power
+ *              this mode is selected then kernel supports more aggressive power
  *              savings.
  */
 struct sysTmr {
@@ -284,7 +284,7 @@ static PORT_C_INLINE void sysTmrDeactivateI(
 #endif
 
 /**@} *//*----------------------------------------------------------------*//**
- * @name        Virtual Timer kernel thread
+ * @name        Virtual Timer and Virtual Timer kernel thread
  * @{ *//*--------------------------------------------------------------------*/
 
 /**@brief       Set up system timer for different tick period during sleeping
@@ -303,8 +303,8 @@ static PORT_C_INLINE void vTmrEvaluateI(
  * @param       tmr
  *              Virtual timer: pointer to virtual timer to add
  */
-static void vTmrAddArmed(
-    esVTmr_T *       vTmr);
+static void vTmrAddArmedS(
+    esVTmr_T *      vTmr);
 
 #if (1U == CFG_SYSTMR_ADAPTIVE_MODE) || defined(__DOXYGEN__)
 static PORT_C_INLINE void vTmrImportPendI(
@@ -356,7 +356,7 @@ static void kIdle(
 static esThdQ_T gRdyQueue;
 
 /**@} *//*----------------------------------------------------------------*//**
- * @name        System timer kernel thread
+ * @name        System timer
  * @{ *//*--------------------------------------------------------------------*/
 
 /**@brief       Main System Timer structure
@@ -551,7 +551,7 @@ static PORT_C_INLINE void schedStart(
     void) {
 
     ES_CRITICAL_DECL();
-    esThd_T * nthd;
+    esThd_T *       nthd;
 
     ES_CRITICAL_ENTER();
     nthd = esThdQFetchI(                                                        /* Get the highest priority thread                          */
@@ -569,18 +569,22 @@ static PORT_C_INLINE void schedSleep(
     ES_CRITICAL_DECL();
 
     ES_CRITICAL_ENTER();
-
-    if (ES_KERN_SLEEP != gKernCtrl.state) {
-
-        ((esKernCtrl_T *)&gKernCtrl)->state = ES_KERN_SLEEP;
+    esSchedLockEnterI();
+    ((esKernCtrl_T *)&gKernCtrl)->state = ES_KERN_SLEEP;
 # if (1U == CFG_SYSTMR_ADAPTIVE_MODE)
-        vTmrImportPendI();                                                      /* Import any pending timers.                               */
-        sysTmrDeactivateI();
+    vTmrImportPendI();                                                          /* Import any pending timers.                               */
+    sysTmrDeactivateI();                                                        /* Evaluate timers and set system timer value for wake up.  */
 # endif
-        PORT_CRITICAL_EXIT_SLEEP_ENTER();
-    } else {
-        ES_CRITICAL_EXIT();
-    }
+# if (1U == CFG_HOOK_PRE_IDLE)
+    userPreIdle();
+# endif
+    PORT_CRITICAL_EXIT_SLEEP_ENTER();                                           /* Enter sleep state and wait for an interrupt.             */
+# if (1U == CFG_HOOK_POST_IDLE)
+    userPostIdle();
+# endif
+    ES_CRITICAL_ENTER();
+    esSchedLockExitI();
+    ES_CRITICAL_EXIT();
 }
 #endif
 
@@ -588,9 +592,9 @@ static PORT_C_INLINE void schedSleep(
 static PORT_C_INLINE void schedWakeUpI(
     void) {
 
-    ((esKernCtrl_T *)&gKernCtrl)->state = ES_KERN_RUN;
+    ((esKernCtrl_T *)&gKernCtrl)->state = ES_KERN_LOCK;
 # if (1U == CFG_SYSTMR_ADAPTIVE_MODE)
-    sysTmrActivate();
+    sysTmrActivate();                                                           /* Switch to normal system timer operation.                 */
 # endif
 }
 #endif
@@ -760,7 +764,9 @@ static PORT_C_INLINE void vTmrEvaluateI(
     }
 }
 
-static void vTmrAddArmed(
+/* 1)       This function requires locked System mode
+ */
+static void vTmrAddArmedS(
     esVTmr_T *      vTmr) {
 
     esVTmr_T *      tmp;
@@ -793,7 +799,7 @@ static PORT_C_INLINE void vTmrImportPendI(
         --gSysTmr.vTmrPend;
         tmr = DLIST_ENTRY_NEXT(tmrL, &gVTmrPend);
         DLIST_ENTRY_RM(tmrL, tmr);
-        vTmrAddArmed(
+        vTmrAddArmedS(
             tmr);
     }
 }
@@ -805,7 +811,7 @@ static void vTmrImportPend(
     ES_CRITICAL_DECL();
 
     ES_CRITICAL_ENTER();
-    esKernLockEnterI();
+    esSchedLockEnterI();
 
     while (0U != gSysTmr.vTmrPend) {
         esVTmr_T * tmr;
@@ -815,11 +821,11 @@ static void vTmrImportPend(
         tmr = DLIST_ENTRY_NEXT(tmrL, &gVTmrPend);
         DLIST_ENTRY_RM(tmrL, tmr);
         ES_CRITICAL_EXIT();
-        vTmrAddArmed(
+        vTmrAddArmedS(
             tmr);
         ES_CRITICAL_EXIT();
     }
-    esKernLockExitI();
+    esSchedLockExitI();
     ES_CRITICAL_EXIT();
 }
 
@@ -843,8 +849,9 @@ static void kVTmrInit(
 }
 
 /* 1)       This thread is just waiting continuously on thread semaphore and
- *          execute virtual timers callback functions if there are any available
- *          and then import pending virtual timers into armed linked list.
+ *          will execute virtual timers callback functions if there are any
+ *          available. After that it will import pending virtual timers into
+ *          armed linked list.
  */
 static void kVTmr(
     void *          arg) {
@@ -898,24 +905,8 @@ static void kIdle(
     (void)arg;
 
     while (TRUE) {
-
-#if (1U == CFG_HOOK_PRE_IDLE)
-    userPreIdle();
-#endif
-
-#if (0U == CFG_SCHED_POWER_SAVE)
-        ES_CRITICAL_DECL();
-
-        ES_CRITICAL_ENTER();
-        schedQmNextI();
-        esSchedYieldI();
-        ES_CRITICAL_EXIT();
-#elif (1U == CFG_SCHED_POWER_SAVE)
+#if (1U == CFG_SCHED_POWER_SAVE)
         schedSleep();
-#endif
-
-#if (1U == CFG_HOOK_IDLE_END)
-    userIdlePost();
 #endif
     }
 }
@@ -976,46 +967,6 @@ void esKernSysTmr(
     ES_CRITICAL_ENTER();
     vTmrEvaluateI();
     schedQmI();
-    ES_CRITICAL_EXIT();
-}
-
-void esKernLockEnterI(
-    void) {
-
-    if (0U == gKernLockCnt) {
-        ((esKernCtrl_T *)&gKernCtrl)->state |= SCHED_STATE_LOCK_MSK;
-    }
-    ++gKernLockCnt;
-}
-
-void esKernLockExitI(
-    void) {
-
-    --gKernLockCnt;
-
-    if (0U == gKernLockCnt) {
-        ((esKernCtrl_T *)&gKernCtrl)->state &= ~SCHED_STATE_LOCK_MSK;
-        esSchedYieldI();
-    }
-}
-
-void esKernLockEnter(
-    void) {
-
-    ES_CRITICAL_DECL();
-
-    ES_CRITICAL_ENTER();
-    esKernLockEnterI();
-    ES_CRITICAL_EXIT();
-}
-
-void esKernLockExit(
-    void) {
-
-    ES_CRITICAL_DECL();
-
-    ES_CRITICAL_ENTER();
-    esKernLockExitI();
     ES_CRITICAL_EXIT();
 }
 
@@ -1175,6 +1126,8 @@ void esThdPost(
 
 void esThdWaitI(
     void) {
+
+    ES_DBG_API_REQUIRE(ES_DBG_USAGE_FAILURE, ES_KERN_RUN == gKernCtrl.state);
 
     esSchedRdyRmI(
         esThdGetId());
@@ -1425,16 +1378,52 @@ void esSchedYieldIsrI(
 #if (1U == CFG_SCHED_POWER_SAVE)
         } else if (ES_KERN_SLEEP == gKernCtrl.state) {
             schedWakeUpI();
-
-# if (1U == CFG_HOOK_PRE_CTX_SW)
-        userPreCtxSw(
-            gKernCtrl.cthd,
-            gKernCtrl.pthd);
-# endif
-            PORT_CTX_SW_ISR();
 #endif
         }
     }
+}
+
+void esSchedLockEnterI(
+    void) {
+
+    ES_DBG_API_REQUIRE(ES_DBG_USAGE_FAILURE, ES_KERN_INIT > gKernCtrl.state);
+
+    ((esKernCtrl_T *)&gKernCtrl)->state |= SCHED_STATE_LOCK_MSK;
+    ++gKernLockCnt;
+}
+
+void esSchedLockExitI(
+    void) {
+
+    ES_DBG_API_REQUIRE(ES_DBG_USAGE_FAILURE, ES_KERN_INIT > gKernCtrl.state);
+    ES_DBG_API_REQUIRE(ES_DBG_USAGE_FAILURE, 0U == gKernLockCnt);
+
+    --gKernLockCnt;
+
+    if (0U == gKernLockCnt) {
+        ((esKernCtrl_T *)&gKernCtrl)->state &= ~SCHED_STATE_LOCK_MSK;
+        esSchedYieldI();
+    }
+}
+
+void esSchedLockEnter(
+    void) {
+
+    ES_CRITICAL_DECL();
+
+    ES_CRITICAL_ENTER();
+    esSchedLockEnterI();
+    ES_CRITICAL_EXIT();
+}
+
+void esSchedLockExit(
+    void) {
+
+    ES_CRITICAL_DECL();
+
+    ES_CRITICAL_ENTER();
+    esSchedLockExitI();
+    ES_CRITICAL_EXIT();
 }
 
 
