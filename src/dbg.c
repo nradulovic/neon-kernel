@@ -1,22 +1,20 @@
 /*
- * This file is part of esolid-kernel
- *
- * Template version: 1.1.15 (03.07.2013)
+ * This file is part of eSolid-Kernel
  *
  * Copyright (C) 2011, 2012 - Nenad Radulovic
  *
- * esolid-kernel is free software; you can redistribute it and/or modify
+ * eSolid-Kernel is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
  *
- * esolid-kernel is distributed in the hope that it will be useful,
+ * eSolid-Kernel is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with esolid-kernel; if not, write to the Free Software
+ * along with eSolid-Kernel; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin St, Fifth Floor,
  * Boston, MA  02110-1301  USA
  *
@@ -24,9 +22,9 @@
  * e-mail  :    blueskyniss@gmail.com
  *//***********************************************************************//**
  * @file
- * @author      nenad
- * @brief       Short desciption of file
- * @addtogroup  module_impl
+ * @author      Nenad Radulovic
+ * @brief       Implementation of Debug module
+ * @addtogroup  dbg_impl
  *********************************************************************//** @{ */
 
 /*=========================================================  INCLUDE FILES  ==*/
@@ -43,7 +41,7 @@
 
 /* 1)       This function will disable all interrupts to prevent any new
  *          interrupt to execute which can trigger another assert causing a very
- *          confusing situation why it failed.
+ *          confusing situation of why it failed.
  */
 PORT_C_NORETURN void esDbgAssert(
     const char *    fnName,
@@ -56,17 +54,17 @@ PORT_C_NORETURN void esDbgAssert(
     switch (msg) {
 
         case ES_DBG_OUT_OF_RANGE : {
-            assertText = "Argument is out valid range";
+            assertText = "Value is out of valid range";
             break;
         }
 
         case ES_DBG_OBJECT_NOT_VALID : {
-            assertText = "Argument is not valid";
+            assertText = "Object is not valid";
             break;
         }
 
         case ES_DBG_POINTER_NULL : {
-            assertText = "Argument is NULL pointer";
+            assertText = "Pointer has NULL value";
             break;
         }
 

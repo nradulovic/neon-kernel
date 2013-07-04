@@ -38,13 +38,14 @@
 
 /*------------------------------------------------------------------------*//**
  * @name        Error checking
- *              datails see @ref errors.
+ * @brief       These macros are enabled/disabled using the option
+ *              @ref CFG_DBG_ENABLE.
  * @{ *//*--------------------------------------------------------------------*/
 
 #if (1U == CFG_DBG_ENABLE)
 /**@brief       Generic assert macro.
  * @param       msg
- *              Enumerator enum esDbgMsg: enumerated kernel message.
+ *              Enumerator enum esDbgMsg: enumerated debug message.
  * @param       expr
  *              Condition expression which must be TRUE.
  */
@@ -75,10 +76,32 @@
     (void)0
 #endif
 
+/**@} *//*----------------------------------------------------------------*//**
+ * @name        Internal checking
+ * @brief       These macros are enabled/disabled using the option
+ *              @ref CFG_DBG_INTERNAL_CHECK.
+ * @{ *//*--------------------------------------------------------------------*/
+
 #if (1U == CFG_DBG_INTERNAL_CHECK)
+
+/**@brief       Assert macro used for internal execution checking
+ * @param       msg
+ *              Enumerator enum esDbgMsg: enumerated debug message.
+ * @param       expr
+ *              Expression which must be satisfied
+ */
 # define ES_DBG_INTERNAL(msg, expr)                                             \
     ES_DBG_ASSERT(msg, expr)
+#else
+# define ES_DBG_INTERNAL(msg, expr)                                             \
+    (void)0
 #endif
+
+/**@} *//*----------------------------------------------------------------*//**
+ * @name        API contract validation
+ * @brief       These macros are enabled/disabled using the option
+ *              @ref CFG_DBG_API_VALIDATION.
+ * @{ *//*--------------------------------------------------------------------*/
 
 #if (1U == CFG_DBG_API_VALIDATION) || defined(__DOXYGEN__)
 
@@ -90,6 +113,8 @@
     expr
 
 /**@brief       Make sure the caller has fulfilled all contract preconditions
+ * @param       msg
+ *              Enumerator enum esDbgMsg: enumerated debug message.
  * @param       expr
  *              Expression which must be satisfied
  */
@@ -97,6 +122,8 @@
     ES_DBG_ASSERT(msg, expr)
 
 /**@brief       Make sure the callee has fulfilled all contract postconditions
+ * @param       msg
+ *              Enumerator enum esDbgMsg: enumerated debug message.
  * @param       expr
  *              Expression which must be satisfied
  */
@@ -124,12 +151,12 @@ extern "C" {
 /**@brief       Debug messages
  */
 enum esDbgMsg {
-    ES_DBG_OUT_OF_RANGE,                                                    /**< @brief Argument is out of range.                       */
-    ES_DBG_OBJECT_NOT_VALID,                                                       /**< @brief Argument is not valid.                          */
-    ES_DBG_POINTER_NULL,                                                            /**< @brief Argument is NULL.                               */
+    ES_DBG_OUT_OF_RANGE,                                                        /**< @brief Value is out of valid range.                    */
+    ES_DBG_OBJECT_NOT_VALID,                                                    /**< @brief Object is not valid.                            */
+    ES_DBG_POINTER_NULL,                                                        /**< @brief Pointer has NULL value.                         */
     ES_DBG_USAGE_FAILURE,                                                       /**< @brief Object usage failure.                           */
     ES_DBG_NOT_ENOUGH_MEM,                                                      /**< @brief Not enough memory available.                    */
-    ES_DBG_UNKNOWN_ERROR = 0xFFFFU                                              /**< @brief Unknown error.                                  */
+    ES_DBG_UNKNOWN_ERROR = 0xFFU                                                /**< @brief Unknown error.                                  */
 };
 
 /*======================================================  GLOBAL VARIABLES  ==*/
@@ -139,8 +166,7 @@ enum esDbgMsg {
 /**@} *//*----------------------------------------------------------------*//**
  * @name        Error checking
  * @brief       Some basic infrastructure for error checking
- * @details     These macros provide basic detection of errors. For more
- *              datails see @ref errors.
+ * @details     For more datails see @ref errors.
  * @{ *//*--------------------------------------------------------------------*/
 
 /**@brief       An assertion has failed

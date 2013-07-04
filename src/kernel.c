@@ -226,6 +226,8 @@ static PORT_C_INLINE void schedStart(
     void);
 
 /**@brief       Set the scheduler to sleep
+ * @note        This function is used only when @ref CFG_SCHED_POWER_SAVE option
+ *              is active.
  */
 #if (1U == CFG_SCHED_POWER_SAVE) || defined(__DOXYGEN__)
 static PORT_C_INLINE void schedSleep(
@@ -233,6 +235,8 @@ static PORT_C_INLINE void schedSleep(
 #endif
 
 /**@brief       Wake up the scheduler
+ * @note        This function is used only when @ref CFG_SCHED_POWER_SAVE option
+ *              is active.
  */
 #if (1U == CFG_SCHED_POWER_SAVE) || defined(__DOXYGEN__)
 static PORT_C_INLINE void schedWakeUpI(
@@ -270,6 +274,8 @@ static PORT_C_INLINE void sysTmrInit(
     void);
 
 /**@brief       Try to activate system timer
+ * @note        This function is used only when @ref CFG_SYSTMR_ADAPTIVE_MODE
+ *              option is active.
  */
 #if (1U == CFG_SYSTMR_ADAPTIVE_MODE) || defined(__DOXYGEN__)
 static PORT_C_INLINE void sysTmrActivate(
@@ -277,6 +283,8 @@ static PORT_C_INLINE void sysTmrActivate(
 #endif
 
 /**@brief       Try to deactivate system timer
+ * @note        This function is used only when @ref CFG_SYSTMR_ADAPTIVE_MODE
+ *              option is active.
  */
 #if (1U == CFG_SYSTMR_ADAPTIVE_MODE) || defined(__DOXYGEN__)
 static PORT_C_INLINE void sysTmrDeactivateI(
@@ -288,6 +296,10 @@ static PORT_C_INLINE void sysTmrDeactivateI(
  * @{ *//*--------------------------------------------------------------------*/
 
 /**@brief       Set up system timer for different tick period during sleeping
+ * @param       ticks
+ *              Number of ticks to sleep
+ * @note        This function is used only when @ref CFG_SYSTMR_ADAPTIVE_MODE
+ *              option is active.
  */
 #if (1U == CFG_SYSTMR_ADAPTIVE_MODE) || defined(__DOXYGEN__)
 static PORT_C_INLINE void vTmrSleep(
@@ -307,6 +319,8 @@ static void vTmrAddArmedS(
     esVTmr_T *      vTmr);
 
 /**@brief       Import timers from pending list to armed list
+ * @note        This function is used only when @ref CFG_SYSTMR_ADAPTIVE_MODE
+ *              option is active.
  */
 #if (1U == CFG_SYSTMR_ADAPTIVE_MODE) || defined(__DOXYGEN__)
 static PORT_C_INLINE void vTmrImportPendI(
