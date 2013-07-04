@@ -139,6 +139,12 @@
 # define CFG_HOOK_PRE_IDLE              0U
 #endif
 
+/**@brief       Post idle hook function
+ */
+#if !defined(CFG_HOOK_POST_IDLE)
+# define CFG_HOOK_POST_IDLE             0U
+#endif
+
 /**@brief       Pre context switch hook function
  */
 #if !defined(CFG_HOOK_PRE_CTX_SW)
