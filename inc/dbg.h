@@ -52,7 +52,7 @@
 # define ES_DBG_ASSERT(msg, expr)                                               \
     do {                                                                        \
         if (!(expr)) {                                                          \
-            esDbgAssert(PORT_C_FUNC, #expr, msg);                               \
+            dbgAssert(PORT_C_FUNC, #expr, msg);                               \
         }                                                                       \
     } while (0U)
 
@@ -65,7 +65,7 @@
  */
 # define ES_DBG_ASSERT_ALWAYS(msg, text)                                        \
     do {                                                                        \
-        esDbgAssert(PORT_C_FUNC, text, msg);                                    \
+        dbgAssert(PORT_C_FUNC, text, msg);                                    \
     } while (0U)
 
 #else
@@ -141,7 +141,7 @@
     (void)0
 #endif
 
-/*------------------------------------------------------  C++ extern begin  --*/
+/**@} *//*----------------------------------------------  C++ extern begin  --*/
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -188,7 +188,7 @@ enum esDbgMsg {
  *              macros.
  * @notapi
  */
-PORT_C_NORETURN void esDbgAssert(
+PORT_C_NORETURN void dbgAssert(
     const char *    fnName,
     const char *    expr,
     enum esDbgMsg   msg);
@@ -210,6 +210,8 @@ PORT_C_NORETURN void esDbgAssert(
  * @param       msg
  *              Message: is a pointer to the string containing some information
  *              about the error.
+ * @param       msgNum
+ *              Message number: is enumerator esDbgMsg.
  * @pre         1) `NULL != fnName`
  * @pre         2) `NULL != expr`
  * @pre         3) `NULL != msg`
@@ -221,7 +223,8 @@ PORT_C_NORETURN void esDbgAssert(
 extern void userAssert(
     const char *    fnName,
     const char *    expr,
-    const char *    msg);
+    const char *    msg,
+    enum esDbgMsg   msgNum);
 
 /** @} *//*-----------------------------------------------  C++ extern end  --*/
 #ifdef __cplusplus
