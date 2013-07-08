@@ -43,6 +43,8 @@
  */
 #define PORT_DATA_WIDTH_VAL             32U
 
+#define PORT_DATA_SIZE_VAL              (PORT_DATA_WIDTH_VAL / 8U)
+
 /**@brief       Minimal stack size value is the number of elements in struct
  *              @ref portCtx
  */
