@@ -100,6 +100,10 @@
  */
 #define ES_STCK_SIZE(elem)              PORT_STCK_SIZE(elem)
 
+#define ES_THD_PRIO_MAX                 (CFG_SCHED_PRIO_LVL - 2U)
+
+#define ES_THD_PRIO_MIN                 (1U)
+
 /**@} *//*----------------------------------------------  C++ extern begin  --*/
 #ifdef __cplusplus
 extern "C" {
@@ -136,7 +140,7 @@ struct esThd {
     uint_fast8_t    cprio;                                                      /**< @brief Constant Thread Priority level                  */
     uint_fast8_t    qCnt;                                                       /**< @brief Quantum counter                                 */
     uint_fast8_t    qRld;                                                       /**< @brief Quantum counter reload value                    */
-#if (1U == CFG_DBG_API_VALIDATION) || defined(__DOXYGEN__)
+#if   (1U == CFG_DBG_API_VALIDATION) || defined(__DOXYGEN__)
     portReg_T		signature;                                                  /**< @brief Thread structure signature, see @ref errors     */
 #endif
 };
@@ -155,7 +159,7 @@ typedef portStck_T esStck_T;
 
 /**@brief       Timer tick type
  */
-#if (2U == CFG_SYSTMR_TICK_TYPE) || defined(__DOXYGEN__)
+#if   (2U == CFG_SYSTMR_TICK_TYPE) || defined(__DOXYGEN__)
 typedef uint_fast32_t esTick_T;
 #elif (1U == CFG_SYSTMR_TICK_TYPE)
 typedef uint_fast16_t esTick_T;
@@ -177,7 +181,7 @@ struct esVTmr {
     esTick_T        rtick;                                                      /**< @brief Relative tick value                             */
     void (* fn)(void *);                                                        /**< @brief Callback function pointer                       */
     void *          arg;                                                        /**< @brief Callback function argument                      */
-#if (1U == CFG_DBG_API_VALIDATION) || defined(__DOXYGEN__)
+#if   (1U == CFG_DBG_API_VALIDATION) || defined(__DOXYGEN__)
     portReg_T       signature;                                                  /**< @brief Timer structure signature, see @ref errors      */
 #endif
 };
@@ -204,7 +208,7 @@ struct esThdQ {
 /**@brief       Priority Bit Map structure
  */
     struct prioBM {
-#if (1U != PRIO_BM_GRP_INDX) || defined(__DOXYGEN__)
+#if   (1U != PRIO_BM_GRP_INDX) || defined(__DOXYGEN__)
         portReg_T       bitGrp;                                                 /**< @brief Bit group indicator                             */
 #endif
         portReg_T       bit[PRIO_BM_GRP_INDX];                                  /**< @brief Bit priority indicator                          */
@@ -216,7 +220,7 @@ struct esThdQ {
         struct esThd *  head;                                                   /**< @brief Points to the first thread in linked list.      */
         struct esThd *  next;                                                   /**< @brief Points to the next thread in linked list.       */
     }               grp[CFG_SCHED_PRIO_LVL];                                    /**< @brief Array of thread linked list sentinel structures.*/
-#if (1U == CFG_DBG_API_VALIDATION) || defined(__DOXYGEN__)
+#if   (1U == CFG_DBG_API_VALIDATION) || defined(__DOXYGEN__)
     portReg_T       signature;                                                  /**< @brief Thread Queue struct signature, see @ref errors. */
 #endif
 };
@@ -823,6 +827,9 @@ void esVTmrTerm(
  */
 void esVTmrDelay(
     esTick_T        tick);
+
+esTick_T esSysTmrTickGet(
+    void);
 
 /**@} *//*----------------------------------------------------------------*//**
  * @name        Kernel hook functions

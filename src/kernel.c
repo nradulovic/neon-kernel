@@ -131,7 +131,8 @@
 struct sysTmr {
     uint_fast16_t       vTmrArmed;                                              /**< @brief The number of armed virtual timers in system.   */
     uint_fast16_t       vTmrPend;                                               /**< @brief The number of pending timers for arming.        */
-#if (1U == CFG_SYSTMR_ADAPTIVE_MODE) || defined(__DOXYGEN__)
+    esTick_T            ctick;                                                  /**< @brief Current system timer tick value.                */
+#if   (1U == CFG_SYSTMR_ADAPTIVE_MODE) || defined(__DOXYGEN__)
     esTick_T            ptick;                                                  /**< @brief Pending ticks during the timer sleep mode.      */
 #endif
 };
@@ -229,7 +230,7 @@ static PORT_C_INLINE void schedStart(
  * @note        This function is used only when @ref CFG_SCHED_POWER_SAVE option
  *              is active.
  */
-#if (1U == CFG_SCHED_POWER_SAVE) || defined(__DOXYGEN__)
+#if   (1U == CFG_SCHED_POWER_SAVE) || defined(__DOXYGEN__)
 static PORT_C_INLINE void schedSleep(
     void);
 #endif
@@ -238,7 +239,7 @@ static PORT_C_INLINE void schedSleep(
  * @note        This function is used only when @ref CFG_SCHED_POWER_SAVE option
  *              is active.
  */
-#if (1U == CFG_SCHED_POWER_SAVE) || defined(__DOXYGEN__)
+#if   (1U == CFG_SCHED_POWER_SAVE) || defined(__DOXYGEN__)
 static PORT_C_INLINE void schedWakeUpI(
     void);
 #endif
@@ -277,7 +278,7 @@ static PORT_C_INLINE void sysTmrInit(
  * @note        This function is used only when @ref CFG_SYSTMR_ADAPTIVE_MODE
  *              option is active.
  */
-#if (1U == CFG_SYSTMR_ADAPTIVE_MODE) || defined(__DOXYGEN__)
+#if   (1U == CFG_SYSTMR_ADAPTIVE_MODE) || defined(__DOXYGEN__)
 static PORT_C_INLINE void sysTmrActivate(
     void);
 #endif
@@ -286,7 +287,7 @@ static PORT_C_INLINE void sysTmrActivate(
  * @note        This function is used only when @ref CFG_SYSTMR_ADAPTIVE_MODE
  *              option is active.
  */
-#if (1U == CFG_SYSTMR_ADAPTIVE_MODE) || defined(__DOXYGEN__)
+#if   (1U == CFG_SYSTMR_ADAPTIVE_MODE) || defined(__DOXYGEN__)
 static PORT_C_INLINE void sysTmrDeactivateI(
     void);
 #endif
@@ -301,7 +302,7 @@ static PORT_C_INLINE void sysTmrDeactivateI(
  * @note        This function is used only when @ref CFG_SYSTMR_ADAPTIVE_MODE
  *              option is active.
  */
-#if (1U == CFG_SYSTMR_ADAPTIVE_MODE) || defined(__DOXYGEN__)
+#if   (1U == CFG_SYSTMR_ADAPTIVE_MODE) || defined(__DOXYGEN__)
 static PORT_C_INLINE void vTmrSleep(
     esTick_T        ticks);
 #endif
@@ -322,8 +323,8 @@ static void vTmrAddArmedS(
  * @note        This function is used only when @ref CFG_SYSTMR_ADAPTIVE_MODE
  *              option is active.
  */
-#if (1U == CFG_SYSTMR_ADAPTIVE_MODE) || defined(__DOXYGEN__)
-static PORT_C_INLINE void vTmrImportPendI(
+#if   (1U == CFG_SYSTMR_ADAPTIVE_MODE) || defined(__DOXYGEN__)
+static PORT_C_INLINE void vTmrImportPendSleepI(
     void);
 #endif
 
@@ -382,7 +383,8 @@ static esThdQ_T gRdyQueue;
 static sysTmr_T gSysTmr = {
     0U,
     0U,
-#if (1U == CFG_SYSTMR_ADAPTIVE_MODE)
+    0U,
+#if   (1U == CFG_SYSTMR_ADAPTIVE_MODE)
     0U
 #endif
 };
@@ -395,7 +397,7 @@ static esVTmr_T gVTmrArmed = {
         &gVTmrArmed
    },
 
-#if (0U == CFG_SYSTMR_TICK_TYPE)
+#if   (0U == CFG_SYSTMR_TICK_TYPE)
    UINT_FAST8_MAX,
 #elif (1U == CFG_SYSTMR_TICK_TYPE)
    UINT_FAST16_MAX,
@@ -404,7 +406,7 @@ static esVTmr_T gVTmrArmed = {
 #endif
    NULL,
    NULL,
-#if (1U == CFG_DBG_API_VALIDATION)
+#if   (1U == CFG_DBG_API_VALIDATION)
    VTMR_CONTRACT_SIGNATURE
 #endif
 };
@@ -419,7 +421,7 @@ static esVTmr_T gVTmrPend = {
    0U,
    NULL,
    NULL,
-#if (1U == CFG_DBG_API_VALIDATION)
+#if   (1U == CFG_DBG_API_VALIDATION)
    VTMR_CONTRACT_SIGNATURE
 #endif
 };
@@ -462,7 +464,7 @@ static PORT_C_INLINE void prioBMInit(
 
     uint8_t         group;
 
-#if (1U != PRIO_BM_GRP_INDX)
+#if   (1U != PRIO_BM_GRP_INDX)
     bm->bitGrp = 0U;
 #endif
 
@@ -475,7 +477,7 @@ static PORT_C_INLINE void prioBMSet(
     prioBM_T *      bm,
     uint_fast8_t    prio) {
 
-#if (1U != PRIO_BM_GRP_INDX)
+#if   (1U != PRIO_BM_GRP_INDX)
     uint_fast8_t    grpIndx;
     uint_fast8_t    bitIndx;
 
@@ -492,7 +494,7 @@ static PORT_C_INLINE void prioBMClear(
     prioBM_T *      bm,
     uint_fast8_t    prio) {
 
-#if (1U != PRIO_BM_GRP_INDX)
+#if   (1U != PRIO_BM_GRP_INDX)
     uint_fast8_t    grpIndx;
     uint_fast8_t    bitIndx;
 
@@ -511,7 +513,7 @@ static PORT_C_INLINE void prioBMClear(
 static PORT_C_INLINE uint_fast8_t prioBMGet(
     const prioBM_T *    bm) {
 
-#if (1U != PRIO_BM_GRP_INDX)
+#if   (1U != PRIO_BM_GRP_INDX)
     uint_fast8_t    grpIndx;
     uint_fast8_t    bitIndx;
 
@@ -531,7 +533,7 @@ static PORT_C_INLINE uint_fast8_t prioBMGet(
 static PORT_C_INLINE bool_T prioBMIsEmpty(
     const prioBM_T *    bm) {
 
-#if (1U != PRIO_BM_GRP_INDX)
+#if   (1U != PRIO_BM_GRP_INDX)
     bool_T          ans;
 
     if (0U == bm->bitGrp) {
@@ -580,7 +582,7 @@ static PORT_C_INLINE void schedStart(
     ES_CRITICAL_EXIT();
 }
 
-#if (1U == CFG_SCHED_POWER_SAVE) || defined(__DOXYGEN__)
+#if   (1U == CFG_SCHED_POWER_SAVE) || defined(__DOXYGEN__)
 static PORT_C_INLINE void schedSleep(
     void) {
 
@@ -588,25 +590,31 @@ static PORT_C_INLINE void schedSleep(
 
     ES_CRITICAL_ENTER();
     esSchedLockEnterI();
-    ((esKernCtrl_T *)&gKernCtrl)->state = ES_KERN_SLEEP;
-# if (1U == CFG_SYSTMR_ADAPTIVE_MODE)
-    vTmrImportPendI();                                                          /* Import any pending timers.                               */
-    sysTmrDeactivateI();                                                        /* Evaluate timers and set system timer value for wake up.  */
-# endif
 # if (1U == CFG_HOOK_PRE_IDLE)
     userPreIdle();
 # endif
+    ((esKernCtrl_T *)&gKernCtrl)->state = ES_KERN_SLEEP;
+# if (1U == CFG_SYSTMR_ADAPTIVE_MODE)
+    vTmrImportPendSleepI();                                                     /* Import any pending timers.                               */
+    sysTmrDeactivateI();                                                        /* Evaluate timers and set system timer value for wake up.  */
+# endif
+    do {
+# if (0U == CFG_DBG_ENABLE)
     PORT_CRITICAL_EXIT_SLEEP_ENTER();                                           /* Enter sleep state and wait for an interrupt.             */
+# else
+    PORT_CRITICAL_EXIT();
+# endif
+    ES_CRITICAL_ENTER();
+    } while (gKernCtrl.cthd == gKernCtrl.pthd);
 # if (1U == CFG_HOOK_POST_IDLE)
     userPostIdle();
 # endif
-    ES_CRITICAL_ENTER();
     esSchedLockExitI();
     ES_CRITICAL_EXIT();
 }
 #endif
 
-#if (1U == CFG_SCHED_POWER_SAVE) || defined(__DOXYGEN__)
+#if   (1U == CFG_SCHED_POWER_SAVE) || defined(__DOXYGEN__)
 static PORT_C_INLINE void schedWakeUpI(
     void) {
 
@@ -671,7 +679,9 @@ static PORT_C_INLINE void sysTmrInit(
     PORT_SYSTMR_ISR_ENABLE();
 }
 
-#if (1U == CFG_SYSTMR_ADAPTIVE_MODE) || defined(__DOXYGEN__)
+#define PORT_SYSTMR_WAKEUP_TH_VAL       600U
+
+#if   (1U == CFG_SYSTMR_ADAPTIVE_MODE) || defined(__DOXYGEN__)
 static PORT_C_INLINE void sysTmrActivate(
     void) {
 
@@ -680,27 +690,37 @@ static PORT_C_INLINE void sysTmrActivate(
         if (0U != gSysTmr.vTmrArmed) {                                          /* System timer was enabled during sleep.                   */
             portSysTmrReg_T tmrVal;
 
-            tmrVal = PORT_SYSTMR_GET_CVAL() % PORT_SYSTMR_ONE_TICK_VAL;
+            tmrVal = PORT_SYSTMR_GET_RVAL() - PORT_SYSTMR_GET_CVAL();
+            tmrVal = PORT_SYSTMR_ONE_TICK_VAL - tmrVal;
             PORT_SYSTMR_RLD(tmrVal);
         } else {                                                                /* System timer was disabled during sleep.                  */
             PORT_SYSTMR_RLD(PORT_SYSTMR_ONE_TICK_VAL);                          /* Reload macro will also re-enable the timer               */
             PORT_SYSTMR_ISR_ENABLE();
         }
     } else {                                                                    /* Preempted wake up, system timer was enabled during sleep.*/
-        esVTmr_T * vTmr;
+        esVTmr_T *  vTmr;
+        esTick_T    ticks;
         portSysTmrReg_T tmrVal;
 
+        tmrVal = PORT_SYSTMR_GET_RVAL() - PORT_SYSTMR_GET_CVAL();
+        ticks = tmrVal / PORT_SYSTMR_ONE_TICK_VAL;
+        tmrVal -= (PORT_SYSTMR_ONE_TICK_VAL * ticks);
+        tmrVal = PORT_SYSTMR_ONE_TICK_VAL - tmrVal;
+
+        if (PORT_SYSTMR_WAKEUP_TH_VAL > tmrVal) {
+            PORT_SYSTMR_RLD(tmrVal);
+        } else {
+            PORT_SYSTMR_RLD(tmrVal + PORT_SYSTMR_ONE_TICK_VAL);
+        }
         vTmr = DLIST_ENTRY_NEXT(tmrL, &gVTmrArmed);
-        tmrVal = (PORT_SYSTMR_GET_RVAL() - PORT_SYSTMR_GET_CVAL());
-        vTmr->rtick -= tmrVal / PORT_SYSTMR_ONE_TICK_VAL;
-        tmrVal %= PORT_SYSTMR_ONE_TICK_VAL;
+        vTmr->rtick -= ticks;
+        gSysTmr.ctick += ticks;
         gSysTmr.ptick = 0U;
-        PORT_SYSTMR_RLD(tmrVal);
     }
 }
 #endif
 
-#if (1U == CFG_SYSTMR_ADAPTIVE_MODE) || defined(__DOXYGEN__)
+#if   (1U == CFG_SYSTMR_ADAPTIVE_MODE) || defined(__DOXYGEN__)
 static PORT_C_INLINE void sysTmrDeactivateI(
     void) {
 
@@ -720,35 +740,38 @@ static PORT_C_INLINE void sysTmrDeactivateI(
 
 /*--  Timer  -----------------------------------------------------------------*/
 
-#if (1U == CFG_SYSTMR_ADAPTIVE_MODE) || defined(__DOXYGEN__)
+#if   (1U == CFG_SYSTMR_ADAPTIVE_MODE) || defined(__DOXYGEN__)
 static PORT_C_INLINE void vTmrSleep(
     esTick_T        ticks) {
 
     portSysTmrReg_T sysTmrVal;
 
+    if (PORT_SYSTMR_MAX_TICKS_VAL < ticks) {                                    /* Limit the number of ticks according to hardware maximum  */
+        ticks = PORT_SYSTMR_MAX_TICKS_VAL;                                      /* specification.                                           */
+    }
     gSysTmr.ptick = ticks;
 
-    if (PORT_SYSTMR_MAX_TICKS_VAL < gSysTmr.ptick) {
-        gSysTmr.ptick = PORT_SYSTMR_MAX_TICKS_VAL;
-    }
-    sysTmrVal = PORT_SYSTMR_ONE_TICK_VAL * gSysTmr.ptick;
-    sysTmrVal += PORT_SYSTMR_GET_CVAL() % PORT_SYSTMR_ONE_TICK_VAL;
+    if (0U != ticks) {
+        sysTmrVal = PORT_SYSTMR_ONE_TICK_VAL * (ticks - 1U);
+        sysTmrVal += PORT_SYSTMR_GET_CVAL() % PORT_SYSTMR_ONE_TICK_VAL;         /* Add the remaining time of current tick period.           */
 
-    if (PORT_SYSTMR_GET_RVAL() != sysTmrVal) {
-        PORT_SYSTMR_RLD(sysTmrVal);
+        if (PORT_SYSTMR_GET_RVAL() != sysTmrVal) {
+            PORT_SYSTMR_RLD(sysTmrVal);
+        }
     }
 }
 #endif
 
 static PORT_C_INLINE void vTmrEvaluateI(
     void) {
+    ++gSysTmr.ctick;
 
     if (0U != gSysTmr.vTmrArmed) {                                              /* There is an armed timer waiting.                         */
         esVTmr_T * vTmr;
 
         vTmr = DLIST_ENTRY_NEXT(tmrL, &gVTmrArmed);
 
-#if (0U == CFG_SYSTMR_ADAPTIVE_MODE)
+#if   (0U == CFG_SYSTMR_ADAPTIVE_MODE)
         --vTmr->rtick;
 #elif (1U == CFG_SYSTMR_ADAPTIVE_MODE)
         if (0U == gSysTmr.ptick) {                                              /* Normal system tick.                                      */
@@ -758,12 +781,10 @@ static PORT_C_INLINE void vTmrEvaluateI(
             }
             --vTmr->rtick;
         } else {                                                                /* Low power tick.                                          */
-            vTmr->rtick -= gSysTmr.ptick;                                       /* Substract pending ticks from current timer.              */
-
-            if (0U != vTmr->rtick) {                                            /* If the timer still hasn't expired schedule another sleep */
-                vTmrSleep(                                                      /* time period.                                             */
-                    vTmr->rtick);
-            }
+            gSysTmr.ctick += gSysTmr.ptick - 1U;
+            vTmr->rtick -= gSysTmr.ptick;                                       /* Subtract pending ticks from current timer.               */
+            vTmrSleep(                                                          /* time period.                                             */
+                vTmr->rtick);
         }
 #endif
 
@@ -794,7 +815,7 @@ static void vTmrAddArmedS(
     tmp = DLIST_ENTRY_NEXT(tmrL, &gVTmrArmed);
     tick = vTmr->rtick;
 
-    while (tmp->rtick < tick) {
+    while (tmp->rtick <= tick) {
         tick -= tmp->rtick;
         tmp = DLIST_ENTRY_NEXT(tmrL, tmp);
     }
@@ -806,15 +827,15 @@ static void vTmrAddArmedS(
     }
 }
 
-#if (1U == CFG_SYSTMR_ADAPTIVE_MODE) || defined(__DOXYGEN__)
-static PORT_C_INLINE void vTmrImportPendI(
+#if   (1U == CFG_SYSTMR_ADAPTIVE_MODE) || defined(__DOXYGEN__)
+static PORT_C_INLINE void vTmrImportPendSleepI(
     void) {
 
     while (0U != gSysTmr.vTmrPend) {
         esVTmr_T * tmr;
 
-        ++gSysTmr.vTmrArmed;
         --gSysTmr.vTmrPend;
+        ++gSysTmr.vTmrArmed;
         tmr = DLIST_ENTRY_NEXT(tmrL, &gVTmrPend);
         DLIST_ENTRY_RM(tmrL, tmr);
         vTmrAddArmedS(
@@ -823,6 +844,9 @@ static PORT_C_INLINE void vTmrImportPendI(
 }
 #endif
 
+/* 1)       Since an system timer interrupt has already occurred one tick period
+ *          must be subtracted from imported timers.
+ */
 static void vTmrImportPend(
     void) {
 
@@ -834,14 +858,15 @@ static void vTmrImportPend(
     while (0U != gSysTmr.vTmrPend) {
         esVTmr_T * tmr;
 
-        ++gSysTmr.vTmrArmed;
         --gSysTmr.vTmrPend;
+        ++gSysTmr.vTmrArmed;
         tmr = DLIST_ENTRY_NEXT(tmrL, &gVTmrPend);
         DLIST_ENTRY_RM(tmrL, tmr);
         ES_CRITICAL_EXIT();
+        --tmr->rtick;                                                           /* Timer thread requires one tick less than original value. */
         vTmrAddArmedS(
             tmr);
-        ES_CRITICAL_EXIT();
+        ES_CRITICAL_ENTER();
     }
     esSchedLockExitI();
     ES_CRITICAL_EXIT();
@@ -891,6 +916,7 @@ static void kVTmr(
                 --gSysTmr.vTmrArmed;
                 DLIST_ENTRY_RM(tmrL, tmr);
                 tmpTmr = tmr;
+                ES_DBG_API_OBLIGATION(tmr->signature = ~VTMR_CONTRACT_SIGNATURE);
                 tmr = DLIST_ENTRY_NEXT(tmrL, &gVTmrArmed);
                 (* tmpTmr->fn)(tmpTmr->arg);
             }
@@ -923,7 +949,7 @@ static void kIdle(
     (void)arg;
 
     while (TRUE) {
-#if (1U == CFG_SCHED_POWER_SAVE)
+#if   (1U == CFG_SCHED_POWER_SAVE)
         schedSleep();
 #endif
     }
@@ -940,7 +966,7 @@ void esKernInit(
 
     ES_DBG_API_REQUIRE(ES_DBG_USAGE_FAILURE, ES_KERN_INACTIVE == gKernCtrl.state);
 
-#if (1U == CFG_HOOK_PRE_KERN_INIT)
+#if   (1U == CFG_HOOK_PRE_KERN_INIT)
     userPreKernInit();
 #endif
     PORT_INT_DISABLE();
@@ -950,8 +976,7 @@ void esKernInit(
     kIdleInit();
     kVTmrInit();
     PORT_INIT();
-
-#if (1U == CFG_HOOK_POST_KERN_INIT)
+#if   (1U == CFG_HOOK_POST_KERN_INIT)
     userPostKernInit();
 #endif
 }
@@ -964,7 +989,7 @@ PORT_C_NORETURN void esKernStart(
 
     ES_DBG_API_REQUIRE(ES_DBG_USAGE_FAILURE, ES_KERN_INIT == gKernCtrl.state);
 
-#if (1U == CFG_HOOK_PRE_KERN_START)
+#if   (1U == CFG_HOOK_PRE_KERN_START)
     userPreKernStart();
 #endif
     PORT_INIT_LATE();
@@ -979,7 +1004,9 @@ void esKernSysTmr(
 
     ES_CRITICAL_DECL();
 
-#if (1U == CFG_HOOK_PRE_SYSTMR_EVENT)
+    ES_DBG_API_REQUIRE(ES_DBG_USAGE_FAILURE, gKernCtrl.cthd != &gKVTmr);
+
+#if   (1U == CFG_HOOK_PRE_SYSTMR_EVENT)
     userPreSysTmr();
 #endif
     ES_CRITICAL_ENTER();
@@ -1048,7 +1075,7 @@ void esThdInit(
     esSchedYieldI();                                                            /* Invoke the scheduler.                                    */
     ES_CRITICAL_EXIT();
 
-#if (1U == CFG_HOOK_POST_THD_INIT)
+#if   (1U == CFG_HOOK_POST_THD_INIT)
     userPostThdInit();
 #endif
 }
@@ -1063,7 +1090,7 @@ void esThdTerm(
     ES_DBG_API_REQUIRE(ES_DBG_OBJECT_NOT_VALID, THD_CONTRACT_SIGNATURE == thd->signature);
     ES_DBG_API_REQUIRE(ES_DBG_POINTER_NULL, (NULL == thd->thdL.q) || (&gRdyQueue == thd->thdL.q));
 
-#if (1U == CFG_HOOK_PRE_THD_TERM)
+#if   (1U == CFG_HOOK_PRE_THD_TERM)
     userPreThdTerm();
 #endif
     ES_CRITICAL_ENTER();
@@ -1193,7 +1220,7 @@ void esThdQTerm(
 
     ES_DBG_API_OBLIGATION(thdQ->signature = ~THDQ_CONTRACT_SIGNATURE);
 
-#if (0U == CFG_DBG_API_VALIDATION)
+#if   (0U == CFG_DBG_API_VALIDATION)
     (void)thdQ;                                                                 /* Prevent compiler warning about unused argument.          */
 #endif
 }
@@ -1357,11 +1384,11 @@ void esSchedYieldI(
 
     ES_DBG_API_REQUIRE(ES_DBG_USAGE_FAILURE, ES_KERN_INACTIVE > gKernCtrl.state);
 
-    if (gKernCtrl.cthd != gKernCtrl.pthd) {                                     /* Context switching is needed only when cthd and nthd are  */
+    if (gKernCtrl.cthd != gKernCtrl.pthd) {                                     /* Context switching is needed only when cthd and pthd are  */
                                                                                 /* different.                                               */
         if (ES_KERN_RUN == gKernCtrl.state) {
 
-#if (1U == CFG_HOOK_PRE_CTX_SW)
+#if   (1U == CFG_HOOK_PRE_CTX_SW)
             userPreCtxSw(
                 gKernCtrl.cthd,
                 newThd);
@@ -1384,14 +1411,14 @@ void esSchedYieldIsrI(
 
         if (ES_KERN_RUN == gKernCtrl.state) {
 
-#if (1U == CFG_HOOK_PRE_CTX_SW)
+#if   (1U == CFG_HOOK_PRE_CTX_SW)
         userPreCtxSw(
             gKernCtrl.cthd,
             gKernCtrl.pthd);
 #endif
             PORT_CTX_SW_ISR();
 
-#if (1U == CFG_SCHED_POWER_SAVE)
+#if   (1U == CFG_SCHED_POWER_SAVE)
         } else if (ES_KERN_SLEEP == gKernCtrl.state) {
             schedWakeUpI();
 #endif
@@ -1411,8 +1438,8 @@ void esSchedLockEnterI(
 void esSchedLockExitI(
     void) {
 
-    ES_DBG_API_REQUIRE(ES_DBG_USAGE_FAILURE, ES_KERN_INIT > gKernCtrl.state);
-    ES_DBG_API_REQUIRE(ES_DBG_USAGE_FAILURE, 0U == gKernLockCnt);
+    ES_DBG_API_REQUIRE(ES_DBG_USAGE_FAILURE, ES_KERN_LOCK == gKernCtrl.state);
+    ES_DBG_API_REQUIRE(ES_DBG_USAGE_FAILURE, 0U != gKernLockCnt);
 
     --gKernLockCnt;
 
@@ -1457,13 +1484,14 @@ void esVTmrInitI(
     ES_DBG_API_REQUIRE(ES_DBG_OUT_OF_RANGE, 1U < tick);
     ES_DBG_API_REQUIRE(ES_DBG_POINTER_NULL, NULL != fn);
 
-    vTmr->rtick = tick - 1U;                                                    /* Timer thread requires one tick less than original value. */
+    vTmr->rtick = tick;
     vTmr->fn    = fn;
     vTmr->arg   = arg;
+    vTmr->tmrL.q = &gVTmrPend;
     DLIST_ENTRY_ADD_AFTER(tmrL, &gVTmrPend, vTmr);
     ++gSysTmr.vTmrPend;
 
-#if (1U == CFG_SYSTMR_ADAPTIVE_MODE)
+#if   (1U == CFG_SYSTMR_ADAPTIVE_MODE)
     if (0U != gSysTmr.ptick) {                                                  /* If system is sleeping we need to wake up VTmt thread.    */
         esThdPostI(
             &gKVTmr);
@@ -1564,6 +1592,53 @@ void esVTmrDelay(
         (void (*)(void *))esThdPost,
         (void *)esThdGetId());
     esThdWait();
+}
+
+esTick_T esSysTmrTickGet(
+    void) {
+    esTick_T        tick;
+
+    ES_DBG_API_REQUIRE(ES_DBG_USAGE_FAILURE, ES_KERN_INACTIVE > gKernCtrl.state);
+
+#if   (0U == CFG_SYSTMR_ADAPTIVE_MODE)
+# if   (PORT_DATA_SIZE_VAL >= SYSTMR_TICK_TYPE_SIZE)
+    tick = gSysTmr.ctick;
+
+    return (tick);
+# else
+    {
+        ES_CRITICAL_DECL();
+
+        ES_CRITICAL_ENTER();
+        tick = gSysTmr.ctick;
+        ES_CRITICAL_EXIT();
+
+        return (tick);
+    }
+# endif
+#elif (1U == CFG_SYSTMR_ADAPTIVE_MODE)
+    if (0U == gSysTmr.ptick) {                                                  /* Normal operation.                                        */
+        tick = gSysTmr.ctick;
+    } else {                                                                    /* Preempted wake up, system timer was enabled during sleep.*/
+
+        if (0U != gSysTmr.vTmrArmed) {                                          /* System timer was enabled during sleep.                   */
+            portSysTmrReg_T tmrVal;
+
+            tmrVal = (PORT_SYSTMR_GET_RVAL() - PORT_SYSTMR_GET_CVAL());
+            tick = tmrVal / PORT_SYSTMR_ONE_TICK_VAL;
+        } else {                                                                /* System timer was disabled during sleep.                  */
+# if   (0U == CFG_SYSTMR_TICK_TYPE)
+            tick = UINT8_MAX;
+# elif (1U == CFG_SYSTMR_TICK_TYPE)
+            tick = UINT16_MAX;
+# elif (2U == CFG_SYSTMR_TICK_TYPE)
+            tick = UINT32_MAX;
+# endif
+        }
+    }
+
+    return (tick);
+#endif
 }
 
 /*================================*//** @cond *//*==  CONFIGURATION ERRORS  ==*/
