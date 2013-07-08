@@ -28,4 +28,33 @@
 @n
 @n
 @section        errors_intro Intro
+
+An assertion is a statement in programming language that enables programmer to 
+test the assumptions about the program. 
+
+During the development cycle, the programmer will run the program with 
+assertions enabled. When an assertion failure occurs, the programmer is 
+immediately notified about the problem. Failed assertion will also halt the 
+CPU's execution: this is useful, since if the application continued to run after 
+an assertion violation has occurred, it might corrupt its state and make the 
+cause of the problem more difficult to locate. Using the information provided by 
+the assertion failure function (dbdAssert()), the programmer can usually fix the
+problem. Thus assertions provide a very powerful tool in debugging.
+
+@par            Assertions in design by contract
+
+Assertions can function as a form of function documentation: they describe the 
+state the code expects to find before it runs (its preconditions), and the state 
+the code expects to result in when it is finished running (postconditions).
+
+@section        errors_usage Usage
+@par            Configuration
+In order to use Debug macros configuration option @ref CFG_DBG_ENABLE must be
+active. This option will enable generic assert macros which are used by other
+macros of Debug module. 
+
+To activate API contract validation macros configuration option 
+@ref CFG_DBG_API_VALIDATION must be also activated.
+
+Internal checking macros are activated with option @ref CFG_DBG_INTERNAL_CHECK.
 */
