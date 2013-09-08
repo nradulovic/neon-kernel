@@ -66,6 +66,14 @@
 # define PORT_C_FUNC                    "unknown"
 #endif
 
+/**@brief       Provides the current file's name which is being compiled
+ */
+#define PORT_C_FILE                     __FILE__
+
+/**@brief       Provides the current source line
+ */
+#define PORT_C_LINE                     __LINE__
+
 /**@brief       Declare a weak function
  */
 #define PORT_C_WEAK                     __attribute__((weak))
@@ -74,7 +82,13 @@
  */
 #define PORT_C_NORETURN                 __attribute__((noreturn))
 
+/**@brief       Declare a variable that will be stored in ROM address space
+ */
 #define PORT_C_ROM
+
+/**@brief       Declare a pointer that will be stored in ROM address space
+ *//
+#defien PORT_C_ROM_VAR
 
 /**@brief       This attribute specifies a minimum alignment (in bytes) for
  *              variables of the specified type.
