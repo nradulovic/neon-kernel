@@ -28,6 +28,7 @@
  *********************************************************************//** @{ */
 
 /*=========================================================  INCLUDE FILES  ==*/
+
 #include "kernel.h"
 
 /*=========================================================  LOCAL MACRO's  ==*/
@@ -40,57 +41,63 @@
 /*====================================  GLOBAL PUBLIC FUNCTION DEFINITIONS  ==*/
 
 /* 1)       This function will disable all interrupts to prevent any new
- *          interrupt to execute which can trigger another assert causing a very
- *          confusing situation of why it failed.
+ *          interrupts to execute which can trigger another assert causing a 
+ *          very confusing situation of why it failed.
  */
 PORT_C_NORETURN void dbgAssert(
-    const char *    fnName,
-    const char *    expr,
-    enum esDbgMsg   msg) {
+    const PORT_C_ROM struct dbgCobj * cObj,
+    const PORT_C_ROM char * expr,
+    enum esDbgMsg       msg) {
 
-    const char *    assertText;
+    struct esDbgReport  dbgReport;
+    const char *        msgText;
 
     PORT_INT_DISABLE();
 
     switch (msg) {
 
         case ES_DBG_OUT_OF_RANGE : {
-            assertText = "Value is out of valid range";
+            msgText = "Value is out of valid range";
             break;
         }
 
         case ES_DBG_OBJECT_NOT_VALID : {
-            assertText = "Object is not valid";
+            msgText = "Object is not valid";
             break;
         }
 
         case ES_DBG_POINTER_NULL : {
-            assertText = "Pointer has NULL value";
+            msgText = "Pointer has NULL value";
             break;
         }
 
         case ES_DBG_USAGE_FAILURE : {
-            assertText = "Object usage failure";
+            msgText = "Object usage failure";
             break;
         }
 
         case ES_DBG_NOT_ENOUGH_MEM : {
-            assertText = "Not enough memory available";
+            msgText = "Not enough memory available";
             break;
         }
 
         default : {
-            assertText = "Unknown error has occurred";
+            msgText = "Unknown error has occurred";
             break;
         }
     }
+    dbgReport.modName   = cObj->mod->name;
+    dbgReport.modDesc   = cObj->mod->desc;
+    dbgReport.modAuthor = cObj->mod->auth;
+    dbgReport.modFile   = cObj->mod->file;
+    dbgReport.fnName    = cObj->func;
+    dbgReport.expr      = expr;
+    dbgReport.msgText   = msgText;
+    dbgReport.line      = cObj->line;
+    dbgReport.msgNum    = msg;
     userAssert(
-        fnName,
-        expr,
-        assertText,
-        msg);
-
-    while (TRUE);
+        &dbgReport);
+    PORT_TERM();
 }
 
 /*================================*//** @cond *//*==  CONFIGURATION ERRORS  ==*/
