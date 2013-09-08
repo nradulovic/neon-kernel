@@ -157,15 +157,17 @@
 #define PORT_CRITICAL_EXIT_SLEEP_ENTER()                                        \
     portIntSetSleepEnter_(intStatus_)
 
-/**@brief       This port does not need this function call.
- */
 #define PORT_INIT_EARLY()               portInitEarly_()
 
+/**@brief       This port does not need this function call.
+ */
 #define PORT_INIT()                     (void)0
 
 /**@brief       This port does not need this function call.
  */
 #define PORT_INIT_LATE()                (void)0
+
+#define PORT_TERM()                     while (TRUE)
 
 /** @} *//*---------------------------------------------------------------*//**
  * @name        Port specific macros

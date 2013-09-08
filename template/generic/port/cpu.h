@@ -328,6 +328,13 @@
  */
 #define PORT_INIT_LATE()
 
+/**@brief       Terminate port
+ * @details     This macro will be called when there is a need to stop any
+ *              further execution (example: an error occured and CPU needs to
+ *              stop).
+ */              
+#define PORT_TERM()
+
 /** @} *//*---------------------------------------------  C++ extern begin  --*/
 #ifdef __cplusplus
 extern "C" {
