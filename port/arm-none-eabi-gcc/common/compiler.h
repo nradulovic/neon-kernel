@@ -87,8 +87,8 @@
 #define PORT_C_ROM
 
 /**@brief       Declare a pointer that will be stored in ROM address space
- *//
-#defien PORT_C_ROM_VAR
+ */
+#define PORT_C_ROM_VAR
 
 /**@brief       This attribute specifies a minimum alignment (in bytes) for
  *              variables of the specified type.
