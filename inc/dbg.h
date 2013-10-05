@@ -50,14 +50,17 @@
  * @param       modAuth
  *              Module author : string
  */
-#if (1U == CFG_DBG_ENABLE)
+#if (1u == CFG_DBG_ENABLE)
 # define DECL_MODULE_INFO(modName, modDesc, modAuth)                            \
     static const PORT_C_ROM struct dbgModInfo gModInfo_ = {                     \
-        .name = modName,                                                        \
-        .desc = modDesc,                                                        \
-        .auth = modAuth,                                                        \
-        .file = PORT_C_FILE                                                     \
+        modName,                                                                \
+        modDesc,                                                                \
+        modAuth,                                                                \
+        PORT_C_FILE                                                             \
     }
+#else
+# define DECL_MODULE_INFO(modName, modDesc, modAuth)                            \
+    PORT_C_UNUSED DECL_MODULE_INFO(modName, modDesc, modAuth)
 #endif
 
 /**@} *//*----------------------------------------------------------------*//**
@@ -71,7 +74,7 @@
  * @param       msg
  *              Message : enum esDbgMsg : enumerated debug message.
  * @param       expr
- *              Expression : C expression : condition expression which must be 
+ *              Expression : C expression : condition expression which must be
  *              TRUE.
  */
 # define ES_DBG_ASSERT(msg, expr)                                               \
@@ -123,7 +126,7 @@
  * @param       msg
  *              Message : enum esDbgMsg : enumerated debug message.
  * @param       expr
- *              Expression : C expression : condition expression which must be 
+ *              Expression : C expression : condition expression which must be
  *              satisfied
  */
 # define ES_DBG_INTERNAL(msg, expr)                                             \
@@ -143,7 +146,7 @@
 
 /**@brief       Execute code to fulfill the contract
  * @param       expr
- *              Expression : C expression : expression to be executed only if 
+ *              Expression : C expression : expression to be executed only if
  *              contracts need to be validated.
  */
 # define ES_DBG_API_OBLIGATION(expr)                                            \
@@ -153,7 +156,7 @@
  * @param       msg
  *              Message : enum esDbgMsg : enumerated debug message.
  * @param       expr
- *              Expression : C expression : condition expression which must be 
+ *              Expression : C expression : condition expression which must be
  *              satisfied
  */
 # define ES_DBG_API_REQUIRE(msg, expr)                                          \
@@ -163,7 +166,7 @@
  * @param       msg
  *              Message : enum esDbgMsg : enumerated debug message.
  * @param       expr
- *              Expression : C expression : condition expression which must be 
+ *              Expression : C expression : condition expression which must be
  *              satisfied
  */
 # define ES_DBG_API_ENSURE(msg, expr)                                           \
@@ -202,7 +205,7 @@ enum esDbgMsg {
 /*------------------------------------------------------------------------*//**
  * @name        Object and error source information
  * @{ *//*--------------------------------------------------------------------*/
- 
+
 /**@brief       Debug module information structure
  * @notapi
  */
@@ -226,18 +229,18 @@ struct dbgCobj {
  * @api
  */
 struct esDbgReport {
-    const PORT_C_ROM char * modName,
-    const PORT_C_ROM char * modDesc,
-    const PORT_C_ROM char * modAuthor,
-    const PORT_C_ROM char * modFile,
-    const PORT_C_ROM char * fnName,
-    const PORT_C_ROM char * expr,
-    const PORT_C_ROM char * msgText,
-    uint16_t            line,
-    enum esDbgMsg       msgNum
+    const PORT_C_ROM char * modName;
+    const PORT_C_ROM char * modDesc;
+    const PORT_C_ROM char * modAuthor;
+    const PORT_C_ROM char * modFile;
+    const PORT_C_ROM char * fnName;
+    const PORT_C_ROM char * expr;
+    const PORT_C_ROM char * msgText;
+    uint16_t            line;
+    enum esDbgMsg       msgNum;
 };
 
-/**@} *//*----------------------------------------------------------------*//**
+/**@} *//*--------------------------------------------------------------------*/
 
 /*======================================================  GLOBAL VARIABLES  ==*/
 /*===================================================  FUNCTION PROTOTYPES  ==*/
@@ -278,7 +281,7 @@ PORT_C_NORETURN void dbgAssert(
 /**@brief       An assertion has failed. This function should inform the user
  *              about failed assertion.
  * @param       dbgReport
- *              Debug report: is pointer to the debug report created by 
+ *              Debug report: is pointer to the debug report created by
  *              dbgAssert() function.
  * @pre         1) `NULL != dbgReport`
  * @note        1) This function is called only if @ref CFG_DBG_ENABLE is active.

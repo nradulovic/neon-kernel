@@ -41,7 +41,7 @@
 /*====================================  GLOBAL PUBLIC FUNCTION DEFINITIONS  ==*/
 
 /* 1)       This function will disable all interrupts to prevent any new
- *          interrupts to execute which can trigger another assert causing a 
+ *          interrupts to execute which can trigger another assert causing a
  *          very confusing situation of why it failed.
  */
 PORT_C_NORETURN void dbgAssert(
@@ -90,7 +90,7 @@ PORT_C_NORETURN void dbgAssert(
     dbgReport.modDesc   = cObj->mod->desc;
     dbgReport.modAuthor = cObj->mod->auth;
     dbgReport.modFile   = cObj->mod->file;
-    dbgReport.fnName    = cObj->func;
+    dbgReport.fnName    = cObj->fn;
     dbgReport.expr      = expr;
     dbgReport.msgText   = msgText;
     dbgReport.line      = cObj->line;
