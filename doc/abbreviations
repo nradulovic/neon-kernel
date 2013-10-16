@@ -1,0 +1,8 @@
+
+interrupt                   intr
+interrupt service routine   isr
+interrupt request           irq
+thread                      thd
+timer                       tmr
+queue                       q
+virtual                     v
