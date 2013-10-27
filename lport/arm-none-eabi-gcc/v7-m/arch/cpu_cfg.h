@@ -28,86 +28,38 @@
  * @brief		Configuration of CPU module.
  *********************************************************************//** @{ */
 
-#if !defined(CPU_CONFIG_H_)
-#define CPU_CONFIG_H_
+#if !defined(CPU_CFG_H_)
+#define CPU_CFG_H_
 
 /*=========================================================  INCLUDE FILES  ==*/
 /*===============================================================  DEFINES  ==*/
-/** @cond */
-
-#define CPU_STM32F10X
-#define CFG_SYSTMR_CLOCK_FREQUENCY      8000000UL
-
-/** @endcond */
 /*==============================================================  SETTINGS  ==*/
 
 /*------------------------------------------------------------------------*//**
- * @name        ST Microelectronics STM32F10x
- * @{ *//*--------------------------------------------------------------------*/
-#if defined(CPU_STM32F10X) || defined(__DOXYGEN__)
-
-#define CPU_FOUND_                                                              /**< @brief Note that a port is found.                      */
-
-/**@brief       Priority of critical sections in kernel
- * @details     Specify the priority in range: <code>0</code>\f$\leq\f$
- *              <code>CFG_CRITICAL_PRIO</code> \f$\leq\f$ <code>15</code>. The
- *              lower the number the higher the priority.
- * @note        When priority is set to @b 0 then critical section will not use
- *              priority levels bit it will just disable interrupts on entry and
- *              enable interrupts on exit.
- */
-#if !defined(CFG_CRITICAL_PRIO) || defined(__DOXYGEN__)
-# define CFG_CRITICAL_PRIO              7U
-#endif
-
-/**@brief       The frequency of clock which is used for the system timer
- * @details     System timer SysTick uses core clock (sometimes referred to as
- *              HCLK) for counting. Specify here the core clock so the OS can
- *              properly manage system tick event generation.
- */
-#if !defined(CFG_SYSTMR_CLOCK_FREQUENCY) || defined(__DOXYGEN__)
-# define CFG_SYSTMR_CLOCK_FREQUENCY     24000000UL
-#endif
-
-/**@brief       Port constant: interrupt priority bits implemented in MCU
- * @note        It is also recommended to ensure that all priority bits are
- *              assigned as being preemption priority bits, and none as sub
- *              priority bits
- */
-# define CPU_ISR_PRIO_BITS              4U
-
-#endif
-
-/** @} *//*---------------------------------------------------------------*//**
- * @name        Exception handlers used by the port
+ * @name        Exception handlers used by the local port
  * @{ *//*--------------------------------------------------------------------*/
 
 /**@brief       PendSV exception handler
  */
-#if !defined(portPendSV) || defined(__DOXYGEN__)
+#if !defined(portPendSV)
 # define portPendSV                     PendSV_Handler
 #endif
 
 /**@brief       SVC exception handler
  */
-#if !defined(portSVC) || defined(__DOXYGEN__)
+#if !defined(portSVC)
 # define portSVC                        SVC_Handler
 #endif
 
 /**@brief       SysTick exception handler
  */
-#if !defined(portSysTmr) || defined(__DOXYGEN__)
+#if !defined(portSysTmr)
 # define portSysTmr                     SysTick_Handler
 #endif
 
 /** @} *//*-------------------------------------------------------------------*/
 /*================================*//** @cond *//*==  CONFIGURATION ERRORS  ==*/
-
-#if !defined(CPU_FOUND_)
-# error "eSolid RT Kernel port: please define a valid port macro."
-#endif
-
 /** @endcond *//** @} *//******************************************************
  * END of cpu_cfg.h
  ******************************************************************************/
-#endif /* CPU_CONFIG_H_ */
+#endif /* CPU_CFG_H_ */

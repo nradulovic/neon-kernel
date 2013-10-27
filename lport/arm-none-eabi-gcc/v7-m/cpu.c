@@ -1,25 +1,23 @@
 /*
- * This file is part of eSolid-Kernel
+ * This file is part of eSolid
  *
- * Copyright (C) 2013 - Nenad Radulovic
+ * Copyright (C) 2011, 2012, 2013 - Nenad Radulovic
  *
- * eSolid-Kernel is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * eSolid is free software; you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option) any later
+ * version.
  *
- * eSolid-Kernel is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * eSolid is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with eSolid-Kernel; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor,
- * Boston, MA  02110-1301  USA
+ * You should have received a copy of the GNU General Public License along with
+ * eSolid; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
+ * Fifth Floor, Boston, MA  02110-1301  USA
  *
- * web site:    http://blueskynet.dyndns-server.com
- * e-mail  :    blueskyniss@gmail.com
+ * web site:    http://github.com/nradulovic
+ * e-mail  :    nenad.b.radulovic@gmail.com
  *//***********************************************************************//**
  * @file
  * @author      Nenad Radulovic
@@ -28,7 +26,8 @@
  *********************************************************************//** @{ */
 
 /*=========================================================  INCLUDE FILES  ==*/
-#include "kernel.h"
+
+#include "kernel/kernel.h"
 
 /*=========================================================  LOCAL MACRO's  ==*/
 
@@ -172,7 +171,8 @@ static void threadExit(
  * @note        The priority cannot be set for every core interrupt.
  */
 static PORT_C_INLINE void intPrioSet(
-    irqN_T          irqN);
+    irqN_T          irqN,
+    uint32_t        prio);
 
 /*=======================================================  LOCAL VARIABLES  ==*/
 /*======================================================  GLOBAL VARIABLES  ==*/
@@ -188,9 +188,10 @@ static void threadExit(
 }
 
 static PORT_C_INLINE void intPrioSet(
-    irqN_T          irqN) {
+    irqN_T          irqN,
+    uint32_t        prio) {
 
-    SCB->shp[((uint32_t)(irqN) & 0x0FUL) - 4U] = CPU_ISR_PRIO;                  /* set Priority for Cortex-M  System Interrupts          */
+    SCB->shp[((uint32_t)(irqN) & 0x0FUL) - 4U] = prio;                          /* set Priority for Cortex-M  System Interrupts          */
 }
 
 /*===================================  GLOBAL PRIVATE FUNCTION DEFINITIONS  ==*/
@@ -202,7 +203,7 @@ static PORT_C_INLINE void intPrioSet(
  * - 8      initiate SVC 0 which switches the context to the first thread
  * - 10     infinite loop: will never reach here
  */
-PORT_C_NORETURN void portThdStart_(
+PORT_C_NORETURN void lpThdStart(
     void) {
 
     __asm__ __volatile__ (
@@ -221,15 +222,15 @@ PORT_C_NORETURN void portThdStart_(
     while (TRUE);
 }
 
-void * portCtxInit_(
+void * lpCtxInit(
     void *          stck,
     size_t          stckSize,
     void (* fn)(void *),
     void *          arg) {
 
-    struct portCtx * sp;
+    struct lpCtx * sp;
 
-    sp = (struct portCtx *)((uint8_t *)stck + stckSize);
+    sp = (struct lpCtx *)((uint8_t *)stck + stckSize);
     sp--;
     sp->xpsr = (portReg_T)(PSR_THUMB_STATE_MSK | CFG_PSR_DATA);
     sp->pc = (portReg_T)fn;
@@ -239,7 +240,7 @@ void * portCtxInit_(
     return (sp);
 }
 
-void portInitEarly_(
+void lpInitEarly(
     void) {
 
     PORT_HWREG_SET(
@@ -248,11 +249,14 @@ void portInitEarly_(
         (CONST_SCB_AIRCR_VECTKEY << SCB_AIRCR_VECTKEY_POS) |
            (CFG_SCB_AIRCR_PRIGROUP << SCB_AIRCR_PRIGROUP_POS));                 /* Setup priority subgroup to zero bits                     */
     intPrioSet(
-        PENDSV_IRQN);
+        PENDSV_IRQN,
+        CPU_ISR_PRIO);
     intPrioSet(
-        SVCALL_IRQN);
+        SVCALL_IRQN,
+        CPU_ISR_PRIO);
     intPrioSet(
-        SYST_IRQN);
+        SYST_IRQN,
+        CPU_ISR_PRIO);
 }
 
 /*
