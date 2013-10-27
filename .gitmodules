@@ -1,3 +1,0 @@
-[submodule "port"]
-	path = port
-	url = https://github.com/nradulovic/esolid-port.git
