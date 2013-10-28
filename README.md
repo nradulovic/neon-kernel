@@ -7,7 +7,7 @@ context switching, but the kernel implementation went so nicely that I think
 that it would be great to share it. 
 
 eSolid is a collection of resources for embedded system design and this
-Real-Time Kernel is only a piece of that collection. Because of that fact
+Real-Time kernel is only a piece of that collection. Because of that fact
 remember: *there are (still) no synchronization or IPC mechanisms in this kernel*, 
 and it can be viewed as a preemptive Round-Robin scheduler, only.
 
@@ -37,11 +37,13 @@ https://launchpad.net/gcc-arm-embedded/+download) and binary was downloaded
 to the MCU using _texane_ gdb-server. There are no makefiles, it is assumed
 that IDE will generate them for you.
 
-There are two groups of source files which need to be compiled for ARMv7-M architecture: 
+Example: For STM32F10x family port:
+
+1. there are two groups of source files which need to be compiled for ARMv7-M architecture: 
 - kernel.c, semaphore.c, dbg.c in `/src` source directory and 
 - cpu.c in `/port/arm-none-eabi-gcc/v7-m` port directory.
 
-Example: For STM32F10x family port the following include paths are needed:
+2. the following include paths are needed:
 - `/inc`
 - `/port/arm-none-eabi-gcc/common`
 - `/port/arm-none-eabi-gcc/v7-m`
