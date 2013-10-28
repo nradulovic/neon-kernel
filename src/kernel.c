@@ -27,7 +27,7 @@
 
 /*=========================================================  INCLUDE FILES  ==*/
 
-#include "kernel/kernel.h"
+#include "kernel.h"
 
 /*=========================================================  LOCAL MACRO's  ==*/
 
@@ -54,7 +54,7 @@
 
 /**@brief       System timer one tick value
  */
-#define LP_DEF_SYSTMR_ONE_TICK                                                \
+#define PORT_DEF_SYSTMR_ONE_TICK                                                \
     (CFG_SYSTMR_CLOCK_FREQUENCY / CFG_SYSTMR_EVENT_FREQUENCY)
 
 /**@brief       Thread structure signature.
@@ -680,7 +680,7 @@ static PORT_C_INLINE void schedQmI(
 static PORT_C_INLINE void sysTmrInit(
     void) {
 
-    PORT_SYSTMR_INIT(LP_DEF_SYSTMR_ONE_TICK);
+    PORT_SYSTMR_INIT(PORT_DEF_SYSTMR_ONE_TICK);
     PORT_SYSTMR_ENABLE();
     PORT_SYSTMR_ISR_ENABLE();
 }
@@ -697,10 +697,10 @@ static PORT_C_INLINE void sysTmrActivate(
             portSysTmrReg_T tmrVal;
 
             tmrVal = PORT_SYSTMR_GET_RVAL() - PORT_SYSTMR_GET_CVAL();
-            tmrVal = LP_DEF_SYSTMR_ONE_TICK - tmrVal;
+            tmrVal = PORT_DEF_SYSTMR_ONE_TICK - tmrVal;
             PORT_SYSTMR_RLD(tmrVal);
         } else {                                                                /* System timer was disabled during sleep.                  */
-            PORT_SYSTMR_RLD(LP_DEF_SYSTMR_ONE_TICK);                          /* Reload macro will also re-enable the timer               */
+            PORT_SYSTMR_RLD(PORT_DEF_SYSTMR_ONE_TICK);                          /* Reload macro will also re-enable the timer               */
             PORT_SYSTMR_ISR_ENABLE();
         }
     } else {                                                                    /* Preempted wake up, system timer was enabled during sleep.*/
@@ -709,14 +709,14 @@ static PORT_C_INLINE void sysTmrActivate(
         portSysTmrReg_T tmrVal;
 
         tmrVal = PORT_SYSTMR_GET_RVAL() - PORT_SYSTMR_GET_CVAL();
-        ticks = tmrVal / LP_DEF_SYSTMR_ONE_TICK;
-        tmrVal -= (LP_DEF_SYSTMR_ONE_TICK * ticks);
-        tmrVal = LP_DEF_SYSTMR_ONE_TICK - tmrVal;
+        ticks = tmrVal / PORT_DEF_SYSTMR_ONE_TICK;
+        tmrVal -= (PORT_DEF_SYSTMR_ONE_TICK * ticks);
+        tmrVal = PORT_DEF_SYSTMR_ONE_TICK - tmrVal;
 
         if (PORT_SYSTMR_WAKEUP_TH_VAL > tmrVal) {
             PORT_SYSTMR_RLD(tmrVal);
         } else {
-            PORT_SYSTMR_RLD(tmrVal + LP_DEF_SYSTMR_ONE_TICK);
+            PORT_SYSTMR_RLD(tmrVal + PORT_DEF_SYSTMR_ONE_TICK);
         }
         vTmr = DLIST_ENTRY_NEXT(tmrL, &gVTmrArmed);
         vTmr->rtick -= ticks;
@@ -752,14 +752,14 @@ static PORT_C_INLINE void vTmrSleep(
 
     portSysTmrReg_T sysTmrVal;
 
-    if (LP_DEF_SYSTMR_MAX_TICKS < ticks) {                                    /* Limit the number of ticks according to hardware maximum  */
-        ticks = LP_DEF_SYSTMR_MAX_TICKS;                                      /* specification.                                           */
+    if (PORT_DEF_SYSTMR_MAX_TICKS < ticks) {                                    /* Limit the number of ticks according to hardware maximum  */
+        ticks = PORT_DEF_SYSTMR_MAX_TICKS;                                      /* specification.                                           */
     }
     gSysTmr.ptick = ticks;
 
     if (0u != ticks) {
-        sysTmrVal = LP_DEF_SYSTMR_ONE_TICK * (ticks - 1u);
-        sysTmrVal += PORT_SYSTMR_GET_CVAL() % LP_DEF_SYSTMR_ONE_TICK;         /* Add the remaining time of current tick period.           */
+        sysTmrVal = PORT_DEF_SYSTMR_ONE_TICK * (ticks - 1u);
+        sysTmrVal += PORT_SYSTMR_GET_CVAL() % PORT_DEF_SYSTMR_ONE_TICK;         /* Add the remaining time of current tick period.           */
 
         if (PORT_SYSTMR_GET_RVAL() != sysTmrVal) {
             PORT_SYSTMR_RLD(sysTmrVal);
@@ -782,8 +782,8 @@ static PORT_C_INLINE void vTmrEvaluateI(
 #elif (1u == CFG_SYSTMR_ADAPTIVE_MODE)
         if (0u == gSysTmr.ptick) {                                              /* Normal system tick.                                      */
 
-            if (LP_DEF_SYSTMR_ONE_TICK != PORT_SYSTMR_GET_RVAL()) {           /* If system timer is in adaptive mode switch it to fixed   */
-                PORT_SYSTMR_RLD(LP_DEF_SYSTMR_ONE_TICK);                      /* mode.                                                    */
+            if (PORT_DEF_SYSTMR_ONE_TICK != PORT_SYSTMR_GET_RVAL()) {           /* If system timer is in adaptive mode switch it to fixed   */
+                PORT_SYSTMR_RLD(PORT_DEF_SYSTMR_ONE_TICK);                      /* mode.                                                    */
             }
             --vTmr->rtick;
         } else {                                                                /* Low power tick.                                          */
@@ -886,7 +886,7 @@ static void vTmrImportPend(
 static void kVTmrInit(
     void) {
 
-    static lpStck_T kVTmrStck[ES_STCK_SIZE(LP_KVTMR_THD_STCK_SIZE)];            /* Virtual timer kernel thread stack.                       */
+    static portStck_T kVTmrStck[ES_STCK_SIZE(PORT_KVTMR_THD_STCK_SIZE)];            /* Virtual timer kernel thread stack.                       */
 
     esThdInit(
         &gKVTmr,
@@ -936,7 +936,7 @@ static void kVTmr(
 static void kIdleInit(
     void) {
 
-    static lpStck_T kIdleStck[ES_STCK_SIZE(LP_KIDLE_THD_STCK_SIZE)];            /* Idle kernel thread stack.                                */
+    static portStck_T kIdleStck[ES_STCK_SIZE(PORT_KIDLE_THD_STCK_SIZE)];            /* Idle kernel thread stack.                                */
 
     esThdInit(
         &gKIdle,
@@ -981,7 +981,7 @@ void esKernInit(
     schedInit();
     kIdleInit();
     kVTmrInit();
-    PORT_INIT();
+    PORT_CPU_INIT();
 #if   (1u == CFG_HOOK_POST_KERN_INIT)
     userPostKernInit();
 #endif
@@ -998,9 +998,9 @@ PORT_C_NORETURN void esKernStart(
 #if   (1u == CFG_HOOK_PRE_KERN_START)
     userPreKernStart();
 #endif
-    PORT_INIT_LATE();
+    PORT_CPU_INIT_LATE();
     schedStart();                                                               /* Initialize scheduler data structures for multi-threading */
-    LP_THD_START();                                                           /* Start the first thread                                   */
+    PORT_CTX_SW_START();                                                           /* Start the first thread                                   */
 
     while (TRUE);                                                               /* Prevent compiler `function does return` warnings.        */
 }
@@ -1047,7 +1047,7 @@ void esThdInit(
     esThd_T *       thd,
     void (* fn)(void *),
     void *          arg,
-    lpStck_T *    stck,
+    portStck_T *    stck,
     size_t          stckSize,
     uint8_t         prio) {
 
@@ -1058,12 +1058,12 @@ void esThdInit(
     ES_DBG_API_REQUIRE(ES_DBG_OBJECT_NOT_VALID, THD_CONTRACT_SIGNATURE != thd->signature);
     ES_DBG_API_REQUIRE(ES_DBG_POINTER_NULL, NULL != fn);
     ES_DBG_API_REQUIRE(ES_DBG_POINTER_NULL, NULL != stck);
-    ES_DBG_API_REQUIRE(ES_DBG_OUT_OF_RANGE, LP_DEF_STCK_MINSIZE <= (stckSize * sizeof(portReg_T)));
+    ES_DBG_API_REQUIRE(ES_DBG_OUT_OF_RANGE, PORT_DEF_STCK_MINSIZE <= (stckSize * sizeof(portReg_T)));
     ES_DBG_API_REQUIRE(ES_DBG_OUT_OF_RANGE, CFG_SCHED_PRIO_LVL > prio);
     ES_DBG_API_REQUIRE(ES_DBG_OUT_OF_RANGE, ((&gKVTmr != thd) && ((CFG_SCHED_PRIO_LVL - 1u) > prio)) || (&gKVTmr == thd));
     ES_DBG_API_REQUIRE(ES_DBG_OUT_OF_RANGE, ((&gKIdle != thd) && (0u < prio)) || (&gKIdle == thd));
 
-    thd->stck   = LP_CTX_INIT(stck, stckSize, fn, arg);                       /* Make a fake thread stack.                                */
+    thd->stck   = PORT_CTX_INIT(stck, stckSize, fn, arg);                       /* Make a fake thread stack.                                */
     thd->thdL.q = NULL;                                                         /* This thread is not in any thread queue.                  */
     DLIST_ENTRY_INIT(thdL, thd);
     thd->prio   = prio;                                                         /* Set the priority.                                        */
@@ -1399,7 +1399,7 @@ void esSchedYieldI(
                 gKernCtrl.cthd,
                 newThd);
 #endif
-            LP_CTX_SW();
+            PORT_CTX_SW();
         }
     }
 }
@@ -1422,7 +1422,7 @@ void esSchedYieldIsrI(
             gKernCtrl.cthd,
             gKernCtrl.pthd);
 #endif
-            LP_CTX_SW_ISR();
+            PORT_CTX_SW_ISR();
 
 #if   (1u == CFG_SCHED_POWER_SAVE)
         } else if (ES_KERN_SLEEP == gKernCtrl.state) {
@@ -1556,7 +1556,7 @@ void esVTmrTermI(
             if (0u != gSysTmr.vTmrArmed) {                                      /* The last timer is not being deleted: remaining time is   */
                 esVTmr_T * nextVTmr;                                            /* calculated to add to next timer in list.                 */
 
-                vTmr->rtick -= (PORT_SYSTMR_GET_RVAL() - PORT_SYSTMR_GET_CVAL()) / LP_DEF_SYSTMR_ONE_TICK;
+                vTmr->rtick -= (PORT_SYSTMR_GET_RVAL() - PORT_SYSTMR_GET_CVAL()) / PORT_DEF_SYSTMR_ONE_TICK;
                 nextVTmr = DLIST_ENTRY_NEXT(tmrL, &gVTmrArmed);
                 nextVTmr->rtick += vTmr->rtick;
             }
@@ -1630,7 +1630,7 @@ esTick_T esSysTmrTickGet(
             portSysTmrReg_T tmrVal;
 
             tmrVal = (PORT_SYSTMR_GET_RVAL() - PORT_SYSTMR_GET_CVAL());
-            tick = tmrVal / LP_DEF_SYSTMR_ONE_TICK;
+            tick = tmrVal / PORT_DEF_SYSTMR_ONE_TICK;
         } else {                                                                /* System timer was disabled during sleep.                  */
 # if   (0u == CFG_SYSTMR_TICK_TYPE)
             tick = UINT8_MAX;

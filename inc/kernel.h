@@ -1,20 +1,21 @@
 /*
- * This file is part of eSolid
+ * This file is part of eSolid-Kernel
  *
  * Copyright (C) 2011, 2012, 2013 - Nenad Radulovic
  *
- * eSolid is free software; you can redistribute it and/or modify it under the
- * terms of the GNU General Public License as published by the Free Software
- * Foundation; either version 2 of the License, or (at your option) any later
- * version.
+ * eSolid-Kernel is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; either version 2 of the License, or (at your option) any
+ * later version.
  *
- * eSolid is distributed in the hope that it will be useful, but WITHOUT ANY
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+ * eSolid-Kernel is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+ * details.
  *
  * You should have received a copy of the GNU General Public License along with
- * eSolid; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
- * Fifth Floor, Boston, MA  02110-1301  USA
+ * eSolid-Kernel; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *
  * web site:    http://github.com/nradulovic
  * e-mail  :    nenad.b.radulovic@gmail.com
@@ -31,7 +32,6 @@
 /*=========================================================  INCLUDE FILES  ==*/
 
 #include "arch/compiler.h"
-#include "arch/core.h"
 #include "arch/cpu.h"
 #include "dbg/dbg.h"
 
@@ -99,7 +99,7 @@
  *              of elements regardles of the size of port general purpose
  *              registers.
  */
-#define ES_STCK_SIZE(elem)              LP_STCK_SIZE(elem)
+#define ES_STCK_SIZE(elem)              PORT_STCK_SIZE(elem)
 
 #define ES_THD_PRIO_MAX                 (CFG_SCHED_PRIO_LVL - 2u)
 
@@ -128,7 +128,7 @@ extern "C" {
  * @api
  */
 struct esThd {
-    lpStck_T *    stck;                                                       /**< @brief Pointer to thread's Top Of Stack                */
+    portStck_T *    stck;                                                       /**< @brief Pointer to thread's Top Of Stack                */
 
 /**@brief       Thread linked List structure
  */
@@ -152,7 +152,7 @@ typedef struct esThd esThd_T;
 
 /**@brief       Stack type
  */
-typedef lpStck_T esStck_T;
+typedef portStck_T esStck_T;
 
 /**@} *//*----------------------------------------------------------------*//**
  * @name        Virtual Timer management
@@ -388,7 +388,7 @@ void esKernIsrEpilogueI(
  *              regardless of what type of stack the CPU is using. The thread's
  *              stack is used to store local variables, function parameters,
  *              return addresses. Each thread has its own stack and different
- *              sized stack. The stack type must be an array of @ref lpStck.
+ *              sized stack. The stack type must be an array of @ref portStck.
  * @param       stckSize
  *              Stack Size: specifies the size of allocated stack memory. Size
  *              is expressed in bytes. Please see port documentation about
@@ -405,8 +405,8 @@ void esKernIsrEpilogueI(
  * @pre         3) `thd->signature != THD_CONTRACT_SIGNATURE`, the thread
  *                  structure can't be initialized more than once.
  * @pre         4) `fn != NULL`
- * @pre         5) `stckSize >= LP_DEF_STCK_MINSIZE`, see
- *                  @ref LP_DEF_STCK_MINSIZE.
+ * @pre         5) `stckSize >= PORT_DEF_STCK_MINSIZE`, see
+ *                  @ref PORT_DEF_STCK_MINSIZE.
  * @pre         6) `0 < prio < CFG_SCHED_PRIO_LVL - 1`, see
  *                  @ref CFG_SCHED_PRIO_LVL.
  * @post        1) `thd->signature == THD_CONTRACT_SIGNATURE`, each @ref esThd
@@ -424,7 +424,7 @@ void esThdInit(
     esThd_T *       thd,
     void (* fn)(void *),
     void *          arg,
-    lpStck_T *    stck,
+    portStck_T *    stck,
     size_t          stckSize,
     uint8_t         prio);
 
