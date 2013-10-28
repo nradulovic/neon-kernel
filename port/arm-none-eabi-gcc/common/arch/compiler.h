@@ -1,34 +1,34 @@
 /*
- * This file is part of esolid-rtos
+ * This file is part of eSolid-Kernel
  *
- * Copyright (C) 2013 - Nenad Radulovic
+ * Copyright (C) 2011, 2012, 2013 - Nenad Radulovic
  *
- * esolid-rtos is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * eSolid-Kernel is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; either version 2 of the License, or (at your option) any
+ * later version.
  *
- * esolid-rtos is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * eSolid-Kernel is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with esolid-rtos; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor,
- * Boston, MA  02110-1301  USA
+ * You should have received a copy of the GNU General Public License along with
+ * eSolid-Kernel; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *
- * web site:    http://blueskynet.dyndns-server.com
- * e-mail  :    blueskyniss@gmail.com
+ * web site:    http://github.com/nradulovic
+ * e-mail  :    nenad.b.radulovic@gmail.com
  *//***********************************************************************//**
  * @file
  * @author  	Nenad Radulovic
- * @brief       Interface of arm-none-eabi-gcc.
+ * @brief       Interface of compiler
  * @addtogroup  arm-none-eabi-gcc-v7-m_impl
+ * @brief       Interface of compiler.
  *********************************************************************//** @{ */
 
-#if !defined(ARM_NONE_EABI_GCC_H_)
-#define ARM_NONE_EABI_GCC_H_
+#if !defined(COMPILER_H__)
+#define COMPILER_H__
 
 /*=========================================================  INCLUDE FILES  ==*/
 
@@ -53,16 +53,13 @@
  */
 #define PORT_C_NAKED                    __attribute__((naked))
 
-#if (__STDC_VERSION__ >= 199901L) || defined(__DOXYGEN__)
-
 /**@brief       Provides function name for assert macros
  */
+#if (__STDC_VERSION__ >= 199901L) || defined(__DOXYGEN__)
 # define PORT_C_FUNC                    __func__
 #elif (__GNUC__ >= 2)
 # define PORT_C_FUNC                    __FUNCTION__
 #else
-/**@brief       Provides function name for assert macros
- */
 # define PORT_C_FUNC                    "unknown"
 #endif
 
@@ -93,7 +90,7 @@
 /**@brief       This attribute specifies a minimum alignment (in bytes) for
  *              variables of the specified type.
  */
-#define PORT_C_ALIGNED(expr)            __attribute__((aligned (expr)))
+#define PORT_C_ALIGNED(align)           __attribute__((aligned (align)))
 
 /**@brief       A standardized way of properly setting the value of HW register
  * @param       reg
@@ -111,7 +108,7 @@
         tmp &= ~(mask);                                                         \
         tmp |= ((mask) & (val));                                                \
         (reg) = tmp;                                                            \
-    } while (0U)
+    } while (0u)
 
 /** @} *//*---------------------------------------------  C++ extern begin  --*/
 #ifdef __cplusplus
@@ -128,11 +125,12 @@ extern "C" {
 /**@brief       Bool data type
  */
 typedef enum boolType {
-    TRUE = 1U,                                                                  /**< TRUE                                                   */
-    FALSE = 0U                                                                  /**< FALSE                                                  */
+    TRUE                = 1u,                                                   /**< TRUE                                                   */
+    FALSE               = 0u                                                    /**< FALSE                                                  */
 } bool_T;
 
 /** @} *//*-------------------------------------------------------------------*/
+
 /*======================================================  GLOBAL VARIABLES  ==*/
 /*===================================================  FUNCTION PROTOTYPES  ==*/
 /*--------------------------------------------------------  C++ extern end  --*/
@@ -144,4 +142,4 @@ typedef enum boolType {
 /** @endcond *//** @} *//******************************************************
  * END of arm-none-eabi-gcc.h
  ******************************************************************************/
-#endif /* ARM_NONE_EABI_GCC_H_ */
+#endif /* COMPILER_H__ */

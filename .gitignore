@@ -1,3 +1,9 @@
-/Debug
+Debug/
+Release/
 .project
 .cproject
+.settings/
+
+*~
+.*~
+/arm

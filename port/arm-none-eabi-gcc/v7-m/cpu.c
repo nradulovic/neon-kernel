@@ -1,25 +1,24 @@
 /*
  * This file is part of eSolid-Kernel
  *
- * Copyright (C) 2013 - Nenad Radulovic
+ * Copyright (C) 2011, 2012, 2013 - Nenad Radulovic
  *
- * eSolid-Kernel is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * eSolid-Kernel is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; either version 2 of the License, or (at your option) any
+ * later version.
  *
- * eSolid-Kernel is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * eSolid-Kernel is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with eSolid-Kernel; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor,
- * Boston, MA  02110-1301  USA
+ * You should have received a copy of the GNU General Public License along with
+ * eSolid-Kernel; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *
- * web site:    http://blueskynet.dyndns-server.com
- * e-mail  :    blueskyniss@gmail.com
+ * web site:    http://github.com/nradulovic
+ * e-mail  :    nenad.b.radulovic@gmail.com
  *//***********************************************************************//**
  * @file
  * @author      Nenad Radulovic
@@ -28,6 +27,7 @@
  *********************************************************************//** @{ */
 
 /*=========================================================  INCLUDE FILES  ==*/
+
 #include "kernel.h"
 
 /*=========================================================  LOCAL MACRO's  ==*/
@@ -36,48 +36,25 @@
  * @name        Port specific constants
  * @{ *//*--------------------------------------------------------------------*/
 
-/**@brief       Defines 'read only' permissions.
- */
-#define R__                             volatile const
-
-/**@brief       Defines 'read/write' permissions
- */
-#define RW_                             volatile
-
 /**@brief       PSR Thumb state: Position.
  */
-#define PSR_THUMB_STATE_POS             24
+#define PSR_THUMB_STATE_POS             (24u)
 
 /**@brief       PSR Thumb state: Mask.
  */
-#define PSR_THUMB_STATE_MSK             (1UL << PSR_THUMB_STATE_POS)
+#define PSR_THUMB_STATE_MSK             (0x01ul << PSR_THUMB_STATE_POS)
 
 /**@brief       Exception return value
  * @details     This value must is set to:
  *              - Exception return gets stack from the process stack, thread
  *              mode
  */
-#define CONST_EXC_RETURN                0xFFFFFFFDUL
+#define CONST_EXC_RETURN                0xfffffffdul
 
 /**@brief       On AIRCR register writes, write 0x5FA, otherwise the write is
  *              ignored
  */
-#define CONST_SCB_AIRCR_VECTKEY         0x5FAUL
-
-/**@brief       This field determines the split of group priority from
- *              subpriority.
- * @warning     Change this value only if you are familiar with Cortex interrupt
- *              priority system and how kernel protects its critical sections.
- */
-#define CFG_SCB_AIRCR_PRIGROUP          0U
-
-/**@brief       This is the data that will be placed on task context at its
- *              creation
- * @details     This macro can be used if you need to specify different settings
- *              for Interruptible-continuable instructions. The setting is done
- *              in PSR register.
- */
-#define CFG_PSR_DATA                    0UL
+#define CONST_SCB_AIRCR_VECTKEY         0x5faul
 
 /** @} *//*---------------------------------------------------------------*//**
  * @name        System Control Block (SCB)
@@ -85,7 +62,7 @@
 
 /**@brief       SCB configuration struct.
  */
-#define SCB                             ((scb_T *)CPU_SCB_BASE)
+#define SCB                             ((volatile scb_T *)CPU_SCB_BASE)
 
 /**@brief       SCB Vector table offset register
  */
@@ -133,27 +110,27 @@ typedef enum irqN {
 /**@brief       Structure type to access the System Control Block (SCB).
  */
 typedef struct scb {
-    R__ uint32_t    cpuid;                                                      /**< @brief cpuid Base Register                             */
-    RW_ uint32_t    icsr;                                                       /**< @brief Interrupt Control and State Register            */
-    RW_ uint32_t    vtor;                                                       /**< @brief Vector Table Offset Register                    */
-    RW_ uint32_t    aircr;                                                      /**< @brief Application Interrupt and Reset Control Register*/
-    RW_ uint32_t    scr;                                                        /**< @brief System Control Register                         */
-    RW_ uint32_t    ccr;                                                        /**< @brief Configuration Control Register                  */
-    RW_ uint8_t     shp[12];                                                    /**< @brief System Handlers Priority Registers              */
-    RW_ uint32_t    shcsr;                                                      /**< @brief System Handler Control and State Register       */
-    RW_ uint32_t    cfsr;                                                       /**< @brief Configurable Fault Status Register              */
-    RW_ uint32_t    hfsr;                                                       /**< @brief HardFault Status Register                       */
-    RW_ uint32_t    dfsr;                                                       /**< @brief Debug Fault Status Register                     */
-    RW_ uint32_t    mmfar;                                                      /**< @brief MemManage Fault Address Register                */
-    RW_ uint32_t    bfar;                                                       /**< @brief BusFault Address Register                       */
-    RW_ uint32_t    afsr;                                                       /**< @brief Auxiliary Fault Status Register                 */
-    R__ uint32_t    pfr[2];                                                     /**< @brief Processor Feature Register                      */
-    R__ uint32_t    dfr;                                                        /**< @brief Debug Feature Register                          */
-    R__ uint32_t    adr;                                                        /**< @brief Auxiliary Feature Register                      */
-    R__ uint32_t    mmfr[4];                                                    /**< @brief Memory Model Feature Register                   */
-    R__ uint32_t    isar[5];                                                    /**< @brief Instruction Set Attributes Register             */
-    uint32_t        RESERVED0[5];                                               /**< @brief Reserved                                        */
-    RW_ uint32_t    cpacr;                                                      /**< @brief Coprocessor Access Control Register             */
+    uint32_t            cpuid;                                                      /**< @brief cpuid Base Register                             */
+    uint32_t            icsr;                                                       /**< @brief Interrupt Control and State Register            */
+    uint32_t            vtor;                                                       /**< @brief Vector Table Offset Register                    */
+    uint32_t            aircr;                                                      /**< @brief Application Interrupt and Reset Control Register*/
+    uint32_t            scr;                                                        /**< @brief System Control Register                         */
+    uint32_t            ccr;                                                        /**< @brief Configuration Control Register                  */
+    uint8_t             shp[12];                                                    /**< @brief System Handlers Priority Registers              */
+    uint32_t            shcsr;                                                      /**< @brief System Handler Control and State Register       */
+    uint32_t            cfsr;                                                       /**< @brief Configurable Fault Status Register              */
+    uint32_t            hfsr;                                                       /**< @brief HardFault Status Register                       */
+    uint32_t            dfsr;                                                       /**< @brief Debug Fault Status Register                     */
+    uint32_t            mmfar;                                                      /**< @brief MemManage Fault Address Register                */
+    uint32_t            bfar;                                                       /**< @brief BusFault Address Register                       */
+    uint32_t            afsr;                                                       /**< @brief Auxiliary Fault Status Register                 */
+    uint32_t            pfr[2];                                                     /**< @brief Processor Feature Register                      */
+    uint32_t            dfr;                                                        /**< @brief Debug Feature Register                          */
+    uint32_t            adr;                                                        /**< @brief Auxiliary Feature Register                      */
+    uint32_t            mmfr[4];                                                    /**< @brief Memory Model Feature Register                   */
+    uint32_t            isar[5];                                                    /**< @brief Instruction Set Attributes Register             */
+    uint32_t            RESERVED0[5];                                               /**< @brief Reserved                                        */
+    uint32_t            cpacr;                                                      /**< @brief Coprocessor Access Control Register             */
 } scb_T;
 
 /*=============================================  LOCAL FUNCTION PROTOTYPES  ==*/
@@ -172,7 +149,8 @@ static void threadExit(
  * @note        The priority cannot be set for every core interrupt.
  */
 static PORT_C_INLINE void intPrioSet(
-    irqN_T          irqN);
+    irqN_T          irqN,
+    uint32_t        prio);
 
 /*=======================================================  LOCAL VARIABLES  ==*/
 /*======================================================  GLOBAL VARIABLES  ==*/
@@ -188,9 +166,10 @@ static void threadExit(
 }
 
 static PORT_C_INLINE void intPrioSet(
-    irqN_T          irqN) {
+    irqN_T          irqN,
+    uint32_t        prio) {
 
-    SCB->shp[((uint32_t)(irqN) & 0x0FUL) - 4U] = CPU_ISR_PRIO;                  /* set Priority for Cortex-M  System Interrupts          */
+    SCB->shp[((uint32_t)(irqN) & 0x0ful) - 4u] = prio;                          /* set Priority for Cortex-M  System Interrupts          */
 }
 
 /*===================================  GLOBAL PRIVATE FUNCTION DEFINITIONS  ==*/
@@ -202,18 +181,18 @@ static PORT_C_INLINE void intPrioSet(
  * - 8      initiate SVC 0 which switches the context to the first thread
  * - 10     infinite loop: will never reach here
  */
-PORT_C_NORETURN void portThdStart_(
+PORT_C_NORETURN void portCtxSwStart(
     void) {
 
     __asm__ __volatile__ (
-        "   ldr     r0, =%0                                 \n\t"               /* (1)                                                      */
-        "   ldr     r0, [r0]                                \n\t"               /* (2)                                                      */
-        "   ldr     r0, [r0]                                \n\t"               /* (3)                                                      */
-        "   msr     msp, r0                                 \n\t"               /* (4)                                                      */
-        "   mov     r0, #0                                  \n\t"               /* (5)                                                      */
-        "   msr     basepri, r0                             \n\t"               /* (6)                                                      */
-        "   cpsie   i                                       \n\t"               /* (7)                                                      */
-        "   svc     0                                       \n\t"               /* (8)                                                      */
+        "   ldr     r0, =%0                                 \n"               /* (1)                                                      */
+        "   ldr     r0, [r0]                                \n"               /* (2)                                                      */
+        "   ldr     r0, [r0]                                \n"               /* (3)                                                      */
+        "   msr     msp, r0                                 \n"               /* (4)                                                      */
+        "   mov     r0, #0                                  \n"               /* (5)                                                      */
+        "   msr     basepri, r0                             \n"               /* (6)                                                      */
+        "   cpsie   i                                       \n"               /* (7)                                                      */
+        "   svc     0                                       \n"               /* (8)                                                      */
         :
         : "i"(SCB_VTOR)
         : "sp", "r0", "memory");
@@ -221,7 +200,7 @@ PORT_C_NORETURN void portThdStart_(
     while (TRUE);
 }
 
-void * portCtxInit_(
+void * portCtxInit(
     void *          stck,
     size_t          stckSize,
     void (* fn)(void *),
@@ -239,7 +218,7 @@ void * portCtxInit_(
     return (sp);
 }
 
-void portInitEarly_(
+void portCpuInit(
     void) {
 
     PORT_HWREG_SET(
@@ -248,11 +227,22 @@ void portInitEarly_(
         (CONST_SCB_AIRCR_VECTKEY << SCB_AIRCR_VECTKEY_POS) |
            (CFG_SCB_AIRCR_PRIGROUP << SCB_AIRCR_PRIGROUP_POS));                 /* Setup priority subgroup to zero bits                     */
     intPrioSet(
-        PENDSV_IRQN);
+        PENDSV_IRQN,
+        PORT_DEF_MAX_ISR_PRIO_CODE);
     intPrioSet(
-        SVCALL_IRQN);
+        SVCALL_IRQN,
+        PORT_DEF_MAX_ISR_PRIO_CODE);
     intPrioSet(
-        SYST_IRQN);
+        SYST_IRQN,
+        PORT_DEF_MAX_ISR_PRIO_CODE);
+}
+
+void portCpuTerm(
+    void) {
+
+    /*
+     * TODO: put CPU to sleep or for (;;)
+     */
 }
 
 /*
@@ -268,34 +258,34 @@ void portInitEarly_(
 PORT_C_NAKED void portSVC(
     void) {
 
-#if (0 != CFG_CRITICAL_PRIO)
+#if (0 != CFG_MAX_ISR_PRIO)
     __asm__ __volatile__ (
-        "   ldr     r0, =%0                                 \n\t"               /* (1) Load gKernCtrl.cthd address                          */
-        "   mov     r1, %2                                  \n\t"               /* (2)                                                      */
-        "   mrs     r3, basepri                             \n\t"               /* (3)                                                      */
-        "   msr     basepri, r1                             \n\t"               /* (4)                                                      */
-        "   ldr     r1, [r0]                                \n\t"               /* (5)                                                      */
-        "   ldr     r1, [r1]                                \n\t"               /* (6)                                                      */
-        "   ldmia   r1!, {r4-r11}                           \n\t"               /* (7)                                                      */
-        "   msr     psp, r1                                 \n\t"               /* (8)                                                      */
-        "   msr     basepri, r3                             \n\t"               /* (9)                                                      */
-        "   mov     lr, %1                                  \n\t"               /* (10)                                                     */
-        "   bx      lr                                      \n\t"               /* Return to first thread                                   */
+        "   ldr     r0, =%0                                 \n"               /* (1) Load gKernCtrl.cthd address                          */
+        "   mov     r1, %2                                  \n"               /* (2)                                                      */
+        "   mrs     r3, basepri                             \n"               /* (3)                                                      */
+        "   msr     basepri, r1                             \n"               /* (4)                                                      */
+        "   ldr     r1, [r0]                                \n"               /* (5)                                                      */
+        "   ldr     r1, [r1]                                \n"               /* (6)                                                      */
+        "   ldmia   r1!, {r4-r11}                           \n"               /* (7)                                                      */
+        "   msr     psp, r1                                 \n"               /* (8)                                                      */
+        "   msr     basepri, r3                             \n"               /* (9)                                                      */
+        "   mov     lr, %1                                  \n"               /* (10)                                                     */
+        "   bx      lr                                      \n"               /* Return to first thread                                   */
         :
         :   "i"(&gKernCtrl.cthd),
             "i"(CONST_EXC_RETURN),
-            "i"(CPU_ISR_PRIO));
+            "i"(PORT_DEF_MAX_ISR_PRIO_CODE));
 #else
     __asm__ __volatile__ (
-        "   ldr     r0, =%0                                 \n\t"               /* (1) Load gKernCtrl.cthd address                          */
-        "   cpsid   i                                       \n\t"               /* (2)                                                      */
-        "   ldr     r1, [r0]                                \n\t"               /* (5)                                                      */
-        "   ldr     r1, [r1]                                \n\t"               /* (6)                                                      */
-        "   ldmia   r1!, {r4-r11}                           \n\t"               /* (7)                                                      */
-        "   msr     psp, r1                                 \n\t"               /* (8)                                                      */
-        "   cpsie   i                                       \n\t"               /* (9)                                                      */
-        "   mov     lr, %1                                  \n\t"               /* (10)                                                     */
-        "   bx      lr                                      \n\t"               /* Return to first thread                                   */
+        "   ldr     r0, =%0                                 \n"               /* (1) Load gKernCtrl.cthd address                          */
+        "   cpsid   i                                       \n"               /* (2)                                                      */
+        "   ldr     r1, [r0]                                \n"               /* (5)                                                      */
+        "   ldr     r1, [r1]                                \n"               /* (6)                                                      */
+        "   ldmia   r1!, {r4-r11}                           \n"               /* (7)                                                      */
+        "   msr     psp, r1                                 \n"               /* (8)                                                      */
+        "   cpsie   i                                       \n"               /* (9)                                                      */
+        "   mov     lr, %1                                  \n"               /* (10)                                                     */
+        "   bx      lr                                      \n"               /* Return to first thread                                   */
         :
         :   "i"(&gKernCtrl.cthd),
             "i"(CONST_EXC_RETURN));
@@ -315,43 +305,43 @@ PORT_C_NAKED void portSVC(
 PORT_C_NAKED void portPendSV(
     void) {
 
-#if (0 != CFG_CRITICAL_PRIO)
+#if (0 != CFG_MAX_ISR_PRIO)
     __asm__ __volatile__ (
-        "   ldr     r0, =%0                                 \n\t"               /* (1) Get the address of gKernCtrl                         */
-        "   mov     r1, %3                                  \n\t"               /* (2)                                                      */
-        "   mrs     r3, basepri                             \n\t"               /* (3)                                                      */
-        "   msr     basepri, r1                             \n\t"               /* (4)                                                      */
-        "   mrs     r1, psp                                 \n\t"               /* (5)                                                      */
-        "   stmdb   r1!, {r4-r11}                           \n\t"               /* (6)                                                      */
-        "   ldr     r2, [r0, %1]                            \n\t"               /* (7)                                                      */
-        "   str     r1, [r2]                                \n\t"               /* (8)                                                      */
-        "   ldr     r2, [r0, %2]                            \n\t"               /* (9)                                                      */
-        "   str     r2, [r0]                                \n\t"               /* (10)                                                     */
-        "   ldr     r1, [r2]                                \n\t"               /* (11)                                                     */
-        "   ldmia   r1!, {r4-r11}                           \n\t"               /* (12)                                                     */
-        "   msr     psp, r1                                 \n\t"               /* (13)                                                     */
-        "   msr     basepri, r3                             \n\t"               /* (14)                                                     */
-        "   bx      lr                                      \n\t"               /* Return to new thread                                     */
+        "   ldr     r0, =%0                                 \n"               /* (1) Get the address of gKernCtrl                         */
+        "   mov     r1, %3                                  \n"               /* (2)                                                      */
+        "   mrs     r3, basepri                             \n"               /* (3)                                                      */
+        "   msr     basepri, r1                             \n"               /* (4)                                                      */
+        "   mrs     r1, psp                                 \n"               /* (5)                                                      */
+        "   stmdb   r1!, {r4-r11}                           \n"               /* (6)                                                      */
+        "   ldr     r2, [r0, %1]                            \n"               /* (7)                                                      */
+        "   str     r1, [r2]                                \n"               /* (8)                                                      */
+        "   ldr     r2, [r0, %2]                            \n"               /* (9)                                                      */
+        "   str     r2, [r0]                                \n"               /* (10)                                                     */
+        "   ldr     r1, [r2]                                \n"               /* (11)                                                     */
+        "   ldmia   r1!, {r4-r11}                           \n"               /* (12)                                                     */
+        "   msr     psp, r1                                 \n"               /* (13)                                                     */
+        "   msr     basepri, r3                             \n"               /* (14)                                                     */
+        "   bx      lr                                      \n"               /* Return to new thread                                     */
         :
         :   "i"(&gKernCtrl),
             "J"(offsetof(esKernCtrl_T, cthd)),
             "J"(offsetof(esKernCtrl_T, pthd)),
-            "i"(CPU_ISR_PRIO));
+            "i"(PORT_DEF_MAX_ISR_PRIO_CODE));
 #else
     __asm__ __volatile__ (
-        "   ldr     r0, =%0                                 \n\t"               /* (1) Get the address of gCurrentThd                       */
-        "   cpsid   i                                       \n\t"               /* (2)                                                      */
-        "   mrs     r1, psp                                 \n\t"               /* (5)                                                      */
-        "   stmdb   r1!, {r4-r11}                           \n\t"               /* (6)                                                      */
-        "   ldr     r2, [r0, %1]                            \n\t"               /* (7)                                                      */
-        "   str     r1, [r2]                                \n\t"               /* (8)                                                      */
-        "   ldr     r2, [r0, %2]                            \n\t"               /* (9)                                                      */
-        "   str     r2, [r0]                                \n\t"               /* (10)                                                     */
-        "   ldr     r1, [r2]                                \n\t"               /* (11)                                                     */
-        "   ldmia   r1!, {r4-r11}                           \n\t"               /* (12)                                                     */
-        "   msr     psp, r1                                 \n\t"               /* (13)                                                     */
-        "   cpsie   i                                       \n\t"               /* (14)                                                     */
-        "   bx      lr                                      \n\t"               /* Return to new thread                                     */
+        "   ldr     r0, =%0                                 \n"               /* (1) Get the address of gCurrentThd                       */
+        "   cpsid   i                                       \n"               /* (2)                                                      */
+        "   mrs     r1, psp                                 \n"               /* (5)                                                      */
+        "   stmdb   r1!, {r4-r11}                           \n"               /* (6)                                                      */
+        "   ldr     r2, [r0, %1]                            \n"               /* (7)                                                      */
+        "   str     r1, [r2]                                \n"               /* (8)                                                      */
+        "   ldr     r2, [r0, %2]                            \n"               /* (9)                                                      */
+        "   str     r2, [r0]                                \n"               /* (10)                                                     */
+        "   ldr     r1, [r2]                                \n"               /* (11)                                                     */
+        "   ldmia   r1!, {r4-r11}                           \n"               /* (12)                                                     */
+        "   msr     psp, r1                                 \n"               /* (13)                                                     */
+        "   cpsie   i                                       \n"               /* (14)                                                     */
+        "   bx      lr                                      \n"               /* Return to new thread                                     */
         :
         :   "i"(&gKernCtrl),
             "J"(offsetof(esKernCtrl_T, cthd)),
@@ -362,9 +352,9 @@ PORT_C_NAKED void portPendSV(
 void portSysTmr(
     void) {
 
-    PORT_ISR_ENTER();
+    esKernIsrPrologueI();
     esKernSysTmr();
-    PORT_ISR_EXIT();
+    esKernIsrEpilogueI();
 }
 
 /*================================*//** @cond *//*==  CONFIGURATION ERRORS  ==*/

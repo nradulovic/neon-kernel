@@ -1,25 +1,24 @@
 /*
  * This file is part of eSolid-Kernel
  *
- * Copyright (C) 2013 - Nenad Radulovic
+ * Copyright (C) 2011, 2012, 2013 - Nenad Radulovic
  *
- * eSolid-Kernel is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * eSolid-Kernel is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; either version 2 of the License, or (at your option) any
+ * later version.
  *
- * eSolid-Kernel is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * eSolid-Kernel is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with eSolid-Kernel; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor,
- * Boston, MA  02110-1301  USA
+ * You should have received a copy of the GNU General Public License along with
+ * eSolid-Kernel; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *
- * web site:    http://blueskynet.dyndns-server.com
- * e-mail  :    blueskyniss@gmail.com
+ * web site:    http://github.com/nradulovic
+ * e-mail  :    nenad.b.radulovic@gmail.com
  *//***********************************************************************//**
  * @file
  * @author  	Nenad Radulovic
@@ -27,11 +26,14 @@
  * @addtogroup  arm-none-eabi-gcc-v7-m
  *********************************************************************//** @{ */
 
-#if !defined(CPU_H_)
-#define CPU_H_
+#if !defined(CPU_H__)
+#define CPU_H__
 
 /*=========================================================  INCLUDE FILES  ==*/
-#include "cpu_cfg.h"
+
+#include "arch/compiler.h"
+#include "arch/cpu_cfg.h"
+#include "kernel_cfg.h"
 
 /*===============================================================  MACRO's  ==*/
 
@@ -39,87 +41,87 @@
  * @name        Port constants
  * @{ *//*--------------------------------------------------------------------*/
 
-/**@brief       General purpose registers are 32bit wide.
+/**@brief       General purpose registers are 32bit wide
  */
-#define PORT_DATA_WIDTH_VAL             32U
+#define PORT_DEF_DATA_WIDTH             32u
 
-#define PORT_DATA_SIZE_VAL              (PORT_DATA_WIDTH_VAL / 8U)
+#define PORT_DEF_DATA_ALIGNMENT         4u
+
+/**@} *//*----------------------------------------------------------------*//**
+ * @name
+ * @{ *//*--------------------------------------------------------------------*/
+
+#define PORT_DEF_MAX_ISR_PRIO_CODE                                              \
+    ((CFG_MAX_ISR_PRIO << (8u - CPU_DEF_ISR_PRIO_BITS)) & 0xfful)
 
 /**@brief       Minimal stack size value is the number of elements in struct
  *              @ref portCtx
  */
-#define PORT_STCK_MINSIZE_VAL                                                   \
+#define PORT_DEF_STCK_MINSIZE                                                   \
     (sizeof(struct portCtx) / sizeof(portReg_T))
+
+/**@} *//*----------------------------------------------------------------*//**
+ * @name        System timer constants
+ * @{ *//*--------------------------------------------------------------------*/
 
 /**@brief       System timer one tick value
  */
-#define PORT_SYSTMR_ONE_TICK_VAL                                                \
+#define PORT_DEF_SYSTMR_ONE_TICK                                                \
     (CFG_SYSTMR_CLOCK_FREQUENCY / CFG_SYSTMR_EVENT_FREQUENCY)
 
-/**@brief       System timer maximum value
+/**@brief       Maximum number of ticks without overflowing the system timer
  */
-#define PORT_SYSTMR_MAX_VAL             0xFFFFFFUL
+#define PORT_DEF_SYSTMR_MAX_TICKS                                               \
+    (CPU_DEF_SYSTMR_MAX_VAL / PORT_DEF_SYSTMR_ONE_TICK)
 
-/**@brief       Maximum number of ticks the system timer can accept
- */
-#define PORT_SYSTMR_MAX_TICKS_VAL                                               \
-    (PORT_SYSTMR_MAX_VAL / PORT_SYSTMR_ONE_TICK_VAL)
+/**@} *//*----------------------------------------------------------------*//**
+ * @name        Kernel threads port dependent settings
+ * @brief       Kernel uses several threads for system management. This section
+ *              defines port dependent settings for the threads.
+ * @{ *//*--------------------------------------------------------------------*/
 
 /**@brief       Kernel Virtual Timer Thread stack size
+ * @todo        This value needs tweaking
  */
-#define PORT_KVTMR_STCK_SIZE            40U
+#define PORT_KVTMR_THD_STCK_SIZE        40u
 
 /**@brief       Kernel Idle Thread stack size
+ * @todo        This value needs tweaking
  */
-#define PORT_KIDLE_STCK_SIZE            40U
+#define PORT_KIDLE_THD_STCK_SIZE        40u
 
-/** @} *//*---------------------------------------------------------------*//**
+/**@} *//*----------------------------------------------------------------*//**
  * @name        Interrupt management
  * @{ *//*--------------------------------------------------------------------*/
 
+#define PORT_INT_ENABLE()               portIntEnable_()
+
 #define PORT_INT_DISABLE()              portIntDisable_()
 
-/**@brief       This port just invokes kernel function
- */
-#define PORT_ISR_ENTER()                esKernIsrPrologueI()
+#define PORT_INT_PRIO_SET(prio)         portIntPrioSet_(prio)
 
-/**@brief       This port just invokes kernel function
- */
-#define PORT_ISR_EXIT()                 esKernIsrEpilogueI()
+#define PORT_INT_PRIO_GET(prio)         portIntPrioGet_(prio)
 
-/**@brief       Returns TRUE when last ISR is executing by looking at status
- *              register.
- */
+#define PORT_INT_PRIO_REPLACE(oldPrio, newPrio)                                 \
+    portIntPrioReplace_(oldPrio, newPrio)
+
+#define PORT_ISR_ENTER()                (void)0                                 /**< @brief This port does not need this function call      */
+
+#define PORT_ISR_EXIT()                 (void)0                                 /**< @brief This port does not need this function call      */
+
 #define PORT_ISR_IS_LAST()              portIsrIsLast_()
 
-/*------------------------------------------------------------------------*//**
- * @name        Critical section management
+/**@} *//*----------------------------------------------------------------*//**
+ * @name        System timer management
  * @{ *//*--------------------------------------------------------------------*/
 
-#define PORT_CRITICAL_DECL()            portReg_T intStatus_
-
-#define PORT_CRITICAL_ENTER()                                                   \
-    do {                                                                        \
-        intStatus_ = portIntGetSet_();                                          \
-    } while (0U);
-
-#define PORT_CRITICAL_EXIT()            portIntSet_(intStatus_)
-
-/** @} *//*---------------------------------------------------------------*//**
- * @name        Scheduler support
- * @{ *//*--------------------------------------------------------------------*/
-
-#define PORT_FIND_LAST_SET(val)         portFindLastSet_(val)
-
-#define PORT_PWR2(pwr)                  (1U << (pwr))
-
-#define PORT_SYSTMR_INIT()              portSysTmrInit_()
+#define PORT_SYSTMR_INIT(val)           portSysTmrInit_(val)
 
 #define PORT_SYSTMR_TERM()              portSysTmrTerm_()
 
-#define PORT_SYSTMR_GET_RVAL()          portSysTmrGetRVal_()
+#define PORT_SYSTMR_GET_RVAL(val)       portSysTmrGetRVal_(val)
 
-#define PORT_SYSTMR_GET_CVAL()          portSysTmrGetCVal_()
+#define PORT_SYSTMR_GET_CVAL(val)       portSysTmrGetCVal_(val)
 
 #define PORT_SYSTMR_RLD(val)            portSysTmrRld_(val)
 
@@ -131,64 +133,58 @@
 
 #define PORT_SYSTMR_ISR_DISABLE()       portSysTmrIsrDisable_()
 
-/** @} *//*---------------------------------------------------------------*//**
- * @name        Dispatcher context switching
+/**@} *//*----------------------------------------------------------------*//**
+ * @name        Scheduler bit operations support
  * @{ *//*--------------------------------------------------------------------*/
 
-#define PORT_CTX_INIT(stck, stckSize, thread, arg)                              \
-    portCtxInit_(stck, stckSize, thread, arg)
+#define PORT_BIT_FIND_LAST_SET(val)     portBitFindLastSet_(val)
+
+#define PORT_BIT_PWR2(pwr)              (1U << (pwr))
+
+/**@} *//*----------------------------------------------------------------*//**
+ * @name        Dispatcher context switching support
+ * @{ *//*--------------------------------------------------------------------*/
+
+#define PORT_CTX_INIT(stck, stckSize, thd, arg)                                 \
+    portCtxInit(stck, stckSize, thd, arg)
 
 #define PORT_CTX_SW()                   portCtxSw_()
 
-/**@brief       This port has identical context switch functions.
- */
-#define PORT_CTX_SW_ISR()               PORT_CTX_SW()
+#define PORT_CTX_SW_ISR()               portCtxSw_()
 
-#define PORT_THD_START()                portThdStart_()
+#define PORT_CTX_SW_START()             portCtxSwStart()
 
 /** @} *//*---------------------------------------------------------------*//**
  * @name        Generic port macros
  * @{ *//*--------------------------------------------------------------------*/
 
+#define PORT_CPU_INIT_EARLY()           (void)0                                 /**< @brief This port does not need this function call      */
+
+#define PORT_CPU_INIT()                 portCpuInit()
+
+#define PORT_CPU_INIT_LATE()            (void)0                                 /**< @brief This port does not need this function call      */
+
+#define PORT_CPU_TERM()                 portCpuTerm()
+
 #define PORT_STCK_SIZE(size)                                                    \
-    ((((size + PORT_STCK_MINSIZE_VAL) + (sizeof(struct portStck) /              \
-    sizeof(portReg_T))) - 1U) / (sizeof(struct portStck)/sizeof(portReg_T)))
-
-#define PORT_CRITICAL_EXIT_SLEEP_ENTER()                                        \
-    portIntSetSleepEnter_(intStatus_)
-
-#define PORT_INIT_EARLY()               portInitEarly_()
-
-/**@brief       This port does not need this function call.
- */
-#define PORT_INIT()                     (void)0
-
-/**@brief       This port does not need this function call.
- */
-#define PORT_INIT_LATE()                (void)0
-
-#define PORT_TERM()                     while (TRUE)
+    ((((size + PORT_DEF_STCK_MINSIZE) + (sizeof(struct portStck) /              \
+    sizeof(portReg_T))) - 1u) / (sizeof(struct portStck)/sizeof(portReg_T)))
 
 /** @} *//*---------------------------------------------------------------*//**
  * @name        Port specific macros
  * @{ *//*--------------------------------------------------------------------*/
 
-/**@brief       Calculate interrupt priority value
- */
-#define CPU_ISR_PRIO                                                            \
-    ((CFG_CRITICAL_PRIO << (8 - CPU_ISR_PRIO_BITS)) & 0xFFUL)
-
 /**@brief       System Control Space Base Address.
  */
-#define CPU_SCS_BASE                    (0xE000E000UL)
+#define CPU_SCS_BASE                    (0xe000e000ul)
 
 /**@brief       System Control Block Base Address.
  */
-#define CPU_SCB_BASE                    (CPU_SCS_BASE + 0x0D00UL)
+#define CPU_SCB_BASE                    (CPU_SCS_BASE + 0x0d00ul)
 
 /**@brief       Interrupt Control and State Register Base Address Offset.
  */
-#define CPU_SCB_ICSR_OFFSET             (0x04UL)
+#define CPU_SCB_ICSR_OFFSET             (0x04ul)
 
 /**@brief       SCB Interrupt Control State Register
  */
@@ -197,35 +193,35 @@
 
 /**@brief       SCB icsr: PENDSVSET Position.
  */
-#define CPU_SCB_ICSR_PENDSVSET_POS      28
+#define CPU_SCB_ICSR_PENDSVSET_POS      (28u)
 
 /**@brief       SCB icsr: PENDSVSET Mask.
  */
-#define CPU_SCB_ICSR_PENDSVSET_MSK      (1UL << CPU_SCB_ICSR_PENDSVSET_POS)
+#define CPU_SCB_ICSR_PENDSVSET_MSK      (0x01ul << CPU_SCB_ICSR_PENDSVSET_POS)
 
 /**@brief       SCB icsr: PENDSTCLR Position.
  */
-#define CPU_SCB_ICSR_PENDSTCLR_POS      25
+#define CPU_SCB_ICSR_PENDSTCLR_POS      (25u)
 
 /**@brief       SCB icsr: PENDSTCLR Mask.
  */
-#define CPU_SCB_ICSR_PENDSTCLR_MSK      (1UL << CPU_SCB_ICSR_PENDSTCLR_POS)
+#define CPU_SCB_ICSR_PENDSTCLR_MSK      (0x01ul << CPU_SCB_ICSR_PENDSTCLR_POS)
 
 /**@brief       SCB icsr: RETTOBASE Position.
  */
-#define CPU_SCB_ICSR_RETTOBASE_POS      11
+#define CPU_SCB_ICSR_RETTOBASE_POS      (11u)
 
 /**@brief       SCB icsr: RETTOBASE Mask.
  */
-#define CPU_SCB_ICSR_RETTOBASE_MSK      (1UL << CPU_SCB_ICSR_RETTOBASE_POS)
+#define CPU_SCB_ICSR_RETTOBASE_MSK      (0x01ul << CPU_SCB_ICSR_RETTOBASE_POS)
 
 /**@brief       System Timer Base Address.
  */
-#define CPU_SYST_BASE                   (CPU_SCS_BASE + 0x0010UL)
+#define CPU_SYST_BASE                   (CPU_SCS_BASE + 0x0010ul)
 
 /**@brief       Control and Status Register Base Address Offset.
  */
-#define CPU_SYST_CSR_OFFSET             (0x00UL)
+#define CPU_SYST_CSR_OFFSET             (0x0ul)
 
 /**@brief       SysTick Control and Status Register
  */
@@ -234,31 +230,31 @@
 
 /**@brief       SYSTMR csr: CLKSOURCE Position.
  */
-#define CPU_SYST_CSR_CLKSOURCE_POS      2
+#define CPU_SYST_CSR_CLKSOURCE_POS      (2u)
 
 /**@brief       SYSTMR csr: CLKSOURCE Mask.
  */
-#define CPU_SYST_CSR_CLKSOURCE_MSK      (1UL << CPU_SYST_CSR_CLKSOURCE_POS)
+#define CPU_SYST_CSR_CLKSOURCE_MSK      (0x01ul << CPU_SYST_CSR_CLKSOURCE_POS)
 
 /**@brief       SYSTMR csr: TICKINT Position.
  */
-#define CPU_SYST_CSR_TICKINT_POS        1
+#define CPU_SYST_CSR_TICKINT_POS        (1u)
 
 /**@brief       SYSTMR csr: TICKINT Mask.
  */
-#define CPU_SYST_CSR_TICKINT_MSK        (1UL << CPU_SYST_CSR_TICKINT_POS)
+#define CPU_SYST_CSR_TICKINT_MSK        (0x01ul << CPU_SYST_CSR_TICKINT_POS)
 
 /**@brief       SYSTMR csr: ENABLE Position.
  */
-#define CPU_SYST_CSR_ENABLE_POS         0
+#define CPU_SYST_CSR_ENABLE_POS         (0u)
 
 /**@brief       SYSTMR csr: ENABLE Mask.
  */
-#define CPU_SYST_CSR_ENABLE_MSK         (1UL << CPU_SYST_CSR_ENABLE_POS)
+#define CPU_SYST_CSR_ENABLE_MSK         (0x01ul << CPU_SYST_CSR_ENABLE_POS)
 
 /**@brief       Control and Status Register Base Address Offset.
  */
-#define CPU_SYST_RVR_OFFSET             (0x04UL)
+#define CPU_SYST_RVR_OFFSET             (0x04ul)
 
 /**@brief       SysTick Reload Value Register
  */
@@ -267,13 +263,12 @@
 
 /**@brief       Control and Status Register Base Address Offset.
  */
-#define CPU_SYST_CVR_OFFSET             (0x08UL)
+#define CPU_SYST_CVR_OFFSET             (0x08ul)
 
 /**@brief       SysTick Current Value Register
  */
 #define CPU_SYST_CVR                                                            \
     ((volatile portReg_T *)(CPU_SYST_BASE + CPU_SYST_CVR_OFFSET))
-
 
 /** @} *//*---------------------------------------------  C++ extern begin  --*/
 #ifdef __cplusplus
@@ -282,7 +277,7 @@ extern "C" {
 
 /*============================================================  DATA TYPES  ==*/
 
-/**@brief       General purpose registers are 32bit wide.
+/**@brief General purpose registers are 32bit wide.
  */
 typedef uint32_t portReg_T;
 
@@ -293,7 +288,7 @@ typedef uint32_t portSysTmrReg_T;
 /**@brief       Stack structure used for stack in order to force the alignment
  */
 struct portStck {
-    portReg_T       reg;
+    portReg_T           reg;
 } __attribute__ ((aligned (8)));
 
 /**@brief       Stack type
@@ -301,8 +296,8 @@ struct portStck {
 typedef struct portStck portStck_T;
 
 /**@brief       Structure of the context switch
- * @details     There are 16, 32-bit core (integer) registers visible to the ARM
- *              and Thumb instruction sets.
+ * @details     There are 16, 32-bit wide core (integer) registers visible to
+ *              the ARM and Thumb instruction sets.
  */
 struct portCtx {
 /* Registers saved by the context switcher                                    */
@@ -333,87 +328,96 @@ struct portCtx {
  * @name        Interrupt management
  * @{ *//*--------------------------------------------------------------------*/
 
-/**@brief       Disable interrupts
+/**@brief       Enable all interrupts
+ * @inline
+ */
+static PORT_C_INLINE_ALWAYS void portIntEnable_(
+    void) {
+
+    __asm __volatile__ (
+        "   cpsie   i                                       \n");
+}
+
+/**@brief       Disable all interrupts
  * @inline
  */
 static PORT_C_INLINE_ALWAYS void portIntDisable_(
     void) {
 
-    __asm__ __volatile__ (
-        "   cpsid   i                                       \n\t");
+    __asm __volatile__ (
+        "   cpsid   i                                       \n");
 }
 
-/**@brief       Set the interrupt priority mask
- * @param       val
- *              New interrupt priority mask
+/**@brief       Set the new interrupt priority state
+ * @param       state
+ *              New interrupt priority mask or new state of interrupts
+ * @note        Depending on @ref CFG_MAX_ISR_PRIO setting this function will
+ *              either set the new priority of allowed interrupts or just
+ *              disable/enable all interrupts.
  * @inline
  */
-static PORT_C_INLINE_ALWAYS void portIntSet_(
-    portReg_T     val) {
+static PORT_C_INLINE_ALWAYS void portIntPrioSet_(
+    portReg_T           state) {
 
-#if (0 != CFG_CRITICAL_PRIO)
-    __asm__ __volatile__ (
-        "   msr    basepri, %0                              \n\t"
+#if (0 != CFG_MAX_ISR_PRIO)
+    __asm __volatile__ (
+        "   msr    basepri, %0                              \n"
         :
-        : "r"(val));
+        : "r"(state));
 #else
-    __asm__ __volatile__ (
-        "   msr    primask, %0                              \n\t"
+    __asm __volatile__ (
+        "   msr    primask, %0                              \n"
         :
-        : "r"(val));
+        : "r"(state));
 #endif
 }
 
-/**@brief       Set the interrupt priority mask and enter sleep state
- * @param       val
- *              New interrupt priority mask
+/**@brief       Get the interrupt priority state
+ * @param       state
+ *              Pointer to state variable where to store enabled interrupts
  * @inline
  */
-static PORT_C_INLINE_ALWAYS void portIntSetSleepEnter_(
-    portReg_T     val) {
+static PORT_C_INLINE_ALWAYS void portIntPrioGet_(
+    portReg_T *         state) {
 
-#if (0 != CFG_CRITICAL_PRIO)
-    __asm__ __volatile__ (
-        "   msr    basepri, %0                              \n\t"
-        "   wfi                                             \n\t"
-        :
-        : "r"(val));
+    portReg_T           tmp;
+
+#if (0 != CFG_MAX_ISR_PRIO)
+    __asm __volatile__ (
+        "   mrs     %0, basepri                             \n"
+        : "=r"(tmp));
 #else
-    __asm__ __volatile__ (
-        "   msr    primask, %0                              \n\t"
-        "   wfi                                             \n\t"
-        :
-        : "r"(val));
+    __asm __volatile__ (
+        "   mrs     %0, primask                             \n"
+        : "=r"(tmp));
 #endif
+    *state = tmp;
 }
 
 /**@brief       Get current and set new interrupt priority mask
  * @return      Current interrupt priority mask
  * @inline
  */
-static PORT_C_INLINE_ALWAYS portReg_T portIntGetSet_(
-    void) {
+static PORT_C_INLINE_ALWAYS void portIntPrioReplace_(
+    portReg_T *         old,
+    portReg_T           new) {
 
-    portReg_T         result;
+    portReg_T           tmp;
 
-#if (0 != CFG_CRITICAL_PRIO)
-    portReg_T         val;
-
-    val = CPU_ISR_PRIO;
-    __asm__ __volatile__ (
-        "   mrs     %0, basepri                             \n\t"
-        "   msr     basepri, %1                             \n\t"
-        : "=&r"(result)                                                         /* Earlyclobber operand `&` is needed to prevent GCC to     */
-        : "r"(val));                                                            /* optimize input=output registers.                         */
-
+#if (0 != CFG_MAX_ISR_PRIO)
+    __asm __volatile__ (
+        "   mrs     %0, basepri                             \n"
+        "   msr     basepri, %1                             \n"
+        : "=r"(tmp)
+        : "r"(new));
 #else
-    __asm__ __volatile__ (
-        "   mrs     %0, primask                             \n\t"
-        "   cpsid   i                                       \n\t"
-        : "=r"(result));
+    __asm __volatile__ (
+        "   mrs     %0, primask                             \n"
+        "   msr    primask, %1                              \n"
+        : "=r"(tmp)
+        : "r"(new));
 #endif
-
-    return (result);
+    *old = tmp;
 }
 
 /**@brief       Check if this is the last ISR executing
@@ -425,9 +429,9 @@ static PORT_C_INLINE_ALWAYS portReg_T portIntGetSet_(
 static PORT_C_INLINE_ALWAYS bool_T portIsrIsLast_(
     void) {
 
-    bool_T          ans;
+    bool_T              ans;
 
-    if (0U != (*CPU_SCB_ICSR & CPU_SCB_ICSR_RETTOBASE_MSK)) {
+    if (0u != (*CPU_SCB_ICSR & CPU_SCB_ICSR_RETTOBASE_MSK)) {
         ans = TRUE;
     } else {
         ans = FALSE;
@@ -436,61 +440,38 @@ static PORT_C_INLINE_ALWAYS bool_T portIsrIsLast_(
     return (ans);
 }
 
-/** @} *//*---------------------------------------------------------------*//**
- * @name        Scheduler support
+/**@} *//*----------------------------------------------------------------*//**
+ * @name        System timer management
  * @{ *//*--------------------------------------------------------------------*/
-
-/**
- * @brief       Find last set bit in a word
- * @param       value
- *              32 bit value which will be evaluated
- * @return      Last set bit in a word
- * @details     This implementation uses @c clz instruction and then it computes
- *              the result using the following expression:
- *              <code>fls(x) = w − clz(x)</code>.
- * @inline
- */
-static PORT_C_INLINE_ALWAYS uint_fast8_t portFindLastSet_(
-    portReg_T       value) {
-
-    uint_fast8_t    clz;
-
-    __asm__ __volatile__ (
-        "   clz    %0, %1                                   \n\t"
-        : "=r"(clz)
-        : "r"(value));
-
-    return (31U - clz);
-}
 
 /**@brief       Initialize and start the system timer
  * @inline
  */
 static PORT_C_INLINE_ALWAYS void portSysTmrInit_(
-    void) {
+    portSysTmrReg_T     val) {
 
     *CPU_SYST_CSR &= ~CPU_SYST_CSR_ENABLE_MSK;                                  /* Disable SysTick Timer                                    */
-    *CPU_SYST_RVR = PORT_SYSTMR_ONE_TICK_VAL - 1U;                              /* Set SysTick reload register                              */
-    *CPU_SYST_CVR = 0;
+    *CPU_SYST_RVR = val - 1u;                                                   /* Set SysTick reload register                              */
+    *CPU_SYST_CVR = 0u;
     *CPU_SYST_CSR = CPU_SYST_CSR_CLKSOURCE_MSK;                                 /* SysTick uses the processor clock.                        */
 }
 
 /**@brief       Get current counter value
  * @inline
  */
-static PORT_C_INLINE_ALWAYS portSysTmrReg_T portSysTmrGetCVal_(
-    void) {
+static PORT_C_INLINE_ALWAYS void portSysTmrGetCVal_(
+    portSysTmrReg_T *   val) {
 
-    return (*CPU_SYST_CVR);
+    *val = *CPU_SYST_CVR;
 }
 
 /**@brief       Get reload counter value
  * @inline
  */
-static PORT_C_INLINE_ALWAYS portSysTmrReg_T portSysTmrGetRVal_(
-    void) {
+static PORT_C_INLINE_ALWAYS void portSysTmrGetRVal_(
+    portSysTmrReg_T *   val) {
 
-    return (*CPU_SYST_RVR);
+    *val = *CPU_SYST_RVR;
 }
 
 /**@brief       Load the system timer Reload value register
@@ -502,7 +483,7 @@ static PORT_C_INLINE_ALWAYS void portSysTmrRld_(
     --val;
     *CPU_SYST_CSR &= ~CPU_SYST_CSR_ENABLE_MSK;
     *CPU_SYST_RVR = val;
-    *CPU_SYST_CVR = 0U;
+    *CPU_SYST_CVR = 0u;
     *CPU_SYST_CSR |= CPU_SYST_CSR_ENABLE_MSK;
 }
 
@@ -543,32 +524,36 @@ static PORT_C_INLINE_ALWAYS void portSysTmrIsrDisable_(
     *CPU_SYST_CSR &= ~CPU_SYST_CSR_TICKINT_MSK;
 }
 
-/**@brief       Start the first thread
- * @details     This function will set the main stack register to point at the
- *              beginning of stack disregarding all previous stack information
- *              after which it will call system service to start the first
- *              thread.
- * @warning     This function requires valid Vector Table Offset Register in
- *              System control block. Vector Table Offset Register is used to
- *              extract the beginning of main stack.
- */
-PORT_C_NORETURN void portThdStart_(
-    void);
-
-/** @} *//*---------------------------------------------------------------*//**
- * @name        Dispatcher context switching
+/**@} *//*----------------------------------------------------------------*//**
+ * @name        Scheduler support
  * @{ *//*--------------------------------------------------------------------*/
 
-/**@brief       Do the context switch
- * @details     This function will just initiate PendSV exception which will do
- *              the actual context switch
+/**
+ * @brief       Find last set bit in a word
+ * @param       value
+ *              32 bit value which will be evaluated
+ * @return      Last set bit in a word
+ * @details     This implementation uses @c clz instruction and then it computes
+ *              the result using the following expression:
+ *              <code>fls(x) = w − clz(x)</code>.
  * @inline
  */
-static PORT_C_INLINE_ALWAYS void portCtxSw_(
-    void) {
+static PORT_C_INLINE_ALWAYS uint_fast8_t portBitFindLastSet_(
+    portReg_T       value) {
 
-    *CPU_SCB_ICSR |= CPU_SCB_ICSR_PENDSVSET_MSK;
+    uint_fast8_t    clz;
+
+    __asm__ __volatile__ (
+        "   clz    %0, %1                                   \n"
+        : "=r"(clz)
+        : "r"(value));
+
+    return (31u - clz);
 }
+
+/**@} *//*----------------------------------------------------------------*//**
+ * @name        Dispatcher context switching
+ * @{ *//*--------------------------------------------------------------------*/
 
 /**@brief       Initializes the thread context
  * @param       stck
@@ -587,11 +572,34 @@ static PORT_C_INLINE_ALWAYS void portCtxSw_(
  * @note        2) All tasks run in Thread mode, using process stack.
  * @note        3) ARM Cortex M3 requires 8B aligned stack.
  */
-void * portCtxInit_(
+void * portCtxInit(
     void *          stck,
     size_t          stckSize,
     void (* fn)(void *),
     void *          arg);
+
+/**@brief       Do the context switch
+ * @details     This function will just initiate PendSV exception which will do
+ *              the actual context switch
+ * @inline
+ */
+static PORT_C_INLINE_ALWAYS void portCtxSw_(
+    void) {
+
+    *CPU_SCB_ICSR |= CPU_SCB_ICSR_PENDSVSET_MSK;
+}
+
+/**@brief       Start the first context switch
+ * @details     This function will set the main stack register to point at the
+ *              beginning of stack disregarding all previous stack information
+ *              after which it will call system service to start the first
+ *              thread.
+ * @warning     This function requires valid Vector Table Offset Register in
+ *              System control block. Vector Table Offset Register is used to
+ *              extract the beginning of main stack.
+ */
+PORT_C_NORETURN void portCtxSwStart(
+    void);
 
 /** @} *//*---------------------------------------------------------------*//**
  * @name        Generic port functions
@@ -601,7 +609,12 @@ void * portCtxInit_(
  * @details     Function will set up sub-priority bits to zero and handlers
  *              interrupt priority.
  */
-void portInitEarly_(
+void portCpuInit(
+    void);
+
+/**@brief       Terminate port
+ */
+void portCpuTerm(
     void);
 
 /** @} *//*---------------------------------------------------------------*//**
@@ -644,11 +657,11 @@ void portSysTmr(
 
 /*================================*//** @cond *//*==  CONFIGURATION ERRORS  ==*/
 
-#if (PORT_SYSTMR_MAX_VAL < PORT_SYSTMR_ONE_TICK_VAL)
+#if (CPU_DEF_SYSTMR_MAX_VAL < PORT_DEF_SYSTMR_ONE_TICK)
 # error "eSolid RT Kernel port: System Timer overflow, please check CFG_SYSTMR_CLOCK_FREQUENCY and CFG_SYSTMR_EVENT_FREQUENCY options."
 #endif
 
 /** @endcond *//** @} *//******************************************************
  * END of cpu.h
  ******************************************************************************/
-#endif /* CPU_H_ */
+#endif /* CPU_H__ */

@@ -41,10 +41,11 @@ There are two groups of source files which need to be compiled for ARMv7-M archi
 - kernel.c, semaphore.c, dbg.c in `/src` source directory and 
 - cpu.c in `/port/arm-none-eabi-gcc/v7-m` port directory.
 
-The following include paths are needed:
+Example: For STM32F10x family port the following include paths are needed:
 - `/inc`
 - `/port/arm-none-eabi-gcc/common`
 - `/port/arm-none-eabi-gcc/v7-m`
+- `/port/arm-none-eabi-gcc/stm32f10x`
 
 ### Documentation
 

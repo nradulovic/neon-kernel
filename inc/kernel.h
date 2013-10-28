@@ -1,25 +1,24 @@
 /*
  * This file is part of eSolid-Kernel
  *
- * Copyright (C) 2013 - Nenad Radulovic
+ * Copyright (C) 2011, 2012, 2013 - Nenad Radulovic
  *
- * eSolid-Kernel is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * eSolid-Kernel is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; either version 2 of the License, or (at your option) any
+ * later version.
  *
- * eSolid-Kernel is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * eSolid-Kernel is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with eSolid-Kernel; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor,
- * Boston, MA  02110-1301  USA
+ * You should have received a copy of the GNU General Public License along with
+ * eSolid-Kernel; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *
- * web site:    http://blueskynet.dyndns-server.com
- * e-mail  :    blueskyniss@gmail.com
+ * web site:    http://github.com/nradulovic
+ * e-mail  :    nenad.b.radulovic@gmail.com
  *//***********************************************************************//**
  * @file
  * @author  	Nenad Radulovic
@@ -31,10 +30,12 @@
 #define KERNEL_H_
 
 /*=========================================================  INCLUDE FILES  ==*/
-#include "compiler.h"
+
+#include "arch/compiler.h"
+#include "arch/cpu.h"
+#include "dbg/dbg.h"
+
 #include "kernel_cfg.h"
-#include "cpu.h"
-#include "dbg.h"
 
 /*===============================================================  MACRO's  ==*/
 
@@ -45,7 +46,7 @@
 /**@brief       Identifies the underlying kernel version number
  * @details     Kernel identification and version (main [31:16] .sub [15:0])
  */
-#define ES_KERN_VER                     0x10000UL
+#define ES_KERN_VER                     0x10000ul
 
 /**@brief       Kernel identification string
  */
@@ -60,17 +61,17 @@
  *              For more details see @ref critical_section.
  * @{ *//*--------------------------------------------------------------------*/
 
-/**@brief		Critical section status variable declaration
+/**@brief		Critical section context variable type
  */
-#define ES_CRITICAL_DECL()				PORT_CRITICAL_DECL()
+#define ES_CRITICAL_T				    PORT_CRITICAL_T
 
 /**@brief		Enter a critical section
  */
-#define ES_CRITICAL_ENTER()				PORT_CRITICAL_ENTER()
+#define ES_CRITICAL_ENTER(ctx)		    PORT_CRITICAL_ENTER(ctx)
 
 /**@brief		Exit from critical section
  */
-#define ES_CRITICAL_EXIT()				PORT_CRITICAL_EXIT()
+#define ES_CRITICAL_EXIT(ctx)           PORT_CRITICAL_EXIT(ctx)
 
 /**@brief       Enter critical section and exit scheduler lock
  */
@@ -100,9 +101,9 @@
  */
 #define ES_STCK_SIZE(elem)              PORT_STCK_SIZE(elem)
 
-#define ES_THD_PRIO_MAX                 (CFG_SCHED_PRIO_LVL - 2U)
+#define ES_THD_PRIO_MAX                 (CFG_SCHED_PRIO_LVL - 2u)
 
-#define ES_THD_PRIO_MIN                 (1U)
+#define ES_THD_PRIO_MIN                 (1u)
 
 /**@} *//*----------------------------------------------  C++ extern begin  --*/
 #ifdef __cplusplus
@@ -198,7 +199,7 @@ typedef struct esVTmr esVTmr_T;
  * @notapi
  */
 #define PRIO_BM_GRP_INDX                                                        \
-    ((CFG_SCHED_PRIO_LVL + PORT_DATA_WIDTH_VAL - 1U) / PORT_DATA_WIDTH_VAL)
+    ((CFG_SCHED_PRIO_LVL + PORT_DEF_DATA_WIDTH - 1u) / PORT_DEF_DATA_WIDTH)
 
 /**@brief       Thread Queue structure
  * @api
@@ -238,13 +239,13 @@ typedef struct esThdQ esThdQ_T;
  * @api
  */
 enum esKernState {
-    ES_KERN_RUN         = 0x00U,                                                /**< Kernel is active                                       */
-    ES_KERN_INTSRV_RUN  = 0x01U,                                                /**< Servicing an interrupt  return to ES_KERN_RUN state    */
-    ES_KERN_LOCK        = 0x02U,                                                /**< Kernel is locked                                       */
-    ES_KERN_INTSRV_LOCK = 0x03U,                                                /**< Servicing an interrupt, return to ES_KERN_LOCK state   */
-    ES_KERN_SLEEP       = 0x06U,                                                /**< Kernel is sleeping                                     */
-    ES_KERN_INIT        = 0x08U,                                                /**< Kernel is in initialization state                      */
-    ES_KERN_INACTIVE    = 0x10U                                                 /**< Kernel data structures are not initialized             */
+    ES_KERN_RUN         = 0x00u,                                                /**< Kernel is active                                       */
+    ES_KERN_INTSRV_RUN  = 0x01u,                                                /**< Servicing an interrupt  return to ES_KERN_RUN state    */
+    ES_KERN_LOCK        = 0x02u,                                                /**< Kernel is locked                                       */
+    ES_KERN_INTSRV_LOCK = 0x03u,                                                /**< Servicing an interrupt, return to ES_KERN_LOCK state   */
+    ES_KERN_SLEEP       = 0x06u,                                                /**< Kernel is sleeping                                     */
+    ES_KERN_INIT        = 0x08u,                                                /**< Kernel is in initialization state                      */
+    ES_KERN_INACTIVE    = 0x10u                                                 /**< Kernel data structures are not initialized             */
 };
 
 /**@brief       Kernel state type
@@ -404,8 +405,8 @@ void esKernIsrEpilogueI(
  * @pre         3) `thd->signature != THD_CONTRACT_SIGNATURE`, the thread
  *                  structure can't be initialized more than once.
  * @pre         4) `fn != NULL`
- * @pre         5) `stckSize >= PORT_STCK_MINSIZE_VAL`, see
- *                  @ref PORT_STCK_MINSIZE_VAL.
+ * @pre         5) `stckSize >= PORT_DEF_STCK_MINSIZE`, see
+ *                  @ref PORT_DEF_STCK_MINSIZE.
  * @pre         6) `0 < prio < CFG_SCHED_PRIO_LVL - 1`, see
  *                  @ref CFG_SCHED_PRIO_LVL.
  * @post        1) `thd->signature == THD_CONTRACT_SIGNATURE`, each @ref esThd
