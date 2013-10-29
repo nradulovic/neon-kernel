@@ -26,8 +26,8 @@
  * @addtogroup  kern_cfg
  *********************************************************************//** @{ */
 
-#if !defined(KERNEL_CONFIG_H_)
-#define KERNEL_CONFIG_H_
+#if !defined(KERNEL_CFG_H__)
+#define KERNEL_CFG_H__
 
 /*=========================================================  INCLUDE FILES  ==*/
 /*===============================================================  DEFINES  ==*/
@@ -42,11 +42,11 @@
 
 /**@brief       Scheduler priority levels
  * @details     Possible values:
- *              - Min: 3U (three priority levels)
- *              - Max: 256U
+ *              - Min: 3 (three priority levels)
+ *              - Max: 256
  */
 #if !defined(CFG_SCHED_PRIO_LVL)
-# define CFG_SCHED_PRIO_LVL             8U
+# define CFG_SCHED_PRIO_LVL             8u
 #endif
 
 /**@brief       Scheduler Round-Robin time quantum
@@ -153,7 +153,7 @@
 /** @} *//*-------------------------------------------------------------------*/
 /*================================*//** @cond *//*==  CONFIGURATION ERRORS  ==*/
 
-#if ((3U > CFG_SCHED_PRIO_LVL) || (256U < CFG_SCHED_PRIO_LVL))
+#if ((3u > CFG_SCHED_PRIO_LVL) || (256u < CFG_SCHED_PRIO_LVL))
 # error "eSolid RT Kernel: Configuration option CFG_SCHED_PRIO_LVL is out of range."
 #endif
 
@@ -210,6 +210,6 @@
 #endif
 
 /** @endcond *//** @} *//******************************************************
- * END of kernel_config.h
+ * END of kernel_cfg.h
  ******************************************************************************/
-#endif /* KERNEL_CONFIG_H_ */
+#endif /* KERNEL_CFG_H__ */

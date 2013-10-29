@@ -26,14 +26,14 @@
  * @addtogroup  kern_intf
  *********************************************************************//** @{ */
 
-#if !defined(KERNEL_H_)
-#define KERNEL_H_
+#if !defined(KERNEL_H__)
+#define KERNEL_H__
 
 /*=========================================================  INCLUDE FILES  ==*/
 
 #include "arch/compiler.h"
 #include "arch/cpu.h"
-#include "dbg/dbg.h"
+#include "dbg.h"
 
 #include "kernel_cfg.h"
 
@@ -303,6 +303,9 @@ extern const volatile esKernCtrl_T gKernCtrl;
  * @details     This function must be called first before any other kernel API.
  *              It initializes internal data structures that are used by other
  *              API functions.
+ * @called
+ * @fromapp
+ * @schedno
  * @api
  */
 void esKernInit(
@@ -317,6 +320,9 @@ void esKernInit(
  * @details     This function will start multi-threading. Once the
  *              multi-threading has started the execution will never return to
  *              this function again (this function never returns).
+ * @called
+ * @fromapp
+ * @schedyes
  * @api
  */
 PORT_C_NORETURN void esKernStart(
@@ -341,6 +347,9 @@ void esKernSysTmr(
  *              interrupt service routine (ISR). This allows kernel to keep
  *              track of interrupt nesting and then only perform rescheduling at
  *              the last nested ISR.
+ * @called
+ * @fromisr
+ * @schedno
  * @iclass
  */
 void esKernIsrPrologueI(
@@ -358,6 +367,9 @@ void esKernIsrPrologueI(
  *              servicing an interrupt. When the last nested ISR has completed,
  *              the function will call the scheduler to determine whether a new,
  *              high-priority task, is ready to run.
+ * @called
+ * @fromisr
+ * @schedmaybe
  * @iclass
  */
 void esKernIsrEpilogueI(
@@ -418,6 +430,10 @@ void esKernIsrEpilogueI(
  *              Threads can be created either prior to the start of
  *              multi-threading (before calling esKernStart()), or by a running
  *              thread.
+ * @called
+ * @fromapp
+ * @fromthd
+ * @schedmaybe
  * @api
  */
 void esThdInit(
@@ -441,6 +457,10 @@ void esThdInit(
  * @post        1) `thd->signature == ~THD_CONTRACT_SIGNATURE`,  each
  *                  @ref esThd structure will have invalid signature after
  *                  termination.
+ * @called
+ * @fromapp
+ * @fromthd
+ * @schedmaybe
  * @api
  */
 void esThdTerm(
@@ -449,6 +469,11 @@ void esThdTerm(
 /**@brief       Get the current thread ID
  * @return      Pointer to current thread ID structure @ref esThd.
  * @inline
+ * @called
+ * @fromapp
+ * @fromthd
+ * @fromisr
+ * @schedno
  * @api
  */
 static PORT_C_INLINE esThd_T * esThdGetId(
@@ -462,6 +487,11 @@ static PORT_C_INLINE esThd_T * esThdGetId(
  *              Thread: is pointer to the thread structure, @ref esThd.
  * @return      The priority of the thread pointed by @c thd.
  * @inline
+ * @called
+ * @fromapp
+ * @fromthd
+ * @fromisr
+ * @schedno
  * @api
  */
 static PORT_C_INLINE uint8_t esThdGetPrio(
@@ -481,6 +511,11 @@ static PORT_C_INLINE uint8_t esThdGetPrio(
  *                  point to a valid @ref esThd structure.
  * @pre         4) `0 < prio < CFG_SCHED_PRIO_LVL - 1`, see
  *                  @ref CFG_SCHED_PRIO_LVL.
+ * @called
+ * @fromapp
+ * @fromthd
+ * @fromisr
+ * @schedmaybe
  * @iclass
  */
 void esThdSetPrioI(
@@ -494,6 +529,11 @@ void esThdSetPrioI(
  * @pre         2) `thd != NULL`
  * @pre         3) `thd->signature == THD_CONTRACT_SIGNATURE`, the pointer must
  *                  point to a valid @ref esThd structure.
+ * @called
+ * @fromapp
+ * @fromthd
+ * @fromisr
+ * @schedmaybe
  * @iclass
  */
 void esThdPostI(
@@ -506,6 +546,10 @@ void esThdPostI(
  * @pre         2) `thd != NULL`
  * @pre         3) `thd->signature == THD_CONTRACT_SIGNATURE`, the pointer must
  *                  point to a valid @ref esThd structure.
+ * @called
+ * @fromapp
+ * @fromthd
+ * @schedmaybe
  * @api
  */
 void esThdPost(
@@ -513,6 +557,9 @@ void esThdPost(
 
 /**@brief       Wait for thread semaphore
  * @pre         1) `The kernel state == ES_KERN_RUN`, see @ref states.
+ * @called
+ * @fromthd
+ * @schedyes
  * @iclass
  */
 void esThdWaitI(
@@ -520,6 +567,9 @@ void esThdWaitI(
 
 /**@brief       Wait for thread semaphore
  * @pre         1) `The kernel state == ES_KERN_RUN`, see @ref states.
+ * @called
+ * @fromthd
+ * @schedyes
  * @api
  */
 void esThdWait(
@@ -933,4 +983,4 @@ extern void userPreCtxSw(
 /** @endcond *//**@} *//*******************************************************
  * END of kernel.h
  ******************************************************************************/
-#endif /* KERNEL_H_ */
+#endif /* KERNEL_H__ */

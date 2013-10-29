@@ -17,4 +17,4 @@ INPUT               =   ../doc/src/kernel-example.dox                           
                         ../inc/dbg.h                                            \
                         ../inc/dbg_cfg.h                                        \
                         ../src/dbg.c    
-OUTPUT_DIRECTORY    =   ../doc/out/kernel
+OUTPUT_DIRECTORY    =   ../doc/kernel
