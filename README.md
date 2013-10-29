@@ -49,7 +49,7 @@ The following include paths are needed:
 - `/port/arm-none-eabi-gcc/v7-m`
 - `/port/arm-none-eabi-gcc/stm32f10x`
 
-### Documentation
+## Documentation
 
 Some documentation is available under Wiki 
 https://github.com/nradulovic/esolid-kernel/wiki. 
