@@ -40,14 +40,14 @@ that IDE will generate them for you.
 #### Example for STM32F10x family port
 
 There are two groups of source files which need to be compiled for ARMv7-M architecture: 
-- kernel.c, semaphore.c, dbg.c in `/src` source directory and 
-- cpu.c in `/port/arm-none-eabi-gcc/v7-m` port directory.
+- kernel.c, semaphore.c, dbg.c in `./src` source directory and 
+- cpu.c in `./port/arm-none-eabi-gcc/v7-m` port directory.
 
 The following include paths are needed:
-- `/inc`
-- `/port/arm-none-eabi-gcc/common`
-- `/port/arm-none-eabi-gcc/v7-m`
-- `/port/arm-none-eabi-gcc/stm32f10x`
+- `./inc`
+- `./port/arm-none-eabi-gcc/common`
+- `./port/arm-none-eabi-gcc/v7-m`
+- `./port/arm-none-eabi-gcc/stm32f10x`
 
 ## Documentation
 
@@ -59,8 +59,8 @@ directory. Go to the directory and run doxygen:
     # doxygen doxyfile-kernel
     # doxygen doxyfile-kernel-port
 
-This will generate HTML, LaTex and man documentation in `/doc/out/kernel` and
-`/doc/out/kernel-port` directories, respectively.
+This will generate HTML, LaTex and man documentation in `./doc/kernel` and
+`./doc/kernel-port` directories, respectively.
 
 
 ## Running
