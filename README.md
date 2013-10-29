@@ -37,13 +37,13 @@ https://launchpad.net/gcc-arm-embedded/+download) and binary was downloaded
 to the MCU using _texane_ gdb-server. There are no makefiles, it is assumed
 that IDE will generate them for you.
 
-Example: For STM32F10x family port:
+#### Example for STM32F10x family port
 
-1. there are two groups of source files which need to be compiled for ARMv7-M architecture: 
+There are two groups of source files which need to be compiled for ARMv7-M architecture: 
 - kernel.c, semaphore.c, dbg.c in `/src` source directory and 
 - cpu.c in `/port/arm-none-eabi-gcc/v7-m` port directory.
 
-2. the following include paths are needed:
+The following include paths are needed:
 - `/inc`
 - `/port/arm-none-eabi-gcc/common`
 - `/port/arm-none-eabi-gcc/v7-m`
