@@ -1,0 +1,228 @@
+\hypertarget{kernel_8c}{\subsection{kernel.\-c File Reference}
+\label{kernel_8c}\index{kernel.\-c@{kernel.\-c}}
+}
+
+
+Implementation of port independent code.  
+
+
+{\ttfamily \#include \char`\"{}kernel.\-h\char`\"{}}\\*
+Include dependency graph for kernel.\-c\-:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=339pt]{kernel_8c__incl}
+\end{center}
+\end{figure}
+\subsubsection*{Data Structures}
+\begin{DoxyCompactItemize}
+\item 
+struct \hyperlink{structsysTmr}{sys\-Tmr}
+\begin{DoxyCompactList}\small\item\em Main System Timer structure. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsubsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\#define \hyperlink{group__kern__impl_ga4a1ac440197aa9f2d77edf92c5b3b83c}{P\-R\-I\-O\-\_\-\-B\-M\-\_\-\-D\-A\-T\-A\-\_\-\-W\-I\-D\-T\-H\-\_\-\-L\-O\-G2}
+\begin{DoxyCompactList}\small\item\em Priority Bit Map log base 2\-: {\ttfamily log2(\-P\-O\-R\-T\-\_\-\-D\-E\-F\-\_\-\-D\-A\-T\-A\-\_\-\-W\-I\-D\-T\-H)} \end{DoxyCompactList}\item 
+\#define \hyperlink{group__kern__impl_ga11143896be344ab4dd20f6eb690918e7}{S\-C\-H\-E\-D\-\_\-\-S\-T\-A\-T\-E\-\_\-\-I\-N\-T\-S\-R\-V\-\_\-\-M\-S\-K}~(1u $<$$<$ 0)
+\begin{DoxyCompactList}\small\item\em Kernel state variable bit position which defines if the kernel is in interrupt servicing state. \end{DoxyCompactList}\item 
+\#define \hyperlink{group__kern__impl_gaf22f5679cd32d7dca7986d48b438b374}{S\-C\-H\-E\-D\-\_\-\-S\-T\-A\-T\-E\-\_\-\-L\-O\-C\-K\-\_\-\-M\-S\-K}~(1u $<$$<$ 1)
+\begin{DoxyCompactList}\small\item\em Kernel state variable bit position which defines if the kernel is locked or not. \end{DoxyCompactList}\item 
+\#define \hyperlink{group__kern__impl_ga9b9c4658370f93af1dc12ff6fda1f747}{P\-O\-R\-T\-\_\-\-D\-E\-F\-\_\-\-S\-Y\-S\-T\-M\-R\-\_\-\-O\-N\-E\-\_\-\-T\-I\-C\-K}~(\hyperlink{group__template__cpu__cfg_gac85c592962ba2c968d13f867533196a1}{C\-F\-G\-\_\-\-S\-Y\-S\-T\-M\-R\-\_\-\-C\-L\-O\-C\-K\-\_\-\-F\-R\-E\-Q\-U\-E\-N\-C\-Y} / \hyperlink{group__template__kern__cfg_ga4e46164ae5a37bfc54c67b6f01d93eb1}{C\-F\-G\-\_\-\-S\-Y\-S\-T\-M\-R\-\_\-\-E\-V\-E\-N\-T\-\_\-\-F\-R\-E\-Q\-U\-E\-N\-C\-Y})
+\begin{DoxyCompactList}\small\item\em System timer one tick value. \end{DoxyCompactList}\item 
+\#define \hyperlink{group__kern__impl_ga5fa3cbd45a4d6d49ec0018de3165ff6a}{T\-H\-D\-\_\-\-C\-O\-N\-T\-R\-A\-C\-T\-\_\-\-S\-I\-G\-N\-A\-T\-U\-R\-E}~((\hyperlink{group__template__cpu__intf_ga99980ab56ce9857e7380210d12e3d41f}{port\-Reg\-\_\-\-T})0x\-F\-E\-E\-D\-B\-E\-E\-F\-U\-L)
+\begin{DoxyCompactList}\small\item\em Thread structure signature. \end{DoxyCompactList}\item 
+\#define \hyperlink{group__kern__impl_ga756c92b6edae711c63d57f634a5b09f8}{T\-H\-D\-Q\-\_\-\-C\-O\-N\-T\-R\-A\-C\-T\-\_\-\-S\-I\-G\-N\-A\-T\-U\-R\-E}~((\hyperlink{group__template__cpu__intf_ga99980ab56ce9857e7380210d12e3d41f}{port\-Reg\-\_\-\-T})0x\-F\-E\-E\-D\-B\-E\-E\-E\-U\-L)
+\begin{DoxyCompactList}\small\item\em Thread Queue structure signature. \end{DoxyCompactList}\item 
+\#define \hyperlink{group__kern__impl_ga8b83b7d73295898ffe900f8f37dcb3a9}{V\-T\-M\-R\-\_\-\-C\-O\-N\-T\-R\-A\-C\-T\-\_\-\-S\-I\-G\-N\-A\-T\-U\-R\-E}~((\hyperlink{group__template__cpu__intf_ga99980ab56ce9857e7380210d12e3d41f}{port\-Reg\-\_\-\-T})0x\-F\-E\-E\-D\-B\-C\-C\-C\-U\-L)
+\begin{DoxyCompactList}\small\item\em Timer structure signature. \end{DoxyCompactList}\item 
+\#define \hyperlink{group__kern__impl_ga177fc11d78c08db1f70168bf971e0059}{D\-L\-I\-S\-T\-\_\-\-I\-S\-\_\-\-E\-N\-T\-R\-Y\-\_\-\-F\-I\-R\-S\-T}(list, entry)~((entry) == (entry)-\/$>$list.\-next)
+\begin{DoxyCompactList}\small\item\em D\-List macro\-: is the thread the first one in the list. \end{DoxyCompactList}\item 
+\#define \hyperlink{group__kern__impl_gaad48325fff9eb7b4c41788e190a28cf2}{D\-L\-I\-S\-T\-\_\-\-I\-S\-\_\-\-E\-N\-T\-R\-Y\-\_\-\-L\-A\-S\-T}(list, entry)~\hyperlink{group__kern__impl_ga177fc11d78c08db1f70168bf971e0059}{D\-L\-I\-S\-T\-\_\-\-I\-S\-\_\-\-E\-N\-T\-R\-Y\-\_\-\-F\-I\-R\-S\-T}(list, entry)
+\begin{DoxyCompactList}\small\item\em D\-List macro\-: is the thread the last one in the list. \end{DoxyCompactList}\item 
+\#define \hyperlink{group__kern__impl_ga77e64b5c52cb61e2bb7f6a4c6b0c9acc}{D\-L\-I\-S\-T\-\_\-\-I\-S\-\_\-\-E\-N\-T\-R\-Y\-\_\-\-S\-I\-N\-G\-L\-E}(list, entry)~\hyperlink{group__kern__impl_ga177fc11d78c08db1f70168bf971e0059}{D\-L\-I\-S\-T\-\_\-\-I\-S\-\_\-\-E\-N\-T\-R\-Y\-\_\-\-F\-I\-R\-S\-T}(list, entry)
+\begin{DoxyCompactList}\small\item\em D\-List macro\-: is the thread single in the list. \end{DoxyCompactList}\item 
+\#define \hyperlink{group__kern__impl_gab4b1b58e436cff32fc080493dfa35619}{D\-L\-I\-S\-T\-\_\-\-E\-N\-T\-R\-Y\-\_\-\-N\-E\-X\-T}(list, entry)~(entry)-\/$>$list.\-next
+\begin{DoxyCompactList}\small\item\em D\-List macro\-: get the next entry. \end{DoxyCompactList}\item 
+\#define \hyperlink{group__kern__impl_ga23a7667839eb576ddc4f55f2fcf77d65}{D\-L\-I\-S\-T\-\_\-\-E\-N\-T\-R\-Y\-\_\-\-I\-N\-I\-T}(list, entry)
+\begin{DoxyCompactList}\small\item\em D\-List macro\-: initialize entry. \end{DoxyCompactList}\item 
+\#define \hyperlink{group__kern__impl_gaff514b213c2cd3ad388fd5479275834f}{D\-L\-I\-S\-T\-\_\-\-E\-N\-T\-R\-Y\-\_\-\-A\-D\-D\-\_\-\-A\-F\-T\-E\-R}(list, current, entry)
+\begin{DoxyCompactList}\small\item\em D\-List macro\-: add new {\ttfamily entry} after {\ttfamily current} entry. \end{DoxyCompactList}\item 
+\#define \hyperlink{group__kern__impl_ga4a663d16206e95f1084af0a44e8518a0}{D\-L\-I\-S\-T\-\_\-\-E\-N\-T\-R\-Y\-\_\-\-R\-M}(list, entry)
+\begin{DoxyCompactList}\small\item\em D\-List macro\-: remove the {\ttfamily entry} from a list. \end{DoxyCompactList}\item 
+\hypertarget{group__kern__impl_ga4f1186117e99083012e835fb31b9f7a2}{\#define {\bfseries P\-O\-R\-T\-\_\-\-S\-Y\-S\-T\-M\-R\-\_\-\-W\-A\-K\-E\-U\-P\-\_\-\-T\-H\-\_\-\-V\-A\-L}~600\-U}\label{group__kern__impl_ga4f1186117e99083012e835fb31b9f7a2}
+
+\end{DoxyCompactItemize}
+\subsubsection*{Typedefs}
+\begin{Indent}{\bf Threads Queue}\par
+\begin{DoxyCompactItemize}
+\item 
+typedef struct thd\-L\-Sentinel \hyperlink{group__kern__impl_ga4806631fb32fcff150e92b2172f870b8}{thd\-L\-Sentinel\-\_\-\-T}
+\begin{DoxyCompactList}\small\item\em Thread list sentinel type. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\end{Indent}
+\subsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{group__kern__impl_gae9fe0e098459eaacd3282d7aa364f076}{{\bfseries D\-E\-C\-L\-\_\-\-M\-O\-D\-U\-L\-E\-\_\-\-I\-N\-F\-O} (\char`\"{}Kernel\char`\"{},\char`\"{}e\-Solid R\-T Kernel\char`\"{},\char`\"{}Nenad Radulovic\char`\"{})}\label{group__kern__impl_gae9fe0e098459eaacd3282d7aa364f076}
+
+\item 
+void \hyperlink{group__kern__impl_ga9e9ff699d62d6035cd51121bb3140704}{es\-Kern\-Init} (void)
+\begin{DoxyCompactList}\small\item\em Initialize kernel internal data structures. \end{DoxyCompactList}\item 
+P\-O\-R\-T\-\_\-\-C\-\_\-\-N\-O\-R\-E\-T\-U\-R\-N void \hyperlink{group__kern__impl_ga0e7a0a6b9c02df58de0f98de0229a09d}{es\-Kern\-Start} (void)
+\begin{DoxyCompactList}\small\item\em Start the multi-\/threading. \end{DoxyCompactList}\item 
+void \hyperlink{group__kern__impl_ga3182e4c1a47897109d0a429b10a2483e}{es\-Kern\-Sys\-Tmr} (void)
+\begin{DoxyCompactList}\small\item\em Process the system timer event. \end{DoxyCompactList}\item 
+void \hyperlink{group__kern__impl_ga194f9cbc5398fe0938504a378fcff810}{es\-Kern\-Isr\-Prologue\-I} (void)
+\begin{DoxyCompactList}\small\item\em Enter Interrupt Service Routine. \end{DoxyCompactList}\item 
+void \hyperlink{group__kern__impl_ga62d9b43eb8faf6c5df37e7b89811ac8d}{es\-Kern\-Isr\-Epilogue\-I} (void)
+\begin{DoxyCompactList}\small\item\em Exit Interrupt Service Routine. \end{DoxyCompactList}\item 
+void \hyperlink{group__kern__impl_gac91734f3ee867b519f59bf81cc7fde88}{es\-Thd\-Init} (\hyperlink{group__kern__intf_ga62e3a3ca0a4597a19c43cb8868810d82}{es\-Thd\-\_\-\-T} $\ast$thd, void($\ast$fn)(void $\ast$), void $\ast$arg, \hyperlink{group__template__cpu__intf_ga13cc91970e3e05fe4210440c068d3f4a}{port\-Stck\-\_\-\-T} $\ast$stck, size\-\_\-t stck\-Size, uint8\-\_\-t prio)
+\begin{DoxyCompactList}\small\item\em Initialize the specified thread. \end{DoxyCompactList}\item 
+void \hyperlink{group__kern__impl_gac9d1eac76f26096614e8196bcfd8b905}{es\-Thd\-Term} (\hyperlink{group__kern__intf_ga62e3a3ca0a4597a19c43cb8868810d82}{es\-Thd\-\_\-\-T} $\ast$thd)
+\begin{DoxyCompactList}\small\item\em Terminate the specified thread. \end{DoxyCompactList}\item 
+void \hyperlink{group__kern__impl_ga8eaa731d0026a8a1667d4422d5031df6}{es\-Thd\-Set\-Prio\-I} (\hyperlink{group__kern__intf_ga62e3a3ca0a4597a19c43cb8868810d82}{es\-Thd\-\_\-\-T} $\ast$thd, uint8\-\_\-t prio)
+\begin{DoxyCompactList}\small\item\em Set the priority of a thread. \end{DoxyCompactList}\item 
+void \hyperlink{group__kern__impl_ga1c846f96eb842774a35fb1f8f720a229}{es\-Thd\-Post\-I} (\hyperlink{group__kern__intf_ga62e3a3ca0a4597a19c43cb8868810d82}{es\-Thd\-\_\-\-T} $\ast$thd)
+\begin{DoxyCompactList}\small\item\em Post to thread semaphore. \end{DoxyCompactList}\item 
+void \hyperlink{group__kern__impl_ga2505a886a7bc006061317a4924651e7c}{es\-Thd\-Post} (\hyperlink{group__kern__intf_ga62e3a3ca0a4597a19c43cb8868810d82}{es\-Thd\-\_\-\-T} $\ast$thd)
+\begin{DoxyCompactList}\small\item\em Post to thread semaphore. \end{DoxyCompactList}\item 
+void \hyperlink{group__kern__impl_ga6835afa8c355e01dc35a83310770a47c}{es\-Thd\-Wait\-I} (void)
+\begin{DoxyCompactList}\small\item\em Wait for thread semaphore. \end{DoxyCompactList}\item 
+void \hyperlink{group__kern__impl_gabbe4d89d1eba04a007fc39a9db6a5db9}{es\-Thd\-Wait} (void)
+\begin{DoxyCompactList}\small\item\em Wait for thread semaphore. \end{DoxyCompactList}\item 
+void \hyperlink{group__kern__impl_gaddd5fe0557c91559b9452beb0fc236fd}{es\-Thd\-Q\-Init} (\hyperlink{group__kern__intf_ga7a1a060699e83a01512ebb5540019556}{es\-Thd\-Q\-\_\-\-T} $\ast$thd\-Q)
+\begin{DoxyCompactList}\small\item\em Initialize Thread Queue. \end{DoxyCompactList}\item 
+void \hyperlink{group__kern__impl_gaa5f19b32a7f0c42616b5270dcbd73a3e}{es\-Thd\-Q\-Term} (\hyperlink{group__kern__intf_ga7a1a060699e83a01512ebb5540019556}{es\-Thd\-Q\-\_\-\-T} $\ast$thd\-Q)
+\begin{DoxyCompactList}\small\item\em Terminate Thread Queue. \end{DoxyCompactList}\item 
+void \hyperlink{group__kern__impl_ga9da1e71c137d8adb8c9bdead7052b5fa}{es\-Thd\-Q\-Add\-I} (\hyperlink{group__kern__intf_ga7a1a060699e83a01512ebb5540019556}{es\-Thd\-Q\-\_\-\-T} $\ast$thd\-Q, \hyperlink{group__kern__intf_ga62e3a3ca0a4597a19c43cb8868810d82}{es\-Thd\-\_\-\-T} $\ast$thd)
+\begin{DoxyCompactList}\small\item\em Add a thread to the Thread Queue. \end{DoxyCompactList}\item 
+void \hyperlink{group__kern__impl_gaa18afa95e34035da03c5cb7ea3a96320}{es\-Thd\-Q\-Rm\-I} (\hyperlink{group__kern__intf_ga7a1a060699e83a01512ebb5540019556}{es\-Thd\-Q\-\_\-\-T} $\ast$thd\-Q, \hyperlink{group__kern__intf_ga62e3a3ca0a4597a19c43cb8868810d82}{es\-Thd\-\_\-\-T} $\ast$thd)
+\begin{DoxyCompactList}\small\item\em Removes the thread from the Thread Queue. \end{DoxyCompactList}\item 
+\hyperlink{group__kern__intf_ga62e3a3ca0a4597a19c43cb8868810d82}{es\-Thd\-\_\-\-T} $\ast$ \hyperlink{group__kern__impl_ga1670c123f31c346b24ec9d2b7ae35f88}{es\-Thd\-Q\-Fetch\-I} (const \hyperlink{group__kern__intf_ga7a1a060699e83a01512ebb5540019556}{es\-Thd\-Q\-\_\-\-T} $\ast$thd\-Q)
+\begin{DoxyCompactList}\small\item\em Fetch the first high priority thread from the Thread Queue. \end{DoxyCompactList}\item 
+\hyperlink{group__kern__intf_ga62e3a3ca0a4597a19c43cb8868810d82}{es\-Thd\-\_\-\-T} $\ast$ \hyperlink{group__kern__impl_gae365b14292f1496a90d876baec84fb4e}{es\-Thd\-Q\-Fetch\-Rotate\-I} (\hyperlink{group__kern__intf_ga7a1a060699e83a01512ebb5540019556}{es\-Thd\-Q\-\_\-\-T} $\ast$thd\-Q, uint\-\_\-fast8\-\_\-t prio)
+\begin{DoxyCompactList}\small\item\em Fetch the next thread and rotate thread linked list. \end{DoxyCompactList}\item 
+\hyperlink{group__template__compiler_ga74fbee312f9185efb602f89d21b53404}{bool\-\_\-\-T} \hyperlink{group__kern__impl_gacf2687b82ce64e2154d97fd3b69a4ab5}{es\-Thd\-Q\-Is\-Empty} (const \hyperlink{group__kern__intf_ga7a1a060699e83a01512ebb5540019556}{es\-Thd\-Q\-\_\-\-T} $\ast$thd\-Q)
+\begin{DoxyCompactList}\small\item\em Is thread queue empty. \end{DoxyCompactList}\item 
+void \hyperlink{group__kern__impl_ga73e14b1860ce824c822adc407aee0977}{es\-Sched\-Rdy\-Add\-I} (\hyperlink{group__kern__intf_ga62e3a3ca0a4597a19c43cb8868810d82}{es\-Thd\-\_\-\-T} $\ast$thd)
+\begin{DoxyCompactList}\small\item\em Add thread {\ttfamily thd} to the ready thread list and notify the scheduler. \end{DoxyCompactList}\item 
+void \hyperlink{group__kern__impl_ga0b8263c5024ebb59cd9b95cc9253b44d}{es\-Sched\-Rdy\-Rm\-I} (\hyperlink{group__kern__intf_ga62e3a3ca0a4597a19c43cb8868810d82}{es\-Thd\-\_\-\-T} $\ast$thd)
+\begin{DoxyCompactList}\small\item\em Remove thread {\ttfamily thd} from the ready thread list and notify the scheduler. \end{DoxyCompactList}\item 
+void \hyperlink{group__kern__impl_gaf90e487bfce974dafaeed5009e189810}{es\-Sched\-Yield\-I} (void)
+\begin{DoxyCompactList}\small\item\em Force the scheduler invocation which will evaluate all ready threads and switch to ready thread with the highest priority. \end{DoxyCompactList}\item 
+void \hyperlink{group__kern__impl_gafbea29b376b29f11bbfc48a0f5144e9a}{es\-Sched\-Yield\-Isr\-I} (void)
+\begin{DoxyCompactList}\small\item\em Force the scheduler invocation which will evaluate all ready threads and switch to ready thread with the highest priority. \end{DoxyCompactList}\item 
+void \hyperlink{group__kern__impl_ga1e60d9df6ad1712ed57cd4ca038fcad2}{es\-Sched\-Lock\-Enter\-I} (void)
+\begin{DoxyCompactList}\small\item\em Lock the scheduler. \end{DoxyCompactList}\item 
+void \hyperlink{group__kern__impl_gaddd9b2fcbc03765f63f81b64e6663934}{es\-Sched\-Lock\-Exit\-I} (void)
+\begin{DoxyCompactList}\small\item\em Unlock the scheduler. \end{DoxyCompactList}\item 
+void \hyperlink{group__kern__impl_ga4b70a0e213b791b4e51840352d144a22}{es\-Sched\-Lock\-Enter} (void)
+\begin{DoxyCompactList}\small\item\em Lock the scheduler. \end{DoxyCompactList}\item 
+void \hyperlink{group__kern__impl_gac4c263203fcf700d96fe21782cfde219}{es\-Sched\-Lock\-Exit} (void)
+\begin{DoxyCompactList}\small\item\em Unlock the scheduler. \end{DoxyCompactList}\item 
+void \hyperlink{group__kern__impl_ga45fe650eac73e7fe203cc81565401555}{es\-V\-Tmr\-Init\-I} (\hyperlink{group__kern__intf_ga3c020f0ca54ff412bc1d1505502d2afc}{es\-V\-Tmr\-\_\-\-T} $\ast$v\-Tmr, \hyperlink{group__kern__intf_ga844873888c186ee81eb66620dadb0451}{es\-Tick\-\_\-\-T} tick, void($\ast$fn)(void $\ast$), void $\ast$arg)
+\begin{DoxyCompactList}\small\item\em Add and start a new virtual timer. \end{DoxyCompactList}\item 
+void \hyperlink{group__kern__impl_gad932cf00aec4ba03a0df02ccc493c4c2}{es\-V\-Tmr\-Init} (\hyperlink{group__kern__intf_ga3c020f0ca54ff412bc1d1505502d2afc}{es\-V\-Tmr\-\_\-\-T} $\ast$v\-Tmr, \hyperlink{group__kern__intf_ga844873888c186ee81eb66620dadb0451}{es\-Tick\-\_\-\-T} tick, void($\ast$fn)(void $\ast$), void $\ast$arg)
+\begin{DoxyCompactList}\small\item\em Add and start a new virtual timer. \end{DoxyCompactList}\item 
+void \hyperlink{group__kern__impl_ga96bb2c81f649c0305dfd08d1c79b2e37}{es\-V\-Tmr\-Term\-I} (\hyperlink{group__kern__intf_ga3c020f0ca54ff412bc1d1505502d2afc}{es\-V\-Tmr\-\_\-\-T} $\ast$v\-Tmr)
+\begin{DoxyCompactList}\small\item\em Cancel and remove a virtual timer. \end{DoxyCompactList}\item 
+void \hyperlink{group__kern__impl_gad6ec93a68e3526f18ed926cd441878cd}{es\-V\-Tmr\-Term} (\hyperlink{group__kern__intf_ga3c020f0ca54ff412bc1d1505502d2afc}{es\-V\-Tmr\-\_\-\-T} $\ast$v\-Tmr)
+\begin{DoxyCompactList}\small\item\em Cancel and remove a virtual timer. \end{DoxyCompactList}\item 
+void \hyperlink{group__kern__impl_ga26d10c6aaa0cd1d04261d2c9911e890d}{es\-V\-Tmr\-Delay} (\hyperlink{group__kern__intf_ga844873888c186ee81eb66620dadb0451}{es\-Tick\-\_\-\-T} tick)
+\begin{DoxyCompactList}\small\item\em Delay for specified amount of ticks. \end{DoxyCompactList}\item 
+\hypertarget{group__kern__impl_gacb0d88d6a7e467dc37a6a9a85945aaa6}{\hyperlink{group__kern__intf_ga844873888c186ee81eb66620dadb0451}{es\-Tick\-\_\-\-T} {\bfseries es\-Sys\-Tmr\-Tick\-Get} (void)}\label{group__kern__impl_gacb0d88d6a7e467dc37a6a9a85945aaa6}
+
+\end{DoxyCompactItemize}
+\begin{Indent}{\bf Virtual Timer and Virtual Timer kernel thread}\par
+\begin{DoxyCompactItemize}
+\item 
+static \hyperlink{group__template__compiler_ga87952d6e574c7f437503926e833ba345}{P\-O\-R\-T\-\_\-\-C\-\_\-\-I\-N\-L\-I\-N\-E} void \hyperlink{group__kern__impl_ga6ebc5795dbcc15e76f768133ba99ab17}{v\-Tmr\-Sleep} (\hyperlink{group__kern__intf_ga844873888c186ee81eb66620dadb0451}{es\-Tick\-\_\-\-T} ticks)
+\begin{DoxyCompactList}\small\item\em Set up system timer for different tick period during sleeping. \end{DoxyCompactList}\item 
+static \hyperlink{group__template__compiler_ga87952d6e574c7f437503926e833ba345}{P\-O\-R\-T\-\_\-\-C\-\_\-\-I\-N\-L\-I\-N\-E} void \hyperlink{group__kern__impl_gab4f2cc4d4d36c36efb272306595a4474}{v\-Tmr\-Evaluate\-I} (void)
+\begin{DoxyCompactList}\small\item\em Evaluate armed virtual timers. \end{DoxyCompactList}\item 
+static void \hyperlink{group__kern__impl_ga653b749536e91933ea9b651dbb8d5962}{v\-Tmr\-Add\-Armed\-S} (\hyperlink{group__kern__intf_ga3c020f0ca54ff412bc1d1505502d2afc}{es\-V\-Tmr\-\_\-\-T} $\ast$v\-Tmr)
+\begin{DoxyCompactList}\small\item\em Add a virtual timer into sorted list. \end{DoxyCompactList}\item 
+static \hyperlink{group__template__compiler_ga87952d6e574c7f437503926e833ba345}{P\-O\-R\-T\-\_\-\-C\-\_\-\-I\-N\-L\-I\-N\-E} void \hyperlink{group__kern__impl_ga0ac5061b01fd5124dc99cba3a10b6025}{v\-Tmr\-Import\-Pend\-Sleep\-I} (void)
+\begin{DoxyCompactList}\small\item\em Import timers from pending list to armed list. \end{DoxyCompactList}\item 
+static void \hyperlink{group__kern__impl_ga9ae79f667b0f7420b31e8a609c3150a0}{v\-Tmr\-Import\-Pend} (void)
+\begin{DoxyCompactList}\small\item\em Import timers from pending list to armed list. \end{DoxyCompactList}\item 
+static void \hyperlink{group__kern__impl_gaa03a91aeb99719724bc64c292f1a5959}{k\-V\-Tmr\-Init} (void)
+\begin{DoxyCompactList}\small\item\em Initialization of Virtual Timer kernel thread. \end{DoxyCompactList}\item 
+static void \hyperlink{group__kern__impl_gadef1fcf2218955344b2e1d5027f80bee}{k\-V\-Tmr} (void $\ast$arg)
+\begin{DoxyCompactList}\small\item\em Virtual Timer thread code. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\end{Indent}
+\subsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+static uint\-\_\-fast8\-\_\-t \hyperlink{group__kern__impl_ga16a909b2eabeabadcfd3c8cd38437984}{g\-Kern\-Lock\-Cnt}
+\begin{DoxyCompactList}\small\item\em Kernel Lock Counter. \end{DoxyCompactList}\item 
+const volatile \hyperlink{group__kern__intf_gaae54a9918d92a2105b1d331b083d21b7}{es\-Kern\-Ctrl\-\_\-\-T} \hyperlink{group__kern__impl_ga299ac766f155bf1ef931627e2a0b895b}{g\-Kern\-Ctrl}
+\begin{DoxyCompactList}\small\item\em Kernel control initialization. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsubsection*{System timer}
+\begin{DoxyCompactItemize}
+\item 
+typedef struct \hyperlink{structsysTmr}{sys\-Tmr} \hyperlink{group__kern__impl_gae4999a40bf000fe53ce472e1f88233d2}{sys\-Tmr\-\_\-\-T}
+\begin{DoxyCompactList}\small\item\em System Timer type. \end{DoxyCompactList}\item 
+static \hyperlink{group__kern__impl_gae4999a40bf000fe53ce472e1f88233d2}{sys\-Tmr\-\_\-\-T} \hyperlink{group__kern__impl_ga7cf5c5d1e8a2f1ccf59d65bc409d82c3}{g\-Sys\-Tmr}
+\begin{DoxyCompactList}\small\item\em Main System Timer structure. \end{DoxyCompactList}\item 
+static \hyperlink{group__kern__intf_ga3c020f0ca54ff412bc1d1505502d2afc}{es\-V\-Tmr\-\_\-\-T} \hyperlink{group__kern__impl_ga69378b000a004da276419e5a394faaca}{g\-V\-Tmr\-Armed}
+\begin{DoxyCompactList}\small\item\em List of virtual timers to armed expire. \end{DoxyCompactList}\item 
+static \hyperlink{group__kern__intf_ga3c020f0ca54ff412bc1d1505502d2afc}{es\-V\-Tmr\-\_\-\-T} \hyperlink{group__kern__impl_gac3aa245b43e7f69c7e184756bc56af2c}{g\-V\-Tmr\-Pend}
+\begin{DoxyCompactList}\small\item\em Virtual timers pending to be inserted into waiting list. \end{DoxyCompactList}\item 
+static \hyperlink{group__kern__intf_ga62e3a3ca0a4597a19c43cb8868810d82}{es\-Thd\-\_\-\-T} \hyperlink{group__kern__impl_ga7725555010cb1e7f32842aa5755a6945}{g\-K\-V\-Tmr}
+\begin{DoxyCompactList}\small\item\em Virtual timer thread I\-D. \end{DoxyCompactList}\item 
+static \hyperlink{group__template__compiler_ga87952d6e574c7f437503926e833ba345}{P\-O\-R\-T\-\_\-\-C\-\_\-\-I\-N\-L\-I\-N\-E} void \hyperlink{group__kern__impl_gaa284b6ec458b79a49c54eedc738259fb}{sys\-Tmr\-Init} (void)
+\begin{DoxyCompactList}\small\item\em Initialize system timer hardware. \end{DoxyCompactList}\item 
+static \hyperlink{group__template__compiler_ga87952d6e574c7f437503926e833ba345}{P\-O\-R\-T\-\_\-\-C\-\_\-\-I\-N\-L\-I\-N\-E} void \hyperlink{group__kern__impl_gaac3698a7627e9d0b7b1f0d5f741d2816}{sys\-Tmr\-Activate} (void)
+\begin{DoxyCompactList}\small\item\em Try to activate system timer. \end{DoxyCompactList}\item 
+static \hyperlink{group__template__compiler_ga87952d6e574c7f437503926e833ba345}{P\-O\-R\-T\-\_\-\-C\-\_\-\-I\-N\-L\-I\-N\-E} void \hyperlink{group__kern__impl_gab564a700462dce0be7ba31f2d3022f7b}{sys\-Tmr\-Deactivate\-I} (void)
+\begin{DoxyCompactList}\small\item\em Try to deactivate system timer. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsubsection*{Priority Bit Map}
+\begin{DoxyCompactItemize}
+\item 
+typedef struct prio\-B\-M \hyperlink{group__kern__impl_gacd0176b76efe8eb30f7f4f3928afe256}{prio\-B\-M\-\_\-\-T}
+\begin{DoxyCompactList}\small\item\em Priority Bit Map type. \end{DoxyCompactList}\item 
+static \hyperlink{group__template__compiler_ga87952d6e574c7f437503926e833ba345}{P\-O\-R\-T\-\_\-\-C\-\_\-\-I\-N\-L\-I\-N\-E} void \hyperlink{group__kern__impl_gad7d7d37b75a64e9e5d8cd11c90aead11}{prio\-B\-M\-Init} (\hyperlink{group__kern__impl_gacd0176b76efe8eb30f7f4f3928afe256}{prio\-B\-M\-\_\-\-T} $\ast$bm)
+\begin{DoxyCompactList}\small\item\em Initialize bitmap. \end{DoxyCompactList}\item 
+static \hyperlink{group__template__compiler_ga87952d6e574c7f437503926e833ba345}{P\-O\-R\-T\-\_\-\-C\-\_\-\-I\-N\-L\-I\-N\-E} void \hyperlink{group__kern__impl_ga9f61fb23090012bfd439a6f95f06a011}{prio\-B\-M\-Set} (\hyperlink{group__kern__impl_gacd0176b76efe8eb30f7f4f3928afe256}{prio\-B\-M\-\_\-\-T} $\ast$bm, uint\-\_\-fast8\-\_\-t prio)
+\begin{DoxyCompactList}\small\item\em Set the bit corresponding to the prio argument. \end{DoxyCompactList}\item 
+static \hyperlink{group__template__compiler_ga87952d6e574c7f437503926e833ba345}{P\-O\-R\-T\-\_\-\-C\-\_\-\-I\-N\-L\-I\-N\-E} void \hyperlink{group__kern__impl_gaa42c02d556d0449ef990a088d0a1accb}{prio\-B\-M\-Clear} (\hyperlink{group__kern__impl_gacd0176b76efe8eb30f7f4f3928afe256}{prio\-B\-M\-\_\-\-T} $\ast$bm, uint\-\_\-fast8\-\_\-t prio)
+\begin{DoxyCompactList}\small\item\em Clear the bit corresponding to the prio argument. \end{DoxyCompactList}\item 
+static \hyperlink{group__template__compiler_ga87952d6e574c7f437503926e833ba345}{P\-O\-R\-T\-\_\-\-C\-\_\-\-I\-N\-L\-I\-N\-E} uint\-\_\-fast8\-\_\-t \hyperlink{group__kern__impl_gacd2270a57fb5dd534a8238274728332d}{prio\-B\-M\-Get} (const \hyperlink{group__kern__impl_gacd0176b76efe8eb30f7f4f3928afe256}{prio\-B\-M\-\_\-\-T} $\ast$bm)
+\begin{DoxyCompactList}\small\item\em Get the highest priority set. \end{DoxyCompactList}\item 
+static \hyperlink{group__template__compiler_ga87952d6e574c7f437503926e833ba345}{P\-O\-R\-T\-\_\-\-C\-\_\-\-I\-N\-L\-I\-N\-E} \hyperlink{group__template__compiler_ga74fbee312f9185efb602f89d21b53404}{bool\-\_\-\-T} \hyperlink{group__kern__impl_gacf4e2945165e95247a4dbaf740f575ed}{prio\-B\-M\-Is\-Empty} (const \hyperlink{group__kern__impl_gacd0176b76efe8eb30f7f4f3928afe256}{prio\-B\-M\-\_\-\-T} $\ast$bm)
+\begin{DoxyCompactList}\small\item\em Is bit map empty? \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsubsection*{Scheduler}
+\begin{DoxyCompactItemize}
+\item 
+static \hyperlink{group__kern__intf_ga7a1a060699e83a01512ebb5540019556}{es\-Thd\-Q\-\_\-\-T} \hyperlink{group__kern__impl_ga185694d8732651c7426a7d1dbd2d6bb8}{g\-Rdy\-Queue}
+\begin{DoxyCompactList}\small\item\em Ready Thread queue. \end{DoxyCompactList}\item 
+static \hyperlink{group__template__compiler_ga87952d6e574c7f437503926e833ba345}{P\-O\-R\-T\-\_\-\-C\-\_\-\-I\-N\-L\-I\-N\-E} void \hyperlink{group__kern__impl_ga3a8d1dd61629856ac10022cd044591a3}{sched\-Init} (void)
+\begin{DoxyCompactList}\small\item\em Initialize Ready Thread Queue structure \hyperlink{group__kern__impl_ga185694d8732651c7426a7d1dbd2d6bb8}{g\-Rdy\-Queue} and Kernel control structure \hyperlink{structesKernCtrl}{es\-Kern\-Ctrl}. \end{DoxyCompactList}\item 
+static \hyperlink{group__template__compiler_ga87952d6e574c7f437503926e833ba345}{P\-O\-R\-T\-\_\-\-C\-\_\-\-I\-N\-L\-I\-N\-E} void \hyperlink{group__kern__impl_gaa2fd7336d999c956fa8b74a2405cffc7}{sched\-Start} (void)
+\begin{DoxyCompactList}\small\item\em Set the scheduler data structures for multi-\/threading. \end{DoxyCompactList}\item 
+static \hyperlink{group__template__compiler_ga87952d6e574c7f437503926e833ba345}{P\-O\-R\-T\-\_\-\-C\-\_\-\-I\-N\-L\-I\-N\-E} void \hyperlink{group__kern__impl_gaaab2c30affeef2604f69bea4d19f32e4}{sched\-Sleep} (void)
+\begin{DoxyCompactList}\small\item\em Set the scheduler to sleep. \end{DoxyCompactList}\item 
+static \hyperlink{group__template__compiler_ga87952d6e574c7f437503926e833ba345}{P\-O\-R\-T\-\_\-\-C\-\_\-\-I\-N\-L\-I\-N\-E} void \hyperlink{group__kern__impl_ga0ac09697c7f2168695a853598caac057}{sched\-Wake\-Up\-I} (void)
+\begin{DoxyCompactList}\small\item\em Wake up the scheduler. \end{DoxyCompactList}\item 
+static \hyperlink{group__template__compiler_ga87952d6e574c7f437503926e833ba345}{P\-O\-R\-T\-\_\-\-C\-\_\-\-I\-N\-L\-I\-N\-E} void \hyperlink{group__kern__impl_ga1317c12a1355ee8db4f104338f1df88d}{sched\-Rdy\-Add\-Init\-I} (\hyperlink{group__kern__intf_ga62e3a3ca0a4597a19c43cb8868810d82}{es\-Thd\-\_\-\-T} $\ast$thd)
+\begin{DoxyCompactList}\small\item\em Initialize scheduler ready structure during the thread add operation. \end{DoxyCompactList}\item 
+static \hyperlink{group__template__compiler_ga87952d6e574c7f437503926e833ba345}{P\-O\-R\-T\-\_\-\-C\-\_\-\-I\-N\-L\-I\-N\-E} void \hyperlink{group__kern__impl_ga56290a8f51b1d3babec91602292c8d61}{sched\-Qm\-Next\-I} (void)
+\begin{DoxyCompactList}\small\item\em Fetch and try to schedule the next thread of the same priority as the current thread. \end{DoxyCompactList}\item 
+static \hyperlink{group__template__compiler_ga87952d6e574c7f437503926e833ba345}{P\-O\-R\-T\-\_\-\-C\-\_\-\-I\-N\-L\-I\-N\-E} void \hyperlink{group__kern__impl_gaf57b17dda8d71ce9e7ef57ea0e7ef534}{sched\-Qm\-I} (void)
+\begin{DoxyCompactList}\small\item\em Do the Quantum (Round-\/\-Robin) scheduling. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsubsection*{Idle kernel thread}
+\begin{DoxyCompactItemize}
+\item 
+static \hyperlink{group__kern__intf_ga62e3a3ca0a4597a19c43cb8868810d82}{es\-Thd\-\_\-\-T} \hyperlink{group__kern__impl_gad32c3bee0b16ff9c156476f04200fc0a}{g\-K\-Idle}
+\begin{DoxyCompactList}\small\item\em Idle thread I\-D. \end{DoxyCompactList}\item 
+static void \hyperlink{group__kern__impl_ga39cf986cee12aa37a066532e80a5f72a}{k\-Idle\-Init} (void)
+\begin{DoxyCompactList}\small\item\em Initialization of Idle thread. \end{DoxyCompactList}\item 
+static void \hyperlink{group__kern__impl_ga4e968162935156b6617ff0d5cbccbe1c}{k\-Idle} (void $\ast$arg)
+\begin{DoxyCompactList}\small\item\em Idle thread code. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsubsection{Detailed Description}
+Implementation of port independent code. \begin{DoxyAuthor}{Author}
+Nenad Radulovic 
+\end{DoxyAuthor}

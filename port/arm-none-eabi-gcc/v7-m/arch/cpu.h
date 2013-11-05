@@ -119,9 +119,9 @@
 
 #define PORT_SYSTMR_TERM()              portSysTmrTerm_()
 
-#define PORT_SYSTMR_GET_RVAL(val)       portSysTmrGetRVal_(val)
+#define PORT_SYSTMR_GET_RVAL()          portSysTmrGetRVal_()
 
-#define PORT_SYSTMR_GET_CVAL(val)       portSysTmrGetCVal_(val)
+#define PORT_SYSTMR_GET_CVAL()          portSysTmrGetCVal_()
 
 #define PORT_SYSTMR_RLD(val)            portSysTmrRld_(val)
 
@@ -139,7 +139,7 @@
 
 #define PORT_BIT_FIND_LAST_SET(val)     portBitFindLastSet_(val)
 
-#define PORT_BIT_PWR2(pwr)              (1U << (pwr))
+#define PORT_BIT_PWR2(pwr)              (0x01u << (pwr))
 
 /**@} *//*----------------------------------------------------------------*//**
  * @name        Dispatcher context switching support
@@ -459,19 +459,19 @@ static PORT_C_INLINE_ALWAYS void portSysTmrInit_(
 /**@brief       Get current counter value
  * @inline
  */
-static PORT_C_INLINE_ALWAYS void portSysTmrGetCVal_(
-    portSysTmrReg_T *   val) {
+static PORT_C_INLINE_ALWAYS portSysTmrReg_T portSysTmrGetCVal_(
+    void) {
 
-    *val = *CPU_SYST_CVR;
+    return (*CPU_SYST_CVR);
 }
 
 /**@brief       Get reload counter value
  * @inline
  */
-static PORT_C_INLINE_ALWAYS void portSysTmrGetRVal_(
-    portSysTmrReg_T *   val) {
+static PORT_C_INLINE_ALWAYS portSysTmrReg_T portSysTmrGetRVal_(
+    void) {
 
-    *val = *CPU_SYST_RVR;
+    return (*CPU_SYST_RVR);
 }
 
 /**@brief       Load the system timer Reload value register

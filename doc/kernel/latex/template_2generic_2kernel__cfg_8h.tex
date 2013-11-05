@@ -1,0 +1,53 @@
+\hypertarget{template_2generic_2kernel__cfg_8h}{\subsection{kernel\-\_\-cfg.\-h File Reference}
+\label{template_2generic_2kernel__cfg_8h}\index{kernel\-\_\-cfg.\-h@{kernel\-\_\-cfg.\-h}}
+}
+
+
+Configuration of Kernel -\/ Template.  
+
+
+\subsubsection*{Macros}
+\begin{Indent}{\bf Kernel configuration options and settings}\par
+{\em Kernel default configuration }\begin{DoxyCompactItemize}
+\item 
+\#define \hyperlink{group__template__kern__cfg_ga56bd89fe76f7fe22f3d8805bc3c68892}{C\-F\-G\-\_\-\-S\-C\-H\-E\-D\-\_\-\-P\-R\-I\-O\-\_\-\-L\-V\-L}~8\-U
+\begin{DoxyCompactList}\small\item\em Scheduler priority levels. \end{DoxyCompactList}\item 
+\#define \hyperlink{group__template__kern__cfg_ga0bd286f16bb67585f14c4d1e45be8ad1}{C\-F\-G\-\_\-\-S\-C\-H\-E\-D\-\_\-\-T\-I\-M\-E\-\_\-\-Q\-U\-A\-N\-T\-U\-M}~10\-U
+\begin{DoxyCompactList}\small\item\em Scheduler Round-\/\-Robin time quantum. \end{DoxyCompactList}\item 
+\#define \hyperlink{group__template__kern__cfg_ga4e6ab4994b34501bb71e75717b093376}{C\-F\-G\-\_\-\-S\-C\-H\-E\-D\-\_\-\-P\-O\-W\-E\-R\-\_\-\-S\-A\-V\-E}~0\-U
+\begin{DoxyCompactList}\small\item\em Enable/disable scheduler power savings mode. \end{DoxyCompactList}\item 
+\#define \hyperlink{group__template__kern__cfg_ga5f07eea2a4be92cf0358f52eba6800c9}{C\-F\-G\-\_\-\-S\-Y\-S\-T\-M\-R\-\_\-\-A\-D\-A\-P\-T\-I\-V\-E\-\_\-\-M\-O\-D\-E}~0\-U
+\begin{DoxyCompactList}\small\item\em System timer mode. \end{DoxyCompactList}\item 
+\#define \hyperlink{group__template__kern__cfg_ga4e46164ae5a37bfc54c67b6f01d93eb1}{C\-F\-G\-\_\-\-S\-Y\-S\-T\-M\-R\-\_\-\-E\-V\-E\-N\-T\-\_\-\-F\-R\-E\-Q\-U\-E\-N\-C\-Y}~100\-U\-L
+\begin{DoxyCompactList}\small\item\em The frequency of system tick event. \end{DoxyCompactList}\item 
+\#define \hyperlink{group__template__kern__cfg_gad69eef523459c5ab485ce2f62bddceca}{C\-F\-G\-\_\-\-S\-Y\-S\-T\-M\-R\-\_\-\-T\-I\-C\-K\-\_\-\-T\-Y\-P\-E}~2\-U
+\begin{DoxyCompactList}\small\item\em The size of the system timer counter. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\end{Indent}
+\begin{Indent}{\bf Kernel hooks}\par
+\begin{DoxyCompactItemize}
+\item 
+\#define \hyperlink{group__template__kern__cfg_gaa130bc9f72010b44b4b06618d8f8d0bc}{C\-F\-G\-\_\-\-H\-O\-O\-K\-\_\-\-P\-R\-E\-\_\-\-S\-Y\-S\-T\-M\-R\-\_\-\-E\-V\-E\-N\-T}~0\-U
+\begin{DoxyCompactList}\small\item\em System timer event hook function. \end{DoxyCompactList}\item 
+\#define \hyperlink{group__template__kern__cfg_ga4093113f2105d2716f86c6509a6e643a}{C\-F\-G\-\_\-\-H\-O\-O\-K\-\_\-\-P\-R\-E\-\_\-\-K\-E\-R\-N\-\_\-\-I\-N\-I\-T}~0\-U
+\begin{DoxyCompactList}\small\item\em Pre kernel initialization hook function. \end{DoxyCompactList}\item 
+\#define \hyperlink{group__template__kern__cfg_ga85dea823714335c2ec9e9f7750996e83}{C\-F\-G\-\_\-\-H\-O\-O\-K\-\_\-\-P\-O\-S\-T\-\_\-\-K\-E\-R\-N\-\_\-\-I\-N\-I\-T}~0\-U
+\begin{DoxyCompactList}\small\item\em Post kernel initialization hook function. \end{DoxyCompactList}\item 
+\#define \hyperlink{group__template__kern__cfg_gad67d998118375811b0f3e63543311661}{C\-F\-G\-\_\-\-H\-O\-O\-K\-\_\-\-P\-R\-E\-\_\-\-K\-E\-R\-N\-\_\-\-S\-T\-A\-R\-T}~0\-U
+\begin{DoxyCompactList}\small\item\em Pre kernel start hook function. \end{DoxyCompactList}\item 
+\#define \hyperlink{group__template__kern__cfg_ga23deae306171d1a8dda4d0e33efdb6bb}{C\-F\-G\-\_\-\-H\-O\-O\-K\-\_\-\-P\-O\-S\-T\-\_\-\-T\-H\-D\-\_\-\-I\-N\-I\-T}~0\-U
+\begin{DoxyCompactList}\small\item\em Post thread initialization hook function. \end{DoxyCompactList}\item 
+\#define \hyperlink{group__template__kern__cfg_ga9c7dd4e009a89e9cffb0f9b404bc6250}{C\-F\-G\-\_\-\-H\-O\-O\-K\-\_\-\-P\-R\-E\-\_\-\-T\-H\-D\-\_\-\-T\-E\-R\-M}~0\-U
+\begin{DoxyCompactList}\small\item\em Pre thread termination hook function. \end{DoxyCompactList}\item 
+\#define \hyperlink{group__template__kern__cfg_ga7c2b0410404256c4804758090401f7e4}{C\-F\-G\-\_\-\-H\-O\-O\-K\-\_\-\-P\-R\-E\-\_\-\-I\-D\-L\-E}~0\-U
+\begin{DoxyCompactList}\small\item\em Pre idle hook function. \end{DoxyCompactList}\item 
+\#define \hyperlink{group__template__kern__cfg_ga8f8751efe94964bef25673deca6b9b26}{C\-F\-G\-\_\-\-H\-O\-O\-K\-\_\-\-P\-O\-S\-T\-\_\-\-I\-D\-L\-E}~0\-U
+\begin{DoxyCompactList}\small\item\em Post idle hook function. \end{DoxyCompactList}\item 
+\#define \hyperlink{group__template__kern__cfg_gac84acbf84222018398089920dd429635}{C\-F\-G\-\_\-\-H\-O\-O\-K\-\_\-\-P\-R\-E\-\_\-\-C\-T\-X\-\_\-\-S\-W}~0\-U
+\begin{DoxyCompactList}\small\item\em Pre context switch hook function. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\end{Indent}
+
+
+\subsubsection{Detailed Description}
+Configuration of Kernel -\/ Template. \begin{DoxyAuthor}{Author}
+Nenad Radulovic 
+\end{DoxyAuthor}

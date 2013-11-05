@@ -1,0 +1,36 @@
+\hypertarget{cpu_8c}{\subsection{cpu.\-c File Reference}
+\label{cpu_8c}\index{cpu.\-c@{cpu.\-c}}
+}
+
+
+Implementation of C\-P\-U port -\/ Template.  
+
+
+{\ttfamily \#include \char`\"{}kernel.\-h\char`\"{}}\\*
+Include dependency graph for cpu.\-c\-:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=339pt]{cpu_8c__incl}
+\end{center}
+\end{figure}
+\subsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+uint\-\_\-fast8\-\_\-t \hyperlink{group__template__cpu__impl_ga548cbf806bfd34904f60a1f8db0ce965}{port\-Find\-Last\-Set\-\_\-} (\hyperlink{group__template__cpu__intf_ga99980ab56ce9857e7380210d12e3d41f}{port\-Reg\-\_\-\-T} val)
+\begin{DoxyCompactList}\small\item\em Find last set bit in a word. \end{DoxyCompactList}\item 
+void $\ast$ \hyperlink{group__template__cpu__impl_ga91a1dc500f743c80ec573148a99add67}{port\-Ctx\-Init\-\_\-} (void $\ast$stck, size\-\_\-t stck\-Size, void($\ast$fn)(void $\ast$), void $\ast$arg)
+\begin{DoxyCompactList}\small\item\em Initialize the thread context. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{group__template__cpu__intf_ga99980ab56ce9857e7380210d12e3d41f}{port\-Reg\-\_\-\-T} \hyperlink{group__template__cpu__impl_ga76dd98d1f19ff5ce4b4e880dfcedadb9}{g\-Port\-Isr\-Nesting\-\_\-}
+\begin{DoxyCompactList}\small\item\em Variable to keep track of I\-S\-R nesting. \end{DoxyCompactList}\item 
+const P\-O\-R\-T\-\_\-\-C\-\_\-\-R\-O\-M \hyperlink{group__template__cpu__intf_ga99980ab56ce9857e7380210d12e3d41f}{port\-Reg\-\_\-\-T} \hyperlink{group__template__cpu__impl_ga7c74d77135d5a694029ce4805f5dbc13}{pwr2\-L\-K\-P} \mbox{[}\hyperlink{group__template__cpu__intf_gac4d9e19c50315dec7721d4bc4d6b0605}{P\-O\-R\-T\-\_\-\-D\-A\-T\-A\-\_\-\-W\-I\-D\-T\-H\-\_\-\-V\-A\-L}\mbox{]}
+\begin{DoxyCompactList}\small\item\em Look up table for\-: 2$^\wedge$n expression. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsubsection{Detailed Description}
+Implementation of C\-P\-U port -\/ Template. \begin{DoxyAuthor}{Author}
+Nenad Radulovic 
+\end{DoxyAuthor}

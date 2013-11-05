@@ -1,0 +1,209 @@
+\hypertarget{group__template__compiler}{\subsection{Compiler port}
+\label{group__template__compiler}\index{Compiler port@{Compiler port}}
+}
+
+
+Compiler provided macros and data types.  
+
+
+Collaboration diagram for Compiler port\-:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=268pt]{group__template__compiler}
+\end{center}
+\end{figure}
+\subsubsection*{Compiler provided macros}
+\label{_amgrp0f21e649732376f8320c53f1472d5e53}%
+Port interface macros and port specific macros
+
+These macros are used to ease the writing of ports. All macros prefixed with {\bfseries P\-O\-R\-T\-\_\-} are part of the port interface. \begin{DoxyCompactItemize}
+\item 
+\#define \hyperlink{group__template__compiler_ga87952d6e574c7f437503926e833ba345}{P\-O\-R\-T\-\_\-\-C\-\_\-\-I\-N\-L\-I\-N\-E}~inline
+\begin{DoxyCompactList}\small\item\em C extension -\/ make a function inline. \end{DoxyCompactList}\item 
+\#define \hyperlink{group__template__compiler_ga89152d5aab4045f552113b32920741ce}{P\-O\-R\-T\-\_\-\-C\-\_\-\-I\-N\-L\-I\-N\-E\-\_\-\-A\-L\-W\-A\-Y\-S}~inline
+\begin{DoxyCompactList}\small\item\em C extension -\/ make a function inline -\/ always. \end{DoxyCompactList}\item 
+\#define \hyperlink{group__template__compiler_gaf50b092bb255c796c99927cebbdb8631}{P\-O\-R\-T\-\_\-\-C\-\_\-\-N\-A\-K\-E\-D}
+\begin{DoxyCompactList}\small\item\em Omit function prologue/epilogue sequences. \end{DoxyCompactList}\item 
+\#define \hyperlink{group__template__compiler_ga6fe63660c6d0ccbabb032c026714863e}{P\-O\-R\-T\-\_\-\-C\-\_\-\-F\-U\-N\-C}~\char`\"{}unknown\char`\"{}
+\begin{DoxyCompactList}\small\item\em Provides function name for assert macros. \end{DoxyCompactList}\item 
+\#define \hyperlink{group__template__compiler_ga70c3ad4cff78229fae591d039b59f4d1}{P\-O\-R\-T\-\_\-\-C\-\_\-\-W\-E\-A\-K}
+\begin{DoxyCompactList}\small\item\em Declares a weak function. \end{DoxyCompactList}\item 
+\#define \hyperlink{group__template__compiler_ga4d6b8bd33e54fa5af4c5291c92dda288}{P\-O\-R\-T\-\_\-\-C\-\_\-\-A\-L\-I\-G\-N\-E\-D}(expr)
+\begin{DoxyCompactList}\small\item\em This attribute specifies a minimum alignment (in bytes) for variables of the specified type. \end{DoxyCompactList}\item 
+\#define \hyperlink{group__template__compiler_ga47fdf2153dba3df8c6a840829f02bd66}{P\-O\-R\-T\-\_\-\-H\-W\-R\-E\-G\-\_\-\-S\-E\-T}(reg, mask, val)
+\begin{DoxyCompactList}\small\item\em A standardized way of properly setting the value of H\-W register. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsubsection*{Compiler provided data types}
+\label{_amgrp0fa76376c1171116a77221ec211612f0}%
+The compiler port must provide some C90 (C99) data types
+
+The compiler port must\-:
+\begin{DoxyItemize}
+\item declare sets of integer types having specified widths, standard type definitions and shall define corresponding sets of macros.
+\end{DoxyItemize}
+
+Types are defined in the following categories\-:
+\begin{DoxyItemize}
+\item Integer types having certain exact widths
+\item Fastest integer types having at least certain specified widths
+\item Integer types wide enough to hold pointers to objects
+\item standard type definitions
+\end{DoxyItemize}
+
+The following exact-\/width integer types are required\-:
+\begin{DoxyItemize}
+\item int8\-\_\-t
+\item int16\-\_\-t
+\item int32\-\_\-t
+\item uint8\-\_\-t
+\item uint16\-\_\-t
+\item uint32\-\_\-t
+\end{DoxyItemize}
+
+The following fastest minimum-\/width integer types are required\-:
+\begin{DoxyItemize}
+\item int\-\_\-fast8\-\_\-t
+\item int\-\_\-fast16\-\_\-t
+\item int\-\_\-fast32\-\_\-t
+\item uint\-\_\-fast8\-\_\-t
+\item uint\-\_\-fast16\-\_\-t
+\item uint\-\_\-fast32\-\_\-t
+\end{DoxyItemize}
+
+The following integer types capable of holding object pointers are required\-:
+\begin{DoxyItemize}
+\item intptr\-\_\-t
+\item uintptr\-\_\-t
+\end{DoxyItemize}
+
+The following standard type definitions are required\-:
+\begin{DoxyItemize}
+\item N\-U\-L\-L
+\item ptrdiff\-\_\-t
+\item size\-\_\-t 
+\end{DoxyItemize}\begin{DoxyCompactItemize}
+\item 
+enum \hyperlink{group__template__compiler_ga05f6c3f21a0d28271ad754637673d8fa}{bool\-Type} \{ \\*
+\hyperlink{group__template__compiler_gga05f6c3f21a0d28271ad754637673d8faaa82764c3079aea4e60c80e45befbb839}{T\-R\-U\-E} = 1\-U, 
+\\*
+\hyperlink{group__template__compiler_gga05f6c3f21a0d28271ad754637673d8faaa1e095cc966dbecf6a0d8aad75348d1a}{F\-A\-L\-S\-E} = 0\-U
+ \}
+\begin{DoxyCompactList}\small\item\em Bool data type. \end{DoxyCompactList}\item 
+typedef enum \hyperlink{group__template__compiler_ga05f6c3f21a0d28271ad754637673d8fa}{bool\-Type} \hyperlink{group__template__compiler_ga74fbee312f9185efb602f89d21b53404}{bool\-\_\-\-T}
+\begin{DoxyCompactList}\small\item\em Bool data type. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsubsection{Detailed Description}
+Compiler provided macros and data types. 
+
+\subsubsection{Macro Definition Documentation}
+\hypertarget{group__template__compiler_ga87952d6e574c7f437503926e833ba345}{\index{Compiler port@{Compiler port}!P\-O\-R\-T\-\_\-\-C\-\_\-\-I\-N\-L\-I\-N\-E@{P\-O\-R\-T\-\_\-\-C\-\_\-\-I\-N\-L\-I\-N\-E}}
+\index{P\-O\-R\-T\-\_\-\-C\-\_\-\-I\-N\-L\-I\-N\-E@{P\-O\-R\-T\-\_\-\-C\-\_\-\-I\-N\-L\-I\-N\-E}!Compiler port@{Compiler port}}
+\paragraph[{P\-O\-R\-T\-\_\-\-C\-\_\-\-I\-N\-L\-I\-N\-E}]{\setlength{\rightskip}{0pt plus 5cm}\#define P\-O\-R\-T\-\_\-\-C\-\_\-\-I\-N\-L\-I\-N\-E~inline}}\label{group__template__compiler_ga87952d6e574c7f437503926e833ba345}
+
+
+C extension -\/ make a function inline. 
+
+The point of making a function {\ttfamily inline} is to hint to the compiler that it is worth making some form of extra effort to call the function faster than it would otherwise -\/ generally by substituting the code of the function into its caller. As well as eliminating the need for a call and return sequence, it might allow the compiler to perform certain optimizations between the bodies of both functions. \hypertarget{group__template__compiler_ga89152d5aab4045f552113b32920741ce}{\index{Compiler port@{Compiler port}!P\-O\-R\-T\-\_\-\-C\-\_\-\-I\-N\-L\-I\-N\-E\-\_\-\-A\-L\-W\-A\-Y\-S@{P\-O\-R\-T\-\_\-\-C\-\_\-\-I\-N\-L\-I\-N\-E\-\_\-\-A\-L\-W\-A\-Y\-S}}
+\index{P\-O\-R\-T\-\_\-\-C\-\_\-\-I\-N\-L\-I\-N\-E\-\_\-\-A\-L\-W\-A\-Y\-S@{P\-O\-R\-T\-\_\-\-C\-\_\-\-I\-N\-L\-I\-N\-E\-\_\-\-A\-L\-W\-A\-Y\-S}!Compiler port@{Compiler port}}
+\paragraph[{P\-O\-R\-T\-\_\-\-C\-\_\-\-I\-N\-L\-I\-N\-E\-\_\-\-A\-L\-W\-A\-Y\-S}]{\setlength{\rightskip}{0pt plus 5cm}\#define P\-O\-R\-T\-\_\-\-C\-\_\-\-I\-N\-L\-I\-N\-E\-\_\-\-A\-L\-W\-A\-Y\-S~inline}}\label{group__template__compiler_ga89152d5aab4045f552113b32920741ce}
+
+
+C extension -\/ make a function inline -\/ always. 
+
+Generally, functions are not inlined unless optimization is specified. For functions declared inline, this attribute inlines the function even if no optimization level was specified. \hypertarget{group__template__compiler_gaf50b092bb255c796c99927cebbdb8631}{\index{Compiler port@{Compiler port}!P\-O\-R\-T\-\_\-\-C\-\_\-\-N\-A\-K\-E\-D@{P\-O\-R\-T\-\_\-\-C\-\_\-\-N\-A\-K\-E\-D}}
+\index{P\-O\-R\-T\-\_\-\-C\-\_\-\-N\-A\-K\-E\-D@{P\-O\-R\-T\-\_\-\-C\-\_\-\-N\-A\-K\-E\-D}!Compiler port@{Compiler port}}
+\paragraph[{P\-O\-R\-T\-\_\-\-C\-\_\-\-N\-A\-K\-E\-D}]{\setlength{\rightskip}{0pt plus 5cm}\#define P\-O\-R\-T\-\_\-\-C\-\_\-\-N\-A\-K\-E\-D}}\label{group__template__compiler_gaf50b092bb255c796c99927cebbdb8631}
+
+
+Omit function prologue/epilogue sequences. 
+
+This attribute will indicate that the specified function does not need prologue/epilogue sequences generated by the compiler. It is up to the programmer to provide these sequences. The only statements that can be safely included in naked functions are {\ttfamily asm} statements that do not have operands. All other statements, including declarations of local variables, {\ttfamily if} statements, and so forth, should be avoided. Naked functions should be used to implement the body of an assembly function, while allowing the compiler to construct the requisite function declaration for the assembler. \hypertarget{group__template__compiler_ga6fe63660c6d0ccbabb032c026714863e}{\index{Compiler port@{Compiler port}!P\-O\-R\-T\-\_\-\-C\-\_\-\-F\-U\-N\-C@{P\-O\-R\-T\-\_\-\-C\-\_\-\-F\-U\-N\-C}}
+\index{P\-O\-R\-T\-\_\-\-C\-\_\-\-F\-U\-N\-C@{P\-O\-R\-T\-\_\-\-C\-\_\-\-F\-U\-N\-C}!Compiler port@{Compiler port}}
+\paragraph[{P\-O\-R\-T\-\_\-\-C\-\_\-\-F\-U\-N\-C}]{\setlength{\rightskip}{0pt plus 5cm}\#define P\-O\-R\-T\-\_\-\-C\-\_\-\-F\-U\-N\-C~\char`\"{}unknown\char`\"{}}}\label{group__template__compiler_ga6fe63660c6d0ccbabb032c026714863e}
+
+
+Provides function name for assert macros. 
+
+\hypertarget{group__template__compiler_ga70c3ad4cff78229fae591d039b59f4d1}{\index{Compiler port@{Compiler port}!P\-O\-R\-T\-\_\-\-C\-\_\-\-W\-E\-A\-K@{P\-O\-R\-T\-\_\-\-C\-\_\-\-W\-E\-A\-K}}
+\index{P\-O\-R\-T\-\_\-\-C\-\_\-\-W\-E\-A\-K@{P\-O\-R\-T\-\_\-\-C\-\_\-\-W\-E\-A\-K}!Compiler port@{Compiler port}}
+\paragraph[{P\-O\-R\-T\-\_\-\-C\-\_\-\-W\-E\-A\-K}]{\setlength{\rightskip}{0pt plus 5cm}\#define P\-O\-R\-T\-\_\-\-C\-\_\-\-W\-E\-A\-K}}\label{group__template__compiler_ga70c3ad4cff78229fae591d039b59f4d1}
+
+
+Declares a weak function. 
+
+The weak attribute causes the declaration to be emitted as a weak symbol rather than a global. This is primarily useful in defining library functions that can be overridden in user code, though it can also be used with non-\/function declarations. \hypertarget{group__template__compiler_ga4d6b8bd33e54fa5af4c5291c92dda288}{\index{Compiler port@{Compiler port}!P\-O\-R\-T\-\_\-\-C\-\_\-\-A\-L\-I\-G\-N\-E\-D@{P\-O\-R\-T\-\_\-\-C\-\_\-\-A\-L\-I\-G\-N\-E\-D}}
+\index{P\-O\-R\-T\-\_\-\-C\-\_\-\-A\-L\-I\-G\-N\-E\-D@{P\-O\-R\-T\-\_\-\-C\-\_\-\-A\-L\-I\-G\-N\-E\-D}!Compiler port@{Compiler port}}
+\paragraph[{P\-O\-R\-T\-\_\-\-C\-\_\-\-A\-L\-I\-G\-N\-E\-D}]{\setlength{\rightskip}{0pt plus 5cm}\#define P\-O\-R\-T\-\_\-\-C\-\_\-\-A\-L\-I\-G\-N\-E\-D(
+\begin{DoxyParamCaption}
+\item[{}]{expr}
+\end{DoxyParamCaption}
+)}}\label{group__template__compiler_ga4d6b8bd33e54fa5af4c5291c92dda288}
+
+
+This attribute specifies a minimum alignment (in bytes) for variables of the specified type. 
+
+\begin{DoxyNote}{Note}
+The alignment of any given struct or union type is required by the I\-S\-O C standard to be at least a perfect multiple of the lowest common multiple of the alignments of all of the members of the struct or union in question. 
+\end{DoxyNote}
+\hypertarget{group__template__compiler_ga47fdf2153dba3df8c6a840829f02bd66}{\index{Compiler port@{Compiler port}!P\-O\-R\-T\-\_\-\-H\-W\-R\-E\-G\-\_\-\-S\-E\-T@{P\-O\-R\-T\-\_\-\-H\-W\-R\-E\-G\-\_\-\-S\-E\-T}}
+\index{P\-O\-R\-T\-\_\-\-H\-W\-R\-E\-G\-\_\-\-S\-E\-T@{P\-O\-R\-T\-\_\-\-H\-W\-R\-E\-G\-\_\-\-S\-E\-T}!Compiler port@{Compiler port}}
+\paragraph[{P\-O\-R\-T\-\_\-\-H\-W\-R\-E\-G\-\_\-\-S\-E\-T}]{\setlength{\rightskip}{0pt plus 5cm}\#define P\-O\-R\-T\-\_\-\-H\-W\-R\-E\-G\-\_\-\-S\-E\-T(
+\begin{DoxyParamCaption}
+\item[{}]{reg, }
+\item[{}]{mask, }
+\item[{}]{val}
+\end{DoxyParamCaption}
+)}}\label{group__template__compiler_ga47fdf2153dba3df8c6a840829f02bd66}
+{\bfseries Value\-:}
+\begin{DoxyCode}
+\textcolor{keywordflow}{do} \{                                                                        \hyperlink{group__template__cpu__intf_ga99980ab56ce9857e7380210d12e3d41f}{\(\backslash\)}
+\hyperlink{group__template__cpu__intf_ga99980ab56ce9857e7380210d12e3d41f}{        portReg\_T} tmp;                                                          \(\backslash\)
+        tmp = (reg);                                                            \(\backslash\)
+        tmp &= ~(mask);                                                         \(\backslash\)
+        tmp |= ((mask) & (val));                                                \(\backslash\)
+        (reg) = tmp;                                                            \(\backslash\)
+    \} \textcolor{keywordflow}{while} (0U)
+\end{DoxyCode}
+
+
+A standardized way of properly setting the value of H\-W register. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em reg} & Register which will be written to \\
+\hline
+{\em mask} & The bit mask which will be applied to register and {\ttfamily val} argument \\
+\hline
+{\em val} & Value to be written into the register \\
+\hline
+\end{DoxyParams}
+
+
+\subsubsection{Typedef Documentation}
+\hypertarget{group__template__compiler_ga74fbee312f9185efb602f89d21b53404}{\index{Compiler port@{Compiler port}!bool\-\_\-\-T@{bool\-\_\-\-T}}
+\index{bool\-\_\-\-T@{bool\-\_\-\-T}!Compiler port@{Compiler port}}
+\paragraph[{bool\-\_\-\-T}]{\setlength{\rightskip}{0pt plus 5cm}typedef enum {\bf bool\-Type}  {\bf bool\-\_\-\-T}}}\label{group__template__compiler_ga74fbee312f9185efb602f89d21b53404}
+
+
+Bool data type. 
+
+
+
+\subsubsection{Enumeration Type Documentation}
+\hypertarget{group__template__compiler_ga05f6c3f21a0d28271ad754637673d8fa}{\index{Compiler port@{Compiler port}!bool\-Type@{bool\-Type}}
+\index{bool\-Type@{bool\-Type}!Compiler port@{Compiler port}}
+\paragraph[{bool\-Type}]{\setlength{\rightskip}{0pt plus 5cm}enum {\bf bool\-Type}}}\label{group__template__compiler_ga05f6c3f21a0d28271ad754637673d8fa}
+
+
+Bool data type. 
+
+\begin{Desc}
+\item[Enumerator]\par
+\begin{description}
+\index{T\-R\-U\-E@{T\-R\-U\-E}!Compiler port@{Compiler port}}\index{Compiler port@{Compiler port}!T\-R\-U\-E@{T\-R\-U\-E}}\item[{\em 
+\hypertarget{group__template__compiler_gga05f6c3f21a0d28271ad754637673d8faaa82764c3079aea4e60c80e45befbb839}{T\-R\-U\-E}\label{group__template__compiler_gga05f6c3f21a0d28271ad754637673d8faaa82764c3079aea4e60c80e45befbb839}
+}]T\-R\-U\-E. T\-R\-U\-E \index{F\-A\-L\-S\-E@{F\-A\-L\-S\-E}!Compiler port@{Compiler port}}\index{Compiler port@{Compiler port}!F\-A\-L\-S\-E@{F\-A\-L\-S\-E}}\item[{\em 
+\hypertarget{group__template__compiler_gga05f6c3f21a0d28271ad754637673d8faaa1e095cc966dbecf6a0d8aad75348d1a}{F\-A\-L\-S\-E}\label{group__template__compiler_gga05f6c3f21a0d28271ad754637673d8faaa1e095cc966dbecf6a0d8aad75348d1a}
+}]F\-A\-L\-S\-E. F\-A\-L\-S\-E \end{description}
+\end{Desc}

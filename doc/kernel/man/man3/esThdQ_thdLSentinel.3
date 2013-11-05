@@ -1,0 +1,42 @@
+.TH "esThdQ::thdLSentinel" 3 "Tue Oct 29 2013" "Version 1.0BetaR01" "eSolid - Real-Time Kernel" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+esThdQ::thdLSentinel \- 
+.PP
+Thread linked list sentinel structure\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <kernel\&.h>\fP
+.SS "Data Fields"
+
+.in +1c
+.ti -1c
+.RI "struct \fBesThd\fP * \fBhead\fP"
+.br
+.RI "\fIPoints to the first thread in linked list\&. \fP"
+.ti -1c
+.RI "struct \fBesThd\fP * \fBnext\fP"
+.br
+.RI "\fIPoints to the next thread in linked list\&. \fP"
+.in -1c
+.SH "Detailed Description"
+.PP 
+Thread linked list sentinel structure\&. 
+.SH "Field Documentation"
+.PP 
+.SS "struct \fBesThd\fP* esThdQ::thdLSentinel::head"
+
+.PP
+Points to the first thread in linked list\&. 
+.SS "struct \fBesThd\fP* esThdQ::thdLSentinel::next"
+
+.PP
+Points to the next thread in linked list\&. 
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for eSolid - Real-Time Kernel from the source code\&.

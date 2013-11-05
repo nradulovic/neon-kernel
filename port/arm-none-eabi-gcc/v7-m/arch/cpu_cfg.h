@@ -37,7 +37,7 @@
 /*===============================================================  DEFINES  ==*/
 /*==============================================================  SETTINGS  ==*/
 
-/**@brief       Priority of critical sections in kernel
+/**@brief       Priority of locked sections in kernel
  * @details     Specify the priority in range: <code>0</code>\f$\leq\f$
  *              <code>CFG_MAX_ISR_PRIO</code> \f$\leq\f$ <code>15</code>. The
  *              lower the number the higher the priority.

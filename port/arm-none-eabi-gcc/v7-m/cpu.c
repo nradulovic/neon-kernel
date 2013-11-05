@@ -261,7 +261,7 @@ PORT_C_NAKED void portSVC(
 
 #if (0 != CFG_MAX_ISR_PRIO)
     __asm__ __volatile__ (
-        "   ldr     r0, =%0                                 \n"               /* (1) Load gKernCtrl.cthd address                          */
+        "   ldr     r0, =%0                                 \n"               /* (1) Load KernCtrl.cthd address                          */
         "   mov     r1, %2                                  \n"               /* (2)                                                      */
         "   mrs     r3, basepri                             \n"               /* (3)                                                      */
         "   msr     basepri, r1                             \n"               /* (4)                                                      */
@@ -273,12 +273,12 @@ PORT_C_NAKED void portSVC(
         "   mov     lr, %1                                  \n"               /* (10)                                                     */
         "   bx      lr                                      \n"               /* Return to first thread                                   */
         :
-        :   "i"(&gKernCtrl.cthd),
+        :   "i"(&KernCtrl.cthd),
             "i"(DEF_EXC_RETURN),
             "i"(PORT_DEF_MAX_ISR_PRIO_CODE));
 #else
     __asm__ __volatile__ (
-        "   ldr     r0, =%0                                 \n"               /* (1) Load gKernCtrl.cthd address                          */
+        "   ldr     r0, =%0                                 \n"               /* (1) Load KernCtrl.cthd address                          */
         "   cpsid   i                                       \n"               /* (2)                                                      */
         "   ldr     r1, [r0]                                \n"               /* (5)                                                      */
         "   ldr     r1, [r1]                                \n"               /* (6)                                                      */
@@ -288,7 +288,7 @@ PORT_C_NAKED void portSVC(
         "   mov     lr, %1                                  \n"               /* (10)                                                     */
         "   bx      lr                                      \n"               /* Return to first thread                                   */
         :
-        :   "i"(&gKernCtrl.cthd),
+        :   "i"(&KernCtrl.cthd),
             "i"(DEF_EXC_RETURN));
 #endif
 }
@@ -298,7 +298,7 @@ PORT_C_NAKED void portSVC(
  * - 5,6    save the current context on PSP stack
  * - 1,7,8  save the thread top of stack into the first member of the thread ID
  *          structure
- * - 9-10   Make gKernCtrl.cthd == gKernCtrl.pthd
+ * - 9-10   Make KernCtrl.cthd == KernCtrl.pthd
  * - 11-13  restore new context
  * - 14     restore previous interrupt priority from main stck
  * Note:    LR was already loaded with valid DEF_EXC_RETURN value
@@ -308,7 +308,7 @@ PORT_C_NAKED void portPendSV(
 
 #if (0 != CFG_MAX_ISR_PRIO)
     __asm__ __volatile__ (
-        "   ldr     r0, =%0                                 \n"               /* (1) Get the address of gKernCtrl                         */
+        "   ldr     r0, =%0                                 \n"               /* (1) Get the address of KernCtrl                         */
         "   mov     r1, %3                                  \n"               /* (2)                                                      */
         "   mrs     r3, basepri                             \n"               /* (3)                                                      */
         "   msr     basepri, r1                             \n"               /* (4)                                                      */
@@ -324,9 +324,9 @@ PORT_C_NAKED void portPendSV(
         "   msr     basepri, r3                             \n"               /* (14)                                                     */
         "   bx      lr                                      \n"               /* Return to new thread                                     */
         :
-        :   "i"(&gKernCtrl),
-            "J"(offsetof(esKernCtrl_T, cthd)),
-            "J"(offsetof(esKernCtrl_T, pthd)),
+        :   "i"(&KernCtrl),
+            "J"(offsetof(struct kernCtrl_, cthd)),
+            "J"(offsetof(struct kernCtrl_, pthd)),
             "i"(PORT_DEF_MAX_ISR_PRIO_CODE));
 #else
     __asm__ __volatile__ (
@@ -344,7 +344,7 @@ PORT_C_NAKED void portPendSV(
         "   cpsie   i                                       \n"               /* (14)                                                     */
         "   bx      lr                                      \n"               /* Return to new thread                                     */
         :
-        :   "i"(&gKernCtrl),
+        :   "i"(&KernCtrl),
             "J"(offsetof(esKernCtrl_T, cthd)),
             "J"(offsetof(esKernCtrl_T, pthd)));
 #endif
@@ -353,9 +353,9 @@ PORT_C_NAKED void portPendSV(
 void portSysTmr(
     void) {
 
-    esKernIsrPrologueI();
+    esKernIsrEnter();
     esKernSysTmr();
-    esKernIsrEpilogueI();
+    esKernIsrExit();
 }
 
 /*================================*//** @cond *//*==  CONFIGURATION ERRORS  ==*/

@@ -1,0 +1,47 @@
+.TH "CPU port configuration" 3 "Tue Oct 29 2013" "Version 1.0BetaR01" "eSolid - Real-Time Kernel" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+CPU port configuration \- 
+.PP
+CPU port specific configuration options\&.  
+
+.SS "Port General configuration"
+Configuration options and settings which are available for every port\&.
+.PP
+\fBNote:\fP
+.RS 4
+1) All port General configuration macros are prefixed with \fCCFG_\fP string\&. 
+.PP
+2) All port specific options and constants are prefixed with \fCCPU_\fP string\&. 
+.RE
+.PP
+
+.in +1c
+.ti -1c
+.RI "#define \fBCFG_CRITICAL_PRIO\fP   1U"
+.br
+.RI "\fIPriority of critical sections in kernel\&. \fP"
+.ti -1c
+.RI "#define \fBCFG_SYSTMR_CLOCK_FREQUENCY\fP   1000000UL"
+.br
+.RI "\fIThe frequency of clock which is used for the system timer\&. \fP"
+.in -1c
+.SH "Detailed Description"
+.PP 
+CPU port specific configuration options\&. 
+
+Each configuration option or setting has its own default value when not defined by the application\&. When application needs to change a setting it just needs to define a configuration macro with another value and the default configuration macro will be overridden\&. 
+.SH "Macro Definition Documentation"
+.PP 
+.SS "#define CFG_CRITICAL_PRIO   1U"
+
+.PP
+Priority of critical sections in kernel\&. This option varies with the MCU used\&. In the simplest case when the MCU does not support interrupt priorities than only one priority level is available\&. In that case critical section will simply disable interrupts on entry and enable them at exit\&. 
+.SS "#define CFG_SYSTMR_CLOCK_FREQUENCY   1000000UL"
+
+.PP
+The frequency of clock which is used for the system timer\&. Specify here the clock value so the kernel can properly manage system tick event generation\&. Usually system timer will use the clock of the processor\&. A hardware timer is configured to generate an interrupt at a rate between 10 and 1000 Hz which provides the system tick\&. The rate of interrupt is application specific and depends on the desired resolution system tick time source\&. However, the faster the tick rate, the higher the overhead will be imposed on the system\&. 
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for eSolid - Real-Time Kernel from the source code\&.

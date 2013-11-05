@@ -61,7 +61,7 @@
  *              - 1u - power saving is enabled
  */
 #if !defined(CFG_SCHED_POWER_SAVE)
-# define CFG_SCHED_POWER_SAVE           0u
+# define CFG_SCHED_POWER_SAVE           1u
 #endif
 
 /**@brief       System timer adaptive mode

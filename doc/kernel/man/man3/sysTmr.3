@@ -1,0 +1,65 @@
+.TH "sysTmr" 3 "Tue Oct 29 2013" "Version 1.0BetaR01" "eSolid - Real-Time Kernel" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+sysTmr \- 
+.PP
+Main System Timer structure\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.SS "Data Fields"
+
+.in +1c
+.ti -1c
+.RI "uint_fast16_t \fBvTmrArmed\fP"
+.br
+.RI "\fIThe number of armed virtual timers in system\&. \fP"
+.ti -1c
+.RI "uint_fast16_t \fBvTmrPend\fP"
+.br
+.RI "\fIThe number of pending timers for arming\&. \fP"
+.ti -1c
+.RI "\fBesTick_T\fP \fBctick\fP"
+.br
+.RI "\fICurrent system timer tick value\&. \fP"
+.ti -1c
+.RI "\fBesTick_T\fP \fBptick\fP"
+.br
+.RI "\fIPending ticks during the timer sleep mode\&. \fP"
+.in -1c
+.SH "Detailed Description"
+.PP 
+Main System Timer structure\&. 
+
+
+.PP
+\fBNote:\fP
+.RS 4
+1) Member \fCptick\fP exists only if ADAPTIVE mode is selected\&. When this mode is selected then kernel supports more aggressive power savings\&. 
+.RE
+.PP
+
+.SH "Field Documentation"
+.PP 
+.SS "uint_fast16_t sysTmr::vTmrArmed"
+
+.PP
+The number of armed virtual timers in system\&. 
+.SS "uint_fast16_t sysTmr::vTmrPend"
+
+.PP
+The number of pending timers for arming\&. 
+.SS "\fBesTick_T\fP sysTmr::ctick"
+
+.PP
+Current system timer tick value\&. 
+.SS "\fBesTick_T\fP sysTmr::ptick"
+
+.PP
+Pending ticks during the timer sleep mode\&. 
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for eSolid - Real-Time Kernel from the source code\&.

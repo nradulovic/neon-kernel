@@ -1,0 +1,119 @@
+\hypertarget{group__template__cpu__impl}{\subsection{C\-P\-U port internals}
+\label{group__template__cpu__impl}\index{C\-P\-U port internals@{C\-P\-U port internals}}
+}
+
+
+C\-P\-U port inner work.  
+
+
+Collaboration diagram for C\-P\-U port internals\-:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=290pt]{group__template__cpu__impl}
+\end{center}
+\end{figure}
+\subsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+uint\-\_\-fast8\-\_\-t \hyperlink{group__template__cpu__impl_ga548cbf806bfd34904f60a1f8db0ce965}{port\-Find\-Last\-Set\-\_\-} (\hyperlink{group__template__cpu__intf_ga99980ab56ce9857e7380210d12e3d41f}{port\-Reg\-\_\-\-T} val)
+\begin{DoxyCompactList}\small\item\em Find last set bit in a word. \end{DoxyCompactList}\item 
+void $\ast$ \hyperlink{group__template__cpu__impl_ga91a1dc500f743c80ec573148a99add67}{port\-Ctx\-Init\-\_\-} (void $\ast$stck, size\-\_\-t stck\-Size, void($\ast$fn)(void $\ast$), void $\ast$arg)
+\begin{DoxyCompactList}\small\item\em Initialize the thread context. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{group__template__cpu__intf_ga99980ab56ce9857e7380210d12e3d41f}{port\-Reg\-\_\-\-T} \hyperlink{group__template__cpu__impl_ga76dd98d1f19ff5ce4b4e880dfcedadb9}{g\-Port\-Isr\-Nesting\-\_\-}
+\begin{DoxyCompactList}\small\item\em Variable to keep track of I\-S\-R nesting. \end{DoxyCompactList}\item 
+const P\-O\-R\-T\-\_\-\-C\-\_\-\-R\-O\-M \hyperlink{group__template__cpu__intf_ga99980ab56ce9857e7380210d12e3d41f}{port\-Reg\-\_\-\-T} \hyperlink{group__template__cpu__impl_ga7c74d77135d5a694029ce4805f5dbc13}{pwr2\-L\-K\-P} \mbox{[}\hyperlink{group__template__cpu__intf_gac4d9e19c50315dec7721d4bc4d6b0605}{P\-O\-R\-T\-\_\-\-D\-A\-T\-A\-\_\-\-W\-I\-D\-T\-H\-\_\-\-V\-A\-L}\mbox{]}
+\begin{DoxyCompactList}\small\item\em Look up table for\-: 2$^\wedge$n expression. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsubsection{Detailed Description}
+C\-P\-U port inner work. 
+
+\subsubsection{Function Documentation}
+\hypertarget{group__template__cpu__impl_ga548cbf806bfd34904f60a1f8db0ce965}{\index{C\-P\-U port internals@{C\-P\-U port internals}!port\-Find\-Last\-Set\-\_\-@{port\-Find\-Last\-Set\-\_\-}}
+\index{port\-Find\-Last\-Set\-\_\-@{port\-Find\-Last\-Set\-\_\-}!CPU port internals@{C\-P\-U port internals}}
+\paragraph[{port\-Find\-Last\-Set\-\_\-}]{\setlength{\rightskip}{0pt plus 5cm}uint\-\_\-fast8\-\_\-t port\-Find\-Last\-Set\-\_\- (
+\begin{DoxyParamCaption}
+\item[{{\bf port\-Reg\-\_\-\-T}}]{val}
+\end{DoxyParamCaption}
+)}}\label{group__template__cpu__impl_ga548cbf806bfd34904f60a1f8db0ce965}
+
+
+Find last set bit in a word. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em val} & Value which needs to be evaluated\\
+\hline
+\end{DoxyParams}
+This function is used by the scheduler to efficiently determine the highest priority of thread ready for execution. For algorithm details see\-: \href{http://en.wikipedia.org/wiki/Find_first_set}{\tt http\-://en.\-wikipedia.\-org/wiki/\-Find\-\_\-first\-\_\-set}. \begin{DoxyReturn}{Returns}
+The position of the last set bit in a word 
+\end{DoxyReturn}
+\hypertarget{group__template__cpu__impl_ga91a1dc500f743c80ec573148a99add67}{\index{C\-P\-U port internals@{C\-P\-U port internals}!port\-Ctx\-Init\-\_\-@{port\-Ctx\-Init\-\_\-}}
+\index{port\-Ctx\-Init\-\_\-@{port\-Ctx\-Init\-\_\-}!CPU port internals@{C\-P\-U port internals}}
+\paragraph[{port\-Ctx\-Init\-\_\-}]{\setlength{\rightskip}{0pt plus 5cm}void$\ast$ port\-Ctx\-Init\-\_\- (
+\begin{DoxyParamCaption}
+\item[{void $\ast$}]{stck, }
+\item[{size\-\_\-t}]{stck\-Size, }
+\item[{void($\ast$)(void $\ast$)}]{fn, }
+\item[{void $\ast$}]{arg}
+\end{DoxyParamCaption}
+)}}\label{group__template__cpu__impl_ga91a1dc500f743c80ec573148a99add67}
+
+
+Initialize the thread context. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em stck} & Pointer to the allocated thread stck. The pointer points to the beginning of the memory as defined per C language. It's up to port function to adjust the pointer according to the stck type\-: full descending or full ascending one. \\
+\hline
+{\em stck\-Size} & The size of allocated stck in bytes. \\
+\hline
+{\em fn} & Pointer to the thread function. \\
+\hline
+{\em arg} & Argument that will be passed to thread function at the starting of execution. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The new top of stck after thread context initialization. 
+\end{DoxyReturn}
+
+
+\subsubsection{Variable Documentation}
+\hypertarget{group__template__cpu__impl_ga76dd98d1f19ff5ce4b4e880dfcedadb9}{\index{C\-P\-U port internals@{C\-P\-U port internals}!g\-Port\-Isr\-Nesting\-\_\-@{g\-Port\-Isr\-Nesting\-\_\-}}
+\index{g\-Port\-Isr\-Nesting\-\_\-@{g\-Port\-Isr\-Nesting\-\_\-}!CPU port internals@{C\-P\-U port internals}}
+\paragraph[{g\-Port\-Isr\-Nesting\-\_\-}]{\setlength{\rightskip}{0pt plus 5cm}{\bf port\-Reg\-\_\-\-T} g\-Port\-Isr\-Nesting\-\_\-}}\label{group__template__cpu__impl_ga76dd98d1f19ff5ce4b4e880dfcedadb9}
+
+
+Variable to keep track of I\-S\-R nesting. 
+
+\hypertarget{group__template__cpu__impl_ga7c74d77135d5a694029ce4805f5dbc13}{\index{C\-P\-U port internals@{C\-P\-U port internals}!pwr2\-L\-K\-P@{pwr2\-L\-K\-P}}
+\index{pwr2\-L\-K\-P@{pwr2\-L\-K\-P}!CPU port internals@{C\-P\-U port internals}}
+\paragraph[{pwr2\-L\-K\-P}]{\setlength{\rightskip}{0pt plus 5cm}const P\-O\-R\-T\-\_\-\-C\-\_\-\-R\-O\-M {\bf port\-Reg\-\_\-\-T} pwr2\-L\-K\-P\mbox{[}{\bf P\-O\-R\-T\-\_\-\-D\-A\-T\-A\-\_\-\-W\-I\-D\-T\-H\-\_\-\-V\-A\-L}\mbox{]}}}\label{group__template__cpu__impl_ga7c74d77135d5a694029ce4805f5dbc13}
+{\bfseries Initial value\-:}
+\begin{DoxyCode}
+= \{
+    (1U <<  0), (1U <<  1), (1U <<  2), (1U <<  3),
+    (1U <<  4), (1U <<  5), (1U <<  6), (1U <<  7),
+
+
+
+
+
+
+
+
+
+
+\}
+\end{DoxyCode}
+
+
+Look up table for\-: 2$^\wedge$n expression. 
+
+This look up table can be used to accelerate the Logical Shift Left operations which are needed to set bits inside the priority bit map. In plain C this operation would be written as\-: {\ttfamily (1\-U $<$$<$ n)}, but in many 8-\/bit C\-P\-Us this operation can be lengthy. If there is a need for faster operation than this table can be used instead of the mentioned C code.
+
+To use the look up table change \hyperlink{group__template__cpu__intf_ga4b938b55e8398b93969cfb7bc64177cd}{P\-O\-R\-T\-\_\-\-P\-W\-R2} macro implementation from\-: {\ttfamily (1\-U $<$$<$ (pwr))} to {\ttfamily pwr2\-L\-K\-P\mbox{[}pwr\mbox{]}} 

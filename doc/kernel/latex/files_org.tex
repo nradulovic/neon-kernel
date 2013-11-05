@@ -1,0 +1,45 @@
+Details about directory and file organization
+
+\par
+\par
+\par
+\hypertarget{files_org_files_intro}{}\subsection{Intro}\label{files_org_files_intro}
+The directory structure of e\-Solid R\-T Kernel is fairly easy to understand. Once the organization of directories and files is understood it is fairly easy to integrate e\-Solid R\-T Kernel into application.\hypertarget{files_org_files_porting}{}\subsubsection{What is a port?}\label{files_org_files_porting}
+Porting is a process of adapting software to an architecture that is different from the one for which it was originally designed. The term is also used when software is changed to make it usable in different environments. Software is portable when the cost of porting it to a new platform is less than the cost of writing it from beginning.\hypertarget{files_org_files_sections}{}\subsection{Code Sections}\label{files_org_files_sections}
+The kernel is divided into three sections. One section is port independent code, the second one is port dependent code and the third sections is code templates.\hypertarget{files_org_files_icode}{}\subsubsection{Port independent code}\label{files_org_files_icode}
+Port independent code is the code which does not change from port to port, e.\-g. when the C\-P\-U is changed this code is not changed at all and it is still correctly executed. Code can be developed and tested on another machine, which greatly reduces design efforts. It provides A\-P\-I and some common data structures. Port independent code lives under {\ttfamily /inc} and {\ttfamily /src} directories\-:
+\begin{DoxyItemize}
+\item {\ttfamily \hyperlink{kernel_8h}{inc/kernel.\-h}}
+\item {\ttfamily \hyperlink{inc_2kernel__cfg_8h}{inc/kernel\-\_\-cfg.\-h}}
+\item {\ttfamily \hyperlink{kernel_8c}{src/kernel.\-c}}
+\item {\ttfamily \hyperlink{dbg_8h}{inc/dbg.\-h}}
+\item {\ttfamily \hyperlink{inc_2dbg__cfg_8h}{inc/dbg\-\_\-cfg.\-h}}
+\item {\ttfamily \hyperlink{dbg_8c}{src/dbg.\-c}}
+\end{DoxyItemize}
+
+Click on file name for further description of the file.\hypertarget{files_org_files_dcode}{}\subsubsection{Port dependent code}\label{files_org_files_dcode}
+Second section is the port dependent code. This code provides low-\/level functions which are needed to interact with interrupt controllers, manipulate C\-P\-U settings and do the context switching. They are highly C\-P\-U/compiler bounded and are often written in assembly language.
+
+Each port has it's name which is also the name of directory which holds all the port files. Usually each port has some kind of variant. In that case each variant is a subdirectory of the containing port. Common code for all variants will be in common subdirectory. Each e\-Solid R\-T Kernel port will have at least the following files\-:
+\begin{DoxyItemize}
+\item {\ttfamily port/\mbox{[}port\-\_\-name\mbox{]}/common/compiler.h}
+\item {\ttfamily port/\mbox{[}port\-\_\-name\mbox{]}/\mbox{[}variant\-\_\-name\mbox{]}/cpu\-\_\-cfg.h}
+\item {\ttfamily port/\mbox{[}port\-\_\-name\mbox{]}/\mbox{[}variant\-\_\-name\mbox{]}/cpu.h}
+\item {\ttfamily port/\mbox{[}port\-\_\-name\mbox{]}/\mbox{[}variant\-\_\-name\mbox{]}/cpu.c}
+\end{DoxyItemize}
+
+\begin{DoxyNote}{Note}
+Port dependent code is separately described in documentation for relevant port. 
+\end{DoxyNote}
+\hypertarget{files_org_files_template}{}\subsubsection{Template and example code}\label{files_org_files_template}
+Templates are some predefined configuration settings for various scenarios where e\-Solid R\-T Kernel can be used. Templates also contain some example code for how to write new ports.
+
+In the example below is given {\ttfamily Generic} template which holds files with default configuration settings and some example code for new ports. New port files are in template/generic/port directory. When porting to a new architecture/compiler use provided template files for starters. This will greatly reduce the time needed to become familiar with the kernel port requirements. Generic template files are the following\-:
+\begin{DoxyItemize}
+\item {\ttfamily \hyperlink{compiler_8h}{template/generic/port/compiler.\-h}}
+\item {\ttfamily \hyperlink{cpu__cfg_8h}{template/generic/port/cpu\-\_\-cfg.\-h}}
+\item {\ttfamily \hyperlink{cpu_8h}{template/generic/port/cpu.\-h}}
+\item {\ttfamily \hyperlink{cpu_8c}{template/generic/port/cpu.\-c}}
+\item {\ttfamily \hyperlink{template_2generic_2kernel__cfg_8h}{template/generic/kernel\-\_\-cfg.\-h}}
+\item {\ttfamily \hyperlink{template_2generic_2dbg__cfg_8h}{template/generic/dbg\-\_\-cfg.\-h}} 
+\end{DoxyItemize}

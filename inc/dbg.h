@@ -51,7 +51,7 @@
  */
 #if (1 == CFG_DBG_ENABLE)
 # define DECL_MODULE_INFO(modName, modDesc, modAuth)                            \
-    static const PORT_C_ROM struct dbgModInfo gModInfo_ = {                     \
+    static const PORT_C_ROM struct dbgModInfo ModInfo_ = {                      \
         modName,                                                                \
         modDesc,                                                                \
         modAuth,                                                                \
@@ -80,9 +80,9 @@
     do {                                                                        \
         if (!(expr)) {                                                          \
             const PORT_C_ROM struct dbgCobj thisObj = {                         \
-                .mod  = &gModInfo_,                                             \
-                .fn   = PORT_C_FUNC,                                            \
-                .line = PORT_C_LINE                                             \
+                &ModInfo_,                                                      \
+                PORT_C_FUNC,                                                    \
+                PORT_C_LINE                                                     \
             };                                                                  \
             dbgAssert(&thisObj, #expr, msg);                                    \
         }                                                                       \
@@ -98,7 +98,7 @@
 # define ES_DBG_ASSERT_ALWAYS(msg, text)                                        \
     do {                                                                        \
         const PORT_C_ROM struct dbgCobj thisObj = {                             \
-            .mod  = &gModInfo_,                                                 \
+            .mod  = &ModInfo_,                                                  \
             .fn   = PORT_C_FUNC,                                                \
             .line = PORT_C_LINE                                                 \
         };                                                                      \

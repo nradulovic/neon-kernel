@@ -1,0 +1,104 @@
+.TH "kernel_cfg.h" 3 "Tue Oct 29 2013" "Version 1.0BetaR01" "eSolid - Real-Time Kernel" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+kernel_cfg.h \- 
+.PP
+Configuration of Kernel\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.SS "Macros"
+
+.PP
+.RI "\fBKernel configuration options and settings\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "#define \fBCFG_SCHED_PRIO_LVL\fP   8u"
+.br
+.RI "\fIScheduler priority levels\&. \fP"
+.ti -1c
+.RI "#define \fBCFG_SCHED_TIME_QUANTUM\fP   10u"
+.br
+.RI "\fIScheduler Round-Robin time quantum\&. \fP"
+.ti -1c
+.RI "#define \fBCFG_SCHED_POWER_SAVE\fP   0u"
+.br
+.RI "\fIEnable/disable scheduler power savings mode\&. \fP"
+.ti -1c
+.RI "#define \fBCFG_SYSTMR_ADAPTIVE_MODE\fP   0u"
+.br
+.RI "\fISystem timer adaptive mode\&. \fP"
+.ti -1c
+.RI "#define \fBCFG_SYSTMR_EVENT_FREQUENCY\fP   100ul"
+.br
+.RI "\fIThe frequency of system timer tick event\&. \fP"
+.ti -1c
+.RI "#define \fBCFG_SYSTMR_TICK_TYPE\fP   2u"
+.br
+.RI "\fIThe size of the system timer tick event counter\&. \fP"
+.in -1c
+.in -1c
+.PP
+.RI "\fBKernel pre hooks\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "#define \fBCFG_HOOK_PRE_SYSTMR_EVENT\fP   0u"
+.br
+.RI "\fISystem timer event hook function\&. \fP"
+.ti -1c
+.RI "#define \fBCFG_HOOK_PRE_KERN_INIT\fP   0u"
+.br
+.RI "\fIPre kernel initialization hook function\&. \fP"
+.ti -1c
+.RI "#define \fBCFG_HOOK_POST_KERN_INIT\fP   0u"
+.br
+.RI "\fIPost kernel initialization hook function\&. \fP"
+.ti -1c
+.RI "#define \fBCFG_HOOK_PRE_KERN_START\fP   0u"
+.br
+.RI "\fIPre kernel start hook function\&. \fP"
+.ti -1c
+.RI "#define \fBCFG_HOOK_POST_THD_INIT\fP   0u"
+.br
+.RI "\fIPost thread initialization hook function\&. \fP"
+.ti -1c
+.RI "#define \fBCFG_HOOK_PRE_THD_TERM\fP   0u"
+.br
+.RI "\fIPre thread termination hook function\&. \fP"
+.ti -1c
+.RI "#define \fBCFG_HOOK_PRE_IDLE\fP   0u"
+.br
+.RI "\fIPre idle hook function\&. \fP"
+.ti -1c
+.RI "#define \fBCFG_HOOK_POST_IDLE\fP   0u"
+.br
+.RI "\fIPost idle hook function\&. \fP"
+.ti -1c
+.RI "#define \fBCFG_HOOK_PRE_CTX_SW\fP   0u"
+.br
+.RI "\fIPre context switch hook function\&. \fP"
+.in -1c
+.in -1c
+.SH "Detailed Description"
+.PP 
+Configuration of Kernel\&. 
+
+
+.PP
+\fBAuthor:\fP
+.RS 4
+Nenad Radulovic 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for eSolid - Real-Time Kernel from the source code\&.

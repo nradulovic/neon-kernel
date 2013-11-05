@@ -1,0 +1,182 @@
+\hypertarget{group__kern__cfg}{\subsection{Configuration}
+\label{group__kern__cfg}\index{Configuration@{Configuration}}
+}
+
+
+Kernel Configuration settings.  
+
+
+Collaboration diagram for Configuration\-:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=234pt]{group__kern__cfg}
+\end{center}
+\end{figure}
+\subsubsection*{Kernel configuration options and settings}
+\begin{DoxyCompactItemize}
+\item 
+\#define \hyperlink{group__kern__cfg_ga56bd89fe76f7fe22f3d8805bc3c68892}{C\-F\-G\-\_\-\-S\-C\-H\-E\-D\-\_\-\-P\-R\-I\-O\-\_\-\-L\-V\-L}~8u
+\begin{DoxyCompactList}\small\item\em Scheduler priority levels. \end{DoxyCompactList}\item 
+\#define \hyperlink{group__kern__cfg_ga0bd286f16bb67585f14c4d1e45be8ad1}{C\-F\-G\-\_\-\-S\-C\-H\-E\-D\-\_\-\-T\-I\-M\-E\-\_\-\-Q\-U\-A\-N\-T\-U\-M}~10u
+\begin{DoxyCompactList}\small\item\em Scheduler Round-\/\-Robin time quantum. \end{DoxyCompactList}\item 
+\#define \hyperlink{group__kern__cfg_ga4e6ab4994b34501bb71e75717b093376}{C\-F\-G\-\_\-\-S\-C\-H\-E\-D\-\_\-\-P\-O\-W\-E\-R\-\_\-\-S\-A\-V\-E}~0u
+\begin{DoxyCompactList}\small\item\em Enable/disable scheduler power savings mode. \end{DoxyCompactList}\item 
+\#define \hyperlink{group__kern__cfg_ga5f07eea2a4be92cf0358f52eba6800c9}{C\-F\-G\-\_\-\-S\-Y\-S\-T\-M\-R\-\_\-\-A\-D\-A\-P\-T\-I\-V\-E\-\_\-\-M\-O\-D\-E}~0u
+\begin{DoxyCompactList}\small\item\em System timer adaptive mode. \end{DoxyCompactList}\item 
+\#define \hyperlink{group__kern__cfg_ga4e46164ae5a37bfc54c67b6f01d93eb1}{C\-F\-G\-\_\-\-S\-Y\-S\-T\-M\-R\-\_\-\-E\-V\-E\-N\-T\-\_\-\-F\-R\-E\-Q\-U\-E\-N\-C\-Y}~100ul
+\begin{DoxyCompactList}\small\item\em The frequency of system timer tick event. \end{DoxyCompactList}\item 
+\#define \hyperlink{group__kern__cfg_gad69eef523459c5ab485ce2f62bddceca}{C\-F\-G\-\_\-\-S\-Y\-S\-T\-M\-R\-\_\-\-T\-I\-C\-K\-\_\-\-T\-Y\-P\-E}~2u
+\begin{DoxyCompactList}\small\item\em The size of the system timer tick event counter. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsubsection*{Kernel pre hooks}
+\begin{DoxyCompactItemize}
+\item 
+\#define \hyperlink{group__kern__cfg_gaa130bc9f72010b44b4b06618d8f8d0bc}{C\-F\-G\-\_\-\-H\-O\-O\-K\-\_\-\-P\-R\-E\-\_\-\-S\-Y\-S\-T\-M\-R\-\_\-\-E\-V\-E\-N\-T}~0u
+\begin{DoxyCompactList}\small\item\em System timer event hook function. \end{DoxyCompactList}\item 
+\#define \hyperlink{group__kern__cfg_ga4093113f2105d2716f86c6509a6e643a}{C\-F\-G\-\_\-\-H\-O\-O\-K\-\_\-\-P\-R\-E\-\_\-\-K\-E\-R\-N\-\_\-\-I\-N\-I\-T}~0u
+\begin{DoxyCompactList}\small\item\em Pre kernel initialization hook function. \end{DoxyCompactList}\item 
+\#define \hyperlink{group__kern__cfg_ga85dea823714335c2ec9e9f7750996e83}{C\-F\-G\-\_\-\-H\-O\-O\-K\-\_\-\-P\-O\-S\-T\-\_\-\-K\-E\-R\-N\-\_\-\-I\-N\-I\-T}~0u
+\begin{DoxyCompactList}\small\item\em Post kernel initialization hook function. \end{DoxyCompactList}\item 
+\#define \hyperlink{group__kern__cfg_gad67d998118375811b0f3e63543311661}{C\-F\-G\-\_\-\-H\-O\-O\-K\-\_\-\-P\-R\-E\-\_\-\-K\-E\-R\-N\-\_\-\-S\-T\-A\-R\-T}~0u
+\begin{DoxyCompactList}\small\item\em Pre kernel start hook function. \end{DoxyCompactList}\item 
+\#define \hyperlink{group__kern__cfg_ga23deae306171d1a8dda4d0e33efdb6bb}{C\-F\-G\-\_\-\-H\-O\-O\-K\-\_\-\-P\-O\-S\-T\-\_\-\-T\-H\-D\-\_\-\-I\-N\-I\-T}~0u
+\begin{DoxyCompactList}\small\item\em Post thread initialization hook function. \end{DoxyCompactList}\item 
+\#define \hyperlink{group__kern__cfg_ga9c7dd4e009a89e9cffb0f9b404bc6250}{C\-F\-G\-\_\-\-H\-O\-O\-K\-\_\-\-P\-R\-E\-\_\-\-T\-H\-D\-\_\-\-T\-E\-R\-M}~0u
+\begin{DoxyCompactList}\small\item\em Pre thread termination hook function. \end{DoxyCompactList}\item 
+\#define \hyperlink{group__kern__cfg_ga7c2b0410404256c4804758090401f7e4}{C\-F\-G\-\_\-\-H\-O\-O\-K\-\_\-\-P\-R\-E\-\_\-\-I\-D\-L\-E}~0u
+\begin{DoxyCompactList}\small\item\em Pre idle hook function. \end{DoxyCompactList}\item 
+\#define \hyperlink{group__kern__cfg_ga8f8751efe94964bef25673deca6b9b26}{C\-F\-G\-\_\-\-H\-O\-O\-K\-\_\-\-P\-O\-S\-T\-\_\-\-I\-D\-L\-E}~0u
+\begin{DoxyCompactList}\small\item\em Post idle hook function. \end{DoxyCompactList}\item 
+\#define \hyperlink{group__kern__cfg_gac84acbf84222018398089920dd429635}{C\-F\-G\-\_\-\-H\-O\-O\-K\-\_\-\-P\-R\-E\-\_\-\-C\-T\-X\-\_\-\-S\-W}~0u
+\begin{DoxyCompactList}\small\item\em Pre context switch hook function. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsubsection{Detailed Description}
+Kernel Configuration settings. 
+
+\subsubsection{Macro Definition Documentation}
+\hypertarget{group__kern__cfg_ga56bd89fe76f7fe22f3d8805bc3c68892}{\index{Configuration@{Configuration}!C\-F\-G\-\_\-\-S\-C\-H\-E\-D\-\_\-\-P\-R\-I\-O\-\_\-\-L\-V\-L@{C\-F\-G\-\_\-\-S\-C\-H\-E\-D\-\_\-\-P\-R\-I\-O\-\_\-\-L\-V\-L}}
+\index{C\-F\-G\-\_\-\-S\-C\-H\-E\-D\-\_\-\-P\-R\-I\-O\-\_\-\-L\-V\-L@{C\-F\-G\-\_\-\-S\-C\-H\-E\-D\-\_\-\-P\-R\-I\-O\-\_\-\-L\-V\-L}!Configuration@{Configuration}}
+\paragraph[{C\-F\-G\-\_\-\-S\-C\-H\-E\-D\-\_\-\-P\-R\-I\-O\-\_\-\-L\-V\-L}]{\setlength{\rightskip}{0pt plus 5cm}\#define C\-F\-G\-\_\-\-S\-C\-H\-E\-D\-\_\-\-P\-R\-I\-O\-\_\-\-L\-V\-L~8u}}\label{group__kern__cfg_ga56bd89fe76f7fe22f3d8805bc3c68892}
+
+
+Scheduler priority levels. 
+
+Possible values\-:
+\begin{DoxyItemize}
+\item Min\-: 3 (three priority levels)
+\item Max\-: 256 
+\end{DoxyItemize}\hypertarget{group__kern__cfg_ga0bd286f16bb67585f14c4d1e45be8ad1}{\index{Configuration@{Configuration}!C\-F\-G\-\_\-\-S\-C\-H\-E\-D\-\_\-\-T\-I\-M\-E\-\_\-\-Q\-U\-A\-N\-T\-U\-M@{C\-F\-G\-\_\-\-S\-C\-H\-E\-D\-\_\-\-T\-I\-M\-E\-\_\-\-Q\-U\-A\-N\-T\-U\-M}}
+\index{C\-F\-G\-\_\-\-S\-C\-H\-E\-D\-\_\-\-T\-I\-M\-E\-\_\-\-Q\-U\-A\-N\-T\-U\-M@{C\-F\-G\-\_\-\-S\-C\-H\-E\-D\-\_\-\-T\-I\-M\-E\-\_\-\-Q\-U\-A\-N\-T\-U\-M}!Configuration@{Configuration}}
+\paragraph[{C\-F\-G\-\_\-\-S\-C\-H\-E\-D\-\_\-\-T\-I\-M\-E\-\_\-\-Q\-U\-A\-N\-T\-U\-M}]{\setlength{\rightskip}{0pt plus 5cm}\#define C\-F\-G\-\_\-\-S\-C\-H\-E\-D\-\_\-\-T\-I\-M\-E\-\_\-\-Q\-U\-A\-N\-T\-U\-M~10u}}\label{group__kern__cfg_ga0bd286f16bb67585f14c4d1e45be8ad1}
+
+
+Scheduler Round-\/\-Robin time quantum. 
+
+\hypertarget{group__kern__cfg_ga4e6ab4994b34501bb71e75717b093376}{\index{Configuration@{Configuration}!C\-F\-G\-\_\-\-S\-C\-H\-E\-D\-\_\-\-P\-O\-W\-E\-R\-\_\-\-S\-A\-V\-E@{C\-F\-G\-\_\-\-S\-C\-H\-E\-D\-\_\-\-P\-O\-W\-E\-R\-\_\-\-S\-A\-V\-E}}
+\index{C\-F\-G\-\_\-\-S\-C\-H\-E\-D\-\_\-\-P\-O\-W\-E\-R\-\_\-\-S\-A\-V\-E@{C\-F\-G\-\_\-\-S\-C\-H\-E\-D\-\_\-\-P\-O\-W\-E\-R\-\_\-\-S\-A\-V\-E}!Configuration@{Configuration}}
+\paragraph[{C\-F\-G\-\_\-\-S\-C\-H\-E\-D\-\_\-\-P\-O\-W\-E\-R\-\_\-\-S\-A\-V\-E}]{\setlength{\rightskip}{0pt plus 5cm}\#define C\-F\-G\-\_\-\-S\-C\-H\-E\-D\-\_\-\-P\-O\-W\-E\-R\-\_\-\-S\-A\-V\-E~0u}}\label{group__kern__cfg_ga4e6ab4994b34501bb71e75717b093376}
+
+
+Enable/disable scheduler power savings mode. 
+
+Possible values are\-:
+\begin{DoxyItemize}
+\item 0u -\/ power saving is disabled
+\item 1u -\/ power saving is enabled 
+\end{DoxyItemize}\hypertarget{group__kern__cfg_ga5f07eea2a4be92cf0358f52eba6800c9}{\index{Configuration@{Configuration}!C\-F\-G\-\_\-\-S\-Y\-S\-T\-M\-R\-\_\-\-A\-D\-A\-P\-T\-I\-V\-E\-\_\-\-M\-O\-D\-E@{C\-F\-G\-\_\-\-S\-Y\-S\-T\-M\-R\-\_\-\-A\-D\-A\-P\-T\-I\-V\-E\-\_\-\-M\-O\-D\-E}}
+\index{C\-F\-G\-\_\-\-S\-Y\-S\-T\-M\-R\-\_\-\-A\-D\-A\-P\-T\-I\-V\-E\-\_\-\-M\-O\-D\-E@{C\-F\-G\-\_\-\-S\-Y\-S\-T\-M\-R\-\_\-\-A\-D\-A\-P\-T\-I\-V\-E\-\_\-\-M\-O\-D\-E}!Configuration@{Configuration}}
+\paragraph[{C\-F\-G\-\_\-\-S\-Y\-S\-T\-M\-R\-\_\-\-A\-D\-A\-P\-T\-I\-V\-E\-\_\-\-M\-O\-D\-E}]{\setlength{\rightskip}{0pt plus 5cm}\#define C\-F\-G\-\_\-\-S\-Y\-S\-T\-M\-R\-\_\-\-A\-D\-A\-P\-T\-I\-V\-E\-\_\-\-M\-O\-D\-E~0u}}\label{group__kern__cfg_ga5f07eea2a4be92cf0358f52eba6800c9}
+
+
+System timer adaptive mode. 
+
+Possible values are\-:
+\begin{DoxyItemize}
+\item 0u -\/ adaptive mode is disabled
+\item 1u -\/ adaptive mode is enabled 
+\end{DoxyItemize}\hypertarget{group__kern__cfg_ga4e46164ae5a37bfc54c67b6f01d93eb1}{\index{Configuration@{Configuration}!C\-F\-G\-\_\-\-S\-Y\-S\-T\-M\-R\-\_\-\-E\-V\-E\-N\-T\-\_\-\-F\-R\-E\-Q\-U\-E\-N\-C\-Y@{C\-F\-G\-\_\-\-S\-Y\-S\-T\-M\-R\-\_\-\-E\-V\-E\-N\-T\-\_\-\-F\-R\-E\-Q\-U\-E\-N\-C\-Y}}
+\index{C\-F\-G\-\_\-\-S\-Y\-S\-T\-M\-R\-\_\-\-E\-V\-E\-N\-T\-\_\-\-F\-R\-E\-Q\-U\-E\-N\-C\-Y@{C\-F\-G\-\_\-\-S\-Y\-S\-T\-M\-R\-\_\-\-E\-V\-E\-N\-T\-\_\-\-F\-R\-E\-Q\-U\-E\-N\-C\-Y}!Configuration@{Configuration}}
+\paragraph[{C\-F\-G\-\_\-\-S\-Y\-S\-T\-M\-R\-\_\-\-E\-V\-E\-N\-T\-\_\-\-F\-R\-E\-Q\-U\-E\-N\-C\-Y}]{\setlength{\rightskip}{0pt plus 5cm}\#define C\-F\-G\-\_\-\-S\-Y\-S\-T\-M\-R\-\_\-\-E\-V\-E\-N\-T\-\_\-\-F\-R\-E\-Q\-U\-E\-N\-C\-Y~100ul}}\label{group__kern__cfg_ga4e46164ae5a37bfc54c67b6f01d93eb1}
+
+
+The frequency of system timer tick event. 
+
+\begin{DoxyNote}{Note}
+This setting is valid only if configuration option \hyperlink{group__template__cpu__cfg_gac85c592962ba2c968d13f867533196a1}{C\-F\-G\-\_\-\-S\-Y\-S\-T\-M\-R\-\_\-\-C\-L\-O\-C\-K\-\_\-\-F\-R\-E\-Q\-U\-E\-N\-C\-Y} is properly set in port configuration file \hyperlink{cpu__cfg_8h}{cpu\-\_\-cfg.\-h} 
+\end{DoxyNote}
+\hypertarget{group__kern__cfg_gad69eef523459c5ab485ce2f62bddceca}{\index{Configuration@{Configuration}!C\-F\-G\-\_\-\-S\-Y\-S\-T\-M\-R\-\_\-\-T\-I\-C\-K\-\_\-\-T\-Y\-P\-E@{C\-F\-G\-\_\-\-S\-Y\-S\-T\-M\-R\-\_\-\-T\-I\-C\-K\-\_\-\-T\-Y\-P\-E}}
+\index{C\-F\-G\-\_\-\-S\-Y\-S\-T\-M\-R\-\_\-\-T\-I\-C\-K\-\_\-\-T\-Y\-P\-E@{C\-F\-G\-\_\-\-S\-Y\-S\-T\-M\-R\-\_\-\-T\-I\-C\-K\-\_\-\-T\-Y\-P\-E}!Configuration@{Configuration}}
+\paragraph[{C\-F\-G\-\_\-\-S\-Y\-S\-T\-M\-R\-\_\-\-T\-I\-C\-K\-\_\-\-T\-Y\-P\-E}]{\setlength{\rightskip}{0pt plus 5cm}\#define C\-F\-G\-\_\-\-S\-Y\-S\-T\-M\-R\-\_\-\-T\-I\-C\-K\-\_\-\-T\-Y\-P\-E~2u}}\label{group__kern__cfg_gad69eef523459c5ab485ce2f62bddceca}
+
+
+The size of the system timer tick event counter. 
+
+Possible values are\-:
+\begin{DoxyItemize}
+\item 0u -\/ 8 bit counter
+\item 1u -\/ 16 bit counter
+\item 2u -\/ 32 bit counter 
+\end{DoxyItemize}\hypertarget{group__kern__cfg_gaa130bc9f72010b44b4b06618d8f8d0bc}{\index{Configuration@{Configuration}!C\-F\-G\-\_\-\-H\-O\-O\-K\-\_\-\-P\-R\-E\-\_\-\-S\-Y\-S\-T\-M\-R\-\_\-\-E\-V\-E\-N\-T@{C\-F\-G\-\_\-\-H\-O\-O\-K\-\_\-\-P\-R\-E\-\_\-\-S\-Y\-S\-T\-M\-R\-\_\-\-E\-V\-E\-N\-T}}
+\index{C\-F\-G\-\_\-\-H\-O\-O\-K\-\_\-\-P\-R\-E\-\_\-\-S\-Y\-S\-T\-M\-R\-\_\-\-E\-V\-E\-N\-T@{C\-F\-G\-\_\-\-H\-O\-O\-K\-\_\-\-P\-R\-E\-\_\-\-S\-Y\-S\-T\-M\-R\-\_\-\-E\-V\-E\-N\-T}!Configuration@{Configuration}}
+\paragraph[{C\-F\-G\-\_\-\-H\-O\-O\-K\-\_\-\-P\-R\-E\-\_\-\-S\-Y\-S\-T\-M\-R\-\_\-\-E\-V\-E\-N\-T}]{\setlength{\rightskip}{0pt plus 5cm}\#define C\-F\-G\-\_\-\-H\-O\-O\-K\-\_\-\-P\-R\-E\-\_\-\-S\-Y\-S\-T\-M\-R\-\_\-\-E\-V\-E\-N\-T~0u}}\label{group__kern__cfg_gaa130bc9f72010b44b4b06618d8f8d0bc}
+
+
+System timer event hook function. 
+
+\hypertarget{group__kern__cfg_ga4093113f2105d2716f86c6509a6e643a}{\index{Configuration@{Configuration}!C\-F\-G\-\_\-\-H\-O\-O\-K\-\_\-\-P\-R\-E\-\_\-\-K\-E\-R\-N\-\_\-\-I\-N\-I\-T@{C\-F\-G\-\_\-\-H\-O\-O\-K\-\_\-\-P\-R\-E\-\_\-\-K\-E\-R\-N\-\_\-\-I\-N\-I\-T}}
+\index{C\-F\-G\-\_\-\-H\-O\-O\-K\-\_\-\-P\-R\-E\-\_\-\-K\-E\-R\-N\-\_\-\-I\-N\-I\-T@{C\-F\-G\-\_\-\-H\-O\-O\-K\-\_\-\-P\-R\-E\-\_\-\-K\-E\-R\-N\-\_\-\-I\-N\-I\-T}!Configuration@{Configuration}}
+\paragraph[{C\-F\-G\-\_\-\-H\-O\-O\-K\-\_\-\-P\-R\-E\-\_\-\-K\-E\-R\-N\-\_\-\-I\-N\-I\-T}]{\setlength{\rightskip}{0pt plus 5cm}\#define C\-F\-G\-\_\-\-H\-O\-O\-K\-\_\-\-P\-R\-E\-\_\-\-K\-E\-R\-N\-\_\-\-I\-N\-I\-T~0u}}\label{group__kern__cfg_ga4093113f2105d2716f86c6509a6e643a}
+
+
+Pre kernel initialization hook function. 
+
+\hypertarget{group__kern__cfg_ga85dea823714335c2ec9e9f7750996e83}{\index{Configuration@{Configuration}!C\-F\-G\-\_\-\-H\-O\-O\-K\-\_\-\-P\-O\-S\-T\-\_\-\-K\-E\-R\-N\-\_\-\-I\-N\-I\-T@{C\-F\-G\-\_\-\-H\-O\-O\-K\-\_\-\-P\-O\-S\-T\-\_\-\-K\-E\-R\-N\-\_\-\-I\-N\-I\-T}}
+\index{C\-F\-G\-\_\-\-H\-O\-O\-K\-\_\-\-P\-O\-S\-T\-\_\-\-K\-E\-R\-N\-\_\-\-I\-N\-I\-T@{C\-F\-G\-\_\-\-H\-O\-O\-K\-\_\-\-P\-O\-S\-T\-\_\-\-K\-E\-R\-N\-\_\-\-I\-N\-I\-T}!Configuration@{Configuration}}
+\paragraph[{C\-F\-G\-\_\-\-H\-O\-O\-K\-\_\-\-P\-O\-S\-T\-\_\-\-K\-E\-R\-N\-\_\-\-I\-N\-I\-T}]{\setlength{\rightskip}{0pt plus 5cm}\#define C\-F\-G\-\_\-\-H\-O\-O\-K\-\_\-\-P\-O\-S\-T\-\_\-\-K\-E\-R\-N\-\_\-\-I\-N\-I\-T~0u}}\label{group__kern__cfg_ga85dea823714335c2ec9e9f7750996e83}
+
+
+Post kernel initialization hook function. 
+
+\hypertarget{group__kern__cfg_gad67d998118375811b0f3e63543311661}{\index{Configuration@{Configuration}!C\-F\-G\-\_\-\-H\-O\-O\-K\-\_\-\-P\-R\-E\-\_\-\-K\-E\-R\-N\-\_\-\-S\-T\-A\-R\-T@{C\-F\-G\-\_\-\-H\-O\-O\-K\-\_\-\-P\-R\-E\-\_\-\-K\-E\-R\-N\-\_\-\-S\-T\-A\-R\-T}}
+\index{C\-F\-G\-\_\-\-H\-O\-O\-K\-\_\-\-P\-R\-E\-\_\-\-K\-E\-R\-N\-\_\-\-S\-T\-A\-R\-T@{C\-F\-G\-\_\-\-H\-O\-O\-K\-\_\-\-P\-R\-E\-\_\-\-K\-E\-R\-N\-\_\-\-S\-T\-A\-R\-T}!Configuration@{Configuration}}
+\paragraph[{C\-F\-G\-\_\-\-H\-O\-O\-K\-\_\-\-P\-R\-E\-\_\-\-K\-E\-R\-N\-\_\-\-S\-T\-A\-R\-T}]{\setlength{\rightskip}{0pt plus 5cm}\#define C\-F\-G\-\_\-\-H\-O\-O\-K\-\_\-\-P\-R\-E\-\_\-\-K\-E\-R\-N\-\_\-\-S\-T\-A\-R\-T~0u}}\label{group__kern__cfg_gad67d998118375811b0f3e63543311661}
+
+
+Pre kernel start hook function. 
+
+\hypertarget{group__kern__cfg_ga23deae306171d1a8dda4d0e33efdb6bb}{\index{Configuration@{Configuration}!C\-F\-G\-\_\-\-H\-O\-O\-K\-\_\-\-P\-O\-S\-T\-\_\-\-T\-H\-D\-\_\-\-I\-N\-I\-T@{C\-F\-G\-\_\-\-H\-O\-O\-K\-\_\-\-P\-O\-S\-T\-\_\-\-T\-H\-D\-\_\-\-I\-N\-I\-T}}
+\index{C\-F\-G\-\_\-\-H\-O\-O\-K\-\_\-\-P\-O\-S\-T\-\_\-\-T\-H\-D\-\_\-\-I\-N\-I\-T@{C\-F\-G\-\_\-\-H\-O\-O\-K\-\_\-\-P\-O\-S\-T\-\_\-\-T\-H\-D\-\_\-\-I\-N\-I\-T}!Configuration@{Configuration}}
+\paragraph[{C\-F\-G\-\_\-\-H\-O\-O\-K\-\_\-\-P\-O\-S\-T\-\_\-\-T\-H\-D\-\_\-\-I\-N\-I\-T}]{\setlength{\rightskip}{0pt plus 5cm}\#define C\-F\-G\-\_\-\-H\-O\-O\-K\-\_\-\-P\-O\-S\-T\-\_\-\-T\-H\-D\-\_\-\-I\-N\-I\-T~0u}}\label{group__kern__cfg_ga23deae306171d1a8dda4d0e33efdb6bb}
+
+
+Post thread initialization hook function. 
+
+\hypertarget{group__kern__cfg_ga9c7dd4e009a89e9cffb0f9b404bc6250}{\index{Configuration@{Configuration}!C\-F\-G\-\_\-\-H\-O\-O\-K\-\_\-\-P\-R\-E\-\_\-\-T\-H\-D\-\_\-\-T\-E\-R\-M@{C\-F\-G\-\_\-\-H\-O\-O\-K\-\_\-\-P\-R\-E\-\_\-\-T\-H\-D\-\_\-\-T\-E\-R\-M}}
+\index{C\-F\-G\-\_\-\-H\-O\-O\-K\-\_\-\-P\-R\-E\-\_\-\-T\-H\-D\-\_\-\-T\-E\-R\-M@{C\-F\-G\-\_\-\-H\-O\-O\-K\-\_\-\-P\-R\-E\-\_\-\-T\-H\-D\-\_\-\-T\-E\-R\-M}!Configuration@{Configuration}}
+\paragraph[{C\-F\-G\-\_\-\-H\-O\-O\-K\-\_\-\-P\-R\-E\-\_\-\-T\-H\-D\-\_\-\-T\-E\-R\-M}]{\setlength{\rightskip}{0pt plus 5cm}\#define C\-F\-G\-\_\-\-H\-O\-O\-K\-\_\-\-P\-R\-E\-\_\-\-T\-H\-D\-\_\-\-T\-E\-R\-M~0u}}\label{group__kern__cfg_ga9c7dd4e009a89e9cffb0f9b404bc6250}
+
+
+Pre thread termination hook function. 
+
+\hypertarget{group__kern__cfg_ga7c2b0410404256c4804758090401f7e4}{\index{Configuration@{Configuration}!C\-F\-G\-\_\-\-H\-O\-O\-K\-\_\-\-P\-R\-E\-\_\-\-I\-D\-L\-E@{C\-F\-G\-\_\-\-H\-O\-O\-K\-\_\-\-P\-R\-E\-\_\-\-I\-D\-L\-E}}
+\index{C\-F\-G\-\_\-\-H\-O\-O\-K\-\_\-\-P\-R\-E\-\_\-\-I\-D\-L\-E@{C\-F\-G\-\_\-\-H\-O\-O\-K\-\_\-\-P\-R\-E\-\_\-\-I\-D\-L\-E}!Configuration@{Configuration}}
+\paragraph[{C\-F\-G\-\_\-\-H\-O\-O\-K\-\_\-\-P\-R\-E\-\_\-\-I\-D\-L\-E}]{\setlength{\rightskip}{0pt plus 5cm}\#define C\-F\-G\-\_\-\-H\-O\-O\-K\-\_\-\-P\-R\-E\-\_\-\-I\-D\-L\-E~0u}}\label{group__kern__cfg_ga7c2b0410404256c4804758090401f7e4}
+
+
+Pre idle hook function. 
+
+\hypertarget{group__kern__cfg_ga8f8751efe94964bef25673deca6b9b26}{\index{Configuration@{Configuration}!C\-F\-G\-\_\-\-H\-O\-O\-K\-\_\-\-P\-O\-S\-T\-\_\-\-I\-D\-L\-E@{C\-F\-G\-\_\-\-H\-O\-O\-K\-\_\-\-P\-O\-S\-T\-\_\-\-I\-D\-L\-E}}
+\index{C\-F\-G\-\_\-\-H\-O\-O\-K\-\_\-\-P\-O\-S\-T\-\_\-\-I\-D\-L\-E@{C\-F\-G\-\_\-\-H\-O\-O\-K\-\_\-\-P\-O\-S\-T\-\_\-\-I\-D\-L\-E}!Configuration@{Configuration}}
+\paragraph[{C\-F\-G\-\_\-\-H\-O\-O\-K\-\_\-\-P\-O\-S\-T\-\_\-\-I\-D\-L\-E}]{\setlength{\rightskip}{0pt plus 5cm}\#define C\-F\-G\-\_\-\-H\-O\-O\-K\-\_\-\-P\-O\-S\-T\-\_\-\-I\-D\-L\-E~0u}}\label{group__kern__cfg_ga8f8751efe94964bef25673deca6b9b26}
+
+
+Post idle hook function. 
+
+\hypertarget{group__kern__cfg_gac84acbf84222018398089920dd429635}{\index{Configuration@{Configuration}!C\-F\-G\-\_\-\-H\-O\-O\-K\-\_\-\-P\-R\-E\-\_\-\-C\-T\-X\-\_\-\-S\-W@{C\-F\-G\-\_\-\-H\-O\-O\-K\-\_\-\-P\-R\-E\-\_\-\-C\-T\-X\-\_\-\-S\-W}}
+\index{C\-F\-G\-\_\-\-H\-O\-O\-K\-\_\-\-P\-R\-E\-\_\-\-C\-T\-X\-\_\-\-S\-W@{C\-F\-G\-\_\-\-H\-O\-O\-K\-\_\-\-P\-R\-E\-\_\-\-C\-T\-X\-\_\-\-S\-W}!Configuration@{Configuration}}
+\paragraph[{C\-F\-G\-\_\-\-H\-O\-O\-K\-\_\-\-P\-R\-E\-\_\-\-C\-T\-X\-\_\-\-S\-W}]{\setlength{\rightskip}{0pt plus 5cm}\#define C\-F\-G\-\_\-\-H\-O\-O\-K\-\_\-\-P\-R\-E\-\_\-\-C\-T\-X\-\_\-\-S\-W~0u}}\label{group__kern__cfg_gac84acbf84222018398089920dd429635}
+
+
+Pre context switch hook function. 
+

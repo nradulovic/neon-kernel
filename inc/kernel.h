@@ -43,51 +43,26 @@
  * @name        Kernel identification and version number
  * @{ *//*--------------------------------------------------------------------*/
 
-/**@brief       Identifies the underlying kernel version number
- * @details     Kernel identification and version (main [31:16] .sub [15:0])
+/**@brief       Identifies kernel major version number
  */
-#define ES_KERN_VER                     0x10000ul
+#define ES_KERN_VER_MAJOR               1ul
+
+/**@brief       Identifies kernel minor version number
+ */
+#define ES_KERN_VER_MINOR               0ul
+
+/**@brief       Identifies kernel patch level
+ */
+#define ES_KERN_VER_PATCH               0ul
+
+/**@brief       Identifies the underlying kernel version number
+ */
+#define ES_KERN_VER                                                             \
+    (((ES_KERN_VER_MAJOR) << 24) | (ES_KERN_VER_MINOR << 16) | (ES_KERN_VER_PATCH))
 
 /**@brief       Kernel identification string
  */
-#define ES_KERN_ID                      "eSolid Kernel v1.0"
-
-/**@} *//*----------------------------------------------------------------*//**
- * @name        Critical section management
- * @details     These macros are used to prevent interrupts on entry into the
- *              critical section, and restoring interrupts to their previous
- *              state on exit from critical section.
- *
- *              For more details see @ref critical_section.
- * @{ *//*--------------------------------------------------------------------*/
-
-/**@brief		Critical section context variable type
- */
-#define ES_CRITICAL_T				    PORT_CRITICAL_T
-
-/**@brief		Enter a critical section
- */
-#define ES_CRITICAL_ENTER(ctx)		    PORT_CRITICAL_ENTER(ctx)
-
-/**@brief		Exit from critical section
- */
-#define ES_CRITICAL_EXIT(ctx)           PORT_CRITICAL_EXIT(ctx)
-
-/**@brief       Enter critical section and exit scheduler lock
- */
-#define ES_CRITICAL_ENTER_LOCK_EXIT()                                           \
-    do {                                                                        \
-        PORT_CRITICAL_ENTER();                                                  \
-        esSchedLockExitI();                                                     \
-    } while (0U)
-
-/**@brief       Exit critical section and enter scheduler lock
- */
-#define ES_CRITICAL_EXIT_LOCK_ENTER()                                           \
-    do {                                                                        \
-        esSchedLockEnterI();                                                    \
-        PORT_CRITICAL_EXIT();                                                   \
-    } while (0U)
+#define ES_KERN_ID                      "eSolid Kernel"
 
 /**@} *//*----------------------------------------------------------------*//**
  * @name        Thread management
@@ -96,14 +71,28 @@
 /**@brief       Converts the required stack elements into the stack array index.
  * @param       elem
  *              Number of stack elements: the stack size is expressed in number
- *              of elements regardles of the size of port general purpose
+ *              of elements regardless of the size of port general purpose
  *              registers.
  */
 #define ES_STCK_SIZE(elem)              PORT_STCK_SIZE(elem)
 
-#define ES_THD_PRIO_MAX                 (CFG_SCHED_PRIO_LVL - 2u)
+/**@brief       Maximum level of priority possible for application thread
+ */
+#define ES_DEF_THD_PRIO_MAX             (CFG_SCHED_PRIO_LVL - 2u)
 
-#define ES_THD_PRIO_MIN                 (1u)
+/**@brief       Minimum level of priority possible for application thread
+ */
+#define ES_DEF_THD_PRIO_MIN             (1u)
+
+/**@} *//*----------------------------------------------------------------*//**
+ * @name        Critical code management
+ * @{ *//*--------------------------------------------------------------------*/
+
+#define ES_CRITICAL_ENTER(intCtx)                                               \
+    PORT_INT_PRIO_REPLACE(intCtx, CFG_MAX_ISR_PRIO)
+
+#define ES_CRITICAL_EXIT(intCtx)                                                \
+    PORT_INT_PRIO_SET(intCtx)
 
 /**@} *//*----------------------------------------------  C++ extern begin  --*/
 #ifdef __cplusplus
@@ -141,7 +130,7 @@ struct esThd {
     uint_fast8_t    cprio;                                                      /**< @brief Constant Thread Priority level                  */
     uint_fast8_t    qCnt;                                                       /**< @brief Quantum counter                                 */
     uint_fast8_t    qRld;                                                       /**< @brief Quantum counter reload value                    */
-#if   (1U == CFG_DBG_API_VALIDATION) || defined(__DOXYGEN__)
+#if   (1u== CFG_DBG_API_VALIDATION) || defined(__DOXYGEN__)
     portReg_T		signature;                                                  /**< @brief Thread structure signature, see @ref errors     */
 #endif
 };
@@ -160,11 +149,11 @@ typedef portStck_T esStck_T;
 
 /**@brief       Timer tick type
  */
-#if   (2U == CFG_SYSTMR_TICK_TYPE) || defined(__DOXYGEN__)
+#if   (2u == CFG_SYSTMR_TICK_TYPE) || defined(__DOXYGEN__)
 typedef uint_fast32_t esTick_T;
-#elif (1U == CFG_SYSTMR_TICK_TYPE)
+#elif (1u== CFG_SYSTMR_TICK_TYPE)
 typedef uint_fast16_t esTick_T;
-#elif (0U == CFG_SYSTMR_TICK_TYPE)
+#elif (0u == CFG_SYSTMR_TICK_TYPE)
 typedef uint_fast8_t esTick_T;
 #endif
 
@@ -175,14 +164,14 @@ struct esVTmr {
 /**@brief       Virtual Timer linked list structure
  */
     struct tmrL {
-        struct esVTmr * q;                                                      /**< @brief Points to parent timer list                     */
+        struct esVTmr * q;                                                      /**< @brief Points to parent timer queue                    */
         struct esVTmr * next;                                                   /**< @brief Next thread in Virtual Timer linked list.       */
         struct esVTmr * prev;                                                   /**< @brief Previous thread in virtual timer linked list.   */
     }               tmrL;                                                       /**< @brief Virtual Timer linked List.                      */
     esTick_T        rtick;                                                      /**< @brief Relative tick value                             */
     void (* fn)(void *);                                                        /**< @brief Callback function pointer                       */
     void *          arg;                                                        /**< @brief Callback function argument                      */
-#if   (1U == CFG_DBG_API_VALIDATION) || defined(__DOXYGEN__)
+#if   (1u== CFG_DBG_API_VALIDATION) || defined(__DOXYGEN__)
     portReg_T       signature;                                                  /**< @brief Timer structure signature, see @ref errors      */
 #endif
 };
@@ -207,9 +196,10 @@ typedef struct esVTmr esVTmr_T;
 struct esThdQ {
 
 /**@brief       Priority Bit Map structure
+ * @api
  */
-    struct prioBM {
-#if   (1U != PRIO_BM_GRP_INDX) || defined(__DOXYGEN__)
+    struct esPrioBM {
+#if   (1u!= PRIO_BM_GRP_INDX) || defined(__DOXYGEN__)
         portReg_T       bitGrp;                                                 /**< @brief Bit group indicator                             */
 #endif
         portReg_T       bit[PRIO_BM_GRP_INDX];                                  /**< @brief Bit priority indicator                          */
@@ -217,11 +207,11 @@ struct esThdQ {
 
 /**@brief       Thread linked list sentinel structure
  */
-    struct thdLSentinel {
+    struct thdLSent_ {
         struct esThd *  head;                                                   /**< @brief Points to the first thread in linked list.      */
         struct esThd *  next;                                                   /**< @brief Points to the next thread in linked list.       */
     }               grp[CFG_SCHED_PRIO_LVL];                                    /**< @brief Array of thread linked list sentinel structures.*/
-#if   (1U == CFG_DBG_API_VALIDATION) || defined(__DOXYGEN__)
+#if   (1u== CFG_DBG_API_VALIDATION) || defined(__DOXYGEN__)
     portReg_T       signature;                                                  /**< @brief Thread Queue struct signature, see @ref errors. */
 #endif
 };
@@ -262,19 +252,18 @@ typedef enum esKernState esKernState_T;
  *              all members of the structure. This results in more efficient
  *              code on architectures that have relative indirect addressing
  *              capability.
- * @api
+ * @notapi
  */
-struct esKernCtrl {
+struct kernCtrl_ {
     struct esThd *      cthd;                                                   /**< @brief Pointer to the Current Thread                   */
     struct esThd *      pthd;                                                   /**< @brief Pointer to the Pending Thread to be switched    */
     enum esKernState    state;                                                  /**< @brief State of kernel                                 */
 };
 
-/**@brief       Kernel control block type
- */
-typedef struct esKernCtrl esKernCtrl_T;
-
 /**@} *//*--------------------------------------------------------------------*/
+
+typedef portReg_T esLockCtx_T;
+
 /*======================================================  GLOBAL VARIABLES  ==*/
 
 /*------------------------------------------------------------------------*//**
@@ -284,9 +273,10 @@ typedef struct esKernCtrl esKernCtrl_T;
 /**@brief       Kernel control block
  * @note        This variable has Read-Only access rights for application.
  */
-extern const volatile esKernCtrl_T gKernCtrl;
+extern const volatile struct kernCtrl_ KernCtrl;
 
 /**@} *//*--------------------------------------------------------------------*/
+
 /*===================================================  FUNCTION PROTOTYPES  ==*/
 
 /*------------------------------------------------------------------------*//**
@@ -338,11 +328,11 @@ void esKernSysTmr(
 
 /**@brief       Enter Interrupt Service Routine
  * @pre         1) `The kernel state < ES_KERN_INIT`, see @ref states.
- * @note        1) You must call esKernIsrEpilogueI() at the exit of ISR.
- * @note        2) You must invoke esKernIsrPrologueI() and esKernIsrEpilogueI()
- *                  in pair. In other words, for every call to
- *                  esKernIsrPrologueI() at the beginning of the ISR you must
- *                  have a call to esKernIsrEpilogueI() at the end of the ISR.
+ * @note        1) You must call esKernIsrExit() at the exit of ISR.
+ * @note        2) You must invoke esKernIsrEnter() and esKernIsrExit() in pair.
+ *                  In other words, for every call to esKernIsrEnter() at the
+ *                  beginning of the ISR you must have a call to esKernIsrExit()
+ *                  at the end of the ISR.
  * @details     Function will notify kernel that you are about to enter
  *              interrupt service routine (ISR). This allows kernel to keep
  *              track of interrupt nesting and then only perform rescheduling at
@@ -352,17 +342,17 @@ void esKernSysTmr(
  * @schedno
  * @iclass
  */
-void esKernIsrPrologueI(
+void esKernIsrEnter(
     void);
 
 /**@brief       Exit Interrupt Service Routine
  * @pre         1) `The kernel state < ES_KERN_INIT`, see @ref states.
- * @note        1) You must invoke esKernIsrPrologueI() and esKernIsrEpilogueI()
- *                  in pair. In other words, for every call to
- *                  esKernIsrPrologueI() at the beginning of the ISR you must
- *                  have a call to esKernIsrEpilogueI() at the end of the ISR.
+ * @note        1) You must invoke esKernIsrEnter() and esKernIsrExit() in pair.
+ *                  In other words, for every call to esKernIsrEnter() at the
+ *                  beginning of the ISR you must have a call to esKernIsrExit()
+ *                  at the end of the ISR.
  * @note        2) Rescheduling is prevented when the scheduler is locked
- *                  (see esSchedLockEnterI())
+ *                  (see esKernLockEnterI())
  * @details     This function is used to notify kernel that you have completed
  *              servicing an interrupt. When the last nested ISR has completed,
  *              the function will call the scheduler to determine whether a new,
@@ -372,7 +362,76 @@ void esKernIsrPrologueI(
  * @schedmaybe
  * @iclass
  */
-void esKernIsrEpilogueI(
+void esKernIsrExit(
+    void);
+
+/**@} *//*----------------------------------------------------------------*//**
+ * @name        Critical code section locking management
+ * @details     These functions are used to protect concurrent access to a
+ *              protected resource.
+ *
+ *              For more details see @ref critical_section.
+ * @{ *//*--------------------------------------------------------------------*/
+
+/**@brief       Enter a critical code lock
+ * @param       lockCtx
+ *              Pointer to context variable where to store the current lock
+ *              context.
+ * @called
+ * @fromapp
+ * @fromthd
+ * @schedno
+ * @api
+ */
+void esKernLockIntEnter(
+    esLockCtx_T *       lockCtx);
+
+/**@brief       Exit a critical code lock
+ * @param       lockCtx
+ *              Context variable value
+ * @details     Restores the lock context to state before the
+ *              esKernLockIntEnter() was called.
+ * @called
+ * @fromapp
+ * @fromthd
+ * @schedmaybe
+ * @api
+ */
+void esKernLockIntExit(
+    esLockCtx_T         lockCtx);
+
+/**@brief       Lock the scheduler
+ * @pre         1) `The kernel state < ES_KERN_INIT`, see @ref states.
+ * @iclass
+ */
+void esKernLockEnterI(
+    void);
+
+/**@brief       Unlock the scheduler
+ * @pre         1) `The kernel state < ES_KERN_INIT`, see @ref states.
+ * @pre         2) `gKernLockCnt > 0u`, current number of locks must be greater
+ *                  than zero, in other words: each call to kernel lock function
+ *                  must have its matching call to kernel unlock function.
+ * @iclass
+ */
+void esKernLockExitI(
+    void);
+
+/**@brief       Lock the scheduler
+ * @pre         1) `The kernel state < ES_KERN_INIT`, see @ref states.
+ * @api
+ */
+void esKernLockEnter(
+    void);
+
+/**@brief       Unlock the scheduler
+ * @pre         1) `The kernel state < ES_KERN_INIT`, see @ref states.
+ * @pre         2) `gKernLockCnt > 0u`, current number of locks must be greater
+ *                  than zero, in other words: each call to kernel lock function
+ *                  must have its matching call to kernel unlock function.
+ * @api
+ */
+void esKernLockExit(
     void);
 
 /**@} *//*----------------------------------------------------------------*//**
@@ -479,7 +538,7 @@ void esThdTerm(
 static PORT_C_INLINE esThd_T * esThdGetId(
     void) {
 
-    return (gKernCtrl.cthd);
+    return (KernCtrl.cthd);
 }
 
 /**@brief       Get the priority of a thread
@@ -656,7 +715,7 @@ void esThdQRmI(
  * @pre         1) `thdQ != NULL`
  * @pre         2) `thdQ->signature == THDQ_CONTRACT_SIGNATURE`, the pointer
  *                  must point to a valid @ref esThdQ structure.
- * @pre         3) `prioBM != 0`, priority bit map must not be empty
+ * @pre         3) `esPrioBM != 0`, priority bit map must not be empty
  * @iclass
  */
 esThd_T * esThdQFetchI(
@@ -744,40 +803,6 @@ void esSchedYieldI(
  * @iclass
  */
 void esSchedYieldIsrI(
-    void);
-
-/**@brief       Lock the scheduler
- * @pre         1) `The kernel state < ES_KERN_INIT`, see @ref states.
- * @iclass
- */
-void esSchedLockEnterI(
-    void);
-
-/**@brief       Unlock the scheduler
- * @pre         1) `The kernel state < ES_KERN_INIT`, see @ref states.
- * @pre         2) `gKernLockCnt > 0U`, current number of locks must be greater
- *                  than zero, in other words: each call to kernel lock function
- *                  must have its matching call to kernel unlock function.
- * @iclass
- */
-void esSchedLockExitI(
-    void);
-
-/**@brief       Lock the scheduler
- * @pre         1) `The kernel state < ES_KERN_INIT`, see @ref states.
- * @api
- */
-void esSchedLockEnter(
-    void);
-
-/**@brief       Unlock the scheduler
- * @pre         1) `The kernel state < ES_KERN_INIT`, see @ref states.
- * @pre         2) `gKernLockCnt > 0U`, current number of locks must be greater
- *                  than zero, in other words: each call to kernel lock function
- *                  must have its matching call to kernel unlock function.
- * @api
- */
-void esSchedLockExit(
     void);
 
 /**@} *//*----------------------------------------------------------------*//**

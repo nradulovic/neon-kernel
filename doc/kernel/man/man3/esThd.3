@@ -1,0 +1,101 @@
+.TH "esThd" 3 "Tue Oct 29 2013" "Version 1.0BetaR01" "eSolid - Real-Time Kernel" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+esThd \- 
+.PP
+Thread structure\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <kernel\&.h>\fP
+.SS "Data Structures"
+
+.in +1c
+.ti -1c
+.RI "struct \fBthdL\fP"
+.br
+.RI "\fIThread linked List structure\&. \fP"
+.in -1c
+.SS "Data Fields"
+
+.in +1c
+.ti -1c
+.RI "\fBportStck_T\fP * \fBstck\fP"
+.br
+.RI "\fIPointer to thread's Top Of Stack\&. \fP"
+.ti -1c
+.RI "struct \fBesThd::thdL\fP \fBthdL\fP"
+.br
+.RI "\fIThread linked list\&. \fP"
+.ti -1c
+.RI "uint_fast8_t \fBprio\fP"
+.br
+.RI "\fIThread current priority level\&. \fP"
+.ti -1c
+.RI "uint_fast8_t \fBcprio\fP"
+.br
+.RI "\fIConstant Thread Priority level\&. \fP"
+.ti -1c
+.RI "uint_fast8_t \fBqCnt\fP"
+.br
+.RI "\fIQuantum counter\&. \fP"
+.ti -1c
+.RI "uint_fast8_t \fBqRld\fP"
+.br
+.RI "\fIQuantum counter reload value\&. \fP"
+.ti -1c
+.RI "\fBportReg_T\fP \fBsignature\fP"
+.br
+.RI "\fIThread structure signature, see \fBDebug: Error checking\fP\&. \fP"
+.in -1c
+.SH "Detailed Description"
+.PP 
+Thread structure\&. 
+
+A thread structure is a data structure used by kernel to maintain information about a thread\&. Each thread requires its own ID structure and the structure is allocated in user memory space (RAM)\&. The address of the thread’s ID structure is provided to OS thread-related services\&.
+.PP
+Thread structure is used as thread ID and a thread is always referenced using this structure\&. 
+.PP
+\fBObject class:\fP
+.RS 4
+Regular \fBAPI\fP object, this object is part of the application programming interface\&. 
+.RE
+.PP
+
+.SH "Field Documentation"
+.PP 
+.SS "\fBportStck_T\fP* esThd::stck"
+
+.PP
+Pointer to thread's Top Of Stack\&. 
+.SS "struct \fBesThd::thdL\fP                \fBesThd::thdL\fP"
+
+.PP
+Thread linked list\&. 
+.SS "uint_fast8_t esThd::prio"
+
+.PP
+Thread current priority level\&. 
+.SS "uint_fast8_t esThd::cprio"
+
+.PP
+Constant Thread Priority level\&. 
+.SS "uint_fast8_t esThd::qCnt"
+
+.PP
+Quantum counter\&. 
+.SS "uint_fast8_t esThd::qRld"
+
+.PP
+Quantum counter reload value\&. 
+.SS "\fBportReg_T\fP esThd::signature"
+
+.PP
+Thread structure signature, see \fBDebug: Error checking\fP\&. 
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for eSolid - Real-Time Kernel from the source code\&.

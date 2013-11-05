@@ -53,7 +53,7 @@ PORT_C_NORETURN void dbgAssert(
     struct esDbgReport  dbgReport;
     const char *        msgText;
 
-    PORT_INTR_DISABLE();
+    PORT_INT_DISABLE();
 
     switch (msg) {
         case ES_DBG_OUT_OF_RANGE : {
@@ -92,8 +92,9 @@ PORT_C_NORETURN void dbgAssert(
     dbgReport.msgNum    = msg;
     userAssert(
         &dbgReport);
-    PORT_TERM();
-    PORT_STOP();
+    PORT_CPU_TERM();
+
+    while (TRUE);
 }
 
 /*================================*//** @cond *//*==  CONFIGURATION ERRORS  ==*/

@@ -1,0 +1,59 @@
+\hypertarget{group__dbg__impl}{\subsection{Internals}
+\label{group__dbg__impl}\index{Internals@{Internals}}
+}
+
+
+Debug inner work.  
+
+
+Collaboration diagram for Internals\-:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=216pt]{group__dbg__impl}
+\end{center}
+\end{figure}
+\subsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+P\-O\-R\-T\-\_\-\-C\-\_\-\-N\-O\-R\-E\-T\-U\-R\-N void \hyperlink{group__dbg__impl_ga204facb7daeaa5ae665adf96eed0df8d}{dbg\-Assert} (const P\-O\-R\-T\-\_\-\-C\-\_\-\-R\-O\-M struct \hyperlink{structdbgCobj}{dbg\-Cobj} $\ast$c\-Obj, const P\-O\-R\-T\-\_\-\-C\-\_\-\-R\-O\-M char $\ast$expr, enum \hyperlink{group__dbg__intf_ga571a5933b00f4fdc98d1885a6b0f4613}{es\-Dbg\-Msg} msg)
+\begin{DoxyCompactList}\small\item\em An assertion has failed. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsubsection{Detailed Description}
+Debug inner work. 
+
+\subsubsection{Function Documentation}
+\hypertarget{group__dbg__impl_ga204facb7daeaa5ae665adf96eed0df8d}{\index{Internals@{Internals}!dbg\-Assert@{dbg\-Assert}}
+\index{dbg\-Assert@{dbg\-Assert}!Internals@{Internals}}
+\paragraph[{dbg\-Assert}]{\setlength{\rightskip}{0pt plus 5cm}P\-O\-R\-T\-\_\-\-C\-\_\-\-N\-O\-R\-E\-T\-U\-R\-N void dbg\-Assert (
+\begin{DoxyParamCaption}
+\item[{const P\-O\-R\-T\-\_\-\-C\-\_\-\-R\-O\-M struct {\bf dbg\-Cobj} $\ast$}]{c\-Obj, }
+\item[{const P\-O\-R\-T\-\_\-\-C\-\_\-\-R\-O\-M char $\ast$}]{expr, }
+\item[{enum {\bf es\-Dbg\-Msg}}]{msg}
+\end{DoxyParamCaption}
+)}}\label{group__dbg__impl_ga204facb7daeaa5ae665adf96eed0df8d}
+
+
+An assertion has failed. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em c\-Obj} & C Object describes where the error occured. \\
+\hline
+{\em expr} & Expression\-: is pointer to the string containing the expression that failed to evaluate to {\ttfamily T\-R\-U\-E}. \\
+\hline
+{\em msg} & Message\-: is enum es\-Dbg\-Msg containing some information about the error. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyPrecond}{Precondition}
+1) {\ttfamily N\-U\-L\-L != c\-Obj} 
+
+2) {\ttfamily N\-U\-L\-L != expr} 
+\end{DoxyPrecond}
+\begin{DoxyNote}{Note}
+1) This function is called only if \hyperlink{group__dbg__cfg_ga64e39c477ef9d900b82585150329e3f0}{C\-F\-G\-\_\-\-D\-B\-G\-\_\-\-A\-P\-I\-\_\-\-V\-A\-L\-I\-D\-A\-T\-I\-O\-N} is active.
+\end{DoxyNote}
+Function will just print the information which was given by the macros. \begin{DoxyParagraph}{Object class\-:}
+{\bfseries Not A\-P\-I} object, this object is not part of the application programming interface and it is intended for internal use only. 
+\end{DoxyParagraph}

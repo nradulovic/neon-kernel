@@ -1,0 +1,76 @@
+\hypertarget{group__template__dbg__cfg}{\subsection{Default Debug configuration}
+\label{group__template__dbg__cfg}\index{Default Debug configuration@{Default Debug configuration}}
+}
+
+
+Default Debug Configuration settings.  
+
+
+Collaboration diagram for Default Debug configuration\-:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=330pt]{group__template__dbg__cfg}
+\end{center}
+\end{figure}
+\subsubsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\#define \hyperlink{group__template__dbg__cfg_ga2ee37a5fa7efdba7d0014328e6c623a8}{C\-F\-G\-\_\-\-D\-B\-G\-\_\-\-E\-N\-A\-B\-L\-E}~1\-U
+\begin{DoxyCompactList}\small\item\em Enable/disable Debug module. \end{DoxyCompactList}\item 
+\#define \hyperlink{group__template__dbg__cfg_ga64e39c477ef9d900b82585150329e3f0}{C\-F\-G\-\_\-\-D\-B\-G\-\_\-\-A\-P\-I\-\_\-\-V\-A\-L\-I\-D\-A\-T\-I\-O\-N}~1\-U
+\begin{DoxyCompactList}\small\item\em Enable/disable A\-P\-I arguments validation. \end{DoxyCompactList}\item 
+\#define \hyperlink{group__template__dbg__cfg_ga530daa344716eca7cf87075dd7a8fca1}{C\-F\-G\-\_\-\-D\-B\-G\-\_\-\-I\-N\-T\-E\-R\-N\-A\-L\-\_\-\-C\-H\-E\-C\-K}~1\-U
+\begin{DoxyCompactList}\small\item\em Enable/disable internal checks. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsubsection{Detailed Description}
+Default Debug Configuration settings. Each configuration option or setting has its own default value when not defined by the application. When application needs to change a setting it just needs to define a configuration macro with another value and the default configuration macro will be overridden. 
+
+\subsubsection{Macro Definition Documentation}
+\hypertarget{group__template__dbg__cfg_ga2ee37a5fa7efdba7d0014328e6c623a8}{\index{Default Debug configuration@{Default Debug configuration}!C\-F\-G\-\_\-\-D\-B\-G\-\_\-\-E\-N\-A\-B\-L\-E@{C\-F\-G\-\_\-\-D\-B\-G\-\_\-\-E\-N\-A\-B\-L\-E}}
+\index{C\-F\-G\-\_\-\-D\-B\-G\-\_\-\-E\-N\-A\-B\-L\-E@{C\-F\-G\-\_\-\-D\-B\-G\-\_\-\-E\-N\-A\-B\-L\-E}!Default Debug configuration@{Default Debug configuration}}
+\paragraph[{C\-F\-G\-\_\-\-D\-B\-G\-\_\-\-E\-N\-A\-B\-L\-E}]{\setlength{\rightskip}{0pt plus 5cm}\#define C\-F\-G\-\_\-\-D\-B\-G\-\_\-\-E\-N\-A\-B\-L\-E~1\-U}}\label{group__template__dbg__cfg_ga2ee37a5fa7efdba7d0014328e6c623a8}
+
+
+Enable/disable Debug module. 
+
+Possible values\-:
+\begin{DoxyItemize}
+\item 0\-U -\/ Debug is disabled
+\item 1\-U -\/ Debug is enabled 
+\end{DoxyItemize}\hypertarget{group__template__dbg__cfg_ga64e39c477ef9d900b82585150329e3f0}{\index{Default Debug configuration@{Default Debug configuration}!C\-F\-G\-\_\-\-D\-B\-G\-\_\-\-A\-P\-I\-\_\-\-V\-A\-L\-I\-D\-A\-T\-I\-O\-N@{C\-F\-G\-\_\-\-D\-B\-G\-\_\-\-A\-P\-I\-\_\-\-V\-A\-L\-I\-D\-A\-T\-I\-O\-N}}
+\index{C\-F\-G\-\_\-\-D\-B\-G\-\_\-\-A\-P\-I\-\_\-\-V\-A\-L\-I\-D\-A\-T\-I\-O\-N@{C\-F\-G\-\_\-\-D\-B\-G\-\_\-\-A\-P\-I\-\_\-\-V\-A\-L\-I\-D\-A\-T\-I\-O\-N}!Default Debug configuration@{Default Debug configuration}}
+\paragraph[{C\-F\-G\-\_\-\-D\-B\-G\-\_\-\-A\-P\-I\-\_\-\-V\-A\-L\-I\-D\-A\-T\-I\-O\-N}]{\setlength{\rightskip}{0pt plus 5cm}\#define C\-F\-G\-\_\-\-D\-B\-G\-\_\-\-A\-P\-I\-\_\-\-V\-A\-L\-I\-D\-A\-T\-I\-O\-N~1\-U}}\label{group__template__dbg__cfg_ga64e39c477ef9d900b82585150329e3f0}
+
+
+Enable/disable A\-P\-I arguments validation. 
+
+During the development cycle of the application this option should be turned on. When this configuration option is turned on the kernel A\-P\-I functions will also check arguments passed to them. If an invalid argument is detected the execution of the application will stop and the user will be informed about the error condition.
+
+Possible values\-:
+\begin{DoxyItemize}
+\item 0\-U -\/ A\-P\-I validation is disabled
+\item 1\-U -\/ A\-P\-I validation is enabled
+\end{DoxyItemize}
+
+\begin{DoxyNote}{Note}
+1) The error checking use \hyperlink{group__dbg__intf_gaeffe9bfb4bdcfe9d824bfa4686cc969e}{user\-Assert()} hook function to provide the information about the error condition. 
+
+2) This option is enabled only if \hyperlink{group__dbg__cfg_ga2ee37a5fa7efdba7d0014328e6c623a8}{C\-F\-G\-\_\-\-D\-B\-G\-\_\-\-E\-N\-A\-B\-L\-E} is enabled, too. 
+\end{DoxyNote}
+\hypertarget{group__template__dbg__cfg_ga530daa344716eca7cf87075dd7a8fca1}{\index{Default Debug configuration@{Default Debug configuration}!C\-F\-G\-\_\-\-D\-B\-G\-\_\-\-I\-N\-T\-E\-R\-N\-A\-L\-\_\-\-C\-H\-E\-C\-K@{C\-F\-G\-\_\-\-D\-B\-G\-\_\-\-I\-N\-T\-E\-R\-N\-A\-L\-\_\-\-C\-H\-E\-C\-K}}
+\index{C\-F\-G\-\_\-\-D\-B\-G\-\_\-\-I\-N\-T\-E\-R\-N\-A\-L\-\_\-\-C\-H\-E\-C\-K@{C\-F\-G\-\_\-\-D\-B\-G\-\_\-\-I\-N\-T\-E\-R\-N\-A\-L\-\_\-\-C\-H\-E\-C\-K}!Default Debug configuration@{Default Debug configuration}}
+\paragraph[{C\-F\-G\-\_\-\-D\-B\-G\-\_\-\-I\-N\-T\-E\-R\-N\-A\-L\-\_\-\-C\-H\-E\-C\-K}]{\setlength{\rightskip}{0pt plus 5cm}\#define C\-F\-G\-\_\-\-D\-B\-G\-\_\-\-I\-N\-T\-E\-R\-N\-A\-L\-\_\-\-C\-H\-E\-C\-K~1\-U}}\label{group__template__dbg__cfg_ga530daa344716eca7cf87075dd7a8fca1}
+
+
+Enable/disable internal checks. 
+
+Possible values\-:
+\begin{DoxyItemize}
+\item 0\-U -\/ A\-P\-I validation is disabled
+\item 1\-U -\/ A\-P\-I validation is enabled \begin{DoxyNote}{Note}
+This option is enabled only if \hyperlink{group__dbg__cfg_ga2ee37a5fa7efdba7d0014328e6c623a8}{C\-F\-G\-\_\-\-D\-B\-G\-\_\-\-E\-N\-A\-B\-L\-E} is enabled, too. 
+\end{DoxyNote}
+
+\end{DoxyItemize}

@@ -1,0 +1,50 @@
+.TH "esThd::thdL" 3 "Tue Oct 29 2013" "Version 1.0BetaR01" "eSolid - Real-Time Kernel" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+esThd::thdL \- 
+.PP
+Thread linked List structure\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <kernel\&.h>\fP
+.SS "Data Fields"
+
+.in +1c
+.ti -1c
+.RI "struct \fBesThdQ\fP * \fBq\fP"
+.br
+.RI "\fIPoints to parent thread queue\&. \fP"
+.ti -1c
+.RI "struct \fBesThd\fP * \fBnext\fP"
+.br
+.RI "\fINext thread in linked list\&. \fP"
+.ti -1c
+.RI "struct \fBesThd\fP * \fBprev\fP"
+.br
+.RI "\fIPrevious thread in linked list\&. \fP"
+.in -1c
+.SH "Detailed Description"
+.PP 
+Thread linked List structure\&. 
+.SH "Field Documentation"
+.PP 
+.SS "struct \fBesThdQ\fP* esThd::thdL::q"
+
+.PP
+Points to parent thread queue\&. 
+.SS "struct \fBesThd\fP* esThd::thdL::next"
+
+.PP
+Next thread in linked list\&. 
+.SS "struct \fBesThd\fP* esThd::thdL::prev"
+
+.PP
+Previous thread in linked list\&. 
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for eSolid - Real-Time Kernel from the source code\&.

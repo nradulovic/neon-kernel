@@ -1,0 +1,6 @@
+<map id="cpu.c" name="cpu.c">
+<area shape="rect" id="node2" href="$kernel_8h.html" title="Interface of kernel. " alt="" coords="125,80,192,107"/>
+<area shape="rect" id="node5" href="$dbg_8h.html" title="Debug basic functionality. " alt="" coords="178,155,232,181"/>
+<area shape="rect" id="node7" href="$inc_2kernel__cfg_8h.html" title="Configuration of Kernel. " alt="" coords="257,155,351,181"/>
+<area shape="rect" id="node6" href="$inc_2dbg__cfg_8h.html" title="Configuration of Debug. " alt="" coords="166,229,244,256"/>
+</map>

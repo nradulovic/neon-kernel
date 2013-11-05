@@ -1,0 +1,347 @@
+\hypertarget{group__dbg__intf}{\subsection{Interface}
+\label{group__dbg__intf}\index{Interface@{Interface}}
+}
+
+
+Application programming interface.  
+
+
+Collaboration diagram for Interface\-:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=218pt]{group__dbg__intf}
+\end{center}
+\end{figure}
+\subsubsection*{Data Structures}
+\begin{DoxyCompactItemize}
+\item 
+struct \hyperlink{structdbgModInfo}{dbg\-Mod\-Info}
+\begin{DoxyCompactList}\small\item\em Debug module information structure. \end{DoxyCompactList}\item 
+struct \hyperlink{structdbgCobj}{dbg\-Cobj}
+\begin{DoxyCompactList}\small\item\em Debug C object information structure. \end{DoxyCompactList}\item 
+struct \hyperlink{structesDbgReport}{es\-Dbg\-Report}
+\begin{DoxyCompactList}\small\item\em Debug report structure. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsubsection*{Enumerations}
+\begin{DoxyCompactItemize}
+\item 
+enum \hyperlink{group__dbg__intf_ga571a5933b00f4fdc98d1885a6b0f4613}{es\-Dbg\-Msg} \{ \\*
+\hyperlink{group__dbg__intf_gga571a5933b00f4fdc98d1885a6b0f4613a0ed2560c05255d9ec7fbc8a615679b8f}{E\-S\-\_\-\-D\-B\-G\-\_\-\-O\-U\-T\-\_\-\-O\-F\-\_\-\-R\-A\-N\-G\-E}, 
+\\*
+\hyperlink{group__dbg__intf_gga571a5933b00f4fdc98d1885a6b0f4613a9c436de3c9447cf78f5bb979d8eaacb3}{E\-S\-\_\-\-D\-B\-G\-\_\-\-O\-B\-J\-E\-C\-T\-\_\-\-N\-O\-T\-\_\-\-V\-A\-L\-I\-D}, 
+\\*
+\hyperlink{group__dbg__intf_gga571a5933b00f4fdc98d1885a6b0f4613a5d5958107ab6f5e98e71edd70fc6ee68}{E\-S\-\_\-\-D\-B\-G\-\_\-\-P\-O\-I\-N\-T\-E\-R\-\_\-\-N\-U\-L\-L}, 
+\\*
+\hyperlink{group__dbg__intf_gga571a5933b00f4fdc98d1885a6b0f4613af13d39124e0d44b1dd10af1cf4a5c071}{E\-S\-\_\-\-D\-B\-G\-\_\-\-U\-S\-A\-G\-E\-\_\-\-F\-A\-I\-L\-U\-R\-E}, 
+\\*
+\hyperlink{group__dbg__intf_gga571a5933b00f4fdc98d1885a6b0f4613a108434c02714d8cd87822f04e41979b8}{E\-S\-\_\-\-D\-B\-G\-\_\-\-N\-O\-T\-\_\-\-E\-N\-O\-U\-G\-H\-\_\-\-M\-E\-M}, 
+\\*
+\hyperlink{group__dbg__intf_gga571a5933b00f4fdc98d1885a6b0f4613ad073b50d452e7cd23ca27463c90ae8f2}{E\-S\-\_\-\-D\-B\-G\-\_\-\-U\-N\-K\-N\-O\-W\-N\-\_\-\-E\-R\-R\-O\-R} = 0x\-F\-F\-U
+ \}
+\begin{DoxyCompactList}\small\item\em Debug messages. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsubsection*{Object and error source information}
+\begin{DoxyCompactItemize}
+\item 
+\#define \hyperlink{group__dbg__intf_ga94eccf7c06c7ddd4516b8b6844666be5}{D\-E\-C\-L\-\_\-\-M\-O\-D\-U\-L\-E\-\_\-\-I\-N\-F\-O}(mod\-Name, mod\-Desc, mod\-Auth)
+\begin{DoxyCompactList}\small\item\em Declare a module information card. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsubsection*{Error checking}
+\label{_amgrpc3e04bd7ea7a3958c683753317428f1a}%
+For more datails see \hyperlink{errors}{Debug\-: Error checking}. \begin{DoxyCompactItemize}
+\item 
+P\-O\-R\-T\-\_\-\-C\-\_\-\-N\-O\-R\-E\-T\-U\-R\-N void \hyperlink{group__dbg__intf_ga204facb7daeaa5ae665adf96eed0df8d}{dbg\-Assert} (const P\-O\-R\-T\-\_\-\-C\-\_\-\-R\-O\-M struct \hyperlink{structdbgCobj}{dbg\-Cobj} $\ast$c\-Obj, const P\-O\-R\-T\-\_\-\-C\-\_\-\-R\-O\-M char $\ast$expr, enum \hyperlink{group__dbg__intf_ga571a5933b00f4fdc98d1885a6b0f4613}{es\-Dbg\-Msg} msg)
+\begin{DoxyCompactList}\small\item\em An assertion has failed. \end{DoxyCompactList}\item 
+\#define \hyperlink{group__dbg__intf_ga3826c957cc3aed7873397c0dac0b7030}{E\-S\-\_\-\-D\-B\-G\-\_\-\-A\-S\-S\-E\-R\-T}(msg, expr)
+\begin{DoxyCompactList}\small\item\em Generic assert macro. \end{DoxyCompactList}\item 
+\#define \hyperlink{group__dbg__intf_gacb07b54b924ab75eff1612d03091d48c}{E\-S\-\_\-\-D\-B\-G\-\_\-\-A\-S\-S\-E\-R\-T\-\_\-\-A\-L\-W\-A\-Y\-S}(msg, text)
+\begin{DoxyCompactList}\small\item\em Assert macro that will always execute (no conditional). \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsubsection*{Internal checking}
+\label{_amgrpe256dab415cdaed7980076817a665348}%
+These macros are enabled/disabled using the option \hyperlink{group__dbg__cfg_ga530daa344716eca7cf87075dd7a8fca1}{C\-F\-G\-\_\-\-D\-B\-G\-\_\-\-I\-N\-T\-E\-R\-N\-A\-L\-\_\-\-C\-H\-E\-C\-K}. \begin{DoxyCompactItemize}
+\item 
+\#define \hyperlink{group__dbg__intf_ga0cc690757e946a0fcd95b1ec7d430a3c}{E\-S\-\_\-\-D\-B\-G\-\_\-\-I\-N\-T\-E\-R\-N\-A\-L}(msg, expr)~\hyperlink{group__dbg__intf_ga3826c957cc3aed7873397c0dac0b7030}{E\-S\-\_\-\-D\-B\-G\-\_\-\-A\-S\-S\-E\-R\-T}(msg, expr)
+\begin{DoxyCompactList}\small\item\em Assert macro used for internal execution checking. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsubsection*{A\-P\-I contract validation}
+\label{_amgrp33843f28ec14798e89b4f60be2c8f813}%
+These macros are enabled/disabled using the option \hyperlink{group__dbg__cfg_ga64e39c477ef9d900b82585150329e3f0}{C\-F\-G\-\_\-\-D\-B\-G\-\_\-\-A\-P\-I\-\_\-\-V\-A\-L\-I\-D\-A\-T\-I\-O\-N}. \begin{DoxyCompactItemize}
+\item 
+\#define \hyperlink{group__dbg__intf_ga4f697c4030269ec84d7cff3d3a536dc7}{E\-S\-\_\-\-D\-B\-G\-\_\-\-A\-P\-I\-\_\-\-O\-B\-L\-I\-G\-A\-T\-I\-O\-N}(expr)~expr
+\begin{DoxyCompactList}\small\item\em Execute code to fulfill the contract. \end{DoxyCompactList}\item 
+\#define \hyperlink{group__dbg__intf_ga3989d15e2662496b037dbe87f6ae876c}{E\-S\-\_\-\-D\-B\-G\-\_\-\-A\-P\-I\-\_\-\-R\-E\-Q\-U\-I\-R\-E}(msg, expr)~\hyperlink{group__dbg__intf_ga3826c957cc3aed7873397c0dac0b7030}{E\-S\-\_\-\-D\-B\-G\-\_\-\-A\-S\-S\-E\-R\-T}(msg, expr)
+\begin{DoxyCompactList}\small\item\em Make sure the caller has fulfilled all contract preconditions. \end{DoxyCompactList}\item 
+\#define \hyperlink{group__dbg__intf_ga87674b53b8204d141c9041ae9f267c3e}{E\-S\-\_\-\-D\-B\-G\-\_\-\-A\-P\-I\-\_\-\-E\-N\-S\-U\-R\-E}(msg, expr)~\hyperlink{group__dbg__intf_ga3826c957cc3aed7873397c0dac0b7030}{E\-S\-\_\-\-D\-B\-G\-\_\-\-A\-S\-S\-E\-R\-T}(msg, expr)
+\begin{DoxyCompactList}\small\item\em Make sure the callee has fulfilled all contract postconditions. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsubsection*{Debug hook functions}
+\label{_amgrpaa57f14e4b6b196d434344510d6c89c5}%
+\begin{DoxyNote}{Note}
+1) The definition of this functions must be written by the user. 
+\end{DoxyNote}
+\begin{DoxyCompactItemize}
+\item 
+void \hyperlink{group__dbg__intf_gaeffe9bfb4bdcfe9d824bfa4686cc969e}{user\-Assert} (const struct \hyperlink{structesDbgReport}{es\-Dbg\-Report} $\ast$dbg\-Report)
+\begin{DoxyCompactList}\small\item\em An assertion has failed. This function should inform the user about failed assertion. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsubsection{Detailed Description}
+Application programming interface. 
+
+\subsubsection{Macro Definition Documentation}
+\hypertarget{group__dbg__intf_ga94eccf7c06c7ddd4516b8b6844666be5}{\index{Interface@{Interface}!D\-E\-C\-L\-\_\-\-M\-O\-D\-U\-L\-E\-\_\-\-I\-N\-F\-O@{D\-E\-C\-L\-\_\-\-M\-O\-D\-U\-L\-E\-\_\-\-I\-N\-F\-O}}
+\index{D\-E\-C\-L\-\_\-\-M\-O\-D\-U\-L\-E\-\_\-\-I\-N\-F\-O@{D\-E\-C\-L\-\_\-\-M\-O\-D\-U\-L\-E\-\_\-\-I\-N\-F\-O}!Interface@{Interface}}
+\paragraph[{D\-E\-C\-L\-\_\-\-M\-O\-D\-U\-L\-E\-\_\-\-I\-N\-F\-O}]{\setlength{\rightskip}{0pt plus 5cm}\#define D\-E\-C\-L\-\_\-\-M\-O\-D\-U\-L\-E\-\_\-\-I\-N\-F\-O(
+\begin{DoxyParamCaption}
+\item[{}]{mod\-Name, }
+\item[{}]{mod\-Desc, }
+\item[{}]{mod\-Auth}
+\end{DoxyParamCaption}
+)}}\label{group__dbg__intf_ga94eccf7c06c7ddd4516b8b6844666be5}
+{\bfseries Value\-:}
+\begin{DoxyCode}
+\textcolor{keyword}{static} \textcolor{keyword}{const} PORT\_C\_ROM \textcolor{keyword}{struct }\hyperlink{structdbgModInfo}{dbgModInfo} gModInfo\_ = \{                     \(\backslash\)
+        modName,                                                                \(\backslash\)
+        modDesc,                                                                \(\backslash\)
+        modAuth,                                                                \(\backslash\)
+        PORT\_C\_FILE                                                             \(\backslash\)
+    \}
+\end{DoxyCode}
+
+
+Declare a module information card. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em mod\-Name} & Module name \-: string \\
+\hline
+{\em mod\-Desc} & Module description \-: string \\
+\hline
+{\em mod\-Auth} & Module author \-: string \\
+\hline
+\end{DoxyParams}
+\hypertarget{group__dbg__intf_ga3826c957cc3aed7873397c0dac0b7030}{\index{Interface@{Interface}!E\-S\-\_\-\-D\-B\-G\-\_\-\-A\-S\-S\-E\-R\-T@{E\-S\-\_\-\-D\-B\-G\-\_\-\-A\-S\-S\-E\-R\-T}}
+\index{E\-S\-\_\-\-D\-B\-G\-\_\-\-A\-S\-S\-E\-R\-T@{E\-S\-\_\-\-D\-B\-G\-\_\-\-A\-S\-S\-E\-R\-T}!Interface@{Interface}}
+\paragraph[{E\-S\-\_\-\-D\-B\-G\-\_\-\-A\-S\-S\-E\-R\-T}]{\setlength{\rightskip}{0pt plus 5cm}\#define E\-S\-\_\-\-D\-B\-G\-\_\-\-A\-S\-S\-E\-R\-T(
+\begin{DoxyParamCaption}
+\item[{}]{msg, }
+\item[{}]{expr}
+\end{DoxyParamCaption}
+)}}\label{group__dbg__intf_ga3826c957cc3aed7873397c0dac0b7030}
+{\bfseries Value\-:}
+\begin{DoxyCode}
+\textcolor{keywordflow}{do} \{                                                                        \(\backslash\)
+        if (!(expr)) \{                                                          \(\backslash\)
+            const PORT\_C\_ROM \textcolor{keyword}{struct }\hyperlink{structdbgCobj}{dbgCobj} thisObj = \{                         \(\backslash\)
+                .mod  = &gModInfo\_,                                             \(\backslash\)
+                .fn   = \hyperlink{group__template__compiler_ga6fe63660c6d0ccbabb032c026714863e}{PORT\_C\_FUNC},                                            \(\backslash\)
+                .line = PORT\_C\_LINE                                             \(\backslash\)
+            \};                                                                  
+      \hyperlink{group__dbg__intf_ga204facb7daeaa5ae665adf96eed0df8d}{\(\backslash\)}
+\hyperlink{group__dbg__intf_ga204facb7daeaa5ae665adf96eed0df8d}{            dbgAssert}(&thisObj, #expr, msg);                                    \(\backslash\)
+        \}                                                                       \(\backslash\)
+    \} \textcolor{keywordflow}{while} (0u)
+\end{DoxyCode}
+
+
+Generic assert macro. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em msg} & Message \-: enum es\-Dbg\-Msg \-: enumerated debug message. \\
+\hline
+{\em expr} & Expression \-: C expression \-: condition expression which must be T\-R\-U\-E. \\
+\hline
+\end{DoxyParams}
+\hypertarget{group__dbg__intf_gacb07b54b924ab75eff1612d03091d48c}{\index{Interface@{Interface}!E\-S\-\_\-\-D\-B\-G\-\_\-\-A\-S\-S\-E\-R\-T\-\_\-\-A\-L\-W\-A\-Y\-S@{E\-S\-\_\-\-D\-B\-G\-\_\-\-A\-S\-S\-E\-R\-T\-\_\-\-A\-L\-W\-A\-Y\-S}}
+\index{E\-S\-\_\-\-D\-B\-G\-\_\-\-A\-S\-S\-E\-R\-T\-\_\-\-A\-L\-W\-A\-Y\-S@{E\-S\-\_\-\-D\-B\-G\-\_\-\-A\-S\-S\-E\-R\-T\-\_\-\-A\-L\-W\-A\-Y\-S}!Interface@{Interface}}
+\paragraph[{E\-S\-\_\-\-D\-B\-G\-\_\-\-A\-S\-S\-E\-R\-T\-\_\-\-A\-L\-W\-A\-Y\-S}]{\setlength{\rightskip}{0pt plus 5cm}\#define E\-S\-\_\-\-D\-B\-G\-\_\-\-A\-S\-S\-E\-R\-T\-\_\-\-A\-L\-W\-A\-Y\-S(
+\begin{DoxyParamCaption}
+\item[{}]{msg, }
+\item[{}]{text}
+\end{DoxyParamCaption}
+)}}\label{group__dbg__intf_gacb07b54b924ab75eff1612d03091d48c}
+{\bfseries Value\-:}
+\begin{DoxyCode}
+\textcolor{keywordflow}{do} \{                                                                        \(\backslash\)
+        const PORT\_C\_ROM \textcolor{keyword}{struct }\hyperlink{structdbgCobj}{dbgCobj} thisObj = \{                             \(\backslash\)
+            .mod  = &gModInfo\_,                                                 \(\backslash\)
+            .fn   = \hyperlink{group__template__compiler_ga6fe63660c6d0ccbabb032c026714863e}{PORT\_C\_FUNC},                                                \(\backslash\)
+            .line = PORT\_C\_LINE                                                 \(\backslash\)
+        \};                                                                      
+      \hyperlink{group__dbg__intf_ga204facb7daeaa5ae665adf96eed0df8d}{\(\backslash\)}
+\hyperlink{group__dbg__intf_ga204facb7daeaa5ae665adf96eed0df8d}{        dbgAssert}(\hyperlink{group__template__compiler_ga6fe63660c6d0ccbabb032c026714863e}{PORT\_C\_FUNC}, text, msg);                                     
+       \(\backslash\)
+    \} \textcolor{keywordflow}{while} (0u)
+\end{DoxyCode}
+
+
+Assert macro that will always execute (no conditional). 
+
+
+\begin{DoxyParams}{Parameters}
+{\em msg} & Message \-: enum es\-Dbg\-Msg \-: enumerated debug message. \\
+\hline
+{\em text} & Text \-: string \-: a text which will be printed when this assert macro is executed. \\
+\hline
+\end{DoxyParams}
+\hypertarget{group__dbg__intf_ga0cc690757e946a0fcd95b1ec7d430a3c}{\index{Interface@{Interface}!E\-S\-\_\-\-D\-B\-G\-\_\-\-I\-N\-T\-E\-R\-N\-A\-L@{E\-S\-\_\-\-D\-B\-G\-\_\-\-I\-N\-T\-E\-R\-N\-A\-L}}
+\index{E\-S\-\_\-\-D\-B\-G\-\_\-\-I\-N\-T\-E\-R\-N\-A\-L@{E\-S\-\_\-\-D\-B\-G\-\_\-\-I\-N\-T\-E\-R\-N\-A\-L}!Interface@{Interface}}
+\paragraph[{E\-S\-\_\-\-D\-B\-G\-\_\-\-I\-N\-T\-E\-R\-N\-A\-L}]{\setlength{\rightskip}{0pt plus 5cm}\#define E\-S\-\_\-\-D\-B\-G\-\_\-\-I\-N\-T\-E\-R\-N\-A\-L(
+\begin{DoxyParamCaption}
+\item[{}]{msg, }
+\item[{}]{expr}
+\end{DoxyParamCaption}
+)~{\bf E\-S\-\_\-\-D\-B\-G\-\_\-\-A\-S\-S\-E\-R\-T}(msg, expr)}}\label{group__dbg__intf_ga0cc690757e946a0fcd95b1ec7d430a3c}
+
+
+Assert macro used for internal execution checking. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em msg} & Message \-: enum es\-Dbg\-Msg \-: enumerated debug message. \\
+\hline
+{\em expr} & Expression \-: C expression \-: condition expression which must be satisfied \\
+\hline
+\end{DoxyParams}
+\hypertarget{group__dbg__intf_ga4f697c4030269ec84d7cff3d3a536dc7}{\index{Interface@{Interface}!E\-S\-\_\-\-D\-B\-G\-\_\-\-A\-P\-I\-\_\-\-O\-B\-L\-I\-G\-A\-T\-I\-O\-N@{E\-S\-\_\-\-D\-B\-G\-\_\-\-A\-P\-I\-\_\-\-O\-B\-L\-I\-G\-A\-T\-I\-O\-N}}
+\index{E\-S\-\_\-\-D\-B\-G\-\_\-\-A\-P\-I\-\_\-\-O\-B\-L\-I\-G\-A\-T\-I\-O\-N@{E\-S\-\_\-\-D\-B\-G\-\_\-\-A\-P\-I\-\_\-\-O\-B\-L\-I\-G\-A\-T\-I\-O\-N}!Interface@{Interface}}
+\paragraph[{E\-S\-\_\-\-D\-B\-G\-\_\-\-A\-P\-I\-\_\-\-O\-B\-L\-I\-G\-A\-T\-I\-O\-N}]{\setlength{\rightskip}{0pt plus 5cm}\#define E\-S\-\_\-\-D\-B\-G\-\_\-\-A\-P\-I\-\_\-\-O\-B\-L\-I\-G\-A\-T\-I\-O\-N(
+\begin{DoxyParamCaption}
+\item[{}]{expr}
+\end{DoxyParamCaption}
+)~expr}}\label{group__dbg__intf_ga4f697c4030269ec84d7cff3d3a536dc7}
+
+
+Execute code to fulfill the contract. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em expr} & Expression \-: C expression \-: expression to be executed only if contracts need to be validated. \\
+\hline
+\end{DoxyParams}
+\hypertarget{group__dbg__intf_ga3989d15e2662496b037dbe87f6ae876c}{\index{Interface@{Interface}!E\-S\-\_\-\-D\-B\-G\-\_\-\-A\-P\-I\-\_\-\-R\-E\-Q\-U\-I\-R\-E@{E\-S\-\_\-\-D\-B\-G\-\_\-\-A\-P\-I\-\_\-\-R\-E\-Q\-U\-I\-R\-E}}
+\index{E\-S\-\_\-\-D\-B\-G\-\_\-\-A\-P\-I\-\_\-\-R\-E\-Q\-U\-I\-R\-E@{E\-S\-\_\-\-D\-B\-G\-\_\-\-A\-P\-I\-\_\-\-R\-E\-Q\-U\-I\-R\-E}!Interface@{Interface}}
+\paragraph[{E\-S\-\_\-\-D\-B\-G\-\_\-\-A\-P\-I\-\_\-\-R\-E\-Q\-U\-I\-R\-E}]{\setlength{\rightskip}{0pt plus 5cm}\#define E\-S\-\_\-\-D\-B\-G\-\_\-\-A\-P\-I\-\_\-\-R\-E\-Q\-U\-I\-R\-E(
+\begin{DoxyParamCaption}
+\item[{}]{msg, }
+\item[{}]{expr}
+\end{DoxyParamCaption}
+)~{\bf E\-S\-\_\-\-D\-B\-G\-\_\-\-A\-S\-S\-E\-R\-T}(msg, expr)}}\label{group__dbg__intf_ga3989d15e2662496b037dbe87f6ae876c}
+
+
+Make sure the caller has fulfilled all contract preconditions. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em msg} & Message \-: enum es\-Dbg\-Msg \-: enumerated debug message. \\
+\hline
+{\em expr} & Expression \-: C expression \-: condition expression which must be satisfied \\
+\hline
+\end{DoxyParams}
+\hypertarget{group__dbg__intf_ga87674b53b8204d141c9041ae9f267c3e}{\index{Interface@{Interface}!E\-S\-\_\-\-D\-B\-G\-\_\-\-A\-P\-I\-\_\-\-E\-N\-S\-U\-R\-E@{E\-S\-\_\-\-D\-B\-G\-\_\-\-A\-P\-I\-\_\-\-E\-N\-S\-U\-R\-E}}
+\index{E\-S\-\_\-\-D\-B\-G\-\_\-\-A\-P\-I\-\_\-\-E\-N\-S\-U\-R\-E@{E\-S\-\_\-\-D\-B\-G\-\_\-\-A\-P\-I\-\_\-\-E\-N\-S\-U\-R\-E}!Interface@{Interface}}
+\paragraph[{E\-S\-\_\-\-D\-B\-G\-\_\-\-A\-P\-I\-\_\-\-E\-N\-S\-U\-R\-E}]{\setlength{\rightskip}{0pt plus 5cm}\#define E\-S\-\_\-\-D\-B\-G\-\_\-\-A\-P\-I\-\_\-\-E\-N\-S\-U\-R\-E(
+\begin{DoxyParamCaption}
+\item[{}]{msg, }
+\item[{}]{expr}
+\end{DoxyParamCaption}
+)~{\bf E\-S\-\_\-\-D\-B\-G\-\_\-\-A\-S\-S\-E\-R\-T}(msg, expr)}}\label{group__dbg__intf_ga87674b53b8204d141c9041ae9f267c3e}
+
+
+Make sure the callee has fulfilled all contract postconditions. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em msg} & Message \-: enum es\-Dbg\-Msg \-: enumerated debug message. \\
+\hline
+{\em expr} & Expression \-: C expression \-: condition expression which must be satisfied \\
+\hline
+\end{DoxyParams}
+
+
+\subsubsection{Enumeration Type Documentation}
+\hypertarget{group__dbg__intf_ga571a5933b00f4fdc98d1885a6b0f4613}{\index{Interface@{Interface}!es\-Dbg\-Msg@{es\-Dbg\-Msg}}
+\index{es\-Dbg\-Msg@{es\-Dbg\-Msg}!Interface@{Interface}}
+\paragraph[{es\-Dbg\-Msg}]{\setlength{\rightskip}{0pt plus 5cm}enum {\bf es\-Dbg\-Msg}}}\label{group__dbg__intf_ga571a5933b00f4fdc98d1885a6b0f4613}
+
+
+Debug messages. 
+
+\begin{DoxyParagraph}{Object class\-:}
+Regular {\bfseries A\-P\-I} object, this object is part of the application programming interface. 
+\end{DoxyParagraph}
+\begin{Desc}
+\item[Enumerator]\par
+\begin{description}
+\index{E\-S\-\_\-\-D\-B\-G\-\_\-\-O\-U\-T\-\_\-\-O\-F\-\_\-\-R\-A\-N\-G\-E@{E\-S\-\_\-\-D\-B\-G\-\_\-\-O\-U\-T\-\_\-\-O\-F\-\_\-\-R\-A\-N\-G\-E}!Interface@{Interface}}\index{Interface@{Interface}!E\-S\-\_\-\-D\-B\-G\-\_\-\-O\-U\-T\-\_\-\-O\-F\-\_\-\-R\-A\-N\-G\-E@{E\-S\-\_\-\-D\-B\-G\-\_\-\-O\-U\-T\-\_\-\-O\-F\-\_\-\-R\-A\-N\-G\-E}}\item[{\em 
+\hypertarget{group__dbg__intf_gga571a5933b00f4fdc98d1885a6b0f4613a0ed2560c05255d9ec7fbc8a615679b8f}{E\-S\-\_\-\-D\-B\-G\-\_\-\-O\-U\-T\-\_\-\-O\-F\-\_\-\-R\-A\-N\-G\-E}\label{group__dbg__intf_gga571a5933b00f4fdc98d1885a6b0f4613a0ed2560c05255d9ec7fbc8a615679b8f}
+}]Value is out of valid range. \index{E\-S\-\_\-\-D\-B\-G\-\_\-\-O\-B\-J\-E\-C\-T\-\_\-\-N\-O\-T\-\_\-\-V\-A\-L\-I\-D@{E\-S\-\_\-\-D\-B\-G\-\_\-\-O\-B\-J\-E\-C\-T\-\_\-\-N\-O\-T\-\_\-\-V\-A\-L\-I\-D}!Interface@{Interface}}\index{Interface@{Interface}!E\-S\-\_\-\-D\-B\-G\-\_\-\-O\-B\-J\-E\-C\-T\-\_\-\-N\-O\-T\-\_\-\-V\-A\-L\-I\-D@{E\-S\-\_\-\-D\-B\-G\-\_\-\-O\-B\-J\-E\-C\-T\-\_\-\-N\-O\-T\-\_\-\-V\-A\-L\-I\-D}}\item[{\em 
+\hypertarget{group__dbg__intf_gga571a5933b00f4fdc98d1885a6b0f4613a9c436de3c9447cf78f5bb979d8eaacb3}{E\-S\-\_\-\-D\-B\-G\-\_\-\-O\-B\-J\-E\-C\-T\-\_\-\-N\-O\-T\-\_\-\-V\-A\-L\-I\-D}\label{group__dbg__intf_gga571a5933b00f4fdc98d1885a6b0f4613a9c436de3c9447cf78f5bb979d8eaacb3}
+}]Object is not valid. \index{E\-S\-\_\-\-D\-B\-G\-\_\-\-P\-O\-I\-N\-T\-E\-R\-\_\-\-N\-U\-L\-L@{E\-S\-\_\-\-D\-B\-G\-\_\-\-P\-O\-I\-N\-T\-E\-R\-\_\-\-N\-U\-L\-L}!Interface@{Interface}}\index{Interface@{Interface}!E\-S\-\_\-\-D\-B\-G\-\_\-\-P\-O\-I\-N\-T\-E\-R\-\_\-\-N\-U\-L\-L@{E\-S\-\_\-\-D\-B\-G\-\_\-\-P\-O\-I\-N\-T\-E\-R\-\_\-\-N\-U\-L\-L}}\item[{\em 
+\hypertarget{group__dbg__intf_gga571a5933b00f4fdc98d1885a6b0f4613a5d5958107ab6f5e98e71edd70fc6ee68}{E\-S\-\_\-\-D\-B\-G\-\_\-\-P\-O\-I\-N\-T\-E\-R\-\_\-\-N\-U\-L\-L}\label{group__dbg__intf_gga571a5933b00f4fdc98d1885a6b0f4613a5d5958107ab6f5e98e71edd70fc6ee68}
+}]Pointer has N\-U\-L\-L value. \index{E\-S\-\_\-\-D\-B\-G\-\_\-\-U\-S\-A\-G\-E\-\_\-\-F\-A\-I\-L\-U\-R\-E@{E\-S\-\_\-\-D\-B\-G\-\_\-\-U\-S\-A\-G\-E\-\_\-\-F\-A\-I\-L\-U\-R\-E}!Interface@{Interface}}\index{Interface@{Interface}!E\-S\-\_\-\-D\-B\-G\-\_\-\-U\-S\-A\-G\-E\-\_\-\-F\-A\-I\-L\-U\-R\-E@{E\-S\-\_\-\-D\-B\-G\-\_\-\-U\-S\-A\-G\-E\-\_\-\-F\-A\-I\-L\-U\-R\-E}}\item[{\em 
+\hypertarget{group__dbg__intf_gga571a5933b00f4fdc98d1885a6b0f4613af13d39124e0d44b1dd10af1cf4a5c071}{E\-S\-\_\-\-D\-B\-G\-\_\-\-U\-S\-A\-G\-E\-\_\-\-F\-A\-I\-L\-U\-R\-E}\label{group__dbg__intf_gga571a5933b00f4fdc98d1885a6b0f4613af13d39124e0d44b1dd10af1cf4a5c071}
+}]Object usage failure. \index{E\-S\-\_\-\-D\-B\-G\-\_\-\-N\-O\-T\-\_\-\-E\-N\-O\-U\-G\-H\-\_\-\-M\-E\-M@{E\-S\-\_\-\-D\-B\-G\-\_\-\-N\-O\-T\-\_\-\-E\-N\-O\-U\-G\-H\-\_\-\-M\-E\-M}!Interface@{Interface}}\index{Interface@{Interface}!E\-S\-\_\-\-D\-B\-G\-\_\-\-N\-O\-T\-\_\-\-E\-N\-O\-U\-G\-H\-\_\-\-M\-E\-M@{E\-S\-\_\-\-D\-B\-G\-\_\-\-N\-O\-T\-\_\-\-E\-N\-O\-U\-G\-H\-\_\-\-M\-E\-M}}\item[{\em 
+\hypertarget{group__dbg__intf_gga571a5933b00f4fdc98d1885a6b0f4613a108434c02714d8cd87822f04e41979b8}{E\-S\-\_\-\-D\-B\-G\-\_\-\-N\-O\-T\-\_\-\-E\-N\-O\-U\-G\-H\-\_\-\-M\-E\-M}\label{group__dbg__intf_gga571a5933b00f4fdc98d1885a6b0f4613a108434c02714d8cd87822f04e41979b8}
+}]Not enough memory available. \index{E\-S\-\_\-\-D\-B\-G\-\_\-\-U\-N\-K\-N\-O\-W\-N\-\_\-\-E\-R\-R\-O\-R@{E\-S\-\_\-\-D\-B\-G\-\_\-\-U\-N\-K\-N\-O\-W\-N\-\_\-\-E\-R\-R\-O\-R}!Interface@{Interface}}\index{Interface@{Interface}!E\-S\-\_\-\-D\-B\-G\-\_\-\-U\-N\-K\-N\-O\-W\-N\-\_\-\-E\-R\-R\-O\-R@{E\-S\-\_\-\-D\-B\-G\-\_\-\-U\-N\-K\-N\-O\-W\-N\-\_\-\-E\-R\-R\-O\-R}}\item[{\em 
+\hypertarget{group__dbg__intf_gga571a5933b00f4fdc98d1885a6b0f4613ad073b50d452e7cd23ca27463c90ae8f2}{E\-S\-\_\-\-D\-B\-G\-\_\-\-U\-N\-K\-N\-O\-W\-N\-\_\-\-E\-R\-R\-O\-R}\label{group__dbg__intf_gga571a5933b00f4fdc98d1885a6b0f4613ad073b50d452e7cd23ca27463c90ae8f2}
+}]Unknown error. \end{description}
+\end{Desc}
+
+
+\subsubsection{Function Documentation}
+\hypertarget{group__dbg__intf_ga204facb7daeaa5ae665adf96eed0df8d}{\index{Interface@{Interface}!dbg\-Assert@{dbg\-Assert}}
+\index{dbg\-Assert@{dbg\-Assert}!Interface@{Interface}}
+\paragraph[{dbg\-Assert}]{\setlength{\rightskip}{0pt plus 5cm}P\-O\-R\-T\-\_\-\-C\-\_\-\-N\-O\-R\-E\-T\-U\-R\-N void dbg\-Assert (
+\begin{DoxyParamCaption}
+\item[{const P\-O\-R\-T\-\_\-\-C\-\_\-\-R\-O\-M struct {\bf dbg\-Cobj} $\ast$}]{c\-Obj, }
+\item[{const P\-O\-R\-T\-\_\-\-C\-\_\-\-R\-O\-M char $\ast$}]{expr, }
+\item[{enum {\bf es\-Dbg\-Msg}}]{msg}
+\end{DoxyParamCaption}
+)}}\label{group__dbg__intf_ga204facb7daeaa5ae665adf96eed0df8d}
+
+
+An assertion has failed. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em c\-Obj} & C Object describes where the error occured. \\
+\hline
+{\em expr} & Expression\-: is pointer to the string containing the expression that failed to evaluate to {\ttfamily T\-R\-U\-E}. \\
+\hline
+{\em msg} & Message\-: is enum es\-Dbg\-Msg containing some information about the error. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyPrecond}{Precondition}
+1) {\ttfamily N\-U\-L\-L != c\-Obj} 
+
+2) {\ttfamily N\-U\-L\-L != expr} 
+\end{DoxyPrecond}
+\begin{DoxyNote}{Note}
+1) This function is called only if \hyperlink{group__dbg__cfg_ga64e39c477ef9d900b82585150329e3f0}{C\-F\-G\-\_\-\-D\-B\-G\-\_\-\-A\-P\-I\-\_\-\-V\-A\-L\-I\-D\-A\-T\-I\-O\-N} is active.
+\end{DoxyNote}
+Function will just print the information which was given by the macros. \begin{DoxyParagraph}{Object class\-:}
+{\bfseries Not A\-P\-I} object, this object is not part of the application programming interface and it is intended for internal use only. 
+\end{DoxyParagraph}
+\hypertarget{group__dbg__intf_gaeffe9bfb4bdcfe9d824bfa4686cc969e}{\index{Interface@{Interface}!user\-Assert@{user\-Assert}}
+\index{user\-Assert@{user\-Assert}!Interface@{Interface}}
+\paragraph[{user\-Assert}]{\setlength{\rightskip}{0pt plus 5cm}void user\-Assert (
+\begin{DoxyParamCaption}
+\item[{const struct {\bf es\-Dbg\-Report} $\ast$}]{dbg\-Report}
+\end{DoxyParamCaption}
+)}}\label{group__dbg__intf_gaeffe9bfb4bdcfe9d824bfa4686cc969e}
+
+
+An assertion has failed. This function should inform the user about failed assertion. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em dbg\-Report} & Debug report\-: is pointer to the debug report created by \hyperlink{group__dbg__intf_ga204facb7daeaa5ae665adf96eed0df8d}{dbg\-Assert()} function. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyPrecond}{Precondition}
+1) {\ttfamily N\-U\-L\-L != dbg\-Report} 
+\end{DoxyPrecond}
+\begin{DoxyNote}{Note}
+1) This function is called only if \hyperlink{group__dbg__cfg_ga2ee37a5fa7efdba7d0014328e6c623a8}{C\-F\-G\-\_\-\-D\-B\-G\-\_\-\-E\-N\-A\-B\-L\-E} is active. 
+
+2) The function is called with interrupts disabled.
+\end{DoxyNote}
+Function will just print the information which was given by the macros. 

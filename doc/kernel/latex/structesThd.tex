@@ -1,0 +1,110 @@
+\hypertarget{structesThd}{\subsection{es\-Thd Struct Reference}
+\label{structesThd}\index{es\-Thd@{es\-Thd}}
+}
+
+
+Thread structure.  
+
+
+
+
+{\ttfamily \#include $<$kernel.\-h$>$}
+
+
+
+Collaboration diagram for es\-Thd\-:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=550pt]{structesThd__coll__graph}
+\end{center}
+\end{figure}
+\subsubsection*{Data Structures}
+\begin{DoxyCompactItemize}
+\item 
+struct \hyperlink{structesThd_1_1thdL}{thd\-L}
+\begin{DoxyCompactList}\small\item\em Thread linked List structure. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsubsection*{Data Fields}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{group__template__cpu__intf_ga13cc91970e3e05fe4210440c068d3f4a}{port\-Stck\-\_\-\-T} $\ast$ \hyperlink{structesThd_a5a7906c650bc81f3f0639f6f8565316b}{stck}
+\begin{DoxyCompactList}\small\item\em Pointer to thread's Top Of Stack. \end{DoxyCompactList}\item 
+struct \hyperlink{structesThd_1_1thdL}{es\-Thd\-::thd\-L} \hyperlink{structesThd_aacfdf777fcd4619fdcc33c2e57d4810c}{thd\-L}
+\begin{DoxyCompactList}\small\item\em Thread linked list. \end{DoxyCompactList}\item 
+uint\-\_\-fast8\-\_\-t \hyperlink{structesThd_a8d1877cabc7d4e637f96f4b4d5b0da09}{prio}
+\begin{DoxyCompactList}\small\item\em Thread current priority level. \end{DoxyCompactList}\item 
+uint\-\_\-fast8\-\_\-t \hyperlink{structesThd_aae7431d7fca3051dff47aaf4b9f7c855}{cprio}
+\begin{DoxyCompactList}\small\item\em Constant Thread Priority level. \end{DoxyCompactList}\item 
+uint\-\_\-fast8\-\_\-t \hyperlink{structesThd_a5721e76b02321c6701e52a9788d9bf1e}{q\-Cnt}
+\begin{DoxyCompactList}\small\item\em Quantum counter. \end{DoxyCompactList}\item 
+uint\-\_\-fast8\-\_\-t \hyperlink{structesThd_a3c2c5e4b699e3c990e37000650f031ba}{q\-Rld}
+\begin{DoxyCompactList}\small\item\em Quantum counter reload value. \end{DoxyCompactList}\item 
+\hyperlink{group__template__cpu__intf_ga99980ab56ce9857e7380210d12e3d41f}{port\-Reg\-\_\-\-T} \hyperlink{structesThd_a72e6c4660e827aae5a621894756a5eb2}{signature}
+\begin{DoxyCompactList}\small\item\em Thread structure signature, see \hyperlink{errors}{Debug\-: Error checking}. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsubsection{Detailed Description}
+Thread structure. 
+
+A thread structure is a data structure used by kernel to maintain information about a thread. Each thread requires its own I\-D structure and the structure is allocated in user memory space (R\-A\-M). The address of the thread’s I\-D structure is provided to O\-S thread-\/related services.
+
+Thread structure is used as thread I\-D and a thread is always referenced using this structure. \begin{DoxyParagraph}{Object class\-:}
+Regular {\bfseries A\-P\-I} object, this object is part of the application programming interface. 
+\end{DoxyParagraph}
+
+
+\subsubsection{Field Documentation}
+\hypertarget{structesThd_a5a7906c650bc81f3f0639f6f8565316b}{\index{es\-Thd@{es\-Thd}!stck@{stck}}
+\index{stck@{stck}!esThd@{es\-Thd}}
+\paragraph[{stck}]{\setlength{\rightskip}{0pt plus 5cm}{\bf port\-Stck\-\_\-\-T}$\ast$ es\-Thd\-::stck}}\label{structesThd_a5a7906c650bc81f3f0639f6f8565316b}
+
+
+Pointer to thread's Top Of Stack. 
+
+\hypertarget{structesThd_aacfdf777fcd4619fdcc33c2e57d4810c}{\index{es\-Thd@{es\-Thd}!thd\-L@{thd\-L}}
+\index{thd\-L@{thd\-L}!esThd@{es\-Thd}}
+\paragraph[{thd\-L}]{\setlength{\rightskip}{0pt plus 5cm}struct {\bf es\-Thd\-::thd\-L}                {\bf es\-Thd\-::thd\-L}}}\label{structesThd_aacfdf777fcd4619fdcc33c2e57d4810c}
+
+
+Thread linked list. 
+
+\hypertarget{structesThd_a8d1877cabc7d4e637f96f4b4d5b0da09}{\index{es\-Thd@{es\-Thd}!prio@{prio}}
+\index{prio@{prio}!esThd@{es\-Thd}}
+\paragraph[{prio}]{\setlength{\rightskip}{0pt plus 5cm}uint\-\_\-fast8\-\_\-t es\-Thd\-::prio}}\label{structesThd_a8d1877cabc7d4e637f96f4b4d5b0da09}
+
+
+Thread current priority level. 
+
+\hypertarget{structesThd_aae7431d7fca3051dff47aaf4b9f7c855}{\index{es\-Thd@{es\-Thd}!cprio@{cprio}}
+\index{cprio@{cprio}!esThd@{es\-Thd}}
+\paragraph[{cprio}]{\setlength{\rightskip}{0pt plus 5cm}uint\-\_\-fast8\-\_\-t es\-Thd\-::cprio}}\label{structesThd_aae7431d7fca3051dff47aaf4b9f7c855}
+
+
+Constant Thread Priority level. 
+
+\hypertarget{structesThd_a5721e76b02321c6701e52a9788d9bf1e}{\index{es\-Thd@{es\-Thd}!q\-Cnt@{q\-Cnt}}
+\index{q\-Cnt@{q\-Cnt}!esThd@{es\-Thd}}
+\paragraph[{q\-Cnt}]{\setlength{\rightskip}{0pt plus 5cm}uint\-\_\-fast8\-\_\-t es\-Thd\-::q\-Cnt}}\label{structesThd_a5721e76b02321c6701e52a9788d9bf1e}
+
+
+Quantum counter. 
+
+\hypertarget{structesThd_a3c2c5e4b699e3c990e37000650f031ba}{\index{es\-Thd@{es\-Thd}!q\-Rld@{q\-Rld}}
+\index{q\-Rld@{q\-Rld}!esThd@{es\-Thd}}
+\paragraph[{q\-Rld}]{\setlength{\rightskip}{0pt plus 5cm}uint\-\_\-fast8\-\_\-t es\-Thd\-::q\-Rld}}\label{structesThd_a3c2c5e4b699e3c990e37000650f031ba}
+
+
+Quantum counter reload value. 
+
+\hypertarget{structesThd_a72e6c4660e827aae5a621894756a5eb2}{\index{es\-Thd@{es\-Thd}!signature@{signature}}
+\index{signature@{signature}!esThd@{es\-Thd}}
+\paragraph[{signature}]{\setlength{\rightskip}{0pt plus 5cm}{\bf port\-Reg\-\_\-\-T} es\-Thd\-::signature}}\label{structesThd_a72e6c4660e827aae5a621894756a5eb2}
+
+
+Thread structure signature, see \hyperlink{errors}{Debug\-: Error checking}. 
+
+
+
+The documentation for this struct was generated from the following file\-:\begin{DoxyCompactItemize}
+\item 
+\hyperlink{kernel_8h}{kernel.\-h}\end{DoxyCompactItemize}

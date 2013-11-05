@@ -1,0 +1,81 @@
+.TH "Default Debug configuration" 3 "Tue Oct 29 2013" "Version 1.0BetaR01" "eSolid - Real-Time Kernel" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+Default Debug configuration \- 
+.PP
+Default Debug Configuration settings\&.  
+
+.SS "Macros"
+
+.in +1c
+.ti -1c
+.RI "#define \fBCFG_DBG_ENABLE\fP   1U"
+.br
+.RI "\fIEnable/disable Debug module\&. \fP"
+.ti -1c
+.RI "#define \fBCFG_DBG_API_VALIDATION\fP   1U"
+.br
+.RI "\fIEnable/disable API arguments validation\&. \fP"
+.ti -1c
+.RI "#define \fBCFG_DBG_INTERNAL_CHECK\fP   1U"
+.br
+.RI "\fIEnable/disable internal checks\&. \fP"
+.in -1c
+.SH "Detailed Description"
+.PP 
+Default Debug Configuration settings\&. 
+
+Each configuration option or setting has its own default value when not defined by the application\&. When application needs to change a setting it just needs to define a configuration macro with another value and the default configuration macro will be overridden\&. 
+.SH "Macro Definition Documentation"
+.PP 
+.SS "#define CFG_DBG_ENABLE   1U"
+
+.PP
+Enable/disable Debug module\&. Possible values:
+.IP "\(bu" 2
+0U - Debug is disabled
+.IP "\(bu" 2
+1U - Debug is enabled 
+.PP
+
+.SS "#define CFG_DBG_API_VALIDATION   1U"
+
+.PP
+Enable/disable API arguments validation\&. During the development cycle of the application this option should be turned on\&. When this configuration option is turned on the kernel API functions will also check arguments passed to them\&. If an invalid argument is detected the execution of the application will stop and the user will be informed about the error condition\&.
+.PP
+Possible values:
+.IP "\(bu" 2
+0U - API validation is disabled
+.IP "\(bu" 2
+1U - API validation is enabled
+.PP
+.PP
+\fBNote:\fP
+.RS 4
+1) The error checking use \fBuserAssert()\fP hook function to provide the information about the error condition\&. 
+.PP
+2) This option is enabled only if \fBCFG_DBG_ENABLE\fP is enabled, too\&. 
+.RE
+.PP
+
+.SS "#define CFG_DBG_INTERNAL_CHECK   1U"
+
+.PP
+Enable/disable internal checks\&. Possible values:
+.IP "\(bu" 2
+0U - API validation is disabled
+.IP "\(bu" 2
+1U - API validation is enabled 
+.PP
+\fBNote:\fP
+.RS 4
+This option is enabled only if \fBCFG_DBG_ENABLE\fP is enabled, too\&. 
+.RE
+.PP
+
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for eSolid - Real-Time Kernel from the source code\&.
