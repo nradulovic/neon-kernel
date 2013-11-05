@@ -37,19 +37,19 @@ https://launchpad.net/gcc-arm-embedded/+download) and binary was downloaded
 to the MCU using _texane_ gdb-server. There are no makefiles, it is assumed
 that IDE will generate them for you.
 
-Example: For STM32F10x family port:
+#### Example for STM32F10x family port
 
-1. there are two groups of source files which need to be compiled for ARMv7-M architecture: 
-- kernel.c, semaphore.c, dbg.c in `/src` source directory and 
-- cpu.c in `/port/arm-none-eabi-gcc/v7-m` port directory.
+There are two groups of source files which need to be compiled for ARMv7-M architecture: 
+- kernel.c, semaphore.c, dbg.c in `./src` source directory and 
+- cpu.c in `./port/arm-none-eabi-gcc/v7-m` port directory.
 
-2. the following include paths are needed:
-- `/inc`
-- `/port/arm-none-eabi-gcc/common`
-- `/port/arm-none-eabi-gcc/v7-m`
-- `/port/arm-none-eabi-gcc/stm32f10x`
+The following include paths are needed:
+- `./inc`
+- `./port/arm-none-eabi-gcc/common`
+- `./port/arm-none-eabi-gcc/v7-m`
+- `./port/arm-none-eabi-gcc/stm32f10x`
 
-### Documentation
+## Documentation
 
 Some documentation is available under Wiki 
 https://github.com/nradulovic/esolid-kernel/wiki. 
@@ -59,8 +59,8 @@ directory. Go to the directory and run doxygen:
     # doxygen doxyfile-kernel
     # doxygen doxyfile-kernel-port
 
-This will generate HTML, LaTex and man documentation in `/doc/out/kernel` and
-`/doc/out/kernel-port` directories, respectively.
+This will generate HTML, LaTex and man documentation in `./doc/kernel` and
+`./doc/kernel-port` directories, respectively.
 
 
 ## Running
