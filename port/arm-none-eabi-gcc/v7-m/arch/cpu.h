@@ -51,8 +51,8 @@
  * @name
  * @{ *//*--------------------------------------------------------------------*/
 
-#define PORT_DEF_MAX_ISR_PRIO_CODE                                              \
-    ((CFG_MAX_ISR_PRIO << (8u - CPU_DEF_ISR_PRIO_BITS)) & 0xfful)
+#define PORT_DEF_INT_PRIO                                                       \
+    (((CFG_MAX_ISR_PRIO) << (8u - CPU_DEF_ISR_PRIO_BITS)) & 0xfful)
 
 /**@brief       Minimal stack size value is the number of elements in struct
  *              @ref portCtx
@@ -74,6 +74,10 @@
 #define PORT_DEF_SYSTMR_MAX_TICKS                                               \
     (CPU_DEF_SYSTMR_MAX_VAL / PORT_DEF_SYSTMR_ONE_TICK)
 
+/**@brief       Threshold system timer value for new tick
+ */
+#define PORT_DEF_SYSTMR_WAKEUP_TH_VAL   600u
+
 /**@} *//*----------------------------------------------------------------*//**
  * @name        Kernel threads port dependent settings
  * @brief       Kernel uses several threads for system management. This section
@@ -83,12 +87,12 @@
 /**@brief       Kernel Virtual Timer Thread stack size
  * @todo        This value needs tweaking
  */
-#define PORT_KVTMR_THD_STCK_SIZE        40u
+#define PORT_DEF_KVTMR_STCK_SIZE        40u
 
 /**@brief       Kernel Idle Thread stack size
  * @todo        This value needs tweaking
  */
-#define PORT_KIDLE_THD_STCK_SIZE        40u
+#define PORT_DEF_KIDLE_STCK_SIZE        40u
 
 /**@} *//*----------------------------------------------------------------*//**
  * @name        Interrupt management
@@ -288,7 +292,7 @@ typedef uint32_t portSysTmrReg_T;
 /**@brief       Stack structure used for stack in order to force the alignment
  */
 struct portStck {
-    portReg_T           reg;
+    uint32_t            reg;
 } __attribute__ ((aligned (8)));
 
 /**@brief       Stack type
@@ -301,24 +305,24 @@ typedef struct portStck portStck_T;
  */
 struct portCtx {
 /* Registers saved by the context switcher                                    */
-    portReg_T         r4;                                                       /**< @brief R4, Variable register 1                         */
-    portReg_T         r5;                                                       /**< @brief R5, Variable register 2                         */
-    portReg_T         r6;                                                       /**< @brief R6, Variable register 3                         */
-    portReg_T         r7;                                                       /**< @brief R7, Variable register 4                         */
-    portReg_T         r8;                                                       /**< @brief R8, Variable register 5                         */
-    portReg_T         r9;                                                       /**< @brief R9, Platform register/variable register 6       */
-    portReg_T         r10;                                                      /**< @brief R10, Variable register 7                        */
-    portReg_T         r11;                                                      /**< @brief R11, Variable register 8                        */
+    portReg_T           r4;                                                     /**< @brief R4, Variable register 1                         */
+    portReg_T           r5;                                                     /**< @brief R5, Variable register 2                         */
+    portReg_T           r6;                                                     /**< @brief R6, Variable register 3                         */
+    portReg_T           r7;                                                     /**< @brief R7, Variable register 4                         */
+    portReg_T           r8;                                                     /**< @brief R8, Variable register 5                         */
+    portReg_T           r9;                                                     /**< @brief R9, Platform register/variable register 6       */
+    portReg_T           r10;                                                    /**< @brief R10, Variable register 7                        */
+    portReg_T           r11;                                                    /**< @brief R11, Variable register 8                        */
 
 /* Registers saved by the hardware                                            */
-    portReg_T         r0;                                                       /**< @brief R0, Argument/result/scratch register 1          */
-    portReg_T         r1;                                                       /**< @brief R1, Argument/result/scratch register 2          */
-    portReg_T         r2;                                                       /**< @brief R2, Argument/scratch register 3                 */
-    portReg_T         r3;                                                       /**< @brief R3, Argument/scratch register 3                 */
-    portReg_T         r12;                                                      /**< @brief R12, IP, The Intra-Procedure-call scratch reg.  */
-    portReg_T         lr;                                                       /**< @brief R14, LR, The Link Register                      */
-    portReg_T         pc;                                                       /**< @brief R15, PC, The Program Counter                    */
-    portReg_T         xpsr;                                                     /**< @brief Special, Program Status Register                */
+    portReg_T           r0;                                                     /**< @brief R0, Argument/result/scratch register 1          */
+    portReg_T           r1;                                                     /**< @brief R1, Argument/result/scratch register 2          */
+    portReg_T           r2;                                                     /**< @brief R2, Argument/scratch register 3                 */
+    portReg_T           r3;                                                     /**< @brief R3, Argument/scratch register 3                 */
+    portReg_T           r12;                                                    /**< @brief R12, IP, The Intra-Procedure-call scratch reg.  */
+    portReg_T           lr;                                                     /**< @brief R14, LR, The Link Register                      */
+    portReg_T           pc;                                                     /**< @brief R15, PC, The Program Counter                    */
+    portReg_T           xpsr;                                                   /**< @brief Special, Program Status Register                */
 };
 
 /*======================================================  GLOBAL VARIABLES  ==*/

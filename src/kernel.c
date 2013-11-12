@@ -149,7 +149,7 @@ struct sysTmr {
  *              Pointer to the bit map structure
  */
 static PORT_C_INLINE void pbmInit(
-    struct esPrioBM *       pbm);
+    struct pbm_ *       pbm);
 
 /**@brief       Set the bit corresponding to the prio argument
  * @param       pbm
@@ -158,7 +158,7 @@ static PORT_C_INLINE void pbmInit(
  *              Priority which will be marked as used
  */
 static PORT_C_INLINE void pbmSet(
-    struct esPrioBM *       pbm,
+    struct pbm_ *       pbm,
     uint_fast8_t        prio);
 
 /**@brief       Clear the bit corresponding to the prio argument
@@ -168,7 +168,7 @@ static PORT_C_INLINE void pbmSet(
  *              Priority which will be marked as unused
  */
 static PORT_C_INLINE void pbmClear(
-    struct esPrioBM *       pbm,
+    struct pbm_ *       pbm,
     uint_fast8_t        prio);
 
 /**@brief       Get the highest priority set
@@ -177,7 +177,7 @@ static PORT_C_INLINE void pbmClear(
  * @return      The number of the highest priority marked as used
  */
 static PORT_C_INLINE uint_fast8_t pbmGetHighest(
-    const struct esPrioBM * pbm);
+    const struct pbm_ * pbm);
 
 /**@brief       Is bit map empty?
  * @param       pbm
@@ -187,7 +187,7 @@ static PORT_C_INLINE uint_fast8_t pbmGetHighest(
  *  @retval     FALSE - there is at least one bit set
  */
 static PORT_C_INLINE bool_T pbmIsEmpty(
-    const struct esPrioBM * pbm);
+    const struct pbm_ * pbm);
 
 
 /**@} *//*----------------------------------------------------------------*//**
@@ -284,7 +284,7 @@ static PORT_C_INLINE void sysTmrDeactivateI(
  */
 #if   (1u == CFG_SYSTMR_ADAPTIVE_MODE) || defined(__DOXYGEN__)
 static PORT_C_INLINE void vTmrSleep(
-    esTick_T        ticks);
+    esTick_T            ticks);
 #endif
 
 /**@brief       Evaluate armed virtual timers
@@ -297,7 +297,7 @@ static PORT_C_INLINE void vTmrEvaluateI(
  *              Virtual timer: pointer to virtual timer to add
  */
 static void vTmrAddArmedS(
-    esVTmr_T *      vTmr);
+    esVTmr_T *          vTmr);
 
 /**@brief       Import timers from pending list to armed list
  * @note        This function is used only when @ref CFG_SYSTMR_ADAPTIVE_MODE
@@ -325,7 +325,7 @@ static void kVTmrInit(
  *              and to import pending timers into armed linked list.
  */
 static void kVTmr(
-    void *          arg);
+    void *              arg);
 
 /**@} *//*----------------------------------------------------------------*//**
  * @name        Idle kernel thread
@@ -341,9 +341,26 @@ static void kIdleInit(
  *              Argument: thread does not use argument
  */
 static void kIdle(
-    void *          arg);
+    void *              arg);
+
+/**@} *//*----------------------------------------------------------------*//**
+ * @name        Basic thread synchronization
+ * @{ *//*--------------------------------------------------------------------*/
+
+/**@brief       Post a signal to a thread which is waiting
+ * @param       thd
+ *              Pointer to thread which needs to be signaled
+ */
+void thdPost(
+    esThd_T *           thd);
+
+/**@brief       Wait for a signal
+ */
+void thdWait(
+    void);
 
 /**@} *//*--------------------------------------------------------------------*/
+
 /*=======================================================  LOCAL VARIABLES  ==*/
 
 DECL_MODULE_INFO("Kernel", "eSolid RT Kernel", "Nenad Radulovic");
@@ -439,27 +456,27 @@ const volatile struct kernCtrl_ KernCtrl = {
 /*============================================  LOCAL FUNCTION DEFINITIONS  ==*/
 
 
-/*--  Priority Bit Map functions  --------------------------------------------*/
+/*--  Priority Bit Map  ------------------------------------------------------*/
 
 static PORT_C_INLINE void pbmInit(
-    struct esPrioBM *       pbm) {
+    struct pbm_ *       pbm) {
 
     uint8_t             group;
 
-#if   (1u != PRIO_BM_GRP_INDX)
+#if   (1u != KERN_DEF_PBM_GRP_INDX_)
     pbm->bitGrp = 0u;
 #endif
 
-    for (group = 0u; group < PRIO_BM_GRP_INDX; group++) {
+    for (group = 0u; group < KERN_DEF_PBM_GRP_INDX_; group++) {
         pbm->bit[group] = 0u;
     }
 }
 
 static PORT_C_INLINE void pbmSet(
-    struct esPrioBM *       pbm,
+    struct pbm_ *       pbm,
     uint_fast8_t        prio) {
 
-#if   (1u != PRIO_BM_GRP_INDX)
+#if   (1u != KERN_DEF_PBM_GRP_INDX_)
     uint_fast8_t        grpIndx;
     uint_fast8_t        bitIndx;
 
@@ -473,10 +490,10 @@ static PORT_C_INLINE void pbmSet(
 }
 
 static PORT_C_INLINE void pbmClear(
-    struct esPrioBM *       pbm,
+    struct pbm_ *       pbm,
     uint_fast8_t        prio) {
 
-#if   (1u != PRIO_BM_GRP_INDX)
+#if   (1u != KERN_DEF_PBM_GRP_INDX_)
     uint_fast8_t        grpIndx;
     uint_fast8_t        bitIndx;
 
@@ -484,8 +501,8 @@ static PORT_C_INLINE void pbmClear(
     grpIndx = prio >> PRIO_BM_DATA_WIDTH_LOG2;
     pbm->bit[grpIndx] &= ~PORT_BIT_PWR2(bitIndx);
 
-    if (0u == pbm->bit[grpIndx]) {                                               /* Is this the last one bit cleared in this group?          */
-        pbm->bitGrp &= ~PORT_BIT_PWR2(grpIndx);                                      /* Yes: then clear bit group indicator, too.                */
+    if (0u == pbm->bit[grpIndx]) {                                              /* Is this the last one bit cleared in this group?          */
+        pbm->bitGrp &= ~PORT_BIT_PWR2(grpIndx);                                 /* Yes: then clear bit group indicator, too.                */
     }
 #else
     pbm->bit[0] &= ~PORT_BIT_PWR2(prio);
@@ -493,9 +510,9 @@ static PORT_C_INLINE void pbmClear(
 }
 
 static PORT_C_INLINE uint_fast8_t pbmGetHighest(
-    const struct esPrioBM * pbm) {
+    const struct pbm_ * pbm) {
 
-#if   (1u != PRIO_BM_GRP_INDX)
+#if   (1u != KERN_DEF_PBM_GRP_INDX_)
     uint_fast8_t        grpIndx;
     uint_fast8_t        bitIndx;
 
@@ -513,9 +530,9 @@ static PORT_C_INLINE uint_fast8_t pbmGetHighest(
 }
 
 static PORT_C_INLINE bool_T pbmIsEmpty(
-    const struct esPrioBM * pbm) {
+    const struct pbm_ * pbm) {
 
-#if   (1u != PRIO_BM_GRP_INDX)
+#if   (1u != KERN_DEF_PBM_GRP_INDX_)
     bool_T              ret;
 
     if (0u == pbm->bitGrp) {
@@ -539,13 +556,13 @@ static PORT_C_INLINE bool_T pbmIsEmpty(
 }
 
 
-/*--  Scheduler functions  ---------------------------------------------------*/
+/*--  Scheduler  -------------------------------------------------------------*/
 
 static PORT_C_INLINE void schedInit(
     void) {
 
     esThdQInit(
-        &RdyQueue);                                                            /* Initialize basic thread queue structure                  */
+        &RdyQueue);                                                             /* Initialize basic thread queue structure                  */
     ((volatile struct kernCtrl_ *)&KernCtrl)->state = ES_KERN_INIT;
 }
 
@@ -608,7 +625,7 @@ static PORT_C_INLINE void schedWakeUpI(
 #endif
 
 static PORT_C_INLINE void schedRdyAddInitI(
-    esThd_T *       thd) {
+    esThd_T *           thd) {
 
     if (NULL == KernCtrl.pthd) {
         ((struct kernCtrl_ *)&KernCtrl)->pthd = thd;
@@ -626,18 +643,18 @@ static PORT_C_INLINE void schedQmNextI(
         &RdyQueue,
         cthd->prio);
 
-    if (cthd == KernCtrl.pthd) {                                               /* If there is no any other thread pending for switching    */
-        ((struct kernCtrl_ *)&KernCtrl)->pthd = nthd;                              /* Make the new thread pending                              */
+    if (cthd == KernCtrl.pthd) {                                                /* If there is no any other thread pending for switching    */
+        ((struct kernCtrl_ *)&KernCtrl)->pthd = nthd;                          /* Make the new thread pending                              */
     }
 }
 
 static PORT_C_INLINE void schedQmI(
     void) {
 
-    if (ES_KERN_LOCK > KernCtrl.state) {                                       /* Round-Robin is not enabled in kernel LOCK state          */
+    if (ES_KERN_LOCK > KernCtrl.state) {                                        /* Round-Robin is not enabled in kernel LOCK state          */
         esThd_T * cthd;
 
-        cthd = KernCtrl.cthd;                                                  /* Get the current thread                                   */
+        cthd = KernCtrl.cthd;                                                   /* Get the current thread                                   */
 
         if (!DLIST_IS_ENTRY_SINGLE(thdL, cthd)) {
             cthd->qCnt--;                                                       /* Decrement current thread time quantum                    */
@@ -661,15 +678,13 @@ static PORT_C_INLINE void sysTmrInit(
     PORT_SYSTMR_ISR_ENABLE();
 }
 
-#define PORT_SYSTMR_WAKEUP_TH_VAL       600U
-
 #if   (1u == CFG_SYSTMR_ADAPTIVE_MODE) || defined(__DOXYGEN__)
 static PORT_C_INLINE void sysTmrActivate(
     void) {
 
-    if (0u == SysTmr.ptick) {                                                  /* Normal wake up.                                          */
+    if (0u == SysTmr.ptick) {                                                   /* Normal wake up.                                          */
 
-        if (0u != SysTmr.vTmrArmed) {                                          /* System timer was enabled during sleep.                   */
+        if (0u != SysTmr.vTmrArmed) {                                           /* System timer was enabled during sleep.                   */
             portSysTmrReg_T tmrVal;
 
             tmrVal = PORT_SYSTMR_GET_RVAL() - PORT_SYSTMR_GET_CVAL();
@@ -689,12 +704,12 @@ static PORT_C_INLINE void sysTmrActivate(
         tmrVal -= (PORT_DEF_SYSTMR_ONE_TICK * ticks);
         tmrVal = PORT_DEF_SYSTMR_ONE_TICK - tmrVal;
 
-        if (PORT_SYSTMR_WAKEUP_TH_VAL > tmrVal) {
+        if (PORT_DEF_SYSTMR_WAKEUP_TH_VAL > tmrVal) {
             PORT_SYSTMR_RLD(tmrVal);
         } else {
             PORT_SYSTMR_RLD(tmrVal + PORT_DEF_SYSTMR_ONE_TICK);
         }
-        vTmr = DLIST_ENTRY_NEXT(tmrL, &VTmrArmed);
+        vTmr = DLIST_ENTRY_NEXT(tmrL_, &VTmrArmed);
         vTmr->rtick -= ticks;
         SysTmr.ctick += ticks;
         SysTmr.ptick = 0u;
@@ -706,10 +721,10 @@ static PORT_C_INLINE void sysTmrActivate(
 static PORT_C_INLINE void sysTmrDeactivateI(
     void) {
 
-    if (0u != SysTmr.vTmrArmed) {                                              /* There is an armed timer: put system timer to sleep sleep.*/
+    if (0u != SysTmr.vTmrArmed) {                                               /* There is an armed timer: put system timer to sleep sleep.*/
         esVTmr_T * vTmr;
 
-        vTmr = DLIST_ENTRY_NEXT(tmrL, &VTmrArmed);
+        vTmr = DLIST_ENTRY_NEXT(tmrL_, &VTmrArmed);
         vTmrSleep(
             vTmr->rtick);
     } else {                                                                    /* No virtual timer is armed: set system timer to disabled. */
@@ -720,7 +735,7 @@ static PORT_C_INLINE void sysTmrDeactivateI(
 #endif
 
 
-/*--  Timer  -----------------------------------------------------------------*/
+/*--  Virtual Timer and Virtual Timer kernel thread --------------------------*/
 
 #if   (1u == CFG_SYSTMR_ADAPTIVE_MODE) || defined(__DOXYGEN__)
 static PORT_C_INLINE void vTmrSleep(
@@ -748,7 +763,7 @@ static PORT_C_INLINE void vTmrEvaluateI(
     void) {
     ++SysTmr.ctick;
 
-    if (0u != SysTmr.vTmrArmed) {                                              /* There is an armed timer waiting.                         */
+    if (0u != SysTmr.vTmrArmed) {                                               /* There is an armed timer waiting.                         */
         esVTmr_T * vTmr;
 
         vTmr = DLIST_ENTRY_NEXT(tmrL, &VTmrArmed);
@@ -756,7 +771,7 @@ static PORT_C_INLINE void vTmrEvaluateI(
 #if   (0u == CFG_SYSTMR_ADAPTIVE_MODE)
         --vTmr->rtick;
 #elif (1u == CFG_SYSTMR_ADAPTIVE_MODE)
-        if (0u == SysTmr.ptick) {                                              /* Normal system tick.                                      */
+        if (0u == SysTmr.ptick) {                                               /* Normal system tick.                                      */
 
             if (PORT_DEF_SYSTMR_ONE_TICK != PORT_SYSTMR_GET_RVAL()) {           /* If system timer is in adaptive mode switch it to fixed   */
                 PORT_SYSTMR_RLD(PORT_DEF_SYSTMR_ONE_TICK);                      /* mode.                                                    */
@@ -764,7 +779,7 @@ static PORT_C_INLINE void vTmrEvaluateI(
             --vTmr->rtick;
         } else {                                                                /* Low power tick.                                          */
             SysTmr.ctick += SysTmr.ptick - 1u;
-            vTmr->rtick -= SysTmr.ptick;                                       /* Subtract pending ticks from current timer.               */
+            vTmr->rtick -= SysTmr.ptick;                                        /* Subtract pending ticks from current timer.               */
             vTmrSleep(                                                          /* time period.                                             */
                 vTmr->rtick);
         }
@@ -776,7 +791,7 @@ static PORT_C_INLINE void vTmrEvaluateI(
         }
     }
 
-    if (0u != SysTmr.vTmrPend) {                                               /* There is a timer pending, start kVTmr thread.            */
+    if (0u != SysTmr.vTmrPend) {                                                /* There is a timer pending, start kVTmr thread.            */
 
         if (NULL == KVTmr.thdL.q) {
             esSchedRdyAddI(
@@ -818,8 +833,8 @@ static PORT_C_INLINE void vTmrImportPendSleepI(
 
         --SysTmr.vTmrPend;
         ++SysTmr.vTmrArmed;
-        tmr = DLIST_ENTRY_NEXT(tmrL, &VTmrPend);
-        DLIST_ENTRY_RM(tmrL, tmr);
+        tmr = DLIST_ENTRY_NEXT(tmrL_, &VTmrPend);
+        DLIST_ENTRY_RM(tmrL_, tmr);
         vTmrAddArmedS(
             tmr);
     }
@@ -854,15 +869,12 @@ static void vTmrImportPend(
     ES_CRITICAL_EXIT(lockCtx);
 }
 
-
-/*--  Kernel threads  --------------------------------------------------------*/
-
 /* 1)       Kernel Virtual Timer thread must have the highest priority available.
  */
 static void kVTmrInit(
     void) {
 
-    static portStck_T kVTmrStck[ES_STCK_SIZE(PORT_KVTMR_THD_STCK_SIZE)];            /* Virtual timer kernel thread stack.                       */
+    static portStck_T kVTmrStck[ES_STCK_SIZE(PORT_DEF_KVTMR_STCK_SIZE)];        /* Virtual timer kernel thread stack.                       */
 
     esThdInit(
         &KVTmr,
@@ -885,9 +897,9 @@ static void kVTmr(
 
     while (TRUE) {
 
-        esThdWait();
+        thdWait();
 
-        if (0u != SysTmr.vTmrArmed) {                                          /* There is at least one armed timer.                       */
+        if (0u != SysTmr.vTmrArmed) {                                           /* There is at least one armed timer.                       */
             esVTmr_T * tmr;
 
             tmr = DLIST_ENTRY_NEXT(tmrL, &VTmrArmed);
@@ -907,12 +919,15 @@ static void kVTmr(
     }
 }
 
+
+/*--  Idle kernel thread  ----------------------------------------------------*/
+
 /* 1)       Kernel Idle thread must have the lowest priority.
  */
 static void kIdleInit(
     void) {
 
-    static portStck_T kIdleStck[ES_STCK_SIZE(PORT_KIDLE_THD_STCK_SIZE)];            /* Idle kernel thread stack.                                */
+    static portStck_T kIdleStck[ES_STCK_SIZE(PORT_DEF_KIDLE_STCK_SIZE)];        /* Idle kernel thread stack.                                */
 
     esThdInit(
         &KIdle,
@@ -926,7 +941,7 @@ static void kIdleInit(
 /* 1)       Idle thread must be the only thread at this priority level.
  */
 static void kIdle(
-    void *          arg){
+    void *              arg){
 
     (void)arg;
 
@@ -937,11 +952,44 @@ static void kIdle(
     }
 }
 
+
+/*--  Basic thread synchronization  ------------------------------------------*/
+
+/* 1)       Since this function can be called multiple times with the same
+ *          thread then it needs to check if the thread is not already added in
+ *          a queue.
+ */
+void thdPost(
+    esThd_T *           thd) {
+
+    portReg_T           intCtx;
+
+    ES_CRITICAL_ENTER(&intCtx);
+    if (NULL == thd->thdL.q) {
+        esSchedRdyAddI(
+            thd);
+        esSchedYieldI();
+    }
+    ES_CRITICAL_EXIT(intCtx);
+}
+
+void thdWait(
+    void) {
+
+    portReg_T           intCtx;
+
+    ES_CRITICAL_ENTER(&intCtx);
+    esSchedRdyRmI(
+        esThdGetId());
+    esSchedYieldI();
+    ES_CRITICAL_EXIT(intCtx);
+}
+
 /*===================================  GLOBAL PRIVATE FUNCTION DEFINITIONS  ==*/
 /*====================================  GLOBAL PUBLIC FUNCTION DEFINITIONS  ==*/
 
 
-/*--  Kernel General functions  ----------------------------------------------*/
+/*--  General kernel functions  ----------------------------------------------*/
 
 void esKernInit(
     void) {
@@ -976,7 +1024,7 @@ PORT_C_NORETURN void esKernStart(
 #endif
     PORT_CPU_INIT_LATE();
     schedStart();                                                               /* Initialize scheduler data structures for multi-threading */
-    PORT_CTX_SW_START();                                                           /* Start the first thread                                   */
+    PORT_CTX_SW_START();                                                        /* Start the first thread                                   */
 
     while (TRUE);                                                               /* Prevent compiler `function does return` warnings.        */
 }
@@ -1018,10 +1066,13 @@ void esKernIsrExit(
     }
 }
 
+
+/*--  Critical code section locking management  ------------------------------*/
+
 void esKernLockIntEnter(
     esLockCtx_T *       lockCtx) {
 
-    PORT_INT_PRIO_REPLACE(lockCtx, CFG_MAX_ISR_PRIO);
+    PORT_INT_PRIO_REPLACE(lockCtx, PORT_DEF_INT_PRIO);
     esKernLockEnterI();
 }
 
@@ -1075,7 +1126,8 @@ void esKernLockExit(
     ES_CRITICAL_EXIT(intCtx);
 }
 
-/*--  Thread functions  ------------------------------------------------------*/
+
+/*--  Thread management ------------------------------------------------------*/
 
 void esThdInit(
     esThd_T *           thd,
@@ -1101,7 +1153,7 @@ void esThdInit(
     thd->thdL.q = NULL;                                                         /* This thread is not in any thread queue.                  */
     DLIST_ENTRY_INIT(thdL, thd);
     thd->prio   = prio;                                                         /* Set the priority.                                        */
-    thd->cprio  = prio;                                                         /* This is constant priority, it never changes.             */
+    thd->iprio  = prio;                                                         /* This is constant priority, it never changes.             */
     thd->qCnt   = CFG_SCHED_TIME_QUANTUM;
     thd->qRld   = CFG_SCHED_TIME_QUANTUM;
 
@@ -1170,10 +1222,10 @@ void esThdSetPrioI(
             thd->thdL.q,
             thd);
 
-        if (&RdyQueue == thd->thdL.q) {                                        /* Is thread in ready thread queue?                         */
+        if (&RdyQueue == thd->thdL.q) {                                         /* Is thread in ready thread queue?                         */
 
-            if (thd->prio > KernCtrl.pthd->prio) {                             /* If new prio is higher than the current prio notify the   */
-                ((struct kernCtrl_ *)&KernCtrl)->pthd = thd;                       /* scheduler about new thread.                              */
+            if (thd->prio > KernCtrl.pthd->prio) {                              /* If new prio is higher than the current prio notify the   */
+                ((struct kernCtrl_ *)&KernCtrl)->pthd = thd;                    /* scheduler about new thread.                              */
             } else {
                 ((struct kernCtrl_ *)&KernCtrl)->pthd = esThdQFetchI(
                     &RdyQueue);
@@ -1182,55 +1234,8 @@ void esThdSetPrioI(
     }
 }
 
-/* 1)       Since this function can be called multiple times with the same
- *          thread then it needs to check if the thread is not already added in
- *          a queue.
- */
-void esThdPostI(
-    esThd_T *           thd) {
 
-    if (NULL == thd->thdL.q) {
-        esSchedRdyAddI(
-            thd);
-        esSchedYieldI();
-    }
-}
-
-/* 1)       See notes for esThdPostI()
- */
-void esThdPost(
-    esThd_T *           thd) {
-
-    portReg_T           intCtx;
-
-    ES_CRITICAL_ENTER(&intCtx);
-    esThdPostI(
-        thd);
-    ES_CRITICAL_EXIT(intCtx);
-}
-
-void esThdWaitI(
-    void) {
-
-    ES_DBG_API_REQUIRE(ES_DBG_USAGE_FAILURE, ES_KERN_RUN == KernCtrl.state);
-
-    esSchedRdyRmI(
-        esThdGetId());
-    esSchedYieldI();
-}
-
-void esThdWait(
-    void) {
-
-    portReg_T           intCtx;
-
-    ES_CRITICAL_ENTER(&intCtx);
-    esThdWaitI();
-    ES_CRITICAL_EXIT(intCtx);
-}
-
-
-/*--  Thread Queue functions  ------------------------------------------------*/
+/*--  Thread Queue management  -----------------------------------------------*/
 
 void esThdQInit(
     esThdQ_T *          thdQ) {
@@ -1279,7 +1284,7 @@ void esThdQAddI(
 
     sentinel = &(thdQ->grp[thd->prio]);                                         /* Get the sentinel from thread priority level.             */
 
-    if (NULL == sentinel->head) {                                               /* Is thdL list empty?                                      */
+    if (NULL == sentinel->head) {                                               /* Is thdL_ list empty?                                      */
         sentinel->head = thd;                                                   /* This thread becomes first in the list.                   */
         sentinel->next = thd;
         pbmSet(
@@ -1305,12 +1310,12 @@ void esThdQRmI(
 
     sentinel = &(thdQ->grp[thd->prio]);                                         /* Get the sentinel from thread priority level.             */
 
-    if (DLIST_IS_ENTRY_LAST(thdL, thd)) {                                       /* Is this thread last one in the thdL list?                */
+    if (DLIST_IS_ENTRY_LAST(thdL, thd)) {                                       /* Is this thread last one in the thdL_ list?                */
         sentinel->head = NULL;                                                  /* Make the list sentinel empty.                            */
         pbmClear(
             &thdQ->prioOcc,
             thd->prio);                                                         /* Remove the mark since this group is not used.            */
-    } else {                                                                    /* This thread is not the last one in the thdL list.        */
+    } else {                                                                    /* This thread is not the last one in the thdL_ list.        */
 
         if (sentinel->head == thd) {                                            /* In case we are removing first thread in linked list then */
             sentinel->head = DLIST_ENTRY_NEXT(thdL, thd);                       /* advance the head to point to the next one in the list.   */
@@ -1337,7 +1342,7 @@ esThd_T * esThdQFetchI(
 
     prio = pbmGetHighest(
         &thdQ->prioOcc);                                                        /* Get the highest priority ready to run.                   */
-    sentinel = (struct thdLSent_ *)&(thdQ->grp[prio]);                            /* Get the Group Head pointer for that priority.            */
+    sentinel = (struct thdLSent_ *)&(thdQ->grp[prio]);                          /* Get the Group Head pointer for that priority.            */
                                                                                 /* The type cast is needed to avoid compiler warnings.      */
     ES_DBG_API_ENSURE(ES_DBG_OBJECT_NOT_VALID, THD_CONTRACT_SIGNATURE == sentinel->next->signature);
 
@@ -1378,7 +1383,7 @@ bool_T esThdQIsEmpty(
 }
 
 
-/*--  Scheduler functions  ---------------------------------------------------*/
+/*--  Scheduler notification and invocation  ---------------------------------*/
 
 void esSchedRdyAddI(
     esThd_T *           thd) {
@@ -1466,7 +1471,8 @@ void esSchedYieldIsrI(
     }
 }
 
-/*--  Timer functions  -------------------------------------------------------*/
+
+/*--  Virtual Timer management  ----------------------------------------------*/
 
 void esVTmrInitI(
     esVTmr_T *          vTmr,
@@ -1522,7 +1528,7 @@ void esVTmrTermI(
 
     ES_DBG_API_OBLIGATION(vTmr->signature = ~VTMR_CONTRACT_SIGNATURE);
 
-    if (&VTmrPend == vTmr->tmrL.q) {                                           /* A pending timer is being deleted.                        */
+    if (&VTmrPend == vTmr->tmrL.q) {                                            /* A pending timer is being deleted.                        */
         DLIST_ENTRY_RM(tmrL, vTmr);
         --SysTmr.vTmrPend;
     } else {                                                                    /* An armed timer is being deleted.                         */
@@ -1541,26 +1547,26 @@ void esVTmrTermI(
         --SysTmr.vTmrArmed;
 
         if ((0u != SysTmr.ptick) &&
-            (DLIST_ENTRY_NEXT(tmrL, &VTmrArmed) == vTmr)) {                    /* System timer was sleeping and vTmr is the current timer. */
-            DLIST_ENTRY_RM(tmrL, vTmr);
+            (DLIST_ENTRY_NEXT(tmrL_, &VTmrArmed) == vTmr)) {                    /* System timer was sleeping and vTmr is the current timer. */
+            DLIST_ENTRY_RM(tmrL_, vTmr);
 
-            if (0u != SysTmr.vTmrArmed) {                                      /* The last timer is not being deleted: remaining time is   */
+            if (0u != SysTmr.vTmrArmed) {                                       /* The last timer is not being deleted: remaining time is   */
                 esVTmr_T * nextVTmr;                                            /* calculated to add to next timer in list.                 */
 
                 vTmr->rtick -= (PORT_SYSTMR_GET_RVAL() - PORT_SYSTMR_GET_CVAL()) / PORT_DEF_SYSTMR_ONE_TICK;
-                nextVTmr = DLIST_ENTRY_NEXT(tmrL, &VTmrArmed);
+                nextVTmr = DLIST_ENTRY_NEXT(tmrL_, &VTmrArmed);
                 nextVTmr->rtick += vTmr->rtick;
             }
             sysTmrDeactivateI();
         } else {
             esVTmr_T * nextVTmr;
 
-            nextVTmr = DLIST_ENTRY_NEXT(tmrL, vTmr);
+            nextVTmr = DLIST_ENTRY_NEXT(tmrL_, vTmr);
 
             if (&VTmrArmed != nextVTmr) {
                 nextVTmr->rtick += vTmr->rtick;
             }
-            DLIST_ENTRY_RM(tmrL, vTmr);
+            DLIST_ENTRY_RM(tmrL_, vTmr);
         }
 #endif
     }
@@ -1585,10 +1591,12 @@ void esVTmrDelay(
     esVTmrInit(
         &vTmr,
         tick,
-        (void (*)(void *))esThdPost,
+        (void (*)(void *))thdPost,
         (void *)esThdGetId());
-    esThdWait();
+    thdWait();
 }
+
+/*--  Kernel time management  ------------------------------------------------*/
 
 esTick_T esSysTmrTickGet(
     void) {
@@ -1614,11 +1622,11 @@ esTick_T esSysTmrTickGet(
     }
 # endif
 #elif (1u == CFG_SYSTMR_ADAPTIVE_MODE)
-    if (0u == SysTmr.ptick) {                                                  /* Normal operation.                                        */
+    if (0u == SysTmr.ptick) {                                                   /* Normal operation.                                        */
         tick = SysTmr.ctick;
     } else {                                                                    /* Preempted wake up, system timer was enabled during sleep.*/
 
-        if (0u != SysTmr.vTmrArmed) {                                          /* System timer was enabled during sleep.                   */
+        if (0u != SysTmr.vTmrArmed) {                                           /* System timer was enabled during sleep.                   */
             portSysTmrReg_T tmrVal;
 
             tmrVal = (PORT_SYSTMR_GET_RVAL() - PORT_SYSTMR_GET_CVAL());

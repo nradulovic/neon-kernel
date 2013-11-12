@@ -229,13 +229,13 @@ void portCpuInit(
            (CFG_SCB_AIRCR_PRIGROUP << SCB_AIRCR_PRIGROUP_POS));                 /* Setup priority subgroup to zero bits                     */
     intPrioSet(
         PENDSV_IRQN,
-        PORT_DEF_MAX_ISR_PRIO_CODE);
+        PORT_DEF_INT_PRIO);
     intPrioSet(
         SVCALL_IRQN,
-        PORT_DEF_MAX_ISR_PRIO_CODE);
+        PORT_DEF_INT_PRIO);
     intPrioSet(
         SYST_IRQN,
-        PORT_DEF_MAX_ISR_PRIO_CODE);
+        PORT_DEF_INT_PRIO);
 }
 
 void portCpuTerm(
@@ -275,7 +275,7 @@ PORT_C_NAKED void portSVC(
         :
         :   "i"(&KernCtrl.cthd),
             "i"(DEF_EXC_RETURN),
-            "i"(PORT_DEF_MAX_ISR_PRIO_CODE));
+            "i"(PORT_DEF_INT_PRIO));
 #else
     __asm__ __volatile__ (
         "   ldr     r0, =%0                                 \n"               /* (1) Load KernCtrl.cthd address                          */
@@ -327,7 +327,7 @@ PORT_C_NAKED void portPendSV(
         :   "i"(&KernCtrl),
             "J"(offsetof(struct kernCtrl_, cthd)),
             "J"(offsetof(struct kernCtrl_, pthd)),
-            "i"(PORT_DEF_MAX_ISR_PRIO_CODE));
+            "i"(PORT_DEF_INT_PRIO));
 #else
     __asm__ __volatile__ (
         "   ldr     r0, =%0                                 \n"               /* (1) Get the address of gCurrentThd                       */
