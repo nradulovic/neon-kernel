@@ -644,7 +644,7 @@ static PORT_C_INLINE void schedQmNextI(
         cthd->prio);
 
     if (cthd == KernCtrl.pthd) {                                                /* If there is no any other thread pending for switching    */
-        ((struct kernCtrl_ *)&KernCtrl)->pthd = nthd;                          /* Make the new thread pending                              */
+        ((struct kernCtrl_ *)&KernCtrl)->pthd = nthd;                           /* Make the new thread pending                              */
     }
 }
 
