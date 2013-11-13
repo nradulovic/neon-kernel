@@ -171,8 +171,7 @@
 #define PORT_CPU_TERM()                 portCpuTerm()
 
 #define PORT_STCK_SIZE(size)                                                    \
-    ((((size + PORT_DEF_STCK_MINSIZE) + (sizeof(struct portStck) /              \
-    sizeof(portReg_T))) - 1u) / (sizeof(struct portStck)/sizeof(portReg_T)))
+    (size + PORT_DEF_STCK_MINSIZE)
 
 /** @} *//*---------------------------------------------------------------*//**
  * @name        Port specific macros
