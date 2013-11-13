@@ -377,8 +377,8 @@ void esKernIsrExit(
     void);
 
 /**@} *//*----------------------------------------------------------------*//**
- * @name        Critical code section locking management
- * @details     These functions are used to protect concurrent access to a
+ * @name        Multi-threading locking management
+ * @details     These methods are often used to protect concurrent access to a
  *              protected resource.
  *
  *              For more details see @ref critical_section.
