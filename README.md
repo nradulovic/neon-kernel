@@ -54,7 +54,8 @@ The following include paths are needed:
 Some documentation is available under Wiki 
 https://github.com/nradulovic/esolid-kernel/wiki. 
 Doxygen configuration and full documentation source files are available in `/doc` 
-directory. Go to the directory and run doxygen:
+directory. Go to the directory `doc` create a directory named `kernel` and than 
+run doxygen:
 
     # doxygen doxyfile-kernel
     # doxygen doxyfile-kernel-port
