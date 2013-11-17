@@ -150,48 +150,48 @@
 
 /**@brief       Set interrupt priority mask
  * @param       prio
- *              Priority, a new value for interrupt priority mask
+ *              Priority : @ref portReg_T type value for interrupt priority mask
  */
 #define PORT_INT_PRIO_SET(prio)
 
 /**@brief       Get current interrupt priority mask
  * @param       prio
- *              Pointer to variable of type portReg_T which will hold the
- *              priority value.
+ *              Priority : pointer to variable of type @ref portReg_T which will
+ *              hold the priority value.
  */
 #define PORT_INT_PRIO_GET(prio)
 
 /**@brief       Get current and set new interrupt priority mask
  * @param       oldPrio
- *              Old priority, pointer to variable of type portReg_T which will
- *              hold old priority value.
- * @param       newPrio
+ *              Old priority : pointer to variable of type @ref portReg_T which
+ *              will hold old priority value.
+ * @param       newPrio : @ref portReg_T type value
  *              New priority mask value
  */
 #define PORT_INT_PRIO_REPLACE(oldPrio, newPrio)
 
-/**@brief       Enter ISR. Increment PortIsrNesting_ variable to keep track of
+/**@brief       Enter ISR. Increment PortIsrNesting variable to keep track of
  *              ISR nesting.
- * @details     Variable PortIsrNesting_ is needed only if the port does not
+ * @details     Variable PortIsrNesting is needed only if the port does not
  *              support any other method of detecting when the last ISR is
  *              executing.
  */
 #define PORT_ISR_ENTER()                                                        \
     do {                                                                        \
-        PortIsrNesting_++;                                                      \
-        esKernIsrPrologueI();                                                   \
+        PortIsrNesting++;                                                       \
+        esKernIsrEnterI();                                                      \
     } while (0u)
 
-/**@brief       Exit ISR. Decrement PortIsrNesting_ variable to keep track of
+/**@brief       Exit ISR. Decrement PortIsrNesting variable to keep track of
  *              ISR nesting.
- * @details     Variable PortIsrNesting_ is needed only if the port does not
+ * @details     Variable PortIsrNesting is needed only if the port does not
  *              support any other method of detecting when the last ISR is
  *              executing.
  */
 #define PORT_ISR_EXIT()                                                         \
     do {                                                                        \
-        PortIsrNesting_--;                                                      \
-        esKernIsrEpilogueI();                                                   \
+        PortIsrNesting--;                                                       \
+        esKernIsrExitI();                                                       \
     } while (0u)
 
 /**@brief       If isrNesting variable is zero then the last ISR is executing
@@ -296,18 +296,18 @@
 
 /**@brief       Initialize the thread context
  * @param       [inout] stck
- *              Pointer to the allocated thread stck. The pointer points to the
+ *              Pointer to the allocated thread stack. The pointer points to the
  *              beginning of the memory as defined per C language. It's up to
- *              port function to adjust the pointer according to the stck type:
+ *              port function to adjust the pointer according to the stack type:
  *              full descending or full ascending one.
  * @param       stackSize
- *              The size of allocated stck in bytes.
+ *              The size of allocated stack in bytes.
  * @param       [in] thread
  *              Pointer to the thread function.
  * @param       [in] arg
  *              Argument that will be passed to thread function at the starting
  *              of execution.
- * @return      The new top of stck after thread context initialization.
+ * @return      The new top of stack after thread context initialization.
  */
 #define PORT_CTX_INIT(stck, stackSize, thread, arg)
 
@@ -441,11 +441,11 @@ extern const PORT_C_ROM portReg_T Pwr2LKP [PORT_DEF_DATA_WIDTH];
 /**@brief       Find last set bit in a word
  * @param       val
  *              Value which needs to be evaluated
+ * @return      The position of the last set bit in a word
  * @details     This function is used by the scheduler to efficiently determine
  *              the highest priority of thread ready for execution. For
  *              algorithm details see:
  *              http://en.wikipedia.org/wiki/Find_first_set.
- * @return      The position of the last set bit in a word
  */
 uint_fast8_t portFindLastSet(
     portReg_T       val);
@@ -456,18 +456,18 @@ uint_fast8_t portFindLastSet(
 
 /**@brief       Initialize the thread context
  * @param       stck
- *              Pointer to the allocated thread stck. The pointer points to the
+ *              Pointer to the allocated thread stack. The pointer points to the
  *              beginning of the memory as defined per C language. It's up to
- *              port function to adjust the pointer according to the stck type:
+ *              port function to adjust the pointer according to the stack type:
  *              full descending or full ascending one.
  * @param       stckSize
- *              The size of allocated stck in bytes.
+ *              The size of allocated stack in bytes.
  * @param       fn
  *              Pointer to the thread function.
  * @param       arg
  *              Argument that will be passed to thread function at the starting
  *              of execution.
- * @return      The new top of stck after thread context initialization.
+ * @return      The new top of stack after thread context initialization.
  */
 void * portCtxInit(
     void *          stck,
