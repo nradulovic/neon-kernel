@@ -1,5 +1,0 @@
-<map id="kernel_cfg.h" name="kernel_cfg.h">
-<area shape="rect" id="node2" href="$kernel_8h.html" title="Interface of kernel. " alt="" coords="47,80,115,107"/>
-<area shape="rect" id="node3" href="$kernel_8c.html" title="Implementation of port independent code. " alt="" coords="5,155,72,181"/>
-<area shape="rect" id="node4" href="$cpu_8c.html" title="Implementation of CPU port &#45; Template. " alt="" coords="97,155,151,181"/>
-</map>

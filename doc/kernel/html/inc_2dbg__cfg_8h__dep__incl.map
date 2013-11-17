@@ -1,7 +1,0 @@
-<map id="dbg_cfg.h" name="dbg_cfg.h">
-<area shape="rect" id="node2" href="$dbg_8h.html" title="Debug basic functionality. " alt="" coords="97,80,151,107"/>
-<area shape="rect" id="node3" href="$kernel_8h.html" title="Interface of kernel. " alt="" coords="47,155,115,181"/>
-<area shape="rect" id="node6" href="$dbg_8c.html" title="Implementation of Debug module. " alt="" coords="139,155,193,181"/>
-<area shape="rect" id="node4" href="$kernel_8c.html" title="Implementation of port independent code. " alt="" coords="5,229,72,256"/>
-<area shape="rect" id="node5" href="$cpu_8c.html" title="Implementation of CPU port &#45; Template. " alt="" coords="97,229,151,256"/>
-</map>
