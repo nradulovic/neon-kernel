@@ -21,24 +21,37 @@
  * e-mail  :    nenad.b.radulovic@gmail.com
  *//***********************************************************************//**
  * @file
- * @author      Nenad Radulovic
- * @brief       Short desciption of file
- * @addtogroup  sem_impl
+ * @author  	Nenad Radulovic
+ * @brief   	Family port specific configuration options
+ * @addtogroup  template_family_cfg
+ * @brief       Family port specific configuration options
  *********************************************************************//** @{ */
 
+#if !defined(PROFILE_H__)
+#define PROFILE_H__
+
 /*=========================================================  INCLUDE FILES  ==*/
+/*===============================================================  DEFINES  ==*/
+/*==============================================================  SETTINGS  ==*/
 
-#include "semaphore.h"
+/*------------------------------------------------------------------------*//**
+ * @name        Generic family defaults
+ * @{ *//*--------------------------------------------------------------------*/
 
-/*=========================================================  LOCAL MACRO's  ==*/
-/*======================================================  LOCAL DATA TYPES  ==*/
-/*=============================================  LOCAL FUNCTION PROTOTYPES  ==*/
-/*=======================================================  LOCAL VARIABLES  ==*/
-/*======================================================  GLOBAL VARIABLES  ==*/
-/*============================================  LOCAL FUNCTION DEFINITIONS  ==*/
-/*===================================  GLOBAL PRIVATE FUNCTION DEFINITIONS  ==*/
-/*====================================  GLOBAL PUBLIC FUNCTION DEFINITIONS  ==*/
+/**@brief       System timer maximum value
+ * @details     This macro specifies maximum value that can be reloaded into
+ *              system timer counter. For example, if the system timer is an
+ *              8-bit counter than this macro would have the value of 0xffu (255).
+ */
+#define CPU_DEF_SYSTMR_MAX_VAL          0xfful
+
+/**@} *//*----------------------------------------------------------------*//**
+ * @name        Exception handlers used by the port
+ * @{ *//*--------------------------------------------------------------------*/
+
+/**@} *//*--------------------------------------------------------------------*/
 /*================================*//** @cond *//*==  CONFIGURATION ERRORS  ==*/
 /** @endcond *//** @} *//******************************************************
- * END of semaphore.c
+ * END of profile.h
  ******************************************************************************/
+#endif /* PROFILE_H__ */

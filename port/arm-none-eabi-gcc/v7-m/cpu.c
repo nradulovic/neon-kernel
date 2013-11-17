@@ -1,20 +1,20 @@
 /*
- * This file is part of eSolid-Kernel
+ * This file is part of eSolid - RT Kernel
  *
  * Copyright (C) 2011, 2012, 2013 - Nenad Radulovic
  *
- * eSolid-Kernel is free software; you can redistribute it and/or modify it
+ * eSolid - RT Kernel is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
  * Software Foundation; either version 2 of the License, or (at your option) any
  * later version.
  *
- * eSolid-Kernel is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
- * details.
+ * eSolid - RT Kernel is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+ * more details.
  *
  * You should have received a copy of the GNU General Public License along with
- * eSolid-Kernel; if not, write to the Free Software Foundation, Inc., 51
+ * eSolid - RT Kernel; if not, write to the Free Software Foundation, Inc., 51
  * Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *
  * web site:    http://github.com/nradulovic
@@ -211,7 +211,7 @@ void * portCtxInit(
 
     sp       = (struct portCtx *)((uint8_t *)stck + stckSize);
     sp--;
-    sp->xpsr = (portReg_T)(PSR_THUMB_STATE_MSK | CFG_PSR_DATA);
+    sp->xpsr = (portReg_T)(PSR_THUMB_STATE_MSK | PORT_CFG_PSR_DATA);
     sp->pc   = (portReg_T)fn;
     sp->lr   = (portReg_T)threadExit;
     sp->r0   = (portReg_T)arg;
@@ -226,16 +226,16 @@ void portCpuInit(
         SCB->aircr,
         SCB_AIRCR_VECTKEY_MSK | SCB_AIRCR_PRIGROUP_MSK,
         (DEF_SCB_AIRCR_VECTKEY << SCB_AIRCR_VECTKEY_POS) |
-           (CFG_SCB_AIRCR_PRIGROUP << SCB_AIRCR_PRIGROUP_POS));                 /* Setup priority subgroup to zero bits                     */
+           (PORT_CFG_SCB_AIRCR_PRIGROUP << SCB_AIRCR_PRIGROUP_POS));                 /* Setup priority subgroup to zero bits                     */
     intPrioSet(
         PENDSV_IRQN,
-        PORT_DEF_INT_PRIO);
+        PORT_DEF_MAX_ISR_PRIO);
     intPrioSet(
         SVCALL_IRQN,
-        PORT_DEF_INT_PRIO);
+        PORT_DEF_MAX_ISR_PRIO);
     intPrioSet(
         SYST_IRQN,
-        PORT_DEF_INT_PRIO);
+        PORT_DEF_MAX_ISR_PRIO);
 }
 
 void portCpuTerm(
@@ -259,7 +259,7 @@ void portCpuTerm(
 PORT_C_NAKED void portSVC(
     void) {
 
-#if (0 != CFG_MAX_ISR_PRIO)
+#if (0 != PORT_CFG_MAX_ISR_PRIO)
     __asm__ __volatile__ (
         "   ldr     r0, =%0                                 \n"               /* (1) Load KernCtrl.cthd address                          */
         "   mov     r1, %2                                  \n"               /* (2)                                                      */
@@ -275,7 +275,7 @@ PORT_C_NAKED void portSVC(
         :
         :   "i"(&KernCtrl.cthd),
             "i"(DEF_EXC_RETURN),
-            "i"(PORT_DEF_INT_PRIO));
+            "i"(PORT_DEF_MAX_ISR_PRIO));
 #else
     __asm__ __volatile__ (
         "   ldr     r0, =%0                                 \n"               /* (1) Load KernCtrl.cthd address                          */
@@ -306,7 +306,7 @@ PORT_C_NAKED void portSVC(
 PORT_C_NAKED void portPendSV(
     void) {
 
-#if (0 != CFG_MAX_ISR_PRIO)
+#if (0 != PORT_CFG_MAX_ISR_PRIO)
     __asm__ __volatile__ (
         "   ldr     r0, =%0                                 \n"               /* (1) Get the address of KernCtrl                         */
         "   mov     r1, %3                                  \n"               /* (2)                                                      */
@@ -327,7 +327,7 @@ PORT_C_NAKED void portPendSV(
         :   "i"(&KernCtrl),
             "J"(offsetof(struct kernCtrl_, cthd)),
             "J"(offsetof(struct kernCtrl_, pthd)),
-            "i"(PORT_DEF_INT_PRIO));
+            "i"(PORT_DEF_MAX_ISR_PRIO));
 #else
     __asm__ __volatile__ (
         "   ldr     r0, =%0                                 \n"               /* (1) Get the address of gCurrentThd                       */
@@ -353,9 +353,9 @@ PORT_C_NAKED void portPendSV(
 void portSysTmr(
     void) {
 
-    esKernIsrEnter();
+    esKernIsrEnterI();
     esKernSysTmr();
-    esKernIsrExit();
+    esKernIsrExitI();
 }
 
 /*================================*//** @cond *//*==  CONFIGURATION ERRORS  ==*/

@@ -6,6 +6,7 @@
 @defgroup       template_cpu_intf   CPU port interface
 @defgroup       template_cpu_impl   CPU port internals
 @defgroup       template_cpu_cfg    CPU port configuration
+@defgroup       template_family_cfg Family port configuration
 @defgroup       template_kern_cfg   Default Kernel configuration
 @defgroup       template_dbg_cfg    Default Debug configuration
 @} */

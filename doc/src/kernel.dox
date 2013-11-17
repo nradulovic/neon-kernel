@@ -21,16 +21,16 @@
 
 /*----------------------------------------------------------------------------*/
 /** @mainpage   eSolid Real-Time Kernel
-@section        kernel_specs eSolid RT Kernel Features
+@section        kernel_specs eSolid - RT Kernel Features
 @subsection     spec_source Source code
 
-The source code of the kernel and all of it's ports are published under **free 
-software license**, which guarantees end users (individuals, organizations, 
-companies) the freedoms to use, study, share (copy), and modify the software. 
+The source code of the kernel and all of it's ports are published under **free
+software license**, which guarantees end users (individuals, organizations,
+companies) the freedoms to use, study, share (copy), and modify the software.
 
-The GPL grants the recipients of a computer software the rights of the Free 
-Software Definition (written by Richard Stallman) and uses copyleft to ensure 
-the freedoms are preserved whenever the work is distributed, even when the work 
+The GPL grants the recipients of a computer software the rights of the Free
+Software Definition (written by Richard Stallman) and uses copyleft to ensure
+the freedoms are preserved whenever the work is distributed, even when the work
 is changed or added to. The GPL is a copyleft license, which means that derived
 works can only be distributed under the same license terms.
 
@@ -38,25 +38,27 @@ For more details visit: https://gnu.org/licenses/gpl.html
 
 @subsection     spec_api Consistent Application Programming Interface
 
-All objects declared in Application Programming Interface are following
-these naming rules:
-- All objects except macros are using `CamelCase` style names
+@par            Coding style
+All public objects declared in Application Programming Interface are following
+this coding style:
+- All objects except macros are using `camelCase` style names
 - All functions, structures and unions are prefixed with: `es`
 - All typedef-ed types are prefixed with: `es` and postfixed with: `_T`
-- All macro names are in `UPPERCASE` style, words are delimited by underscore 
+- All macro names are in `UPPERCASE` style, words are delimited by underscore
     sign
 - All macro names are prefixed with: `ES_`
-- All Global variables are prefixed with: `g`
+- The first letter of global variables is in upper case.
 
-All API objects are named following this convention: 
-`es<group><action><suffix>()`
+@par            API object naming rules
+All API objects are named following this convention: `<group><action><suffix>`
 
 - Group:
     - `Kern` - General Kernel services
     - `Thd` - Thread management
     - `ThdQ` - Thread Queue management
-    - `Sched` - Scheduler invocation
-    - `SchedRdy` - Scheduler Ready Thread Queue management
+    - `Sched` - Scheduler invocation and Scheduler Ready Queue management
+    - `VTmr` - Virtual Timer management
+    - `user` - Application callback functions
 - Suffix:
     - `none` - normal API object
     - `I` - I class - Regular Interrupts are locked
@@ -65,79 +67,80 @@ All Port Interface objects are named using the rules stated above with certain
 differences:
 - All functions, structures and unions are prefixed with: `port`
 - All macro names are prefixed with: `PORT_`
+- Port specific objects are prefixed with `CPU_` or `cpu`.
 
 @subsection     spec_preempt Preemptive multi-threading
-eSolid RT Kernel uses a **preemptive scheduler**, which has the power to 
-preempt, or interrupt, and later resume, other threads in the system. The 
+eSolid - RT Kernel uses a **preemptive scheduler**, which has the power to
+preempt, or interrupt, and later resume, other threads in the system. The
 scheduler always runs ready thread with the highest priority.
 
 @subsection     spec_rr Round-Robin scheduling
-Round-Robin scheduling is very **simple algorithm** to implement and it is 
-**starvation free**. It employs time-sharing, giving to each thread a time 
-slice or `quantum`. Processor's time is shared between a number of threads, 
-giving the illusion that it is dealing with these threads **concurrently**. 
-This scheduling is only used when there are two or more threads of the same 
+Round-Robin scheduling is very **simple algorithm** to implement and it is
+**starvation free**. It employs time-sharing, giving to each thread a time
+slice or `quantum`. Processor's time is shared between a number of threads,
+giving the illusion that it is dealing with these threads **concurrently**.
+This scheduling is only used when there are two or more threads of the same
 priority ready for execution.
 
 @subsection     spec_deterministic Deterministic
-Majority of algorithms used in eSolid RT Kernel implementation are belonging to 
-**Constant Time Complexity** category. Constant Time `O(1)` functions needs 
-fixed amount of time to execute an algorithm. In other words the execution time 
-of Constant Time Complexity functions does not depend on number of inputs. For 
+Majority of algorithms used in eSolid - RT Kernel implementation are belonging to
+**Constant Time Complexity** category. Constant Time `O(1)` functions needs
+fixed amount of time to execute an algorithm. In other words the execution time
+of Constant Time Complexity functions does not depend on number of inputs. For
 more information see @ref time_complexity.
 
 @subsection     spec_cfg Configurable
 The kernel provides two configuration files kernel_cfg.h and cpu_cfg.h which can
 be used to tailor the kernel to application needs.
 
-In addition, the kernel implements a number of hooks which can alter or augment 
-the behavior of the kernel or applications, by intercepting function calls 
+In addition, the kernel implements a number of hooks which can alter or augment
+the behavior of the kernel or applications, by intercepting function calls
 between software components.
 
 @subsection     spec_portable Portable
 During the design stage of the kernel a special attention was given to achieve
-high portability of the kernel. Some data structures and algorithms are tailored 
+high portability of the kernel. Some data structures and algorithms are tailored
 to exploit new hardware features.
 
 @subsection     spec_static Static object allocation
-All objects used in eSolid RT Kernel can be statically allocated. There is no
+All objects used in eSolid - RT Kernel can be statically allocated. There is no
 need to use any memory management functionality which makes it very easy to
 verify the application.
 
 @subsection     spec_unlimited Unlimited number of threads
-eSolid RT Kernel allows applications to have any number of threads. The only 
-limiting factors for the maximum number of threads are the amount of RAM and 
+eSolid - RT Kernel allows applications to have any number of threads. The only
+limiting factors for the maximum number of threads are the amount of RAM and
 ROM memory capacity and required processing time.
 
 @subsection     spec_prio Up to 256 thread priority levels
-Each thread has a defined priority. Lowest priority level is 0, while the 
-highest available level is configurable. If Round-Robin scheduling is used then 
+Each thread has a defined priority. Lowest priority level is 0, while the
+highest available level is configurable. If Round-Robin scheduling is used then
 multiple threads can be in the same priority level. If Round-Robin scheduling is
 disabled then each thread must have unique priority level. The priority sorting
-algorithm has constant time complexity which means it always executes in the 
+algorithm has constant time complexity which means it always executes in the
 same time period regardles of the levels of priority used.
 
 @subsection     spec_tickless Tickless idle
-Classic kernel architectures periodically interrupted CPU at a predetermined 
-frequency — 100 Hz, 250 Hz, or 1000 Hz, depending on the application needs. 
-Known as the system timer tick, the kernel performed this interrupt regardless 
-of the power state of the CPU. Therefore, even an idle CPU was responding to up 
-to 1000 of these requests every second. On systems that implemented power saving 
-measures for idle CPUs, the timer tick prevented the CPU from remaining idle 
-long enough for the system to benefit from these power savings. 
+Classic kernel architectures periodically interrupted CPU at a predetermined
+frequency — 100 Hz, 250 Hz, or 1000 Hz, depending on the application needs.
+Known as the system timer tick, the kernel performed this interrupt regardless
+of the power state of the CPU. Therefore, even an idle CPU was responding to up
+to 1000 of these requests every second. On systems that implemented power saving
+measures for idle CPUs, the timer tick prevented the CPU from remaining idle
+long enough for the system to benefit from these power savings.
 
-The eSolid RT kernel runs in tickless idle: that is, it replaces the old 
-periodic timer interrupts with on-demand interrupts. Therefore, idle CPUs are 
-allowed to remain idle until a new task is queued for processing, and CPUs that 
-have entered lower power states can remain in these states longer. 
+The eSolid RT kernel runs in tickless idle: that is, it replaces the old
+periodic timer interrupts with on-demand interrupts. Therefore, idle CPUs are
+allowed to remain idle until a new task is queued for processing, and CPUs that
+have entered lower power states can remain in these states longer.
 
 @subsection     spec_errchk Error checking
 All eSolid software is using design methods very similar to approaches of
 **contract programming** paradigm for software design. The contract
-programming prescribes that Application Programming Interface should have formal, 
-precise and verifiable specifications, which extend the ordinary definition of 
-abstract data types with preconditions and postconditions. These specifications 
-are referred to as "contracts". The contract for each method will normally 
+programming prescribes that Application Programming Interface should have formal,
+precise and verifiable specifications, which extend the ordinary definition of
+abstract data types with preconditions and postconditions. These specifications
+are referred to as "contracts". The contract for each method will normally
 contain the following pieces of information:
 
 - Acceptable and unacceptable input values
@@ -151,7 +154,7 @@ contain the following pieces of information:
 The contract validations are done by **assert** macros. They have the
 responsibility of informing the programmer when a contract can not be validated.
 
-@subsection     spec_prof Profiling 
+@subsection     spec_prof Profiling
 @note           This feature is not implemented
 */
 /*----------------------------------------------------------------------------*/
@@ -163,14 +166,14 @@ responsibility of informing the programmer when a contract can not be validated.
 @n
 @n
 @section        files_intro Intro
-The directory structure of eSolid RT Kernel is fairly easy to understand. Once 
-the organization of directories and files is understood it is fairly easy to 
-integrate eSolid RT Kernel into application.
+The directory structure of eSolid - RT Kernel is should be easy to understand.
+Once the organization of directories and files is understood it is fairly easy
+to integrate eSolid - RT Kernel into application project.
 
 @subsection     files_porting What is a port?
-Porting is a process of adapting software to an architecture that is different 
-from the one for which it was originally designed. The term is also used when 
-software is changed to make it usable in different environments. Software is 
+Porting is a process of adapting software to an architecture that is different
+from the one for which it was originally designed. The term is also used when
+software is changed to make it usable in different environments. Software is
 portable when the cost of porting it to a new platform is less than the cost of
 writing it from beginning.
 
@@ -180,52 +183,54 @@ the second one is port dependent code and the third sections is code templates.
 
 @subsection     files_icode Port independent code
 Port independent code is the code which does not change from port to port, e.g.
-when the CPU is changed this code is not changed at all and it is still 
+when the CPU is changed this code is not changed at all and it is still
 correctly executed. Code can be developed and tested on another machine, which
-greatly reduces design efforts. It provides API and some common data structures. 
+greatly reduces design efforts. It provides API and some common data structures.
 Port independent code lives under @c /inc and @c /src directories:
 - `inc/kernel.h`
-- `inc/kernel_cfg.h`
+- `inc/kernel_cfg.h` (application specific - see template)
 - `src/kernel.c`
 - `inc/dbg.h`
-- `inc/dbg_cfg.h`
+- `inc/dbg_cfg.h` (application specific - see template)
 - `src/dbg.c`
 
 Click on file name for further description of the file.
 
 @subsection     files_dcode Port dependent code
-Second section is the port dependent code. This code provides low-level 
+Second section is the port dependent code. This code provides low-level
 functions which are needed to interact with interrupt controllers, manipulate
-CPU settings and do the context switching. They are highly CPU/compiler bounded 
-and are often written in assembly language. 
+CPU settings and do the context switching. They are highly CPU/compiler bounded
+and are often written in assembly language.
 
 Each port has it's name which is also the name of directory which holds all
-the port files. Usually each port has some kind of variant. In that case each 
-variant is a subdirectory of the containing port. Common code for all variants
-will be in common subdirectory. Each eSolid RT Kernel port will have at least 
-the following files:
-- `port/[port_name]/common/compiler.h`
-- `port/[port_name]/[variant_name]/cpu_cfg.h`
-- `port/[port_name]/[variant_name]/cpu.h`
-- `port/[port_name]/[variant_name]/cpu.c`
+the port files. Usually each port has some kind of variant/architecture. In
+that case each variant is a subdirectory of the containing port. Common code
+for all variants will be in common subdirectory. Each eSolid - RT Kernel port will
+have at least the following files:
+- `port/[port_name]/common/arch/compiler.h`
+- `port/[port_name]/[architecture_name]/arch/cpu_cfg.h`
+- `port/[port_name]/[architecture_name]/arch/cpu.h`
+- `port/[port_name]/[architecture_name]/cpu.c`
+- `port/[port_name]/[family_name]/family/profile.h`
 
-@note           Port dependent code is separately described in documentation 
+@note           Port dependent code is separately described in documentation
 for relevant port.
 @subsection     files_template Template and example code
-Templates are some predefined configuration settings for various scenarios 
-where eSolid RT Kernel can be used. Templates also contain some example code 
-for how to write new ports. 
+Templates are some predefined configuration settings for various scenarios
+where eSolid - RT Kernel can be used. Templates also contain some example code
+for how to write new ports.
 
-In the example below is given `Generic` template which holds files with default 
+In the example below is given `Generic` template which holds files with default
 configuration settings and some example code for new ports. New port files are
 in template/generic/port directory. When porting to a new architecture/compiler
 use provided template files for starters. This will greatly reduce the time
 needed to become familiar with the kernel port requirements. Generic template
 files are the following:
-- `template/generic/port/compiler.h`
-- `template/generic/port/cpu_cfg.h`
-- `template/generic/port/cpu.h`
-- `template/generic/port/cpu.c`
+- `template/generic/_port_/common/arch/compiler.h`
+- `template/generic/_port_/_cpu_/arch/cpu_cfg.h`
+- `template/generic/_port_/_cpu_/arch/cpu.h`
+- `template/generic/_port_/_cpu_/cpu.c`
+- `template/generic/_port_/_mcu_/family/profile.h`
 - `template/generic/kernel_cfg.h`
 - `template/generic/dbg_cfg.h`
 */
@@ -239,9 +244,10 @@ files are the following:
 @n
 @section        states_intro Intro
 A Kernel state machine is a behavior model of the kernel core. Each state
-defines what methods are allowed. 
+defines what methods are allowed. Kernel state is described by `enum
+esKernState`, see @ref esKernState for details.
 
-@section        states_fsm eSolid RT Kernel states
+@section        states_fsm eSolid - RT Kernel states
 The kernel can be in one of the following states:
 @dot
 digraph state {
@@ -272,47 +278,48 @@ digraph state {
     {rank = same; INTSRV_RUN; INTSRV_LOCK; }
 }
 @enddot
+
 @par            INACTIVE
-Inactive state of the kernel (Level 5). This state is entered after a physical 
-reset. When the system is in this state all the maskable interrupt sources are 
-disabled. In this state none of kernel internal data structures are initialized. 
+Inactive state of the kernel (Level 5). This state is entered after a physical
+reset. When the system is in this state all the maskable interrupt sources are
+disabled. In this state none of kernel internal data structures are initialized.
 In this state it is not possible to use any Kernel API except esKernInit().
 
 @par            INIT
-Initialization state of the kernel (Level 4). In this state all internal data 
-structures are initialized but the kernel is still not running. In this stage 
-new threads can be created by calling esThdInit() function. Also, the 
-application is allowed to use API which is used to create kernel structures like 
+Initialization state of the kernel (Level 4). In this state all internal data
+structures are initialized but the kernel is still not running. In this stage
+new threads can be created by calling esThdInit() function. Also, the
+application is allowed to use API which is used to create kernel structures like
 Thread Queues @ref esThdQ. All the maskable interrupt sources are DISABLED.
 
 @par            RUN
-Normal, running state of the kernel (Level 0). To start multi-threading just 
-call the esKernStart() function. This function will switch the kernel into `RUN` 
-state and multi-threading of created threads will commence. During the `RUN` 
-state you are allowed to create other task as well. All the interrupt sources 
-are enabled and the system APIs are accessible, threads are running. All the 
+Normal, running state of the kernel (Level 0). To start multi-threading just
+call the esKernStart() function. This function will switch the kernel into `RUN`
+state and multi-threading of created threads will commence. During the `RUN`
+state you are allowed to create other task as well. All the interrupt sources
+are enabled and the system APIs are accessible, threads are running. All the
 maskable interrupt sources are ENABLED.
 
 @par            LOCK
-Scheduler locked state, no context switching (Level 2). The running state of the 
-kernel can be switched to `LOCK` state where the scheduler is locked and no 
-context switching is allowed. `LOCK` state is one way of preventing the access 
-to a shared resource. One more reason to lock the scheduler would be during the 
-accessing of special hardware (e.g. programming the FLASH memory) which does not 
-allow interruption of the running operation. Usage of scheduler locks should be 
+Scheduler locked state, no context switching (Level 2). The running state of the
+kernel can be switched to `LOCK` state where the scheduler is locked and no
+context switching is allowed. `LOCK` state is one way of preventing the access
+to a shared resource. One more reason to lock the scheduler would be during the
+accessing of special hardware (e.g. programming the FLASH memory) which does not
+allow interruption of the running operation. Usage of scheduler locks should be
 kept at minimum. All the maskable interrupt sources are ENABLED.
- 
+
 @par            INTSRV_RUN or INTSRV_LOCK
-Interrupt Service state, no context switching (Levels 1 and 3). During the both 
-states `RUN` and `LOCK`, an interrupt event can occur. When Interrupt Service 
-Routine is executing the kernel is in `INTSRV_RUN` or `INTSRV_LOCK` state. 
-Each state corresponds to the state where the execution was interrupted from and 
+Interrupt Service state, no context switching (Levels 1 and 3). During the both
+states `RUN` and `LOCK`, an interrupt event can occur. When Interrupt Service
+Routine is executing the kernel is in `INTSRV_RUN` or `INTSRV_LOCK` state.
+Each state corresponds to the state where the execution was interrupted from and
 the kernel will return to it's original state.
 
 @par            SLEEP
 When idle condition occurs the kernel will switch to `SLEEP` state (if power
-saving is enabled). In order to return to `RUN` state an interrupt must occur 
-whether from system timer or any other interrupt source which must request a 
+saving is enabled). In order to return to `RUN` state an interrupt must occur
+whether from system timer or any other interrupt source which must request a
 context switch upon exit from ISR.
 
 @note           The level of state `INACTIVE` is the highest. As the kernel
@@ -328,21 +335,21 @@ boots up the level is decremented. The running state is level 0.
 @n
 @section        threads_intro Intro
 A thread, also called a thread of execution is the smallest sequence of program
-instructions that can be managed by an operating system scheduler. 
-Multi-threading is implemented by time-division multiplexing where the 
-processor switches between threads. Context switching occurs fast enough that 
+instructions that can be managed by an operating system scheduler.
+Multi-threading is implemented by time-division multiplexing where the
+processor switches between threads. Context switching occurs fast enough that
 the user perceives the threads as running at the same time. By using threads a
 programmer can split the work into the threads, each responsible for a smaller
-portion of the problem. From a threads view he thinks it has the processor all 
+portion of the problem. From a threads view he thinks it has the processor all
 to itself.
 
-@subsection     kern_threads eSolid RT Kernel thread
-eSolid RT Kernel supports multi-threading and allows applications to have any
-number of threads. The only limiting factors for the maximum number of threads 
+@subsection     kern_threads eSolid - RT Kernel thread
+eSolid - RT Kernel supports multi-threading and allows applications to have any
+number of threads. The only limiting factors for the maximum number of threads
 are the amount of RAM and ROM memory and processing time.
 
-Threads are implemented as normal `C` functions. Thread functions must have the 
-following prototype: 
+Threads are implemented as normal `C` functions. Thread functions must have the
+following prototype:
 
 @code
 void fn (void *);
@@ -375,36 +382,36 @@ digraph thdState {
 }
 @enddot
 @par            Inactive
-This is thread initial state. Threads in this state are still not activated 
-(**inactive**) by esThdInit() function or they were deleted by esThdTerm() 
-function. The scheduler does not recognize these threads and they will never 
+This is thread initial state. Threads in this state are still not activated
+(**inactive**) by esThdInit() function or they were deleted by esThdTerm()
+function. The scheduler does not recognize these threads and they will never
 execute.
 
 @par            Ready
-Threads waiting to execute. There are the threads that are **ready** to execute 
-but are not currently executing because a different thread (equal or higher 
-priority) is already executing. 
+Threads waiting to execute. There are the threads that are **ready** to execute
+but are not currently executing because a different thread (equal or higher
+priority) is already executing.
 
 @par            Run
-Thread is currently executing. When the thread is in this state then the code is 
+Thread is currently executing. When the thread is in this state then the code is
 actually being **run** on the processor.
- 
+
 @par            Sleep
-Thread is sleeping. These threads are **sleeping** while waiting for an event to 
-occur. 
+Thread is sleeping. These threads are **sleeping** while waiting for an event to
+occur.
 
 @section        thd_create Initializing Threads
 @subsection     thd_create_init esThdInit() API function
-Threads are initialized by using esThdInit() API function. 
+Threads are initialized by using esThdInit() API function.
 
 @par            Stack size
 
 There is no easy way to determine the stack size required by a thread. It is
 possible to calculate approximate stack size for simple threads, but for more
-complex ones (e.g. which calls library API function) this can be a daunting 
+complex ones (e.g. which calls library API function) this can be a daunting
 task. In this case stack size will be set to a size more than adequate for the
-thread and then use the profiling features provided by the kernel to ensure both 
-that the space allocated is adequate, and that RAM space is not being 
+thread and then use the profiling features provided by the kernel to ensure both
+that the space allocated is adequate, and that RAM space is not being
 unnecessarily wasted.
 */
 /*----------------------------------------------------------------------------*/
@@ -416,41 +423,42 @@ unnecessarily wasted.
 @n
 @n
 @section        cs_intro Intro
-In concurrent programming, a critical section is a piece of code that accesses a 
-shared resource (data structure or device) that must not be concurrently 
-accessed by more than one thread of execution. A critical section will usually 
-terminate in fixed time, and a thread will have to wait for a fixed time to 
-enter it (aka bounded waiting). Some synchronization mechanism is required at 
-the entry and exit of the critical section to ensure exclusive use, for example 
+In concurrent programming, a critical section is a piece of code that accesses a
+shared resource (data structure or device) that must not be concurrently
+accessed by more than one thread of execution. A critical section will usually
+terminate in fixed time, and a thread will have to wait for a fixed time to
+enter it (aka bounded waiting). Some synchronization mechanism is required at
+the entry and exit of the critical section to ensure exclusive use, for example
 a semaphore.
 
-@subsection     kern_critical_sections eSolid RT Kernel internal critical sections
+@subsection     kern_critical_sections eSolid - RT Kernel internal critical sections
 In contrast to application code in kernel code there is no other mechanism to
 protect critical code except disabling interrupts. Fortunately, some ports
-have ability to mask certain interrupts with low priority and allow 
-interrupts with higher priority. By masking low priority interrupts the kernel 
-can protect its critical sections. However for this scheme to work its 
-forbidden to call any OS service function from a high priority interrupt. If 
-this rule is not followed then the high priority interrupt with an OS service 
-function call can preempt the kernel low priority interrupt which will in that 
+have ability to mask certain interrupts with low priority and allow
+interrupts with higher priority. By masking low priority interrupts the kernel
+can protect its critical sections. However for this scheme to work its
+forbidden to call any OS service function from a high priority interrupt. If
+this rule is not followed then the high priority interrupt with an OS service
+function call can preempt the kernel low priority interrupt which will in that
 case corrupt the kernel internal data structures.
 
-@note           1) It is forbidden to call any OS service function from an 
-    interrupt with the priority higher than the kernel interrupt priority.
+@note           1) It is forbidden to call any OS service function from an
+    interrupt with the priority higher than the kernel interrupt priority. See
+    @ref PORT_CFG_MAX_ISR_PRIO.
 @note           2) On some ports the kernel never completely disables interrupts.
 
 @section        cs_implementation Implementation
 There are multiple ways how are critical sections implemented:
-- The simplest method is to prevent interrupts on entry into the critical 
-section, and restoring interrupts to their previous state on exit from critical 
-section. Any thread of execution entering any critical section anywhere in the 
-system, with this implementation, will prevent any other thread, including an 
+- The simplest method is to prevent interrupts on entry into the critical
+section, and restoring interrupts to their previous state on exit from critical
+section. Any thread of execution entering any critical section anywhere in the
+system, with this implementation, will prevent any other thread, including an
 interrupt, from being executed on the CPU.
-- This approach can be improved upon by using semaphores. To enter a critical 
-section, a thread must obtain a semaphore, which it releases on leaving the 
-section. Other threads are prevented from entering the critical section at the 
-same time as the original thread, but are free to gain control of the CPU and 
-execute other code, including other critical sections that are protected by 
+- This approach can be improved upon by using semaphores. To enter a critical
+section, a thread must obtain a semaphore, which it releases on leaving the
+section. Other threads are prevented from entering the critical section at the
+same time as the original thread, but are free to gain control of the CPU and
+execute other code, including other critical sections that are protected by
 different semaphores.
 
 @subsection     cs_interrupt_lock Disabling interrupts
@@ -460,43 +468,44 @@ In order to properly disable interrupts the application must follow these steps:
 - access the shared resource
 - restore previously saved interrupt state
 
-For `auto` variable declaration macro @ref ES_CRITICAL_DECL() is used. This 
-macro will declare a temporary interrupt status variable. Then by using the 
-macro @ref ES_CRITICAL_ENTER() the state of enabled interrupts will be saved in 
-`auto` variable declared earlier. Immediately after saving the interrupt state 
-the macro will lock interrupts. Now the code can safely access and use the 
-shared resource. When code finishes using the resource it will call
-@ref ES_CRITICAL_EXIT() macro. This macro will restore interrupts from the 
-previously saved interrupt state.
+The `auto` variable must be of portable type @ref portReg_T. This variable will
+hold temporary interrupt status. Then by using the macro @ref ES_CRITICAL_ENTER()
+the state of enabled interrupts will be saved in interrupt context variable
+declared earlier. Immediately after saving the interrupt state the macro will
+lock interrupts. Now the code can safely access and use the shared resource. When
+code finishes using the resource it will call @ref ES_CRITICAL_EXIT() macro. This
+macro will restore interrupts from the previously saved interrupt state.
 
 @code
-    ES_CRITICAL_DECL();                 /* Declare an interrupt status variable */
+    portReg_T intCtx;                   /* Declare an interrupt context status variable */
         :
         :
-        :   
-    ES_CRITICAL_ENTER();                /* Save state and lock interrupts */
+        :
+    ES_CRITICAL_ENTER(&intCtx);         /* Save state and lock interrupts */
     /*
      * Access the shared resource
      */
-    ES_CRITICAL_EXIT();                 /* Restore previous state unlocking the interrupts */
+    ES_CRITICAL_EXIT(intCtx);           /* Restore previous state unlocking the interrupts */
 @endcode
 @par            When to use this scheme
 - If interrupt service routine *changes* the shared resource state.
 - If the processing time of critical section is very small.
 
 @par            When not to use this scheme
-- If interrupt service routine takes a lot of CPU time to process critical 
-section. If a critical section is long, then the system clock will drift every 
-time a critical section is executed because the system timer interrupt is no 
-longer serviced, so tracking time is impossible during the critical section. 
-Also, if a program execution halts during its critical section, control will 
-never be returned to another thread, effectively halting the entire system.  
- 
+- If interrupt service routine takes a lot of CPU time to process critical
+section do not use this method. If a critical section is long, then the system
+clock will drift every time a critical section is executed because the system
+timer interrupt can not be serviced. Also, if a program execution halts during
+its critical section, control will never be returned to another thread,
+effectively halting the entire system.
+
+@note Context switching is disabled during critical code section execution.
+
 @subsection     cs_kernel_lock Disabling Kernel scheduler
-Another way to implement a critical section and protect your data is by locking
-the kernel scheduler. The kernel locking can be used only if you know that 
-protected data will be modified only by other threads. This protection scheme 
-can not be used when data is modified by interrupt service routines.
+Another way to deal with a critical section and protect your shared resource is
+by locking the kernel scheduler. The kernel locking can be used only if you know
+that protected data will be modified only by other threads. This protection
+scheme can not be used when data is modified by interrupt service routines.
 
 @code
     esKernLockEnter();                  /* Temporarily disable kernel scheduler  */
@@ -510,11 +519,12 @@ can not be used when data is modified by interrupt service routines.
 - If the processing time of critical section is very small.
 
 @par            When not to use this scheme
-- If interrupt service routine takes a lot of CPU time to process critical 
-section. If a critical section is long, then the system will be partially 
-responsive to other events since interrupt service routines can be invoked, but 
-note that any further processing by other threads is still disabled. 
- 
+- If interrupt service routine takes a lot of CPU time to process critical
+section do not use this method. If a critical section is long, then the system
+will be _partially_ unresponsive to other events since interrupt service routines
+can be invoked, but note that any further processing by other threads is still
+disabled.
+
 @subsection     cs_sem_lock Using semaphores
 */
 /*----------------------------------------------------------------------------*/
@@ -526,55 +536,55 @@ note that any further processing by other threads is still disabled.
 @n
 @n
 @section        tc_intro Intro
-In computer science, the time complexity of an algorithm quantifies the amount 
-of time taken by an algorithm to run as a function of the length of the input. 
-The time complexity of an algorithm is commonly expressed using **big O** 
-notation, which excludes coefficients and lower order terms. When expressed this 
-way, the time complexity is said to be described asymptotically, i.e., as the 
-input size goes to infinity. For example, if the time required by an algorithm 
-on all inputs of size `n` is at most ` 5n^3 + 3n`, the 
+In computer science, the time complexity of an algorithm quantifies the amount
+of time taken by an algorithm to run as a function of the length of the input.
+The time complexity of an algorithm is commonly expressed using **big O**
+notation, which excludes coefficients and lower order terms. When expressed this
+way, the time complexity is said to be described asymptotically, i.e., as the
+input size goes to infinity. For example, if the time required by an algorithm
+on all inputs of size `n` is at most ` 5n^3 + 3n`, the
 asymptotic time complexity is `O(n^3)`.
 
-Time complexity is commonly estimated by counting the number of elementary 
-operations performed by the algorithm, where an elementary operation takes a 
-fixed amount of time to perform. Thus the amount of time taken and the number of 
-elementary operations performed by the algorithm differ by at most a constant 
+Time complexity is commonly estimated by counting the number of elementary
+operations performed by the algorithm, where an elementary operation takes a
+fixed amount of time to perform. Thus the amount of time taken and the number of
+elementary operations performed by the algorithm differ by at most a constant
 factor.
 
-Since an algorithm’s performance time may vary with different inputs of the same 
-size, one commonly uses the worst-case time complexity of an algorithm, denoted 
-as **T(n)**, which is defined as the maximum amount of time taken on any 
-input of size `n`. Time complexities are classified by the nature of 
-the function `T(n)`. For instance, an algorithm with `T(n) = 
-O(n)` is called a linear time algorithm, and an algorithm with `T(n) 
+Since an algorithm’s performance time may vary with different inputs of the same
+size, one commonly uses the worst-case time complexity of an algorithm, denoted
+as **T(n)**, which is defined as the maximum amount of time taken on any
+input of size `n`. Time complexities are classified by the nature of
+the function `T(n)`. For instance, an algorithm with `T(n) =
+O(n)` is called a linear time algorithm, and an algorithm with `T(n)
 = O(2^n)` is said to be an exponential time algorithm.
 
-@note  Worst-case time-complexity `T(n)` indicates the longest running time 
-    performed by an algorithm given any input of size `n`, and thus this 
+@note  Worst-case time-complexity `T(n)` indicates the longest running time
+    performed by an algorithm given any input of size `n`, and thus this
     guarantees that the algorithm finishes on time.
 
 @subsection     tc_big_o Big O notation
 
-Big O notation describes the limiting behavior of a function when the argument 
-tends towards a particular value or infinity, usually in terms of simpler 
-functions and it is used to classify algorithms by how they respond (e.g., in 
+Big O notation describes the limiting behavior of a function when the argument
+tends towards a particular value or infinity, usually in terms of simpler
+functions and it is used to classify algorithms by how they respond (e.g., in
 their processing time or working space requirements) to changes in input size.
 
 @section        tc_constant_time Constant time
-An algorithm is said to be constant time (also written as `O(1)` time) if the 
-value of `T(n)` is bounded by a value that does not depend on the size of the 
-input. 
+An algorithm is said to be constant time (also written as `O(1)` time) if the
+value of `T(n)` is bounded by a value that does not depend on the size of the
+input.
 
 Despite the name *constant time*, the running time does not have to be
-independent of the problem size, but an upper bound for the running time has to 
+independent of the problem size, but an upper bound for the running time has to
 be bounded independently of the problem size.
 
-@note Constant time effectively means that there is a constant upper bound to 
-    how long the function will take to run which isn’t affected by any of the 
+@note Constant time effectively means that there is a constant upper bound to
+    how long the function will take to run which isn’t affected by any of the
     input argument.
-    
-@subsection        tc_esolid eSolid RT Kernel time complexity
-All eSolid RT Kernel functions are using `constant time O(1)` 
+
+@subsection        tc_esolid eSolid - RT Kernel time complexity
+All eSolid - RT Kernel functions are using `constant time O(1)`
 algorithms. This is especially important for Real Time applications.
 */
 /*----------------------------------------------------------------------------*/
@@ -587,60 +597,60 @@ algorithms. This is especially important for Real Time applications.
 @n
 @section        sched_quantum Quantum
 The period of time for which a thread is allowed to execute in a preemptive
-multi-threading system is generally called the time slice, or `quantum`. The 
-scheduler is run once every quantum to choose the next thread for execution. If 
+multi-threading system is generally called the time slice, or `quantum`. The
+scheduler is run once every quantum to choose the next thread for execution. If
 the quantum is too short then the scheduler overhead may become high.
 
-An interrupt is used to allow the kernel to switch between threads when their 
-quantum expires, effectively allowing the processor's time to be shared 
-between a number of threads, giving the illusion that it is dealing with these 
-threads concurrently. 
+An interrupt is used to allow the kernel to switch between threads when their
+quantum expires, effectively allowing the processor's time to be shared
+between a number of threads, giving the illusion that it is dealing with these
+threads concurrently.
 
 @section        sched_thdL Threads List
-Each thread structure @ref esThd contains Thread List structure @ref esThd::thdL. 
-All threads of the same priority are linked together via *next* and *prev* 
-members in @ref esThd::thdL structure. The first member of the structure is 
+Each thread structure @ref esThd contains Thread List structure @ref esThd::thdL.
+All threads of the same priority are linked together via *next* and *prev*
+members in @ref esThd::thdL structure. The first member of the structure is
 pointer *q* which points back to the Threads Queue structure (@ref esThdQ)
 which contains the threads.
 
-The list is organized as **circular doubly linked list**, which means that *tail* 
-and *head* nodes are linked together just like every other node in the list. 
-This provides easy and efficient traversal of the list.  
+The list is organized as **circular doubly linked list**, which means that *tail*
+and *head* nodes are linked together just like every other node in the list.
+This provides easy and efficient traversal of the list.
 
 @image html     thdL.png "Detailed view of Threads List (sentinel.next pointers not shown)"
 @image latex    thdL.png "Detailed view of Threads List (sentinel.next pointers not shown)" width=12cm
 
-Each sentinel of a list has two pointers, *head* and *next*. Pointer 
-*sentinel.head* always points to the first entry of the list which is called 
-*head*. Every new thread is added at the *tail* of the list which is essentialy 
-just after the node *head*. When a first thread is added to the list the pointer 
-*sentinel.next* points to the thread, too. When the list is rotated using 
-function esThdQFetchRotateI() the pointer *sentinel.next* is advanced forward 
+Each sentinel of a list has two pointers, *head* and *next*. Pointer
+*sentinel.head* always points to the first entry of the list which is called
+*head*. Every new thread is added at the *tail* of the list which is essentialy
+just after the node *head*. When a first thread is added to the list the pointer
+*sentinel.next* points to the thread, too. When the list is rotated using
+function esThdQFetchRotateI() the pointer *sentinel.next* is advanced forward
 and points to the next thread in list.
 
 @image html     thdL-rotate.png "Detailed view of the sentinel and linked list"
 @image latex    thdL-rotate.png "Detailed view of the sentinel and linked list" width=12cm
 
-@section        sched_thdQ Threads Queue 
-Based on the number of configured priority levels (see @ref CFG_SCHED_PRIO_LVL) 
-and on the number of data register bits (see @ref PORT_DATA_WIDTH_VAL) of the 
+@section        sched_thdQ Threads Queue
+Based on the number of configured priority levels (see @ref CFG_SCHED_PRIO_LVL)
+and on the number of data register bits (see @ref PORT_DEF_DATA_WIDTH) of the
 used CPU, two configurations are possible:
 - Simple Ready Threads Queue
 - Complex Ready Threads Queue
 
-Simple Ready Threads Queue configuration is used when the number of configured 
-priority levels is lower or equal to the number of bits in general purpose data 
-register. For example if application is using 9 priority levels on 32-bit CPU 
-than simple Ready Threads Queue configuration is used. In contrast, when using 9 
-priority levels on an 8-bit CPU than the kernel is forced to use the Complex 
-Ready Threads Queue configuration since 8-bit register cannot carry 9 bits of 
+Simple Ready Threads Queue configuration is used when the number of configured
+priority levels is lower or equal to the number of bits in general purpose data
+register. For example if application is using 9 priority levels on 32-bit CPU
+than simple Ready Threads Queue configuration is used. In contrast, when using 9
+priority levels on an 8-bit CPU than the kernel is forced to use the Complex
+Ready Threads Queue configuration since 8-bit register cannot carry 9 bits of
 data.
 
 @subsection     sched_rdyThdQ_simple Simple Ready Threads Queue
-Each bit in `bit[0]` variable represents one priority level. The number of bits 
-used in this variable depends on @ref CFG_SCHED_PRIO_LVL value. If a bit at `Nth` 
+Each bit in `bit[0]` variable represents one priority level. The number of bits
+used in this variable depends on @ref CFG_SCHED_PRIO_LVL value. If a bit at `Nth`
 position is set then there is a thread inserted in Thread List at `Nth` priority
-level. 
+level.
 
 @n
 @image html     thdQ-simple.png "Ready Threads Queue - low number of priority levels"
@@ -652,7 +662,7 @@ following pseudo-code:
 @code{.c}
 function insert(thread)
     priority := thread.priority                             # Get the priority of the thread
-    
+
     if (grp[priority].head == NULL)                         # If this priority level has a list
         grp[priority].head := thread                        # Create a list with this thread as head
         grp[priority].next := thread
@@ -669,7 +679,7 @@ The process of a thread removal can be described with the following pseudo-code:
 @code{.c}
 function remove(thread)
     priority := thread.priority                             # Get the priority of the thread
-    
+
     if (listIsEntryLast(thread))                            # In case we are removing the last entry
         grp[priority].head := NULL                          # List is deleted
         bitIndx := 2^priority                               # bitIndx equals to 2 raised to the power of priority
@@ -681,7 +691,7 @@ end function
 @endcode
 
 @par            Fetching the highest priority thread
-The process of fetching the highest priority thread is inverse function of 
+The process of fetching the highest priority thread is inverse function of
 `2^priority` which was used in `insert()` function:
 @code{.c}
 function fetch()
@@ -698,7 +708,7 @@ function rotate()
     priority := log2(bit[0])                                # Find Last Set bit position in bit[0]
 
     grp[priority].next := grp[priority].next.next
-    
+
     return grp[priority].next
 end function
 @endcode
@@ -708,5 +718,5 @@ end function
 @image latex    thdQ-complex.png "Ready Threads Queue - high number of priority levels" width=17cm
 
 @section        sched_rdyThdQ Ready Threads Queue
-Ready Threads Queue holds threads that are ready for execution. 
+Ready Threads Queue holds threads that are ready for execution.
 */

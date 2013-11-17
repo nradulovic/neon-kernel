@@ -6,15 +6,14 @@ INPUT               =   ../doc/src/kernel-example.dox                           
                         ../doc/src/template.dox                                 \
                         ../doc/src/dbg.dox                                      \
                         ../inc/kernel.h                                         \
-                        ../inc/kernel_cfg.h                                     \
                         ../src/kernel.c                                         \
-                        ../template/generic/port/compiler.h                     \
-                        ../template/generic/port/cpu.h                          \
-                        ../template/generic/port/cpu.c                          \
-                        ../template/generic/port/cpu_cfg.h                      \
+                        ../template/generic/_port_/common/arch/compiler.h       \
+                        ../template/generic/_port_/_mcu_/family/profile.h       \
+                        ../template/generic/_port_/_cpu_/arch/cpu.h             \
+                        ../template/generic/_port_/_cpu_/arch/cpu_cfg.h         \
+                        ../template/generic/_port_/_cpu_/cpu.c                  \
                         ../template/generic/kernel_cfg.h                        \
                         ../template/generic/dbg_cfg.h                           \
                         ../inc/dbg.h                                            \
-                        ../inc/dbg_cfg.h                                        \
-                        ../src/dbg.c    
+                        ../src/dbg.c
 OUTPUT_DIRECTORY    =   ../doc/kernel

@@ -1,20 +1,21 @@
 /*
- * This file is part of eSolid
+ * This file is part of eSolid - RT Kernel
  *
  * Copyright (C) 2011, 2012, 2013 - Nenad Radulovic
  *
- * eSolid is free software; you can redistribute it and/or modify it under the
- * terms of the GNU General Public License as published by the Free Software
- * Foundation; either version 2 of the License, or (at your option) any later
- * version.
+ * eSolid - RT Kernel is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; either version 2 of the License, or (at your option) any
+ * later version.
  *
- * eSolid is distributed in the hope that it will be useful, but WITHOUT ANY
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+ * eSolid - RT Kernel is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+ * more details.
  *
  * You should have received a copy of the GNU General Public License along with
- * eSolid; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
- * Fifth Floor, Boston, MA  02110-1301  USA
+ * eSolid - RT Kernel; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *
  * web site:    http://github.com/nradulovic
  * e-mail  :    nenad.b.radulovic@gmail.com
@@ -33,7 +34,7 @@
 
 /**@brief       Priority Bit Map log base 2: `log2(PORT_DEF_DATA_WIDTH)`
  */
-#define PRIO_BM_DATA_WIDTH_LOG2                                                 \
+#define DEF_PBM_DATA_WIDTH_LOG2                                                 \
     (PORT_DEF_DATA_WIDTH <   2u ? 0u :                                          \
      (PORT_DEF_DATA_WIDTH <   4u ? 1u :                                         \
       (PORT_DEF_DATA_WIDTH <   8u ? 2u :                                        \
@@ -363,6 +364,8 @@ void thdWait(
 
 /*=======================================================  LOCAL VARIABLES  ==*/
 
+/**@brief       Module identification info
+ */
 DECL_MODULE_INFO("Kernel", "eSolid RT Kernel", "Nenad Radulovic");
 
 /*------------------------------------------------------------------------*//**
@@ -480,8 +483,8 @@ static PORT_C_INLINE void pbmSet(
     uint_fast8_t        grpIndx;
     uint_fast8_t        bitIndx;
 
-    bitIndx = prio & (~((uint_fast8_t)0u) >> (sizeof(prio) * 8u - PRIO_BM_DATA_WIDTH_LOG2));
-    grpIndx = prio >> PRIO_BM_DATA_WIDTH_LOG2;
+    bitIndx = prio & (~((uint_fast8_t)0u) >> (sizeof(prio) * 8u - DEF_PBM_DATA_WIDTH_LOG2));
+    grpIndx = prio >> DEF_PBM_DATA_WIDTH_LOG2;
     pbm->bitGrp |= PORT_BIT_PWR2(grpIndx);
     pbm->bit[grpIndx] |= PORT_BIT_PWR2(bitIndx);
 #else
@@ -497,8 +500,8 @@ static PORT_C_INLINE void pbmClear(
     uint_fast8_t        grpIndx;
     uint_fast8_t        bitIndx;
 
-    bitIndx = prio & (~((uint_fast8_t)0u) >> (sizeof(prio) * 8u - PRIO_BM_DATA_WIDTH_LOG2));
-    grpIndx = prio >> PRIO_BM_DATA_WIDTH_LOG2;
+    bitIndx = prio & (~((uint_fast8_t)0u) >> (sizeof(prio) * 8u - DEF_PBM_DATA_WIDTH_LOG2));
+    grpIndx = prio >> DEF_PBM_DATA_WIDTH_LOG2;
     pbm->bit[grpIndx] &= ~PORT_BIT_PWR2(bitIndx);
 
     if (0u == pbm->bit[grpIndx]) {                                              /* Is this the last one bit cleared in this group?          */
@@ -519,7 +522,7 @@ static PORT_C_INLINE uint_fast8_t pbmGetHighest(
     grpIndx = PORT_BIT_FIND_LAST_SET(pbm->bitGrp);
     bitIndx = PORT_BIT_FIND_LAST_SET(pbm->bit[grpIndx]);
 
-    return ((grpIndx << PRIO_BM_DATA_WIDTH_LOG2) | bitIndx);
+    return ((grpIndx << DEF_PBM_DATA_WIDTH_LOG2) | bitIndx);
 #else
     uint_fast8_t        bitIndx;
 
@@ -1047,7 +1050,7 @@ void esKernSysTmr(
         lockCtx);
 }
 
-void esKernIsrEnter(
+void esKernIsrEnterI(
     void) {
 
     ES_DBG_API_REQUIRE(ES_DBG_USAGE_FAILURE, ES_KERN_INIT > KernCtrl.state);
@@ -1055,7 +1058,7 @@ void esKernIsrEnter(
     ((struct kernCtrl_ *)&KernCtrl)->state |= SCHED_STATE_INTSRV_MSK;
 }
 
-void esKernIsrExit(
+void esKernIsrExitI(
     void) {
 
     ES_DBG_API_REQUIRE(ES_DBG_USAGE_FAILURE, ES_KERN_INIT > KernCtrl.state);
@@ -1072,7 +1075,7 @@ void esKernIsrExit(
 void esKernLockIntEnter(
     esLockCtx_T *       lockCtx) {
 
-    PORT_INT_PRIO_REPLACE(lockCtx, PORT_DEF_INT_PRIO);
+    PORT_INT_PRIO_REPLACE(lockCtx, PORT_DEF_MAX_ISR_PRIO);
     esKernLockEnterI();
 }
 

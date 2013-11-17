@@ -1,20 +1,20 @@
 /*
- * This file is part of eSolid-Kernel
+ * This file is part of eSolid - RT Kernel
  *
  * Copyright (C) 2011, 2012, 2013 - Nenad Radulovic
  *
- * eSolid-Kernel is free software; you can redistribute it and/or modify it
+ * eSolid - RT Kernel is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
  * Software Foundation; either version 2 of the License, or (at your option) any
  * later version.
  *
- * eSolid-Kernel is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
- * details.
+ * eSolid - RT Kernel is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+ * more details.
  *
  * You should have received a copy of the GNU General Public License along with
- * eSolid-Kernel; if not, write to the Free Software Foundation, Inc., 51
+ * eSolid - RT Kernel; if not, write to the Free Software Foundation, Inc., 51
  * Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *
  * web site:    http://github.com/nradulovic
@@ -51,7 +51,7 @@
  */
 #if (1 == CFG_DBG_ENABLE)
 # define DECL_MODULE_INFO(modName, modDesc, modAuth)                            \
-    static const PORT_C_ROM struct dbgModInfo ModInfo_ = {                      \
+    static const PORT_C_ROM struct dbgModInfo_ ModInfo_ = {                     \
         modName,                                                                \
         modDesc,                                                                \
         modAuth,                                                                \
@@ -69,6 +69,7 @@
  * @{ *//*--------------------------------------------------------------------*/
 
 #if (1 == CFG_DBG_ENABLE)
+
 /**@brief       Generic assert macro.
  * @param       msg
  *              Message : enum esDbgMsg : enumerated debug message.
@@ -79,7 +80,7 @@
 # define ES_DBG_ASSERT(msg, expr)                                               \
     do {                                                                        \
         if (!(expr)) {                                                          \
-            const PORT_C_ROM struct dbgCobj thisObj = {                         \
+            const PORT_C_ROM struct dbgCobj_ thisObj = {                        \
                 &ModInfo_,                                                      \
                 PORT_C_FUNC,                                                    \
                 PORT_C_LINE                                                     \
@@ -97,10 +98,10 @@
  */
 # define ES_DBG_ASSERT_ALWAYS(msg, text)                                        \
     do {                                                                        \
-        const PORT_C_ROM struct dbgCobj thisObj = {                             \
-            .mod  = &ModInfo_,                                                  \
-            .fn   = PORT_C_FUNC,                                                \
-            .line = PORT_C_LINE                                                 \
+        const PORT_C_ROM struct dbgCobj_ thisObj = {                            \
+            &ModInfo_,                                                          \
+            PORT_C_FUNC,                                                        \
+            PORT_C_LINE                                                         \
         };                                                                      \
         dbgAssert(PORT_C_FUNC, text, msg);                                      \
     } while (0u)
@@ -189,6 +190,10 @@ extern "C" {
 
 /*============================================================  DATA TYPES  ==*/
 
+/*------------------------------------------------------------------------*//**
+ * @name        Object and error source information
+ * @{ *//*--------------------------------------------------------------------*/
+
 /**@brief       Debug messages
  * @api
  */
@@ -201,49 +206,43 @@ enum esDbgMsg {
     ES_DBG_UNKNOWN_ERROR = 0xFFU                                                /**< @brief Unknown error.                                  */
 };
 
-/*------------------------------------------------------------------------*//**
- * @name        Object and error source information
- * @{ *//*--------------------------------------------------------------------*/
+/**@brief       Debug C object information structure
+ * @notapi
+ */
+struct dbgCobj_ {
 
 /**@brief       Debug module information structure
  * @notapi
  */
-struct dbgModInfo {
-    const PORT_C_ROM char * const PORT_C_ROM_VAR name;
-    const PORT_C_ROM char * const PORT_C_ROM_VAR desc;
-    const PORT_C_ROM char * const PORT_C_ROM_VAR auth;
-    const PORT_C_ROM char * const PORT_C_ROM_VAR file;
-};
-
-/**@brief       Debug C object information structure
- * @notapi
- */
-struct dbgCobj {
-    const PORT_C_ROM struct dbgModInfo * const PORT_C_ROM_VAR mod;
-    const PORT_C_ROM char * const PORT_C_ROM_VAR fn;
-    uint16_t            line;
+    const PORT_C_ROM struct dbgModInfo_ {
+        const PORT_C_ROM char * const PORT_C_ROM_VAR name;                      /**< @brief Module name                                     */
+        const PORT_C_ROM char * const PORT_C_ROM_VAR desc;                      /**< @brief Module description                              */
+        const PORT_C_ROM char * const PORT_C_ROM_VAR auth;                      /**< @brief Module author                                   */
+        const PORT_C_ROM char * const PORT_C_ROM_VAR file;                      /**< @brief Module source file                              */
+    } * const PORT_C_ROM_VAR mod;                                               /**< @brief Module information                              */
+    const PORT_C_ROM char * const PORT_C_ROM_VAR fn;                            /**< @brief Function name                                   */
+    uint16_t            line;                                                   /**< @brief Code line reference                             */
 };
 
 /**@brief       Debug report structure
  * @api
  */
 struct esDbgReport {
-    const PORT_C_ROM char * modName;
-    const PORT_C_ROM char * modDesc;
-    const PORT_C_ROM char * modAuthor;
-    const PORT_C_ROM char * modFile;
-    const PORT_C_ROM char * fnName;
-    const PORT_C_ROM char * expr;
-    const PORT_C_ROM char * msgText;
-    uint16_t            line;
-    enum esDbgMsg       msgNum;
+    const PORT_C_ROM char * modName;                                            /**< @brief Module name                                     */
+    const PORT_C_ROM char * modDesc;                                            /**< @brief Module description                              */
+    const PORT_C_ROM char * modAuthor;                                          /**< @brief Module author                                   */
+    const PORT_C_ROM char * modFile;                                            /**< @brief Module source file                              */
+    const PORT_C_ROM char * fnName;                                             /**< @brief Function name                                   */
+    const PORT_C_ROM char * expr;                                               /**< @brief C expression                                    */
+    const PORT_C_ROM char * msgText;                                            /**< @brief Additional text                                 */
+    uint16_t            line;                                                   /**< @brief Source code line where exception occurred       */
+    enum esDbgMsg       msgNum;                                                 /**< @brief Number associated with additional text          */
 };
 
 /**@} *//*--------------------------------------------------------------------*/
 
 /*======================================================  GLOBAL VARIABLES  ==*/
 /*===================================================  FUNCTION PROTOTYPES  ==*/
-
 
 /*------------------------------------------------------------------------*//**
  * @name        Error checking
@@ -268,7 +267,7 @@ struct esDbgReport {
  * @notapi
  */
 PORT_C_NORETURN void dbgAssert(
-    const PORT_C_ROM struct dbgCobj * cObj,
+    const PORT_C_ROM struct dbgCobj_ * cObj,
     const PORT_C_ROM char * expr,
     enum esDbgMsg       msg);
 

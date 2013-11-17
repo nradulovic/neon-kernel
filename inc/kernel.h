@@ -1,20 +1,20 @@
 /*
- * This file is part of eSolid-Kernel
+ * This file is part of eSolid - RT Kernel
  *
  * Copyright (C) 2011, 2012, 2013 - Nenad Radulovic
  *
- * eSolid-Kernel is free software; you can redistribute it and/or modify it
+ * eSolid - RT Kernel is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
  * Software Foundation; either version 2 of the License, or (at your option) any
  * later version.
  *
- * eSolid-Kernel is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
- * details.
+ * eSolid - RT Kernel is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+ * more details.
  *
  * You should have received a copy of the GNU General Public License along with
- * eSolid-Kernel; if not, write to the Free Software Foundation, Inc., 51
+ * eSolid - RT Kernel; if not, write to the Free Software Foundation, Inc., 51
  * Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *
  * web site:    http://github.com/nradulovic
@@ -86,11 +86,29 @@
 
 /**@} *//*----------------------------------------------------------------*//**
  * @name        Critical code management
+ * @brief       Disable/enable interrupts by preserving the interrupt context
+ * @details     Generally speaking these macros would store the interrupt
+ *              context in the local variable of portReg_T type and then disable
+ *              interrupts. Local variable is allocated in all of eSolid-Kernel
+ *              functions that need to disable interrupts. Macros would restore
+ *              the interrupt context by copying back the allocated variable
+ *              into the interrupt controller status/control register.
  * @{ *//*--------------------------------------------------------------------*/
 
+/**@brief       Enter critical code section
+ * @param       intCtx
+ *              Interrupt context, pointer to portable type variable which will
+ *              hold the interrupt context state during the critical code
+ *              section.
+ */
 #define ES_CRITICAL_ENTER(intCtx)                                               \
-    PORT_INT_PRIO_REPLACE(intCtx, PORT_DEF_INT_PRIO)
+    PORT_INT_PRIO_REPLACE(intCtx, PORT_DEF_MAX_ISR_PRIO)
 
+/**@brief       Exit critical code section
+ * @param       intCtx
+ *              Interrupt context, portable type variable which is holding a
+ *              previously saved interrupt context state.
+ */
 #define ES_CRITICAL_EXIT(intCtx)                                                \
     PORT_INT_PRIO_SET(intCtx)
 
@@ -339,10 +357,10 @@ void esKernSysTmr(
 
 /**@brief       Enter Interrupt Service Routine
  * @pre         1) `The kernel state < ES_KERN_INIT`, see @ref states.
- * @note        1) You must call esKernIsrExit() at the exit of ISR.
- * @note        2) You must invoke esKernIsrEnter() and esKernIsrExit() in pair.
- *                  In other words, for every call to esKernIsrEnter() at the
- *                  beginning of the ISR you must have a call to esKernIsrExit()
+ * @note        1) You must call esKernIsrExitI() at the exit of ISR.
+ * @note        2) You must invoke esKernIsrEnterI() and esKernIsrExitI() in pair.
+ *                  In other words, for every call to esKernIsrEnterI() at the
+ *                  beginning of the ISR you must have a call to esKernIsrExitI()
  *                  at the end of the ISR.
  * @details     Function will notify kernel that you are about to enter
  *              interrupt service routine (ISR). This allows kernel to keep
@@ -353,14 +371,14 @@ void esKernSysTmr(
  * @schedno
  * @iclass
  */
-void esKernIsrEnter(
+void esKernIsrEnterI(
     void);
 
 /**@brief       Exit Interrupt Service Routine
  * @pre         1) `The kernel state < ES_KERN_INIT`, see @ref states.
- * @note        1) You must invoke esKernIsrEnter() and esKernIsrExit() in pair.
- *                  In other words, for every call to esKernIsrEnter() at the
- *                  beginning of the ISR you must have a call to esKernIsrExit()
+ * @note        1) You must invoke esKernIsrEnterI() and esKernIsrExitI() in pair.
+ *                  In other words, for every call to esKernIsrEnterI() at the
+ *                  beginning of the ISR you must have a call to esKernIsrExitI()
  *                  at the end of the ISR.
  * @note        2) Rescheduling is prevented when the scheduler is locked
  *                  (see esKernLockEnterI())
@@ -373,7 +391,7 @@ void esKernIsrEnter(
  * @schedmaybe
  * @iclass
  */
-void esKernIsrExit(
+void esKernIsrExitI(
     void);
 
 /**@} *//*----------------------------------------------------------------*//**
@@ -413,6 +431,9 @@ void esKernLockIntExit(
 
 /**@brief       Lock the scheduler
  * @pre         1) `The kernel state < ES_KERN_INIT`, see @ref states.
+ * @called
+ * @fromthd
+ * @schedno
  * @iclass
  */
 void esKernLockEnterI(
@@ -423,6 +444,9 @@ void esKernLockEnterI(
  * @pre         2) `gKernLockCnt > 0u`, current number of locks must be greater
  *                  than zero, in other words: each call to kernel lock function
  *                  must have its matching call to kernel unlock function.
+ * @called
+ * @fromthd
+ * @schedmaybe
  * @iclass
  */
 void esKernLockExitI(
@@ -430,6 +454,9 @@ void esKernLockExitI(
 
 /**@brief       Lock the scheduler
  * @pre         1) `The kernel state < ES_KERN_INIT`, see @ref states.
+ * @called
+ * @fromthd
+ * @schedno
  * @api
  */
 void esKernLockEnter(
@@ -440,6 +467,9 @@ void esKernLockEnter(
  * @pre         2) `gKernLockCnt > 0u`, current number of locks must be greater
  *                  than zero, in other words: each call to kernel lock function
  *                  must have its matching call to kernel unlock function.
+ * @called
+ * @fromthd
+ * @schedmaybe
  * @api
  */
 void esKernLockExit(
@@ -606,6 +636,11 @@ void esThdSetPrioI(
  * @post        1) `thdQ->signature == THDQ_CONTRACT_SIGNATURE`, each
  *                  @ref esThdQ structure will have valid signature after
  *                  initialization.
+ * @called
+ * @fromapp
+ * @fromthd
+ * @fromisr
+ * @schedno
  * @api
  */
 void esThdQInit(
@@ -621,6 +656,11 @@ void esThdQInit(
  * @post        1) `thdQ->signature == ~THDQ_CONTRACT_SIGNATURE`, each
  *                  @ref esThdQ structure will have invalid signature after
  *                  termination.
+ * @called
+ * @fromapp
+ * @fromthd
+ * @fromisr
+ * @schedno
  * @api
  */
 void esThdQTerm(
@@ -640,6 +680,11 @@ void esThdQTerm(
  *                  point to a valid @ref esThd structure.
  * @pre         5) `thd->thdL_.q == NULL`, thread must not be in any queue.
  * @details     This function adds a thread at the specified Thread Queue.
+ * @called
+ * @fromapp
+ * @fromthd
+ * @fromisr
+ * @schedno
  * @iclass
  */
 void esThdQAddI(
@@ -659,6 +704,11 @@ void esThdQAddI(
  * @pre         4) `thdQ->signature == THDQ_CONTRACT_SIGNATURE`, the pointer
  *                  must point to a valid @ref esThdQ structure.
  * @pre         5) `thd->thdL_.q == thdQ`, thread must be in the `thdQ` queue.
+ * @called
+ * @fromapp
+ * @fromthd
+ * @fromisr
+ * @schedno
  * @iclass
  */
 void esThdQRmI(
@@ -674,6 +724,11 @@ void esThdQRmI(
  * @pre         2) `thdQ->signature == THDQ_CONTRACT_SIGNATURE`, the pointer
  *                  must point to a valid @ref esThdQ structure.
  * @pre         3) `pbm_ != 0`, priority bit map must not be empty
+ * @called
+ * @fromapp
+ * @fromthd
+ * @fromisr
+ * @schedno
  * @iclass
  */
 esThd_T * esThdQFetchI(
@@ -693,6 +748,11 @@ esThd_T * esThdQFetchI(
  *                  @ref CFG_SCHED_PRIO_LVL.
  * @pre         4) `sentinel != NULL`, at least one thread must be in the
  *                  selected priority level
+ * @called
+ * @fromapp
+ * @fromthd
+ * @fromisr
+ * @schedno
  * @iclass
  */
 esThd_T * esThdQFetchRotateI(
@@ -709,6 +769,11 @@ esThd_T * esThdQFetchRotateI(
  * @pre         1) `thdQ != NULL`
  * @pre         2) `thdQ->signature == THDQ_CONTRACT_SIGNATURE`, the pointer
  *                  must point to a valid @ref esThdQ structure.
+ * @called
+ * @fromapp
+ * @fromthd
+ * @fromisr
+ * @schedno
  * @api
  */
 bool_T esThdQIsEmpty(
@@ -727,6 +792,11 @@ bool_T esThdQIsEmpty(
  * @pre         3) `thd->signature == THD_CONTRACT_SIGNATURE`, the pointer must
  *                  point to a valid @ref esThd structure.
  * @pre         4) `thd->thdL_.q == NULL`, thread must not be in a queue.
+ * @called
+ * @fromapp
+ * @fromthd
+ * @fromisr
+ * @schedno
  * @iclass
  */
 void esSchedRdyAddI(
@@ -742,6 +812,11 @@ void esSchedRdyAddI(
  *                  point to a valid @ref esThd structure.
  * @pre         4) `thd->thdL_.q == &gRdyQueue`, thread must be in Ready Threads
  *                  queue.
+ * @called
+ * @fromapp
+ * @fromthd
+ * @fromisr
+ * @schedno
  * @iclass
  */
 void esSchedRdyRmI(
@@ -750,6 +825,9 @@ void esSchedRdyRmI(
 /**@brief       Force the scheduler invocation which will evaluate all ready
  *              threads and switch to ready thread with the highest priority
  * @pre         1) `The kernel state < ES_KERN_INACTIVE`, see @ref states.
+ * @called
+ * @fromthd
+ * @schedmaybe
  * @iclass
  */
 void esSchedYieldI(
@@ -758,6 +836,9 @@ void esSchedYieldI(
 /**@brief       Force the scheduler invocation which will evaluate all ready
  *              threads and switch to ready thread with the highest priority
  * @pre         1) `The kernel state < ES_KERN_INACTIVE`, see @ref states.
+ * @called
+ * @fromisr
+ * @schedmaybe
  * @iclass
  */
 void esSchedYieldIsrI(
@@ -785,6 +866,11 @@ void esSchedYieldIsrI(
  * @post        1) `vTmr->signature == VTMR_CONTRACT_SIGNATURE`, each
  *                  @ref esVTmr structure will have valid signature after
  *                  initialization.
+ * @called
+ * @fromapp
+ * @fromthd
+ * @fromisr
+ * @schedno
  * @iclass
  */
 void esVTmrInitI(
@@ -811,6 +897,11 @@ void esVTmrInitI(
  * @post        1) `vTmr->signature == VTMR_CONTRACT_SIGNATURE`, each
  *                  @ref esVTmr structure will have valid signature after
  *                  initialization.
+ * @called
+ * @fromapp
+ * @fromthd
+ * @fromisr
+ * @schedno
  * @api
  */
 void esVTmrInit(
@@ -829,6 +920,11 @@ void esVTmrInit(
  * @post        1) `vTmr->signature = ~VTMR_CONTRACT_SIGNATURE`, each
  *                  @ref esVTmr structure will have invalid signature after
  *                  termination.
+ * @called
+ * @fromapp
+ * @fromthd
+ * @fromisr
+ * @schedno
  * @iclass
  */
 void esVTmrTermI(
@@ -844,6 +940,11 @@ void esVTmrTermI(
  * @post        1) `vTmr->signature = ~VTMR_CONTRACT_SIGNATURE`, each
  *                  @ref esVTmr structure will have invalid signature after
  *                  termination.
+ * @called
+ * @fromapp
+ * @fromthd
+ * @fromisr
+ * @schedno
  * @api
  */
 void esVTmrTerm(
@@ -858,7 +959,12 @@ void esVTmrTerm(
  *              back into `ready` state.
  * @note        The sleeping thread can not be safely awaken until the
  *              specified time does not expire.
- * @pre         1) `tick > 1U`
+ * @pre         1) `tick > 1u`
+ * @called
+ * @fromapp
+ * @fromthd
+ * @fromisr
+ * @schedyes
  * @api
  */
 void esVTmrDelay(
@@ -871,6 +977,11 @@ void esVTmrDelay(
 /**@brief       Get the current tick value
  * @return      Current tick value
  * @pre         1) `The kernel state < ES_KERN_INACTIVE`, see @ref states.
+ * @called
+ * @fromapp
+ * @fromthd
+ * @fromisr
+ * @schedno
  * @api
  */
 esTick_T esSysTmrTickGet(

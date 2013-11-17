@@ -1,20 +1,20 @@
 /*
- * This file is part of eSolid-Kernel
+ * This file is part of eSolid - RT Kernel
  *
  * Copyright (C) 2011, 2012, 2013 - Nenad Radulovic
  *
- * eSolid-Kernel is free software; you can redistribute it and/or modify it
+ * eSolid - RT Kernel is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
  * Software Foundation; either version 2 of the License, or (at your option) any
  * later version.
  *
- * eSolid-Kernel is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
- * details.
+ * eSolid - RT Kernel is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+ * more details.
  *
  * You should have received a copy of the GNU General Public License along with
- * eSolid-Kernel; if not, write to the Free Software Foundation, Inc., 51
+ * eSolid - RT Kernel; if not, write to the Free Software Foundation, Inc., 51
  * Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *
  * web site:    http://github.com/nradulovic
@@ -41,18 +41,12 @@
  * @name        Port constants
  * @{ *//*--------------------------------------------------------------------*/
 
-/**@brief       General purpose registers are 32bit wide
- */
 #define PORT_DEF_DATA_WIDTH             32u
 
 #define PORT_DEF_DATA_ALIGNMENT         4u
 
-/**@} *//*----------------------------------------------------------------*//**
- * @name
- * @{ *//*--------------------------------------------------------------------*/
-
-#define PORT_DEF_INT_PRIO                                                       \
-    (((CFG_MAX_ISR_PRIO) << (8u - CPU_DEF_ISR_PRIO_BITS)) & 0xfful)
+#define PORT_DEF_MAX_ISR_PRIO                                                       \
+    (((PORT_CFG_MAX_ISR_PRIO) << (8u - CPU_DEF_ISR_PRIO_BITS)) & 0xfful)
 
 /**@brief       Minimal stack size value is the number of elements in struct
  *              @ref portCtx
@@ -67,7 +61,7 @@
 /**@brief       System timer one tick value
  */
 #define PORT_DEF_SYSTMR_ONE_TICK                                                \
-    (CFG_SYSTMR_CLOCK_FREQUENCY / CFG_SYSTMR_EVENT_FREQUENCY)
+    (PORT_CFG_SYSTMR_CLOCK_FREQ / CFG_SYSTMR_EVENT_FREQUENCY)
 
 /**@brief       Maximum number of ticks without overflowing the system timer
  */
@@ -354,7 +348,7 @@ static PORT_C_INLINE_ALWAYS void portIntDisable_(
 /**@brief       Set the new interrupt priority state
  * @param       state
  *              New interrupt priority mask or new state of interrupts
- * @note        Depending on @ref CFG_MAX_ISR_PRIO setting this function will
+ * @note        Depending on @ref PORT_CFG_MAX_ISR_PRIO setting this function will
  *              either set the new priority of allowed interrupts or just
  *              disable/enable all interrupts.
  * @inline
@@ -362,7 +356,7 @@ static PORT_C_INLINE_ALWAYS void portIntDisable_(
 static PORT_C_INLINE_ALWAYS void portIntPrioSet_(
     portReg_T           state) {
 
-#if (0 != CFG_MAX_ISR_PRIO)
+#if (0 != PORT_CFG_MAX_ISR_PRIO)
     __asm __volatile__ (
         "   msr    basepri, %0                              \n"
         :
@@ -385,7 +379,7 @@ static PORT_C_INLINE_ALWAYS void portIntPrioGet_(
 
     portReg_T           tmp;
 
-#if (0 != CFG_MAX_ISR_PRIO)
+#if (0 != PORT_CFG_MAX_ISR_PRIO)
     __asm __volatile__ (
         "   mrs     %0, basepri                             \n"
         : "=r"(tmp));
@@ -407,7 +401,7 @@ static PORT_C_INLINE_ALWAYS void portIntPrioReplace_(
 
     portReg_T           tmp;
 
-#if (0 != CFG_MAX_ISR_PRIO)
+#if (0 != PORT_CFG_MAX_ISR_PRIO)
     __asm __volatile__ (
         "   mrs     %0, basepri                             \n"
         "   msr     basepri, %1                             \n"

@@ -1,25 +1,24 @@
 /*
- * This file is part of eSolid-Kernel
+ * This file is part of eSolid - RT Kernel
  *
- * Copyright (C) 2013 - Nenad Radulovic
+ * Copyright (C) 2011, 2012, 2013 - Nenad Radulovic
  *
- * eSolid-Kernel is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * eSolid - RT Kernel is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; either version 2 of the License, or (at your option) any
+ * later version.
  *
- * eSolid-Kernel is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * eSolid - RT Kernel is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+ * more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with eSolid-Kernel; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor,
- * Boston, MA  02110-1301  USA
+ * You should have received a copy of the GNU General Public License along with
+ * eSolid - RT Kernel; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *
- * web site:    http://blueskynet.dyndns-server.com
- * e-mail  :    blueskyniss@gmail.com
+ * web site:    http://github.com/nradulovic
+ * e-mail  :    nenad.b.radulovic@gmail.com
  *//***********************************************************************//**
  * @file
  * @author  	Nenad Radulovic
@@ -91,7 +90,7 @@
 /**@brief       The frequency of system tick event
  * @details     Specify the desired resolution system tick time source. This
  *              setting is valid only if configuration option
- *              @ref CFG_SYSTMR_CLOCK_FREQUENCY is properly set in port
+ *              @ref PORT_CFG_SYSTMR_CLOCK_FREQ is properly set in port
  *              configuration file cpu_cfg.h
  */
 #if !defined(CFG_SYSTMR_EVENT_FREQUENCY)

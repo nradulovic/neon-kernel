@@ -52,7 +52,7 @@ PROJECT_LOGO           = ../doc/img/eSolid-logo_small.png
 # If a relative path is entered, it will be relative to the location
 # where doxygen was started. If left blank the current directory will be used.
 
-#OUTPUT_DIRECTORY       = 
+#OUTPUT_DIRECTORY       =
 
 # If the CREATE_SUBDIRS tag is set to YES, then doxygen will create
 # 4096 sub-directories (in 2 levels) under the output directory of each output
@@ -196,14 +196,14 @@ TAB_SIZE               = 4
 ALIASES = "iclass=@par Function class:\n <b>I class</b>, Interrupt-lock API     \
             function, this function can be called only from interrupts locked   \
             code sections."                                                     \
-          "sclass=@par Function class:\n <b>S class</b>, System-lock API        \ 
+          "sclass=@par Function class:\n <b>S class</b>, System-lock API        \
             function, this function can be called only from kernel lock code    \
-            sections."                                                          \  
+            sections."                                                          \
           "api=@par Object class:\n Regular <b>API</b> object, this object is   \
-            part of the application programming interface."                     \ 
+            part of the application programming interface."                     \
           "notapi=@par Object class:\n <b>Not API</b> object, this object is not\
-            part of the application programming interface and it is intended for\ 
-            internal use only."                                                 \ 
+            part of the application programming interface and it is intended for\
+            internal use only."                                                 \
           "mseffect=@attention Macro does have side effects."                   \
           "inline=@note This is @c inline function."                            \
           "schedno=@par Rescheduling:\n - never"                                \
@@ -659,7 +659,7 @@ WARN_LOGFILE           =
 # directories like "/usr/src/myproject". Separate the files or directories
 # with spaces.
 
-#INPUT                  =                           
+#INPUT                  =
 
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding, which is
@@ -1124,7 +1124,7 @@ ECLIPSE_DOC_ID         = org.doxygen.Project
 # navigation tree you can set this option to NO if you already set
 # GENERATE_TREEVIEW to YES.
 
-DISABLE_INDEX          = NO
+DISABLE_INDEX          = YES
 
 # The GENERATE_TREEVIEW tag is used to specify whether a tree-like index
 # structure should be generated to display hierarchical information.
@@ -1136,7 +1136,7 @@ DISABLE_INDEX          = NO
 # Since the tree basically has the same information as the tab index you
 # could consider to set DISABLE_INDEX to NO when enabling this option.
 
-GENERATE_TREEVIEW      = NO
+GENERATE_TREEVIEW      = YES
 
 # The ENUM_VALUES_PER_LINE tag can be used to set the number of enum values
 # (range [0,1..20]) that doxygen will group on one line in the generated HTML
@@ -1501,7 +1501,7 @@ SEARCH_INCLUDES        = YES
 # contain include files that are not input files but should be processed by
 # the preprocessor.
 
-INCLUDE_PATH           = 
+INCLUDE_PATH           =
 
 # You can use the INCLUDE_FILE_PATTERNS tag to specify one or more wildcard
 # patterns (like *.h and *.hpp) to filter out the header-files in the
