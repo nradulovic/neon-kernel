@@ -38,7 +38,7 @@
 
 /*------------------------------------------------------------------------*//**
  * @name        Object and error source information
- * @brief       This describes the current object file and error souce
+ * @brief       This describes the current object file and error source
  * @{ *//*--------------------------------------------------------------------*/
 
 /**@brief       Declare a module information card
@@ -68,11 +68,28 @@
  *              @ref CFG_DBG_ENABLE.
  * @{ *//*--------------------------------------------------------------------*/
 
+/**@brief       Static assert macro
+ * @param       msg
+ *              Message : enum esDbgMsgNum : enumerated debug message.
+ * @param       expr
+ *              Expression : C expression : condition expression which must be
+ *              TRUE.
+ * @details     This macro will evaluate the given expression at compile time.
+ *              If the expression is not true the compilation process will stop
+ *              with an error message about negative size of array.
+ */
+#if defined(PORT_C_STATIC_ASSERT)
+# define ES_DBG_STATIC_ASSERT(expr)     PORT_C_STATIC_ASSERT(expr)
+#else
+# define ES_DBG_STATIC_ASSERT(msg, expr)                                        \
+    extern char ES_DBG_STATIC_ASSERT_has_failed_##msg[(expr) ? 1 : -1]
+#endif
+
 #if (1 == CFG_DBG_ENABLE)
 
 /**@brief       Generic assert macro.
  * @param       msg
- *              Message : enum esDbgMsg : enumerated debug message.
+ *              Message : enum esDbgMsgNum : enumerated debug message.
  * @param       expr
  *              Expression : C expression : condition expression which must be
  *              TRUE.
@@ -91,7 +108,7 @@
 
 /**@brief       Assert macro that will always execute (no conditional).
  * @param       msg
- *              Message : enum esDbgMsg : enumerated debug message.
+ *              Message : enum esDbgMsgNum : enumerated debug message.
  * @param       text
  *              Text : string : a text which will be printed when this assert
  *              macro is executed.
@@ -124,7 +141,7 @@
 
 /**@brief       Assert macro used for internal execution checking
  * @param       msg
- *              Message : enum esDbgMsg : enumerated debug message.
+ *              Message : enum esDbgMsgNum : enumerated debug message.
  * @param       expr
  *              Expression : C expression : condition expression which must be
  *              satisfied
@@ -154,7 +171,7 @@
 
 /**@brief       Make sure the caller has fulfilled all contract preconditions
  * @param       msg
- *              Message : enum esDbgMsg : enumerated debug message.
+ *              Message : enum esDbgMsgNum : enumerated debug message.
  * @param       expr
  *              Expression : C expression : condition expression which must be
  *              satisfied
@@ -164,7 +181,7 @@
 
 /**@brief       Make sure the callee has fulfilled all contract postconditions
  * @param       msg
- *              Message : enum esDbgMsg : enumerated debug message.
+ *              Message : enum esDbgMsgNum : enumerated debug message.
  * @param       expr
  *              Expression : C expression : condition expression which must be
  *              satisfied
@@ -194,16 +211,18 @@ extern "C" {
  * @name        Object and error source information
  * @{ *//*--------------------------------------------------------------------*/
 
+
 /**@brief       Debug messages
  * @api
  */
-enum esDbgMsg {
-    ES_DBG_OUT_OF_RANGE,                                                        /**< @brief Value is out of valid range.                    */
-    ES_DBG_OBJECT_NOT_VALID,                                                    /**< @brief Object is not valid.                            */
-    ES_DBG_POINTER_NULL,                                                        /**< @brief Pointer has NULL value.                         */
-    ES_DBG_USAGE_FAILURE,                                                       /**< @brief Object usage failure.                           */
-    ES_DBG_NOT_ENOUGH_MEM,                                                      /**< @brief Not enough memory available.                    */
-    ES_DBG_UNKNOWN_ERROR = 0xFFU                                                /**< @brief Unknown error.                                  */
+enum esDbgMsgNum {
+    ES_DBG_OUT_OF_RANGE,                                                        /**< @brief Value is out of valid range.                    *///!< ES_DBG_OUT_OF_RANGE
+    ES_DBG_OBJECT_NOT_VALID,                                                    /**< @brief Object is not valid.                            *///!< ES_DBG_OBJECT_NOT_VALID
+    ES_DBG_POINTER_NULL,                                                        /**< @brief Pointer has NULL value.                         *///!< ES_DBG_POINTER_NULL
+    ES_DBG_USAGE_FAILURE,                                                       /**< @brief Object usage failure.                           *///!< ES_DBG_USAGE_FAILURE
+    ES_DBG_NOT_ENOUGH_MEM,                                                      /**< @brief Not enough memory available.                    *///!< ES_DBG_NOT_ENOUGH_MEM
+    ES_DBG_NOT_IMPLEMENTED,                                                     /**< @brief A method is not implemented                     *///!< ES_DBG_NOT_IMPLEMENTED
+    ES_DBG_UNKNOWN_ERROR                                                        /**< @brief Unknown error.                                  *///!< ES_DBG_UNKNOWN_ERROR
 };
 
 /**@brief       Debug C object information structure
@@ -236,7 +255,7 @@ struct esDbgReport {
     const PORT_C_ROM char * expr;                                               /**< @brief C expression                                    */
     const PORT_C_ROM char * msgText;                                            /**< @brief Additional text                                 */
     uint16_t            line;                                                   /**< @brief Source code line where exception occurred       */
-    enum esDbgMsg       msgNum;                                                 /**< @brief Number associated with additional text          */
+    enum esDbgMsgNum    msgNum;                                                 /**< @brief Number associated with additional text          */
 };
 
 /**@} *//*--------------------------------------------------------------------*/
@@ -246,12 +265,12 @@ struct esDbgReport {
 
 /*------------------------------------------------------------------------*//**
  * @name        Error checking
- * @details     For more datails see @ref errors.
+ * @details     For more details see @ref errors.
  * @{ *//*--------------------------------------------------------------------*/
 
 /**@brief       An assertion has failed
  * @param       cObj
- *              C Object describes where the error occured.
+ *              C Object describes where the error occurred.
  * @param       expr
  *              Expression: is pointer to the string containing the expression
  *              that failed to evaluate to `TRUE`.
@@ -269,7 +288,7 @@ struct esDbgReport {
 PORT_C_NORETURN void dbgAssert(
     const PORT_C_ROM struct dbgCobj_ * cObj,
     const PORT_C_ROM char * expr,
-    enum esDbgMsg       msg);
+    enum esDbgMsgNum    msg);
 
 /**@} *//*----------------------------------------------------------------*//**
  * @name        Debug hook functions

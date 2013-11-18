@@ -36,6 +36,20 @@
 /*======================================================  LOCAL DATA TYPES  ==*/
 /*=============================================  LOCAL FUNCTION PROTOTYPES  ==*/
 /*=======================================================  LOCAL VARIABLES  ==*/
+
+/**@brief       Definition text of debug messages
+ * @note        This array needs to be in synchronization with enum esDbgMsgNum.
+ */
+static const PORT_C_ROM char * const PORT_C_ROM_VAR DbgMsg[] = {
+    "Value is out of valid range.",                                             /* ES_DBG_OUT_OF_RANGE                                      */
+    "Object is not valid.",                                                     /* ES_DBG_OBJECT_NOT_VALID                                  */
+    "Pointer has NULL value.",                                                  /* ES_DBG_POINTER_NULL                                      */
+    "Object/method usage failure.",                                             /* ES_DBG_USAGE_FAILURE                                     */
+    "Not enough memory available.",                                             /* ES_DBG_NOT_ENOUGH_MEM                                    */
+    "A method is not implemented",                                              /* ES_DBG_NOT_IMPLEMENTED                                   */
+    "Unknown error."                                                            /* ES_DBG_UNKNOWN_ERROR                                     */
+};
+
 /*======================================================  GLOBAL VARIABLES  ==*/
 /*============================================  LOCAL FUNCTION DEFINITIONS  ==*/
 /*===================================  GLOBAL PRIVATE FUNCTION DEFINITIONS  ==*/
@@ -48,38 +62,14 @@
 PORT_C_NORETURN void dbgAssert(
     const PORT_C_ROM struct dbgCobj_ * cObj,
     const PORT_C_ROM char * expr,
-    enum esDbgMsg       msg) {
+    enum esDbgMsgNum    msg) {
 
     struct esDbgReport  dbgReport;
-    const char *        msgText;
 
     PORT_INT_DISABLE();
 
-    switch (msg) {
-        case ES_DBG_OUT_OF_RANGE : {
-            msgText = "Value is out of valid range";
-            break;
-        }
-        case ES_DBG_OBJECT_NOT_VALID : {
-            msgText = "Object is not valid";
-            break;
-        }
-        case ES_DBG_POINTER_NULL : {
-            msgText = "Pointer has NULL value";
-            break;
-        }
-        case ES_DBG_USAGE_FAILURE : {
-            msgText = "Object usage failure";
-            break;
-        }
-        case ES_DBG_NOT_ENOUGH_MEM : {
-            msgText = "Not enough memory available";
-            break;
-        }
-        default : {
-            msgText = "Unknown error has occurred";
-            break;
-        }
+    if (ES_DBG_UNKNOWN_ERROR > msg) {
+        msg = ES_DBG_UNKNOWN_ERROR;
     }
     dbgReport.modName   = cObj->mod->name;
     dbgReport.modDesc   = cObj->mod->desc;
@@ -87,7 +77,7 @@ PORT_C_NORETURN void dbgAssert(
     dbgReport.modFile   = cObj->mod->file;
     dbgReport.fnName    = cObj->fn;
     dbgReport.expr      = expr;
-    dbgReport.msgText   = msgText;
+    dbgReport.msgText   = DbgMsg[msg];
     dbgReport.line      = cObj->line;
     dbgReport.msgNum    = msg;
     userAssert(
