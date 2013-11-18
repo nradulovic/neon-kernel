@@ -200,7 +200,7 @@
  *  @retval     TRUE - this is last ISR
  *  @retval     FALSE - this is not the last ISR
  */
-#define PORT_ISR_IS_LAST()              (0u == gPortIsrNesting ? TRUE : FALSE)
+#define PORT_ISR_IS_LAST()              (0u == PortIsrNesting ? TRUE : FALSE)
 
 /**@} *//*----------------------------------------------------------------*//**
  * @name        System timer management
