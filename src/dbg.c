@@ -30,7 +30,7 @@
 
 #include "arch/compiler.h"
 #include "arch/cpu.h"
-#include "dbg.h"
+#include "kernel/dbg.h"
 
 /*=========================================================  LOCAL MACRO's  ==*/
 /*======================================================  LOCAL DATA TYPES  ==*/

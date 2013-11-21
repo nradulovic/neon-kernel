@@ -33,9 +33,8 @@
 
 #include "arch/compiler.h"
 #include "arch/cpu.h"
-#include "dbg.h"
-
-#include "kernel_cfg.h"
+#include "kernel/dbg.h"
+#include "kernel/kernel_cfg.h"
 
 /*===============================================================  MACRO's  ==*/
 
@@ -62,7 +61,7 @@
 
 /**@brief       Kernel identification string
  */
-#define ES_KERN_ID                      "eSolid Kernel"
+#define ES_KERN_ID                      "eSolid - RT Kernel"
 
 /**@} *//*----------------------------------------------------------------*//**
  * @name        Thread management
@@ -73,6 +72,7 @@
  *              Number of stack elements: the stack size is expressed in number
  *              of elements regardless of the size of port general purpose
  *              registers.
+ * @return      Number of stack elements needed for stack usage.
  */
 #define ES_STCK_SIZE(elem)              PORT_STCK_SIZE(elem)
 
@@ -505,7 +505,9 @@ void esKernLockExit(
  *              Stack Size: specifies the size of allocated stack memory. Size
  *              is expressed in bytes. Please see port documentation about
  *              minimal stack size. Usage of C unary operator `sizeof` is the
- *              recommended way of specifying stack size.
+ *              recommended way of specifying stack size. Another way of
+ *              specifying required stack size is through the usage of
+ *              @ref ES_STCK_SIZE macro.
  * @param       prio
  *              Priority: is the priority of the thread. The higher the number,
  *              the higher the priority (the importance) of the thread. Several

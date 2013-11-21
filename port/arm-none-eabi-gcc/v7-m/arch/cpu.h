@@ -33,7 +33,7 @@
 
 #include "arch/compiler.h"
 #include "arch/cpu_cfg.h"
-#include "kernel_cfg.h"
+#include "kernel/kernel_cfg.h"
 
 /*===============================================================  MACRO's  ==*/
 

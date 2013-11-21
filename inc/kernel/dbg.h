@@ -32,7 +32,7 @@
 /*=========================================================  INCLUDE FILES  ==*/
 
 #include "arch/compiler.h"
-#include "dbg_cfg.h"
+#include "kernel/dbg_cfg.h"
 
 /*===============================================================  MACRO's  ==*/
 
@@ -79,7 +79,7 @@
  *              with an error message about negative size of array.
  */
 #if defined(PORT_C_STATIC_ASSERT)
-# define ES_DBG_STATIC_ASSERT(expr)     PORT_C_STATIC_ASSERT(expr)
+# define ES_DBG_STATIC_ASSERT(msg, expr)     PORT_C_STATIC_ASSERT(expr)
 #else
 # define ES_DBG_STATIC_ASSERT(msg, expr)                                        \
     extern char ES_DBG_STATIC_ASSERT_has_failed_##msg[(expr) ? 1 : -1]

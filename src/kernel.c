@@ -28,7 +28,7 @@
 
 /*=========================================================  INCLUDE FILES  ==*/
 
-#include "kernel.h"
+#include "kernel/kernel.h"
 
 /*=========================================================  LOCAL MACRO's  ==*/
 
@@ -366,7 +366,7 @@ void thdWait(
 
 /**@brief       Module identification info
  */
-DECL_MODULE_INFO("Kernel", "eSolid RT Kernel", "Nenad Radulovic");
+DECL_MODULE_INFO("Kernel", ES_KERN_ID, "Nenad Radulovic");
 
 /*------------------------------------------------------------------------*//**
  * @name        Scheduler
@@ -394,7 +394,8 @@ static struct sysTmr SysTmr = {
 /**@brief       List of virtual timers to armed expire
  */
 static struct esVTmr VTmrArmed = {
-   {    &VTmrArmed,
+   {
+        &VTmrArmed,
         &VTmrArmed,
         &VTmrArmed
    },
@@ -416,7 +417,8 @@ static struct esVTmr VTmrArmed = {
 /**@brief       Virtual timers pending to be inserted into waiting list
  */
 static struct esVTmr VTmrPend = {
-   {    &VTmrPend,
+   {
+        &VTmrPend,
         &VTmrPend,
         &VTmrPend
    },
