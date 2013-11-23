@@ -1,4 +1,4 @@
-# eSolid Real-Time Kernel
+# Quick-start guide
 
 This is a bare-kernel, the result of two weeks of work. It is intended for a 
 bigger project which already includes some synchronization mechanisms. The 
@@ -18,12 +18,12 @@ and it can be viewed as a preemptive Round-Robin scheduler, only.
 - test, test, test...
 
 
-# Using eSolid Real-Time Kernel
+# Using eSolid - Real-Time Kernel
 
 ## Configuration and ports
 
 Configuration is done in two files: `kernel_cfg.h` (port independent settings) 
-and in `cpu_cfg.h` (port depended settings, located in).
+and in `cpu_cfg.h` (port depended settings, located in port structure).
 Currently, kernel is ported only to ARMv7-M architecture range of 
 microcontrollers. It was tested on STM32F100 series of microcontrollers, but it
 should work, with minimal modifications, on any ARMv7-M CPU. Some other ports 
@@ -39,7 +39,8 @@ that IDE will generate them for you.
 
 #### Example for STM32F10x family port
 
-There are two groups of source files which need to be compiled for ARMv7-M architecture: 
+There are two groups of source files which need to be compiled for ARMv7-M 
+architecture: 
 - kernel.c, semaphore.c, dbg.c in `./src` source directory and 
 - cpu.c in `./port/arm-none-eabi-gcc/v7-m` port directory.
 

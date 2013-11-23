@@ -1,5 +1,8 @@
-/** @file */
-/** @defgroup   dbg Debug
+/** 
+@file 
+*/
+/** 
+@defgroup       dbg Debug
 @brief          Overview
 @{
 @defgroup       dbg_intf Interface
@@ -7,26 +10,26 @@
 @defgroup       dbg_cfg  Configuration
 @} */
 
-/** @addtogroup dbg_intf
+/** 
+@addtogroup     dbg_intf
 @brief          Application programming interface
 */
 
-/** @addtogroup dbg_impl
+/** 
+@addtogroup     dbg_impl
 @brief          Debug inner work
 */
 
-/** @addtogroup dbg_cfg
+/** 
+@addtogroup     dbg_cfg
 @brief          Debug configuration options
 */
 
 /*----------------------------------------------------------------------------*/
-/** @page       errors Debug: Error checking
+/**
+@page           errors Debug: Error checking
 @brief          How errors are detected
 
-@tableofcontents
-@n
-@n
-@n
 @section        errors_intro Intro
 
 An assertion is a statement in programming language that enables programmer to 
@@ -49,6 +52,7 @@ the code expects to result in when it is finished running (postconditions).
 
 @section        errors_usage Usage
 @par            Configuration
+    
 In order to use Debug macros configuration option @ref CFG_DBG_ENABLE must be
 active. This option will enable generic assert macros which are used by other
 macros of Debug module. 

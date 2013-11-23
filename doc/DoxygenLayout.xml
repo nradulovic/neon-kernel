@@ -1,10 +1,8 @@
 <doxygenlayout version="1.0">
   <!-- Navigation index tabs for HTML output -->
   <navindex>
-    <tab type="user" url="/" title="Home page"/>
     <tab type="mainpage" visible="no" title=""/>
     <tab type="pages" visible="yes" title="" intro=""/>
-    <tab type="modules" visible="yes" title="" intro=""/>
     <tab type="namespaces" visible="yes" title="">
       <tab type="namespacelist" visible="yes" title="" intro=""/>
       <tab type="namespacemembers" visible="yes" title="" intro=""/>
@@ -19,6 +17,7 @@
       <tab type="filelist" visible="yes" title="" intro=""/>
       <tab type="globals" visible="no" title="" intro=""/>
     </tab>
+    <tab type="modules" visible="yes" title="Code documentation" intro=""/>
     <tab type="examples" visible="yes" title="" intro=""/>  
   </navindex>
 

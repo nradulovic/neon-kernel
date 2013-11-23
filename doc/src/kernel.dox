@@ -20,7 +20,7 @@
 */
 
 /*----------------------------------------------------------------------------*/
-/** @mainpage   eSolid Real-Time Kernel
+/** @mainpage   Overview
 @section        kernel_specs eSolid - RT Kernel Features
 @subsection     spec_source Source code
 
@@ -160,11 +160,6 @@ responsibility of informing the programmer when a contract can not be validated.
 /*----------------------------------------------------------------------------*/
 /** @page       files_org Directory and file organization
 @brief          Details about directory and file organization
-
-@tableofcontents
-@n
-@n
-@n
 @section        files_intro Intro
 The directory structure of eSolid - RT Kernel is should be easy to understand.
 Once the organization of directories and files is understood it is fairly easy
@@ -187,11 +182,11 @@ when the CPU is changed this code is not changed at all and it is still
 correctly executed. Code can be developed and tested on another machine, which
 greatly reduces design efforts. It provides API and some common data structures.
 Port independent code lives under @c /inc and @c /src directories:
-- `inc/kernel.h`
-- `inc/kernel_cfg.h` (application specific - see template)
+- `inc/kernel/kernel.h`
+- `inc/kernel/kernel_cfg.h` (application specific - see template)
 - `src/kernel.c`
-- `inc/dbg.h`
-- `inc/dbg_cfg.h` (application specific - see template)
+- `inc/kernel/dbg.h`
+- `inc/kernel/dbg_cfg.h` (application specific - see template)
 - `src/dbg.c`
 
 Click on file name for further description of the file.
@@ -237,11 +232,6 @@ files are the following:
 /*----------------------------------------------------------------------------*/
 /** @page       states Kernel states
 @brief          Details about kernel states
-
-@tableofcontents
-@n
-@n
-@n
 @section        states_intro Intro
 A Kernel state machine is a behavior model of the kernel core. Each state
 defines what methods are allowed. Kernel state is described by `enum
@@ -328,11 +318,6 @@ boots up the level is decremented. The running state is level 0.
 /*----------------------------------------------------------------------------*/
 /** @page       threads Thread Management
 @brief          Introduction to threads and how to use them
-
-@tableofcontents
-@n
-@n
-@n
 @section        threads_intro Intro
 A thread, also called a thread of execution is the smallest sequence of program
 instructions that can be managed by an operating system scheduler.
@@ -417,11 +402,6 @@ unnecessarily wasted.
 /*----------------------------------------------------------------------------*/
 /** @page       critical_section Critical sections
 @brief          How to deal with critical sections in an application
-
-@tableofcontents
-@n
-@n
-@n
 @section        cs_intro Intro
 In concurrent programming, a critical section is a piece of code that accesses a
 shared resource (data structure or device) that must not be concurrently
@@ -469,23 +449,24 @@ In order to properly disable interrupts the application must follow these steps:
 - restore previously saved interrupt state
 
 The `auto` variable must be of portable type @ref portReg_T. This variable will
-hold temporary interrupt status. Then by using the macro @ref ES_CRITICAL_ENTER()
-the state of enabled interrupts will be saved in interrupt context variable
-declared earlier. Immediately after saving the interrupt state the macro will
-lock interrupts. Now the code can safely access and use the shared resource. When
-code finishes using the resource it will call @ref ES_CRITICAL_EXIT() macro. This
-macro will restore interrupts from the previously saved interrupt state.
+hold temporary interrupt status. Then by using the macro
+@ref ES_CRITICAL_LOCK_ENTER() the state of enabled interrupts will be saved in
+interrupt context variable declared earlier. Immediately after saving the
+interrupt state the macro will lock interrupts. Now the code can safely access
+and use the shared resource. When code finishes using the resource it will call
+@ref ES_CRITICAL_LOCK_EXIT() macro. This macro will restore interrupts from the
+previously saved interrupt state.
 
 @code
     portReg_T intCtx;                   /* Declare an interrupt context status variable */
         :
         :
         :
-    ES_CRITICAL_ENTER(&intCtx);         /* Save state and lock interrupts */
+    ES_CRITICAL_LOCK_ENTER(&intCtx);    /* Save state and lock interrupts */
     /*
      * Access the shared resource
      */
-    ES_CRITICAL_EXIT(intCtx);           /* Restore previous state unlocking the interrupts */
+    ES_CRITICAL_LOCK_EXIT(intCtx);      /* Restore previous state unlocking the interrupts */
 @endcode
 @par            When to use this scheme
 - If interrupt service routine *changes* the shared resource state.
@@ -530,11 +511,6 @@ disabled.
 /*----------------------------------------------------------------------------*/
 /** @page       time_complexity Time complexity
 @brief          About time categories of algorithms
-
-@tableofcontents
-@n
-@n
-@n
 @section        tc_intro Intro
 In computer science, the time complexity of an algorithm quantifies the amount
 of time taken by an algorithm to run as a function of the length of the input.
@@ -590,11 +566,6 @@ algorithms. This is especially important for Real Time applications.
 /*----------------------------------------------------------------------------*/
 /** @page       scheduler Scheduler
 @brief          About the scheduler and Ready Threads Queue
-
-@tableofcontents
-@n
-@n
-@n
 @section        sched_quantum Quantum
 The period of time for which a thread is allowed to execute in a preemptive
 multi-threading system is generally called the time slice, or `quantum`. The
