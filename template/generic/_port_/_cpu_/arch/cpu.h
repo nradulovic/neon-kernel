@@ -275,16 +275,18 @@
 
 /**@brief       Find last set bit in a word
  * @param       val
- *              Value which needs to be evaluated
+ *              Value : portReg_T, value which needs to be evaluated
  * @return      The position of the last set bit in a value
  * @details     This function is used by the scheduler to efficiently determine
  *              the highest priority of thread ready for execution. For similar
  *              algorithm details see:
  *              http://en.wikipedia.org/wiki/Find_first_set.
  */
-#define PORT_BIT_FIND_LAST_SET(val)     portFindLastSet(val)
+#define PORT_BIT_FIND_LAST_SET(val)         portFindLastSet(val)
 
 /**@brief       Helper macro: calculate 2^pwr expression
+ * @param       pwr
+ *              Power : portReg_T, value which will be used in calculation
  * @details     Some ports may want to use look up tables instead of shifting
  *              operation
  */

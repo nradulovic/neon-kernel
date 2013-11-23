@@ -90,7 +90,7 @@
 /**@brief       This attribute specifies a minimum alignment (in bytes) for
  *              variables of the specified type.
  */
-#define PORT_C_ALIGNED(align)           __attribute__((aligned (align)))
+#define PORT_C_ALIGN(align)             __attribute__((aligned (align)))
 
 /**@brief       A standardized way of properly setting the value of HW register
  * @param       reg

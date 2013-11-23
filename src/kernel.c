@@ -29,19 +29,9 @@
 /*=========================================================  INCLUDE FILES  ==*/
 
 #include "kernel/kernel.h"
+#include "kernel/lock.h"
 
 /*=========================================================  LOCAL MACRO's  ==*/
-
-/**@brief       Priority Bit Map log base 2: `log2(PORT_DEF_DATA_WIDTH)`
- */
-#define DEF_PBM_DATA_WIDTH_LOG2                                                 \
-    (PORT_DEF_DATA_WIDTH <   2u ? 0u :                                          \
-     (PORT_DEF_DATA_WIDTH <   4u ? 1u :                                         \
-      (PORT_DEF_DATA_WIDTH <   8u ? 2u :                                        \
-       (PORT_DEF_DATA_WIDTH <  16u ? 3u :                                       \
-        (PORT_DEF_DATA_WIDTH <  32u ? 4u :                                      \
-         (PORT_DEF_DATA_WIDTH <  64u ? 5u :                                     \
-          (PORT_DEF_DATA_WIDTH < 128u ? 6u : 7u)))))))
 
 /**@brief       Kernel state variable bit position which defines if the kernel
  *              is in interrupt servicing state.
@@ -485,8 +475,9 @@ static PORT_C_INLINE void pbmSet(
     uint_fast8_t        grpIndx;
     uint_fast8_t        bitIndx;
 
-    bitIndx = prio & (~((uint_fast8_t)0u) >> (sizeof(prio) * 8u - DEF_PBM_DATA_WIDTH_LOG2));
-    grpIndx = prio >> DEF_PBM_DATA_WIDTH_LOG2;
+    bitIndx = prio &
+        (~((uint_fast8_t)0u) >> (sizeof(prio) * 8u - ES_BIT_UINT8_LOG2(PORT_DEF_DATA_WIDTH)));
+    grpIndx = prio >> ES_BIT_UINT8_LOG2(PORT_DEF_DATA_WIDTH);
     pbm->bitGrp |= PORT_BIT_PWR2(grpIndx);
     pbm->bit[grpIndx] |= PORT_BIT_PWR2(bitIndx);
 #else
@@ -502,8 +493,9 @@ static PORT_C_INLINE void pbmClear(
     uint_fast8_t        grpIndx;
     uint_fast8_t        bitIndx;
 
-    bitIndx = prio & (~((uint_fast8_t)0u) >> (sizeof(prio) * 8u - DEF_PBM_DATA_WIDTH_LOG2));
-    grpIndx = prio >> DEF_PBM_DATA_WIDTH_LOG2;
+    bitIndx = prio &
+        (~((uint_fast8_t)0u) >> (sizeof(prio) * 8u - ES_BIT_UINT8_LOG2(PORT_DEF_DATA_WIDTH)));
+    grpIndx = prio >> ES_BIT_UINT8_LOG2(PORT_DEF_DATA_WIDTH);
     pbm->bit[grpIndx] &= ~PORT_BIT_PWR2(bitIndx);
 
     if (0u == pbm->bit[grpIndx]) {                                              /* Is this the last one bit cleared in this group?          */
@@ -524,7 +516,7 @@ static PORT_C_INLINE uint_fast8_t pbmGetHighest(
     grpIndx = PORT_BIT_FIND_LAST_SET(pbm->bitGrp);
     bitIndx = PORT_BIT_FIND_LAST_SET(pbm->bit[grpIndx]);
 
-    return ((grpIndx << DEF_PBM_DATA_WIDTH_LOG2) | bitIndx);
+    return ((grpIndx << ES_BIT_UINT8_LOG2(PORT_DEF_DATA_WIDTH)) | bitIndx);
 #else
     uint_fast8_t        bitIndx;
 
@@ -577,13 +569,13 @@ static PORT_C_INLINE void schedStart(
     portReg_T           intCtx;
     esThd_T *           nthd;
 
-    ES_CRITICAL_ENTER(&intCtx);
+    ES_CRITICAL_LOCK_ENTER(&intCtx);
     nthd = esThdQFetchI(                                                        /* Get the highest priority thread                          */
         &RdyQueue);
     ((struct kernCtrl_ *)&KernCtrl)->cthd  = nthd;
     ((struct kernCtrl_ *)&KernCtrl)->pthd  = nthd;
     ((struct kernCtrl_ *)&KernCtrl)->state = ES_KERN_RUN;
-    ES_CRITICAL_EXIT(intCtx);
+    ES_CRITICAL_LOCK_EXIT(intCtx);
 }
 
 #if   (1u == CFG_SCHED_POWER_SAVE) || defined(__DOXYGEN__)
@@ -592,7 +584,7 @@ static PORT_C_INLINE void schedSleep(
 
     portReg_T         intCtx;
 
-    ES_CRITICAL_ENTER(&intCtx);
+    ES_CRITICAL_LOCK_ENTER(&intCtx);
     esKernLockEnterI();
 # if (1u == CFG_HOOK_PRE_IDLE)
     userPreIdle();
@@ -606,15 +598,15 @@ static PORT_C_INLINE void schedSleep(
 # if (0u == CFG_DBG_ENABLE)
     PORT_CRITICAL_EXIT_SLEEP_ENTER();                                           /* Enter sleep state and wait for an interrupt.             */
 # else
-    ES_CRITICAL_EXIT(intCtx);
+    ES_CRITICAL_LOCK_EXIT(intCtx);
 # endif
-    ES_CRITICAL_ENTER(&intCtx);
+    ES_CRITICAL_LOCK_ENTER(&intCtx);
     } while (KernCtrl.cthd == KernCtrl.pthd);
 # if (1u == CFG_HOOK_POST_IDLE)
     userPostIdle();
 # endif
     esKernLockExitI();
-    ES_CRITICAL_EXIT(intCtx);
+    ES_CRITICAL_LOCK_EXIT(intCtx);
 }
 #endif
 
@@ -854,7 +846,7 @@ static void vTmrImportPend(
 
     portReg_T         lockCtx;
 
-    ES_CRITICAL_ENTER(&lockCtx);
+    ES_CRITICAL_LOCK_ENTER(&lockCtx);
     esKernLockEnterI();
 
     while (0u != SysTmr.vTmrPend) {
@@ -864,14 +856,14 @@ static void vTmrImportPend(
         ++SysTmr.vTmrArmed;
         tmr = DLIST_ENTRY_NEXT(tmrL, &VTmrPend);
         DLIST_ENTRY_RM(tmrL, tmr);
-        ES_CRITICAL_EXIT(lockCtx);
+        ES_CRITICAL_LOCK_EXIT(lockCtx);
         --tmr->rtick;                                                           /* Timer thread requires one tick less than original value. */
         vTmrAddArmedS(
             tmr);
-        ES_CRITICAL_ENTER(&lockCtx);
+        ES_CRITICAL_LOCK_ENTER(&lockCtx);
     }
     esKernLockExitI();
-    ES_CRITICAL_EXIT(lockCtx);
+    ES_CRITICAL_LOCK_EXIT(lockCtx);
 }
 
 /* 1)       Kernel Virtual Timer thread must have the highest priority available.
@@ -969,13 +961,13 @@ void thdPost(
 
     portReg_T           intCtx;
 
-    ES_CRITICAL_ENTER(&intCtx);
+    ES_CRITICAL_LOCK_ENTER(&intCtx);
     if (NULL == thd->thdL.q) {
         esSchedRdyAddI(
             thd);
         esSchedYieldI();
     }
-    ES_CRITICAL_EXIT(intCtx);
+    ES_CRITICAL_LOCK_EXIT(intCtx);
 }
 
 void thdWait(
@@ -983,11 +975,11 @@ void thdWait(
 
     portReg_T           intCtx;
 
-    ES_CRITICAL_ENTER(&intCtx);
+    ES_CRITICAL_LOCK_ENTER(&intCtx);
     esSchedRdyRmI(
         esThdGetId());
     esSchedYieldI();
-    ES_CRITICAL_EXIT(intCtx);
+    ES_CRITICAL_LOCK_EXIT(intCtx);
 }
 
 /*===================================  GLOBAL PRIVATE FUNCTION DEFINITIONS  ==*/
@@ -1044,11 +1036,11 @@ void esKernSysTmr(
 #if   (1u == CFG_HOOK_PRE_SYSTMR_EVENT)
     userPreSysTmr();
 #endif
-    ES_CRITICAL_ENTER(
+    ES_CRITICAL_LOCK_ENTER(
         &lockCtx);
     vTmrEvaluateI();
     schedQmI();
-    ES_CRITICAL_EXIT(
+    ES_CRITICAL_LOCK_EXIT(
         lockCtx);
 }
 
@@ -1116,9 +1108,9 @@ void esKernLockEnter(
 
     portReg_T           intCtx;
 
-    ES_CRITICAL_ENTER(&intCtx);
+    ES_CRITICAL_LOCK_ENTER(&intCtx);
     esKernLockEnterI();
-    ES_CRITICAL_EXIT(intCtx);
+    ES_CRITICAL_LOCK_EXIT(intCtx);
 }
 
 void esKernLockExit(
@@ -1126,13 +1118,13 @@ void esKernLockExit(
 
     portReg_T           intCtx;
 
-    ES_CRITICAL_ENTER(&intCtx);
+    ES_CRITICAL_LOCK_ENTER(&intCtx);
     esKernLockExitI();
-    ES_CRITICAL_EXIT(intCtx);
+    ES_CRITICAL_LOCK_EXIT(intCtx);
 }
 
 
-/*--  Thread management ------------------------------------------------------*/
+/*--  Thread management  -----------------------------------------------------*/
 
 void esThdInit(
     esThd_T *           thd,
@@ -1164,13 +1156,13 @@ void esThdInit(
 
     ES_DBG_API_OBLIGATION(thd->signature = THD_CONTRACT_SIGNATURE);             /* Make thread structure valid.                             */
 
-    ES_CRITICAL_ENTER(&intCtx);
+    ES_CRITICAL_LOCK_ENTER(&intCtx);
     schedRdyAddInitI(
         thd);                                                                   /* Initialize thread before adding it to Ready Thread queue.*/
     esSchedRdyAddI(
         thd);                                                                   /* Add the thread to Ready Thread queue.                    */
     esSchedYieldI();                                                            /* Invoke the scheduler.                                    */
-    ES_CRITICAL_EXIT(intCtx);
+    ES_CRITICAL_LOCK_EXIT(intCtx);
 
 #if   (1u == CFG_HOOK_POST_THD_INIT)
     userPostThdInit();
@@ -1190,7 +1182,7 @@ void esThdTerm(
 #if   (1u == CFG_HOOK_PRE_THD_TERM)
     userPreThdTerm();
 #endif
-    ES_CRITICAL_ENTER(&intCtx);
+    ES_CRITICAL_LOCK_ENTER(&intCtx);
 
     if (&RdyQueue == thd->thdL.q) {
         esSchedRdyRmI(
@@ -1204,7 +1196,7 @@ void esThdTerm(
     ES_DBG_API_OBLIGATION(thd->signature = ~THD_CONTRACT_SIGNATURE);            /* Mark the thread ID structure as invalid.                 */
 
     esSchedYieldI();
-    ES_CRITICAL_EXIT(intCtx);
+    ES_CRITICAL_LOCK_EXIT(intCtx);
 }
 
 void esThdSetPrioI(
@@ -1515,13 +1507,13 @@ void esVTmrInit(
 
     portReg_T           intCtx;
 
-    ES_CRITICAL_ENTER(&intCtx);
+    ES_CRITICAL_LOCK_ENTER(&intCtx);
     esVTmrInitI(
         vTmr,
         tick,
         fn,
         arg);
-    ES_CRITICAL_EXIT(intCtx);
+    ES_CRITICAL_LOCK_EXIT(intCtx);
 }
 
 void esVTmrTermI(
@@ -1582,10 +1574,10 @@ void esVTmrTerm(
 
     portReg_T           intCtx;
 
-    ES_CRITICAL_ENTER(&intCtx);
+    ES_CRITICAL_LOCK_ENTER(&intCtx);
     esVTmrTermI(
         vTmr);
-    ES_CRITICAL_EXIT(intCtx);
+    ES_CRITICAL_LOCK_EXIT(intCtx);
 }
 
 void esVTmrDelay(
@@ -1619,9 +1611,9 @@ esTick_T esSysTmrTickGet(
     {
         portReg_T       intCtx;
 
-        ES_CRITICAL_ENTER(&intCtx);
+        ES_CRITICAL_LOCK_ENTER(&intCtx);
         tick = SysTmr.ctick;
-        ES_CRITICAL_EXIT(intCtx);
+        ES_CRITICAL_LOCK_EXIT(intCtx);
 
         return (tick);
     }

@@ -76,7 +76,7 @@ typedef struct esSem esSem_T;
 /**@brief       Initialize a semaphore
  * @param       sem
  *              Semaphore: points to a semaphore object to initialize.
- * @param       qm
+ * @param       cnt
  *              Count: is an initial value to set the semaphore to.
  */
 void esSemInit(

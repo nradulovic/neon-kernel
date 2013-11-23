@@ -22,7 +22,7 @@
  *//***********************************************************************//**
  * @file
  * @author  	Nenad Radulovic
- * @brief       Interface of kernel.
+ * @brief       Main interface of kernel.
  * @addtogroup  kern_intf
  *********************************************************************//** @{ */
 
@@ -34,6 +34,7 @@
 #include "arch/compiler.h"
 #include "arch/cpu.h"
 #include "kernel/dbg.h"
+#include "kernel/bitop.h"
 #include "kernel/kernel_cfg.h"
 
 /*===============================================================  MACRO's  ==*/
@@ -83,34 +84,6 @@
 /**@brief       Minimum level of priority possible for application thread
  */
 #define ES_DEF_THD_PRIO_MIN             (1u)
-
-/**@} *//*----------------------------------------------------------------*//**
- * @name        Critical code management
- * @brief       Disable/enable interrupts by preserving the interrupt context
- * @details     Generally speaking these macros would store the interrupt
- *              context in the local variable of portReg_T type and then disable
- *              interrupts. Local variable is allocated in all of eSolid-Kernel
- *              functions that need to disable interrupts. Macros would restore
- *              the interrupt context by copying back the allocated variable
- *              into the interrupt controller status/control register.
- * @{ *//*--------------------------------------------------------------------*/
-
-/**@brief       Enter critical code section
- * @param       intCtx
- *              Interrupt context, pointer to portable type variable which will
- *              hold the interrupt context state during the critical code
- *              section.
- */
-#define ES_CRITICAL_ENTER(intCtx)                                               \
-    PORT_INT_PRIO_REPLACE(intCtx, PORT_DEF_MAX_ISR_PRIO)
-
-/**@brief       Exit critical code section
- * @param       intCtx
- *              Interrupt context, portable type variable which is holding a
- *              previously saved interrupt context state.
- */
-#define ES_CRITICAL_EXIT(intCtx)                                                \
-    PORT_INT_PRIO_SET(intCtx)
 
 /**@} *//*----------------------------------------------  C++ extern begin  --*/
 #ifdef __cplusplus
@@ -209,7 +182,7 @@ typedef struct esVTmr esVTmr_T;
  * @notapi
  */
 #define KERN_DEF_PBM_GRP_INDX_                                                  \
-    ((CFG_SCHED_PRIO_LVL + PORT_DEF_DATA_WIDTH - 1u) / PORT_DEF_DATA_WIDTH)
+    ES_BIT_DIV_ROUNDUP(CFG_SCHED_PRIO_LVL, PORT_DEF_DATA_WIDTH)
 
 /**@brief       Thread Queue structure
  * @api
@@ -281,15 +254,6 @@ struct kernCtrl_ {
     struct esThd *      pthd;                                                   /**< @brief Pointer to the Pending Thread to be switched    */
     enum esKernState    state;                                                  /**< @brief State of kernel                                 */
 };
-/**@} *//*----------------------------------------------------------------*//**
- * @name        Critical code section locking management
- * @{ *//*--------------------------------------------------------------------*/
-
-/**@brief       Kernel lock context type
- * @details     Variables declared using this type can hold current lock context
- *              which can be restored after a critical code section is exited.
- */
-typedef portReg_T esLockCtx_T;
 
 /**@} *//*--------------------------------------------------------------------*/
 
@@ -392,87 +356,6 @@ void esKernIsrEnterI(
  * @iclass
  */
 void esKernIsrExitI(
-    void);
-
-/**@} *//*----------------------------------------------------------------*//**
- * @name        Multi-threading locking management
- * @details     These methods are often used to protect concurrent access to a
- *              protected resource.
- *
- *              For more details see @ref critical_section.
- * @{ *//*--------------------------------------------------------------------*/
-
-/**@brief       Enter a critical code lock
- * @param       lockCtx
- *              Pointer to context variable where to store the current lock
- *              context.
- * @called
- * @fromapp
- * @fromthd
- * @schedno
- * @api
- */
-void esKernLockIntEnter(
-    esLockCtx_T *       lockCtx);
-
-/**@brief       Exit a critical code lock
- * @param       lockCtx
- *              Context variable value
- * @details     Restores the lock context to state before the
- *              esKernLockIntEnter() was called.
- * @called
- * @fromapp
- * @fromthd
- * @schedmaybe
- * @api
- */
-void esKernLockIntExit(
-    esLockCtx_T         lockCtx);
-
-/**@brief       Lock the scheduler
- * @pre         1) `The kernel state < ES_KERN_INIT`, see @ref states.
- * @called
- * @fromthd
- * @schedno
- * @iclass
- */
-void esKernLockEnterI(
-    void);
-
-/**@brief       Unlock the scheduler
- * @pre         1) `The kernel state < ES_KERN_INIT`, see @ref states.
- * @pre         2) `gKernLockCnt > 0u`, current number of locks must be greater
- *                  than zero, in other words: each call to kernel lock function
- *                  must have its matching call to kernel unlock function.
- * @called
- * @fromthd
- * @schedmaybe
- * @iclass
- */
-void esKernLockExitI(
-    void);
-
-/**@brief       Lock the scheduler
- * @pre         1) `The kernel state < ES_KERN_INIT`, see @ref states.
- * @called
- * @fromthd
- * @schedno
- * @api
- */
-void esKernLockEnter(
-    void);
-
-/**@brief       Unlock the scheduler
- * @pre         1) `The kernel state < ES_KERN_INIT`, see @ref states.
- * @pre         2) `gKernLockCnt > 0u`, current number of locks must be greater
- *                  than zero, in other words: each call to kernel lock function
- *                  must have its matching call to kernel unlock function.
- * @called
- * @fromthd
- * @schedmaybe
- * @api
- */
-void esKernLockExit(
     void);
 
 /**@} *//*----------------------------------------------------------------*//**
