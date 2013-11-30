@@ -26,36 +26,12 @@
  * @brief		Configuration of CPU module.
  *********************************************************************//** @{ */
 
-#if !defined(CPU_CFG_H__)
-#define CPU_CFG_H__
+#if !defined(KCORE_CFG_H__)
+#define KCORE_CFG_H__
 
 /*=========================================================  INCLUDE FILES  ==*/
-
-#include "family/profile.h"
-
 /*===============================================================  DEFINES  ==*/
 /*==============================================================  SETTINGS  ==*/
-
-/**@brief       Priority of critical sections in kernel
- * @details     Specify the priority in range: <code>0</code>\f$\leq\f$
- *              <code>PORT_CFG_MAX_ISR_PRIO</code> \f$\leq\f$ <code>15</code>.
- *              The lower the number the higher the priority.
- * @note        When priority is set to @b 0 then critical code section will not
- *              use priority levels but instead it will just disable interrupts
- *              on entry and enable interrupts on exit.
- */
-#if !defined(PORT_CFG_MAX_ISR_PRIO)
-# define PORT_CFG_MAX_ISR_PRIO          7u
-#endif
-
-/**@brief       The frequency of clock which is used for the system timer
- * @details     System timer SysTick uses core clock (sometimes referred to as
- *              HCLK) for counting. Specify here the core clock so the OS can
- *              properly manage system tick event generation.
- */
-#if !defined(PORT_CFG_SYSTMR_CLOCK_FREQ)
-# define PORT_CFG_SYSTMR_CLOCK_FREQ     24000000ul
-#endif
 
 /**@brief       This is the data that will be placed on task context at its
  *              creation
@@ -63,19 +39,12 @@
  *              for Interruptible-continuable instructions. The setting is done
  *              in PSR register.
  */
-#define PORT_CFG_PSR_DATA               0u
-
-/**@brief       This field determines the split of group priority from
- *              subpriority.
- * @warning     Change this value only if you are familiar with Cortex interrupt
- *              priority system and how kernel protects its critical code
- *              sections.
- */
-#define PORT_CFG_SCB_AIRCR_PRIGROUP     0u
+#define KCORE_CFG_PSR_DATA              0u
 
 /** @} *//*-------------------------------------------------------------------*/
+
 /*================================*//** @cond *//*==  CONFIGURATION ERRORS  ==*/
 /** @endcond *//** @} *//******************************************************
  * END of cpu_cfg.h
  ******************************************************************************/
-#endif /* CPU_CFG_H__ */
+#endif /* KCORE_CFG_H__ */

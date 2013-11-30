@@ -72,21 +72,6 @@
  * @name        Port constants
  * @{ *//*--------------------------------------------------------------------*/
 
-/**@brief       This macro specifies the bit width of atomic data type portReg_T
- * @details     To avoid uncertainty about interrupting access to a variable,
- *              you can use a particular data type for which access is always
- *              atomic: @ref portReg_T.
- */
-#define PORT_DEF_DATA_WIDTH             8u
-
-/**@brief       Defines required data alignment in bytes
- */
-#define PORT_DEF_DATA_ALIGNMENT         1u
-
-/**@brief       Defines maximum interrupt priority which can use kernel services
- */
-#define PORT_DEF_MAX_ISR_PRIO           (PORT_CFG_MAX_ISR_PRIO)
-
 /**@brief       This macro specifies the minimal size of the thread stack
  * @details     Generally minimal stack size is equal to the size of context
  *              structure
@@ -97,19 +82,6 @@
 /**@} *//*----------------------------------------------------------------*//**
  * @name        System timer constants
  * @{ *//*--------------------------------------------------------------------*/
-
-/**@brief       System timer reload value for one tick
- * @details     This is a calculated value for one system tick period
- */
-#define PORT_DEF_SYSTMR_ONE_TICK                                                \
-    (CFG_SYSTMR_CLOCK_FREQUENCY / CFG_SYSTMR_EVENT_FREQUENCY)
-
-/**@brief       Maximum number of ticks without overflowing the system timer
- * @details     This macro expects that CPU_DEF_SYSTMR_MAX_VAL is set in CPU
- *              profile
- */
-#define PORT_DEF_SYSTMR_MAX_TICKS                                               \
-    (CPU_DEF_SYSTMR_MAX_VAL / PORT_DEF_SYSTMR_ONE_TICK)
 
 /**@brief       Threshold system timer value for new tick
  */
@@ -138,36 +110,6 @@
  *              level of ISR nesting. Scheduler should be invoked only from the
  *              last ISR that is executing.
  * @{ *//*--------------------------------------------------------------------*/
-
-/**@brief       Global Enable interrupt sources
- */
-#define PORT_INT_ENABLE()
-
-/**@brief       Global Disable all interrupt sources
- */
-#define PORT_INT_DISABLE()
-
-/**@brief       Set interrupt priority mask
- * @param       prio
- *              Priority : @ref portReg_T type value for interrupt priority mask
- */
-#define PORT_INT_PRIO_SET(prio)
-
-/**@brief       Get current interrupt priority mask
- * @param       prio
- *              Priority : pointer to variable of type @ref portReg_T which will
- *              hold the priority value.
- */
-#define PORT_INT_PRIO_GET(prio)
-
-/**@brief       Get current and set new interrupt priority mask
- * @param       oldPrio
- *              Old priority : pointer to variable of type @ref portReg_T which
- *              will hold old priority value.
- * @param       newPrio : @ref portReg_T type value
- *              New priority mask value
- */
-#define PORT_INT_PRIO_REPLACE(oldPrio, newPrio)
 
 /**@brief       Enter ISR. Increment PortIsrNesting variable to keep track of
  *              ISR nesting.
@@ -200,96 +142,6 @@
  *  @retval     FALSE - this is not the last ISR
  */
 #define PORT_ISR_IS_LAST()              (0u == PortIsrNesting ? TRUE : FALSE)
-
-/**@} *//*----------------------------------------------------------------*//**
- * @name        System timer management
- * @{ *//*--------------------------------------------------------------------*/
-
-/**@brief       Initialize system timer and associated interrupt
- * @param       val
- *              Value of system timer which will be loaded into the register
- * @details     This macro will only initialize system timer and associated
- *              interrupt. The macro is called from esKernStart() function.
- *              Responsibility:
- *              - initialize system timer
- *              - initialize system timer interrupt
- * @note        This macro MUST NOT enable system timer events. System timer
- *              events are enabled/disabled by PORT_SYSTMR_ISR_ENABLE() and
- *              PORT_SYSTMR_ISR_DISABLE() macros.
- */
-#define PORT_SYSTMR_INIT(val)
-
-/**@brief       Stop the timer if it is running and disable associated interrupt.
- * @details     Responsibility:
- *              - disable system timer interrupt
- *              - stop and disable system timer
- */
-#define PORT_SYSTMR_TERM()
-
-/**@brief       Get system timer reload value
- */
-#define PORT_SYSTMR_GET_RVAL()
-
-/**@brief       Get system timer current value
- */
-#define PORT_SYSTMR_GET_CVAL()
-
-/**@brief       Reload the system timer with specified number
- * @param       val
- *              Value of system timer which will be reloaded into the register
- * @details     Responsibility:
- *              - stop the system timer
- *              - reload the system timer
- *              - start the system timer
- */
-#define PORT_SYSTMR_RLD(val)
-
-/**@brief       Enable the system timer
- * @details     Responsibility:
- *              - enable (run) the system timer counter
- */
-#define PORT_SYSTMR_ENABLE()
-
-/**@brief       Disable the system timer
- * @details     Responsibility:
- *              - disable (stop) the system timer counter
- */
-#define PORT_SYSTMR_DISABLE()
-
-/**@brief       Enable the system timer interrupt
- * @details     Responsibility:
- *              - allow system timer interrupt to occur
- */
-#define PORT_SYSTMR_ISR_ENABLE()
-
-/**@brief       Disable the system timer interrupt
- * @details     Responsibility:
- *              - disallow system timer interrupt to occur
- */
-#define PORT_SYSTMR_ISR_DISABLE()
-
-/**@} *//*----------------------------------------------------------------*//**
- * @name        Scheduler bit operations support
- * @{ *//*--------------------------------------------------------------------*/
-
-/**@brief       Find last set bit in a word
- * @param       val
- *              Value : portReg_T, value which needs to be evaluated
- * @return      The position of the last set bit in a value
- * @details     This function is used by the scheduler to efficiently determine
- *              the highest priority of thread ready for execution. For similar
- *              algorithm details see:
- *              http://en.wikipedia.org/wiki/Find_first_set.
- */
-#define PORT_BIT_FIND_LAST_SET(val)         portFindLastSet(val)
-
-/**@brief       Helper macro: calculate 2^pwr expression
- * @param       pwr
- *              Power : portReg_T, value which will be used in calculation
- * @details     Some ports may want to use look up tables instead of shifting
- *              operation
- */
-#define PORT_BIT_PWR2(pwr)                  (1U << (pwr))
 
 /**@} *//*----------------------------------------------------------------*//**
  * @name        Dispatcher context switching
@@ -335,37 +187,36 @@
  *              memory space, fill the memory with debug value or something
  *              similar.
  */
-#define PORT_INIT_EARLY()
+#define PORT_KCORE_INIT_EARLY()
 
 /**@brief       Port initialization
  * @details     This macro will be called after kernel data structure
  *              initialization from esKernInit() function.
  */
-#define PORT_INIT()
+#define PORT_KCORE_INIT()
 
 /**@brief       Late port initialization
  * @details     This macro will be called just a moment before the multitasking
  *              is started. The macro is called from esKernStart() function.
  */
-#define PORT_INIT_LATE()
+#define PORT_KCORE_INIT_LATE()
 
 /**@brief       Terminate port
  * @details     This macro will be called when there is a need to stop any
- *              further execution (example: an error occured and CPU needs to
+ *              further execution (example: an error occurred and CPU needs to
  *              stop).
  */
-#define PORT_TERM()
+#define PORT_KCORE_TERM()
 
 /**@brief       Calculate the stack size
  * @details     This macro is used when specifying the size of thread stack.
  *              Responsibility:
  *              - add to @p size the minimal stack size specified by
- *              @ref PORT_DEF_DATA_WIDTH.
+ *              `PORT_DEF_DATA_WIDTH` macro.
  *              - if it is needed by the port make sure the alignment is correct.
  */
 #define PORT_STCK_SIZE(size)                                                    \
-    ((((size + PORT_STCK_MINSIZE_VAL) + (sizeof(struct portStck) /                  \
-    sizeof(portReg_T))) - 1U) / (sizeof(struct portStck)/sizeof(portReg_T)))
+    (size + PORT_DEF_STCK_MINSIZE)
 
 /**@brief       Exit critical section and enter sleep state
  */
@@ -379,19 +230,6 @@ extern "C" {
 #endif
 
 /*============================================================  DATA TYPES  ==*/
-
-/**@brief       Data type which corresponds to the general purpose register
- * @details     Reading and writing this data type is guaranteed to happen in a
- *              single instruction, so there's no way for a handler to run “in
- *              the middle” of an access.
- *
- *              The type portReg_T is always an integer data type, but which one
- *              it is, and how many bits it contains, may vary from machine to
- *              machine.
- * @note        This data type will always have maximum number of bits which can
- *              be accessed atomically.
- */
-typedef uint8_t portReg_T;
 
 /**@brief       Stack structure used for stack declaration in order to force the
  *              alignment
@@ -416,42 +254,9 @@ struct portCtx {
  */
 extern portReg_T PortIsrNesting;
 
-/**@brief       Look up table for: 2^n expression
- * @details     This look up table can be used to accelerate the Logical Shift
- *              Left operations which are needed to set bits inside the priority
- *              bit map. In plain C this operation would be written as:
- *              <code>(1u << n)</code>, but in many 8-bit CPUs this operation
- *              can be lengthy. If there is a need for faster operation then
- *              this table can be used instead of the mentioned C code.
- *
- *              To use the look up table change @ref PORT_BIT_PWR2 macro
- *              implementation from: <code>(1u << (pwr))</code> to
- *              <code>pwr2LKP[pwr]</code>
- */
-extern const PORT_C_ROM portReg_T Pwr2LKP [PORT_DEF_DATA_WIDTH];
-
 /*===================================================  FUNCTION PROTOTYPES  ==*/
 
 /*------------------------------------------------------------------------*//**
- * @name        Scheduler support
- * @note        These functions are extensively used by the scheduler and
- *              therefore they should be optimized for the architecture being
- *              used.
- * @{ *//*--------------------------------------------------------------------*/
-
-/**@brief       Find last set bit in a word
- * @param       val
- *              Value which needs to be evaluated
- * @return      The position of the last set bit in a word
- * @details     This function is used by the scheduler to efficiently determine
- *              the highest priority of thread ready for execution. For
- *              algorithm details see:
- *              http://en.wikipedia.org/wiki/Find_first_set.
- */
-uint_fast8_t portFindLastSet(
-    portReg_T       val);
-
-/**@} *//*----------------------------------------------------------------*//**
  * @name        Dispatcher context switching
  * @{ *//*--------------------------------------------------------------------*/
 

@@ -89,8 +89,8 @@
 /**@brief       The frequency of system tick event
  * @details     Specify the desired resolution system tick time source. This
  *              setting is valid only if configuration option
- *              @ref PORT_CFG_SYSTMR_CLOCK_FREQ is properly set in port
- *              configuration file cpu_cfg.h
+ *              `PORT_CFG_SYSTMR_CLOCK_FREQ` is properly set in port system
+ *              control configuration file sysctrl_cfg.h
  */
 #if !defined(CFG_SYSTMR_EVENT_FREQUENCY)
 # define CFG_SYSTMR_EVENT_FREQUENCY     100UL

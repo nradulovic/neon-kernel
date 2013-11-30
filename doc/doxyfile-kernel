@@ -3,23 +3,17 @@ PROJECT_NAME        =   "eSolid - Real-Time Kernel"
 PROJECT_BRIEF       =   "Event Based System"
 INPUT               =   ../doc/src/kernel-example.dox                           \
                         ../doc/src/kernel.dox                                   \
+                        ../doc/src/sync.dox                                     \
                         ../doc/src/template.dox                                 \
                         ../doc/src/changelog.dox                                \
                         ../doc/src/abbreviations.dox                            \
-                        ../doc/src/dbg.dox                                      \
                         ../inc/kernel/kernel.h                                  \
                         ../inc/kernel/semaphore.h                               \
-                        ../inc/kernel/bitop.h                                   \
-                        ../inc/kernel/lock.h                                    \
                         ../src/kernel.c                                         \
                         ../template/generic/_port_/common/arch/compiler.h       \
                         ../template/generic/_port_/_mcu_/family/profile.h       \
-                        ../template/generic/_port_/_cpu_/arch/cpu.h             \
-                        ../template/generic/_port_/_cpu_/arch/cpu_cfg.h         \
-                        ../template/generic/_port_/_cpu_/cpu.c                  \
+                        ../template/generic/_port_/_cpu_/arch/kcore.h           \
+                        ../template/generic/_port_/_cpu_/kcore.c                \
                         ../template/generic/kernel_cfg.h                        \
-                        ../template/generic/dbg_cfg.h                           \
-                        ../inc/kernel/dbg.h                                     \
-                        ../src/dbg.c                                            \
                         ../README.md
 OUTPUT_DIRECTORY    =   ../doc/kernel

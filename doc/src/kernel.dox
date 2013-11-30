@@ -1,25 +1,4 @@
 /** @file */
-/** @defgroup   kernel Kernel
-@brief          Overview
-@{
-@defgroup       kern_intf Interface
-@defgroup       kern_impl Internals
-@defgroup       kern_cfg Configuration
-@} */
-
-/** @addtogroup kern_intf
-@brief          Application programming interface
-*/
-
-/** @addtogroup kern_impl
-@brief          Kernel inner work
-*/
-
-/** @addtogroup kern_cfg
-@brief          Kernel Configuration settings
-*/
-
-/*----------------------------------------------------------------------------*/
 /** @mainpage   Overview
 @section        kernel_specs eSolid - RT Kernel Features
 @subsection     spec_source Source code
@@ -423,8 +402,7 @@ function call can preempt the kernel low priority interrupt which will in that
 case corrupt the kernel internal data structures.
 
 @note           1) It is forbidden to call any OS service function from an
-    interrupt with the priority higher than the kernel interrupt priority. See
-    @ref PORT_CFG_MAX_ISR_PRIO.
+    interrupt with the priority higher than the kernel interrupt priority.
 @note           2) On some ports the kernel never completely disables interrupts.
 
 @section        cs_implementation Implementation
@@ -448,14 +426,14 @@ In order to properly disable interrupts the application must follow these steps:
 - access the shared resource
 - restore previously saved interrupt state
 
-The `auto` variable must be of portable type @ref portReg_T. This variable will
-hold temporary interrupt status. Then by using the macro
-@ref ES_CRITICAL_LOCK_ENTER() the state of enabled interrupts will be saved in
-interrupt context variable declared earlier. Immediately after saving the
-interrupt state the macro will lock interrupts. Now the code can safely access
-and use the shared resource. When code finishes using the resource it will call
-@ref ES_CRITICAL_LOCK_EXIT() macro. This macro will restore interrupts from the
-previously saved interrupt state.
+The `auto` variable must be of portable type `portReg_T`. This variable will hold 
+temporary interrupt status. Then by using the macro `ES_CRITICAL_LOCK_ENTER()` 
+the state of enabled interrupts will be saved in interrupt context variable 
+declared earlier. Immediately after saving the interrupt state the macro will 
+lock interrupts. Now the code can safely access and use the shared resource. 
+When code finishes using the resource it will call `ES_CRITICAL_LOCK_EXIT()` 
+macro. This macro will restore interrupts from the previously saved interrupt 
+state.
 
 @code
     portReg_T intCtx;                   /* Declare an interrupt context status variable */
@@ -604,8 +582,8 @@ and points to the next thread in list.
 
 @section        sched_thdQ Threads Queue
 Based on the number of configured priority levels (see @ref CFG_SCHED_PRIO_LVL)
-and on the number of data register bits (see @ref PORT_DEF_DATA_WIDTH) of the
-used CPU, two configurations are possible:
+and on the number of data register bits (see `PORT_DEF_DATA_WIDTH`) of the used 
+CPU, two configurations are possible:
 - Simple Ready Threads Queue
 - Complex Ready Threads Queue
 

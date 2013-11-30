@@ -21,9 +21,12 @@
  *//***********************************************************************//**
  * @file
  * @author  	Nenad Radulovic
- * @brief   	Configuration of Kernel.
- * @addtogroup  kern_cfg
+ * @brief   	Kernel Configuration settings
+ * @addtogroup  kern
  *********************************************************************//** @{ */
+/**@defgroup    kern_cfg Configuration
+ * @brief       Kernel Configuration settings
+ * @{ *//*--------------------------------------------------------------------*/
 
 #if !defined(KERNEL_CFG_H__)
 #define KERNEL_CFG_H__

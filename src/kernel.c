@@ -21,44 +21,47 @@
  *//***********************************************************************//**
  * @file
  * @author      Nenad Radulovic
- * @brief       Implementation of port independent code
- * @addtogroup  kern_impl
+ * @brief       Implementation of kernel port independent code
+ * @addtogroup  kern
  *********************************************************************//** @{ */
+/**@defgroup    kern_impl Implementation
+ * @brief       Kernel port independent code implementation
+ * @{ *//*--------------------------------------------------------------------*/
 
 /*=========================================================  INCLUDE FILES  ==*/
 
 #include "kernel/kernel.h"
-#include "kernel/lock.h"
+#include "base/critical.h"
 
 /*=========================================================  LOCAL MACRO's  ==*/
 
 /**@brief       Kernel state variable bit position which defines if the kernel
  *              is in interrupt servicing state.
  */
-#define SCHED_STATE_INTSRV_MSK          (0x01u << 0)
+#define DEF_SCHED_STATE_INTSRV_MSK      (0x01u << 0)
 
 /**@brief       Kernel state variable bit position which defines if the kernel
  *              is locked or not.
  */
-#define SCHED_STATE_LOCK_MSK            (0x01u << 1)
+#define DEF_SCHED_STATE_LOCK_MSK        (0x01u << 1)
 
 /**@brief       Thread structure signature.
  * @details     The signature is used to confirm that a structure passed to a
  *              kernel function is indeed a esThd_T thread structure.
  */
-#define THD_CONTRACT_SIGNATURE          ((portReg_T)0xfeedbeeful)
+#define DEF_THD_CONTRACT_SIGNATURE      ((portReg_T)0xfeedbeeful)
 
 /**@brief       Thread Queue structure signature.
  * @details     The signature is used to confirm that a structure passed to a
  *              kernel function is indeed a esThdQ_T thread queue structure.
  */
-#define THDQ_CONTRACT_SIGNATURE         ((portReg_T)0xfeedbef0ul)
+#define DEF_THDQ_CONTRACT_SIGNATURE     ((portReg_T)0xfeedbef0ul)
 
 /**@brief       Timer structure signature.
  * @details     The signature is used to confirm that a structure passed to a
  *              timer function is indeed a esVTmr_T timer structure.
  */
-#define VTMR_CONTRACT_SIGNATURE         ((portReg_T)0xfeedbef1ul)
+#define DEF_VTMR_CONTRACT_SIGNATURE     ((portReg_T)0xfeedbef1ul)
 
 /**@brief       DList macro: is the thread the first one in the list
  */
@@ -380,7 +383,7 @@ static struct sysTmr SysTmr = {
 #endif
 };
 
-/**@brief       List of virtual timers to armed expire
+/**@brief       List of virtual armed timers waiting to expire
  */
 static struct esVTmr VTmrArmed = {
    {
@@ -399,7 +402,7 @@ static struct esVTmr VTmrArmed = {
    NULL,
    NULL,
 #if   (1u == CFG_DBG_API_VALIDATION)
-   VTMR_CONTRACT_SIGNATURE
+   DEF_VTMR_CONTRACT_SIGNATURE
 #endif
 };
 
@@ -415,7 +418,7 @@ static struct esVTmr VTmrPend = {
    NULL,
    NULL,
 #if   (1u == CFG_DBG_API_VALIDATION)
-   VTMR_CONTRACT_SIGNATURE
+   DEF_VTMR_CONTRACT_SIGNATURE
 #endif
 };
 
@@ -455,32 +458,36 @@ const volatile struct kernCtrl_ KernCtrl = {
 static PORT_C_INLINE void pbmInit(
     struct pbm_ *       pbm) {
 
-    uint8_t             group;
+#if   (CFG_SCHED_PRIO_LVL > PORT_DEF_DATA_WIDTH)
+    uint_fast8_t        grp;
 
-#if   (1u != KERN_DEF_PBM_GRP_INDX_)
     pbm->bitGrp = 0u;
-#endif
+    grp         = ES_DIV_ROUNDUP(CFG_SCHED_PRIO_LVL, PORT_DEF_DATA_WIDTH);
 
-    for (group = 0u; group < KERN_DEF_PBM_GRP_INDX_; group++) {
-        pbm->bit[group] = 0u;
+    while (0u != grp) {
+        grp--;
+        pbm->bit[grp] = 0u;
     }
+#else
+    pbm->bit[0] = 0u;
+#endif
 }
 
 static PORT_C_INLINE void pbmSet(
     struct pbm_ *       pbm,
     uint_fast8_t        prio) {
 
-#if   (1u != KERN_DEF_PBM_GRP_INDX_)
+#if   (CFG_SCHED_PRIO_LVL > PORT_DEF_DATA_WIDTH)
     uint_fast8_t        grpIndx;
     uint_fast8_t        bitIndx;
 
     bitIndx = prio &
         (~((uint_fast8_t)0u) >> (sizeof(prio) * 8u - ES_BIT_UINT8_LOG2(PORT_DEF_DATA_WIDTH)));
     grpIndx = prio >> ES_BIT_UINT8_LOG2(PORT_DEF_DATA_WIDTH);
-    pbm->bitGrp |= PORT_BIT_PWR2(grpIndx);
-    pbm->bit[grpIndx] |= PORT_BIT_PWR2(bitIndx);
+    pbm->bitGrp |= ES_BIT_PWR2(grpIndx);
+    pbm->bit[grpIndx] |= ES_BIT_PWR2(bitIndx);
 #else
-    pbm->bit[0] |= PORT_BIT_PWR2(prio);
+    pbm->bit[0] |= ES_BIT_PWR2(prio);
 #endif
 }
 
@@ -488,38 +495,38 @@ static PORT_C_INLINE void pbmClear(
     struct pbm_ *       pbm,
     uint_fast8_t        prio) {
 
-#if   (1u != KERN_DEF_PBM_GRP_INDX_)
+#if   (CFG_SCHED_PRIO_LVL > PORT_DEF_DATA_WIDTH)
     uint_fast8_t        grpIndx;
     uint_fast8_t        bitIndx;
 
     bitIndx = prio &
         (~((uint_fast8_t)0u) >> (sizeof(prio) * 8u - ES_BIT_UINT8_LOG2(PORT_DEF_DATA_WIDTH)));
     grpIndx = prio >> ES_BIT_UINT8_LOG2(PORT_DEF_DATA_WIDTH);
-    pbm->bit[grpIndx] &= ~PORT_BIT_PWR2(bitIndx);
+    pbm->bit[grpIndx] &= ~ES_BIT_PWR2(bitIndx);
 
     if (0u == pbm->bit[grpIndx]) {                                              /* Is this the last one bit cleared in this group?          */
-        pbm->bitGrp &= ~PORT_BIT_PWR2(grpIndx);                                 /* Yes: then clear bit group indicator, too.                */
+        pbm->bitGrp &= ~ES_BIT_PWR2(grpIndx);                                   /* Yes: then clear bit group indicator, too.                */
     }
 #else
-    pbm->bit[0] &= ~PORT_BIT_PWR2(prio);
+    pbm->bit[0] &= ~ES_BIT_PWR2(prio);
 #endif
 }
 
 static PORT_C_INLINE uint_fast8_t pbmGetHighest(
     const struct pbm_ * pbm) {
 
-#if   (1u != KERN_DEF_PBM_GRP_INDX_)
+#if   (CFG_SCHED_PRIO_LVL > PORT_DEF_DATA_WIDTH)
     uint_fast8_t        grpIndx;
     uint_fast8_t        bitIndx;
 
-    grpIndx = PORT_BIT_FIND_LAST_SET(pbm->bitGrp);
-    bitIndx = PORT_BIT_FIND_LAST_SET(pbm->bit[grpIndx]);
+    grpIndx = ES_BIT_FIND_LAST_SET(pbm->bitGrp);
+    bitIndx = ES_BIT_FIND_LAST_SET(pbm->bit[grpIndx]);
 
     return ((grpIndx << ES_BIT_UINT8_LOG2(PORT_DEF_DATA_WIDTH)) | bitIndx);
 #else
     uint_fast8_t        bitIndx;
 
-    bitIndx = PORT_BIT_FIND_LAST_SET(pbm->bit[0]);
+    bitIndx = ES_BIT_FIND_LAST_SET(pbm->bit[0]);
 
     return (bitIndx);
 #endif
@@ -528,7 +535,7 @@ static PORT_C_INLINE uint_fast8_t pbmGetHighest(
 static PORT_C_INLINE bool_T pbmIsEmpty(
     const struct pbm_ * pbm) {
 
-#if   (1u != KERN_DEF_PBM_GRP_INDX_)
+#if   (CFG_SCHED_PRIO_LVL > PORT_DEF_DATA_WIDTH)
     bool_T              ret;
 
     if (0u == pbm->bitGrp) {
@@ -906,7 +913,7 @@ static void kVTmr(
                 --SysTmr.vTmrArmed;
                 DLIST_ENTRY_RM(tmrL, tmr);
                 tmpTmr = tmr;
-                ES_DBG_API_OBLIGATION(tmr->signature = ~VTMR_CONTRACT_SIGNATURE);
+                ES_DBG_API_OBLIGATION(tmr->signature = ~DEF_VTMR_CONTRACT_SIGNATURE);
                 tmr = DLIST_ENTRY_NEXT(tmrL, &VTmrArmed);
                 (* tmpTmr->fn)(tmpTmr->arg);
             }
@@ -995,13 +1002,13 @@ void esKernInit(
 #if   (1u == CFG_HOOK_PRE_KERN_INIT)
     userPreKernInit();
 #endif
-    PORT_INT_DISABLE();
-    PORT_CPU_INIT_EARLY();
+    PORT_INTR_DISABLE();
+    PORT_KCORE_INIT_EARLY();
     sysTmrInit();
     schedInit();
     kIdleInit();
     kVTmrInit();
-    PORT_CPU_INIT();
+    PORT_KCORE_INIT();
 #if   (1u == CFG_HOOK_POST_KERN_INIT)
     userPostKernInit();
 #endif
@@ -1018,7 +1025,7 @@ PORT_C_NORETURN void esKernStart(
 #if   (1u == CFG_HOOK_PRE_KERN_START)
     userPreKernStart();
 #endif
-    PORT_CPU_INIT_LATE();
+    PORT_KCORE_INIT_LATE();
     schedStart();                                                               /* Initialize scheduler data structures for multi-threading */
     PORT_CTX_SW_START();                                                        /* Start the first thread                                   */
 
@@ -1048,7 +1055,7 @@ void esKernIsrEnterI(
 
     ES_DBG_API_REQUIRE(ES_DBG_USAGE_FAILURE, ES_KERN_INIT > KernCtrl.state);
 
-    ((struct kernCtrl_ *)&KernCtrl)->state |= SCHED_STATE_INTSRV_MSK;
+    ((struct kernCtrl_ *)&KernCtrl)->state |= DEF_SCHED_STATE_INTSRV_MSK;
 }
 
 void esKernIsrExitI(
@@ -1057,7 +1064,7 @@ void esKernIsrExitI(
     ES_DBG_API_REQUIRE(ES_DBG_USAGE_FAILURE, ES_KERN_INIT > KernCtrl.state);
 
     if (TRUE == PORT_ISR_IS_LAST()) {
-        ((struct kernCtrl_ *)&KernCtrl)->state &= ~SCHED_STATE_INTSRV_MSK;
+        ((struct kernCtrl_ *)&KernCtrl)->state &= ~DEF_SCHED_STATE_INTSRV_MSK;
         esSchedYieldIsrI();
     }
 }
@@ -1068,7 +1075,7 @@ void esKernIsrExitI(
 void esKernLockIntEnter(
     esLockCtx_T *       lockCtx) {
 
-    PORT_INT_PRIO_REPLACE(lockCtx, PORT_DEF_MAX_ISR_PRIO);
+    PORT_INTR_MASK_REPLACE(lockCtx, PORT_DEF_MAX_ISR_PRIO);
     esKernLockEnterI();
 }
 
@@ -1076,7 +1083,7 @@ void esKernLockIntExit(
     esLockCtx_T         lockCtx) {
 
     esKernLockExitI();
-    PORT_INT_PRIO_SET(lockCtx);
+    PORT_INTR_MASK_SET(lockCtx);
 }
 
 void esKernLockEnterI(
@@ -1084,7 +1091,7 @@ void esKernLockEnterI(
 
     ES_DBG_API_REQUIRE(ES_DBG_USAGE_FAILURE, ES_KERN_INIT > KernCtrl.state);
 
-    ((struct kernCtrl_ *)&KernCtrl)->state |= SCHED_STATE_LOCK_MSK;
+    ((struct kernCtrl_ *)&KernCtrl)->state |= DEF_SCHED_STATE_LOCK_MSK;
     ++KernLockCnt;
 }
 
@@ -1097,7 +1104,7 @@ void esKernLockExitI(
     --KernLockCnt;
 
     if (0u == KernLockCnt) {
-        ((struct kernCtrl_ *)&KernCtrl)->state &= ~SCHED_STATE_LOCK_MSK;
+        ((struct kernCtrl_ *)&KernCtrl)->state &= ~DEF_SCHED_STATE_LOCK_MSK;
         esSchedYieldI();
     }
 }
@@ -1137,7 +1144,7 @@ void esThdInit(
 
     ES_DBG_API_REQUIRE(ES_DBG_USAGE_FAILURE, ES_KERN_INACTIVE > KernCtrl.state);
     ES_DBG_API_REQUIRE(ES_DBG_POINTER_NULL, NULL != thd);
-    ES_DBG_API_REQUIRE(ES_DBG_OBJECT_NOT_VALID, THD_CONTRACT_SIGNATURE != thd->signature);
+    ES_DBG_API_REQUIRE(ES_DBG_OBJECT_NOT_VALID, DEF_THD_CONTRACT_SIGNATURE != thd->signature);
     ES_DBG_API_REQUIRE(ES_DBG_POINTER_NULL, NULL != fn);
     ES_DBG_API_REQUIRE(ES_DBG_POINTER_NULL, NULL != stck);
     ES_DBG_API_REQUIRE(ES_DBG_OUT_OF_RANGE, PORT_DEF_STCK_MINSIZE <= (stckSize * sizeof(portReg_T)));
@@ -1153,7 +1160,7 @@ void esThdInit(
     thd->qCnt   = CFG_SCHED_TIME_QUANTUM;
     thd->qRld   = CFG_SCHED_TIME_QUANTUM;
 
-    ES_DBG_API_OBLIGATION(thd->signature = THD_CONTRACT_SIGNATURE);             /* Make thread structure valid.                             */
+    ES_DBG_API_OBLIGATION(thd->signature = DEF_THD_CONTRACT_SIGNATURE);             /* Make thread structure valid.                             */
 
     ES_CRITICAL_LOCK_ENTER(&intCtx);
     schedRdyAddInitI(
@@ -1175,7 +1182,7 @@ void esThdTerm(
 
     ES_DBG_API_REQUIRE(ES_DBG_USAGE_FAILURE, ES_KERN_INACTIVE > KernCtrl.state);
     ES_DBG_API_REQUIRE(ES_DBG_POINTER_NULL, NULL != thd);
-    ES_DBG_API_REQUIRE(ES_DBG_OBJECT_NOT_VALID, THD_CONTRACT_SIGNATURE == thd->signature);
+    ES_DBG_API_REQUIRE(ES_DBG_OBJECT_NOT_VALID, DEF_THD_CONTRACT_SIGNATURE == thd->signature);
     ES_DBG_API_REQUIRE(ES_DBG_POINTER_NULL, (NULL == thd->thdL.q) || (&RdyQueue == thd->thdL.q));
 
 #if   (1u == CFG_HOOK_PRE_THD_TERM)
@@ -1192,7 +1199,7 @@ void esThdTerm(
             thd);
     }
 
-    ES_DBG_API_OBLIGATION(thd->signature = ~THD_CONTRACT_SIGNATURE);            /* Mark the thread ID structure as invalid.                 */
+    ES_DBG_API_OBLIGATION(thd->signature = ~DEF_THD_CONTRACT_SIGNATURE);            /* Mark the thread ID structure as invalid.                 */
 
     esSchedYieldI();
     ES_CRITICAL_LOCK_EXIT(intCtx);
@@ -1204,7 +1211,7 @@ void esThdSetPrioI(
 
     ES_DBG_API_REQUIRE(ES_DBG_USAGE_FAILURE, ES_KERN_INACTIVE > KernCtrl.state);
     ES_DBG_API_REQUIRE(ES_DBG_POINTER_NULL, NULL != thd);
-    ES_DBG_API_REQUIRE(ES_DBG_OBJECT_NOT_VALID, THD_CONTRACT_SIGNATURE == thd->signature);
+    ES_DBG_API_REQUIRE(ES_DBG_OBJECT_NOT_VALID, DEF_THD_CONTRACT_SIGNATURE == thd->signature);
     ES_DBG_API_REQUIRE(ES_DBG_OUT_OF_RANGE, CFG_SCHED_PRIO_LVL >= prio);
 
     if (NULL == thd->thdL.q) {                                                  /* Is thread inserted in any queue?                         */
@@ -1236,19 +1243,21 @@ void esThdSetPrioI(
 void esThdQInit(
     esThdQ_T *          thdQ) {
 
-    uint_fast8_t        group;
+    uint_fast8_t        grp;
 
     ES_DBG_API_REQUIRE(ES_DBG_POINTER_NULL, NULL != thdQ);
-    ES_DBG_API_REQUIRE(ES_DBG_OBJECT_NOT_VALID, THDQ_CONTRACT_SIGNATURE != thdQ->signature);
+    ES_DBG_API_REQUIRE(ES_DBG_OBJECT_NOT_VALID, DEF_THDQ_CONTRACT_SIGNATURE != thdQ->signature);
 
     pbmInit(
         &thdQ->prioOcc);
+    grp = CFG_SCHED_PRIO_LVL;
 
-    for (group = 0u; group < CFG_SCHED_PRIO_LVL; group++) {
-        thdQ->grp[group].head = NULL;
-        thdQ->grp[group].next  = NULL;
+    while (0u != grp) {
+        grp--;
+        thdQ->grp[grp].head = NULL;
+        thdQ->grp[grp].next = NULL;
     }
-    ES_DBG_API_OBLIGATION(thdQ->signature = THDQ_CONTRACT_SIGNATURE);
+    ES_DBG_API_OBLIGATION(thdQ->signature = DEF_THDQ_CONTRACT_SIGNATURE);
 }
 
 /* 1)       When API validation is not used then this function will become empty.
@@ -1257,9 +1266,9 @@ void esThdQTerm(
     esThdQ_T *          thdQ) {
 
     ES_DBG_API_REQUIRE(ES_DBG_POINTER_NULL, NULL != thdQ);
-    ES_DBG_API_REQUIRE(ES_DBG_OBJECT_NOT_VALID, THDQ_CONTRACT_SIGNATURE == thdQ->signature);
+    ES_DBG_API_REQUIRE(ES_DBG_OBJECT_NOT_VALID, DEF_THDQ_CONTRACT_SIGNATURE == thdQ->signature);
 
-    ES_DBG_API_OBLIGATION(thdQ->signature = ~THDQ_CONTRACT_SIGNATURE);
+    ES_DBG_API_OBLIGATION(thdQ->signature = ~DEF_THDQ_CONTRACT_SIGNATURE);
 
 #if   (0u == CFG_DBG_API_VALIDATION)
     (void)thdQ;                                                                 /* Prevent compiler warning about unused argument.          */
@@ -1273,9 +1282,9 @@ void esThdQAddI(
     struct thdLSent_ *  sentinel;
 
     ES_DBG_API_REQUIRE(ES_DBG_POINTER_NULL, NULL != thdQ);
-    ES_DBG_API_REQUIRE(ES_DBG_OBJECT_NOT_VALID, THDQ_CONTRACT_SIGNATURE == thdQ->signature);
+    ES_DBG_API_REQUIRE(ES_DBG_OBJECT_NOT_VALID, DEF_THDQ_CONTRACT_SIGNATURE == thdQ->signature);
     ES_DBG_API_REQUIRE(ES_DBG_POINTER_NULL, NULL != thd);
-    ES_DBG_API_REQUIRE(ES_DBG_OBJECT_NOT_VALID, THD_CONTRACT_SIGNATURE == thd->signature);
+    ES_DBG_API_REQUIRE(ES_DBG_OBJECT_NOT_VALID, DEF_THD_CONTRACT_SIGNATURE == thd->signature);
     ES_DBG_API_REQUIRE(ES_DBG_POINTER_NULL, NULL == thd->thdL.q);
 
     sentinel = &(thdQ->grp[thd->prio]);                                         /* Get the sentinel from thread priority level.             */
@@ -1299,9 +1308,9 @@ void esThdQRmI(
     struct thdLSent_ *  sentinel;
 
     ES_DBG_API_REQUIRE(ES_DBG_POINTER_NULL, NULL != thd);
-    ES_DBG_API_REQUIRE(ES_DBG_OBJECT_NOT_VALID, THD_CONTRACT_SIGNATURE == thd->signature);
+    ES_DBG_API_REQUIRE(ES_DBG_OBJECT_NOT_VALID, DEF_THD_CONTRACT_SIGNATURE == thd->signature);
     ES_DBG_API_REQUIRE(ES_DBG_POINTER_NULL, NULL != thdQ);
-    ES_DBG_API_REQUIRE(ES_DBG_OBJECT_NOT_VALID, THDQ_CONTRACT_SIGNATURE == thdQ->signature);
+    ES_DBG_API_REQUIRE(ES_DBG_OBJECT_NOT_VALID, DEF_THDQ_CONTRACT_SIGNATURE == thdQ->signature);
     ES_DBG_API_REQUIRE(ES_DBG_USAGE_FAILURE, thdQ == thd->thdL.q);
 
     sentinel = &(thdQ->grp[thd->prio]);                                         /* Get the sentinel from thread priority level.             */
@@ -1333,14 +1342,14 @@ esThd_T * esThdQFetchI(
     uint_fast8_t        prio;
 
     ES_DBG_API_REQUIRE(ES_DBG_POINTER_NULL, NULL != thdQ);
-    ES_DBG_API_REQUIRE(ES_DBG_OBJECT_NOT_VALID, THDQ_CONTRACT_SIGNATURE == thdQ->signature);
+    ES_DBG_API_REQUIRE(ES_DBG_OBJECT_NOT_VALID, DEF_THDQ_CONTRACT_SIGNATURE == thdQ->signature);
     ES_DBG_API_REQUIRE(ES_DBG_USAGE_FAILURE, FALSE == pbmIsEmpty(&thdQ->prioOcc));
 
     prio = pbmGetHighest(
         &thdQ->prioOcc);                                                        /* Get the highest priority ready to run.                   */
     sentinel = (struct thdLSent_ *)&(thdQ->grp[prio]);                          /* Get the Group Head pointer for that priority.            */
                                                                                 /* The type cast is needed to avoid compiler warnings.      */
-    ES_DBG_API_ENSURE(ES_DBG_OBJECT_NOT_VALID, THD_CONTRACT_SIGNATURE == sentinel->next->signature);
+    ES_DBG_API_ENSURE(ES_DBG_OBJECT_NOT_VALID, DEF_THD_CONTRACT_SIGNATURE == sentinel->next->signature);
 
     return (sentinel->next);
 }
@@ -1352,14 +1361,14 @@ esThd_T * esThdQFetchRotateI(
     struct thdLSent_ *  sentinel;
 
     ES_DBG_API_REQUIRE(ES_DBG_POINTER_NULL, NULL != thdQ);
-    ES_DBG_API_REQUIRE(ES_DBG_OBJECT_NOT_VALID, THDQ_CONTRACT_SIGNATURE == thdQ->signature);
+    ES_DBG_API_REQUIRE(ES_DBG_OBJECT_NOT_VALID, DEF_THDQ_CONTRACT_SIGNATURE == thdQ->signature);
     ES_DBG_API_REQUIRE(ES_DBG_OUT_OF_RANGE, CFG_SCHED_PRIO_LVL >= prio);
     ES_DBG_API_REQUIRE(ES_DBG_POINTER_NULL, NULL != thdQ->grp[prio].next);
 
     sentinel = &(thdQ->grp[prio]);                                              /* Get the Group Head pointer from thread priority.         */
     sentinel->next = DLIST_ENTRY_NEXT(thdL, sentinel->next);
 
-    ES_DBG_API_ENSURE(ES_DBG_OBJECT_NOT_VALID, THD_CONTRACT_SIGNATURE == sentinel->next->signature);
+    ES_DBG_API_ENSURE(ES_DBG_OBJECT_NOT_VALID, DEF_THD_CONTRACT_SIGNATURE == sentinel->next->signature);
 
     return (sentinel->next);
 }
@@ -1370,7 +1379,7 @@ bool_T esThdQIsEmpty(
     bool_T              ret;
 
     ES_DBG_API_REQUIRE(ES_DBG_POINTER_NULL, NULL != thdQ);
-    ES_DBG_API_REQUIRE(ES_DBG_OBJECT_NOT_VALID, THDQ_CONTRACT_SIGNATURE == thdQ->signature);
+    ES_DBG_API_REQUIRE(ES_DBG_OBJECT_NOT_VALID, DEF_THDQ_CONTRACT_SIGNATURE == thdQ->signature);
 
     ret = pbmIsEmpty(
         &thdQ->prioOcc);
@@ -1386,7 +1395,7 @@ void esSchedRdyAddI(
 
     ES_DBG_API_REQUIRE(ES_DBG_USAGE_FAILURE, ES_KERN_INACTIVE > KernCtrl.state);
     ES_DBG_API_REQUIRE(ES_DBG_POINTER_NULL, NULL != thd);
-    ES_DBG_API_REQUIRE(ES_DBG_OBJECT_NOT_VALID, THD_CONTRACT_SIGNATURE == thd->signature);
+    ES_DBG_API_REQUIRE(ES_DBG_OBJECT_NOT_VALID, DEF_THD_CONTRACT_SIGNATURE == thd->signature);
     ES_DBG_API_REQUIRE(ES_DBG_POINTER_NULL, NULL == thd->thdL.q);
 
     esThdQAddI(
@@ -1407,7 +1416,7 @@ void esSchedRdyRmI(
 
     ES_DBG_API_REQUIRE(ES_DBG_USAGE_FAILURE, ES_KERN_INACTIVE > KernCtrl.state);
     ES_DBG_API_REQUIRE(ES_DBG_POINTER_NULL, NULL != thd);
-    ES_DBG_API_REQUIRE(ES_DBG_OBJECT_NOT_VALID, THD_CONTRACT_SIGNATURE == thd->signature);
+    ES_DBG_API_REQUIRE(ES_DBG_OBJECT_NOT_VALID, DEF_THD_CONTRACT_SIGNATURE == thd->signature);
     ES_DBG_API_REQUIRE(ES_DBG_USAGE_FAILURE, &RdyQueue == thd->thdL.q);
 
     esThdQRmI(
@@ -1478,7 +1487,7 @@ void esVTmrInitI(
 
     ES_DBG_API_REQUIRE(ES_DBG_USAGE_FAILURE, ES_KERN_INACTIVE > KernCtrl.state);
     ES_DBG_API_REQUIRE(ES_DBG_POINTER_NULL, NULL != vTmr);
-    ES_DBG_API_REQUIRE(ES_DBG_OBJECT_NOT_VALID, VTMR_CONTRACT_SIGNATURE != vTmr->signature);
+    ES_DBG_API_REQUIRE(ES_DBG_OBJECT_NOT_VALID, DEF_VTMR_CONTRACT_SIGNATURE != vTmr->signature);
     ES_DBG_API_REQUIRE(ES_DBG_OUT_OF_RANGE, 1u < tick);
     ES_DBG_API_REQUIRE(ES_DBG_POINTER_NULL, NULL != fn);
 
@@ -1495,7 +1504,7 @@ void esVTmrInitI(
             &KVTmr);
     }
 #endif
-    ES_DBG_API_OBLIGATION(vTmr->signature = VTMR_CONTRACT_SIGNATURE);
+    ES_DBG_API_OBLIGATION(vTmr->signature = DEF_VTMR_CONTRACT_SIGNATURE);
 }
 
 void esVTmrInit(
@@ -1520,9 +1529,9 @@ void esVTmrTermI(
 
     ES_DBG_API_REQUIRE(ES_DBG_USAGE_FAILURE, ES_KERN_INACTIVE > KernCtrl.state);
     ES_DBG_API_REQUIRE(ES_DBG_POINTER_NULL, NULL != vTmr);
-    ES_DBG_API_REQUIRE(ES_DBG_OBJECT_NOT_VALID, VTMR_CONTRACT_SIGNATURE == vTmr->signature);
+    ES_DBG_API_REQUIRE(ES_DBG_OBJECT_NOT_VALID, DEF_VTMR_CONTRACT_SIGNATURE == vTmr->signature);
 
-    ES_DBG_API_OBLIGATION(vTmr->signature = ~VTMR_CONTRACT_SIGNATURE);
+    ES_DBG_API_OBLIGATION(vTmr->signature = ~DEF_VTMR_CONTRACT_SIGNATURE);
 
     if (&VTmrPend == vTmr->tmrL.q) {                                            /* A pending timer is being deleted.                        */
         DLIST_ENTRY_RM(tmrL, vTmr);
@@ -1643,6 +1652,6 @@ esTick_T esSysTmrTickGet(
 }
 
 /*================================*//** @cond *//*==  CONFIGURATION ERRORS  ==*/
-/** @endcond *//** @} *//******************************************************
+/** @endcond *//** @} *//** @} *//*********************************************
  * END of kernel.c
  ******************************************************************************/
