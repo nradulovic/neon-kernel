@@ -1,0 +1,22 @@
+/** 
+@file 
+*/
+/** 
+@defgroup       kern_sync Synchronization services
+@brief          Basic synchronization services
+@{
+@defgroup       lock_intf Kernel lock
+@defgroup       sem_intf Semaphore
+@} */
+
+/**
+@addtogroup     lock_intf
+@brief          Kernel locking
+@details        The simplest method to protect a shared resource is by using
+                kernel locks. For details see @ref kern_lock.
+*/
+/** 
+@addtogroup     sem_intf
+@brief          Counting semaphore
+*/
+
