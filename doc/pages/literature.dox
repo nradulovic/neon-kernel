@@ -1,0 +1,77 @@
+/*********************************************************************************************//**
+@file
+@page           lit Literature and utilities
+@section     	lit_papers Literature 
+	
+- IBM predlog koncepta za event processing arhitekturu: @n
+http://www.ibm.com/developerworks/webservices/library/ws-eventprocessing/index.html
+
+- Event-Driven Architecture Overview @n
+Brenda M. Michelson
+
+- Tehnicko drustvo za event processing: @n
+http://www.ep-ts.com/
+
+- UML Tutorial: Finite State Machines @n
+Robert C. Martin @n
+Engineering Notebook Column
+
+- Practical UML Statecharts in C/C++ @n
+Miro Samek@n
+http://www.state-machine.com/psicc2/index.php
+
+- Statecharts: A visual formalism for complex systems @n
+David Harel
+
+- Nesos - Finite State Machine Operating System Reference Guide @n
+Jan Erik Nilsen @n
+http://www.nilsenelektronikk.no
+
+- Object-oriented programming with ANSI-C @n
+Axel-Tobias Schreiner
+
+- Trace Recording for Embedded Systems: Lessons Learned from Five Industrial Projects @n
+Johan Kraft , Anders Wall and Holger Kienle
+
+- Cortex-M3 Technical Reference Manual (TRM): @n 
+http://infocenter.arm.com/help/topic/com.arm.doc.ddi0337g/index.html
+
+- AAPCS Procedure Call Standard for the ARM Architecture: @n
+http://infocenter.arm.com/help/topic/com.arm.doc.ihi0042c/index.html
+
+@section     	lit_links Links
+
+- Quantum Leaps @n
+Quantum Leaps, pruza state-machine framework i graficke alate za modeliranje za 
+real time embedded sisteme. @n
+http://www.state-machine.com
+
+- BeRTOS is a real time open source operating system @n BeRTOS je odlican real 
+time OS koji poseduje mnostvo kvalitetnih ideja i koncepta programiranja od 
+kojih se neki koriste i u ovom projektu. @n
+http://www.bertos.org
+ 
+- ChibiOS/RT @n
+ChibiOS/RT je projektovan za embedded real-time sisteme ciji su zahtevi
+efikasnost izvrsavanja i kompaktan kod. Ovaj RTOS karakterisu visoka 
+portabilnost, kompaktna velicina i arhitektura koja je optimizovana za kratka 
+vremena komutacije procesa. @n
+http://www.chibios.org
+
+@section     	lit_tools_and_resources Tools and resources
+
+- CodeSourcery@n
+Pruza odlican ARM kompajler sa pristojnom dokumentacijom. Lite verzija je 
+besplatna. @n
+http://http://www.mentor.com/embedded-software/sourcery-tools/sourcery-codebench/
+
+- Yagarto toolchain - Yet another GNU ARM toolchain@n
+ Open source, besplatan ARM set alatki. @n
+http://www.yagarto.de/
+
+@section     	lit_coding_rules Coding rules
+
+- Stil kodiranja u eSolid-u: @n
+http://blueskynet.dyndns-server.com/doc/D0020-Stilovi%20kodiranja%20(Software).pdf
+
+ *************************************************************************************************/

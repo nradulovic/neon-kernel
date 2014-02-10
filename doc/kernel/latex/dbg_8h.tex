@@ -1,0 +1,99 @@
+\hypertarget{dbg_8h}{\subsection{dbg.\-h File Reference}
+\label{dbg_8h}\index{dbg.\-h@{dbg.\-h}}
+}
+
+
+Debug basic functionality.  
+
+
+{\ttfamily \#include \char`\"{}arch/compiler.\-h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}kernel/dbg\-\_\-cfg.\-h\char`\"{}}\\*
+Include dependency graph for dbg.\-h\-:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=286pt]{dbg_8h__incl}
+\end{center}
+\end{figure}
+This graph shows which files directly or indirectly include this file\-:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=280pt]{dbg_8h__dep__incl}
+\end{center}
+\end{figure}
+\subsubsection*{Data Structures}
+\begin{DoxyCompactItemize}
+\item 
+struct \hyperlink{structdbgCobj__}{dbg\-Cobj\-\_\-}
+\begin{DoxyCompactList}\small\item\em Debug C object information structure. \end{DoxyCompactList}\item 
+struct \hyperlink{structdbgCobj___1_1dbgModInfo__}{dbg\-Cobj\-\_\-\-::dbg\-Mod\-Info\-\_\-}
+\begin{DoxyCompactList}\small\item\em Debug module information structure. \end{DoxyCompactList}\item 
+struct \hyperlink{structesDbgReport}{es\-Dbg\-Report}
+\begin{DoxyCompactList}\small\item\em Debug report structure. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsubsection*{Macros}
+\begin{Indent}{\bf Internal checking}\par
+{\em These macros are enabled/disabled using the option \hyperlink{group__template__dbg__cfg_ga530daa344716eca7cf87075dd7a8fca1}{C\-F\-G\-\_\-\-D\-B\-G\-\_\-\-I\-N\-T\-E\-R\-N\-A\-L\-\_\-\-C\-H\-E\-C\-K}. }\begin{DoxyCompactItemize}
+\item 
+\#define \hyperlink{group__dbg__intf_ga0cc690757e946a0fcd95b1ec7d430a3c}{E\-S\-\_\-\-D\-B\-G\-\_\-\-I\-N\-T\-E\-R\-N\-A\-L}(msg, expr)~(void)0
+\begin{DoxyCompactList}\small\item\em Assert macro used for internal execution checking. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\end{Indent}
+\begin{Indent}{\bf A\-P\-I contract validation}\par
+{\em These macros are enabled/disabled using the option \hyperlink{group__template__dbg__cfg_ga64e39c477ef9d900b82585150329e3f0}{C\-F\-G\-\_\-\-D\-B\-G\-\_\-\-A\-P\-I\-\_\-\-V\-A\-L\-I\-D\-A\-T\-I\-O\-N}. }\begin{DoxyCompactItemize}
+\item 
+\#define \hyperlink{group__dbg__intf_ga4f697c4030269ec84d7cff3d3a536dc7}{E\-S\-\_\-\-D\-B\-G\-\_\-\-A\-P\-I\-\_\-\-O\-B\-L\-I\-G\-A\-T\-I\-O\-N}(expr)~(void)0
+\begin{DoxyCompactList}\small\item\em Execute code to fulfill the contract. \end{DoxyCompactList}\item 
+\#define \hyperlink{group__dbg__intf_ga3989d15e2662496b037dbe87f6ae876c}{E\-S\-\_\-\-D\-B\-G\-\_\-\-A\-P\-I\-\_\-\-R\-E\-Q\-U\-I\-R\-E}(msg, expr)~(void)0
+\begin{DoxyCompactList}\small\item\em Make sure the caller has fulfilled all contract preconditions. \end{DoxyCompactList}\item 
+\#define \hyperlink{group__dbg__intf_ga87674b53b8204d141c9041ae9f267c3e}{E\-S\-\_\-\-D\-B\-G\-\_\-\-A\-P\-I\-\_\-\-E\-N\-S\-U\-R\-E}(msg, expr)~(void)0
+\begin{DoxyCompactList}\small\item\em Make sure the callee has fulfilled all contract postconditions. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\end{Indent}
+\subsubsection*{Functions}
+\begin{Indent}{\bf Debug hook functions}\par
+{\em \begin{DoxyNote}{Note}
+1) The definition of this functions must be written by the user. 
+\end{DoxyNote}
+}\begin{DoxyCompactItemize}
+\item 
+void \hyperlink{group__dbg__intf_gaeffe9bfb4bdcfe9d824bfa4686cc969e}{user\-Assert} (const struct \hyperlink{structesDbgReport}{es\-Dbg\-Report} $\ast$dbg\-Report)
+\begin{DoxyCompactList}\small\item\em An assertion has failed. This function should inform the user about failed assertion. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\end{Indent}
+\subsubsection*{Object and error source information}
+\begin{DoxyCompactItemize}
+\item 
+\#define \hyperlink{group__dbg__intf_ga94eccf7c06c7ddd4516b8b6844666be5}{D\-E\-C\-L\-\_\-\-M\-O\-D\-U\-L\-E\-\_\-\-I\-N\-F\-O}(mod\-Name, mod\-Desc, mod\-Auth)~P\-O\-R\-T\-\_\-\-C\-\_\-\-U\-N\-U\-S\-E\-D D\-E\-C\-L\-\_\-\-M\-O\-D\-U\-L\-E\-\_\-\-I\-N\-F\-O(mod\-Name, mod\-Desc, mod\-Auth)
+\begin{DoxyCompactList}\small\item\em Declare a module information card. \end{DoxyCompactList}\item 
+enum \hyperlink{group__dbg__intf_ga4609b307edd90e35a1b5f8f6e7923e92}{es\-Dbg\-Msg\-Num} \{ \\*
+\hyperlink{group__dbg__intf_gga4609b307edd90e35a1b5f8f6e7923e92a0ed2560c05255d9ec7fbc8a615679b8f}{E\-S\-\_\-\-D\-B\-G\-\_\-\-O\-U\-T\-\_\-\-O\-F\-\_\-\-R\-A\-N\-G\-E}, 
+\\*
+\hyperlink{group__dbg__intf_gga4609b307edd90e35a1b5f8f6e7923e92a9c436de3c9447cf78f5bb979d8eaacb3}{E\-S\-\_\-\-D\-B\-G\-\_\-\-O\-B\-J\-E\-C\-T\-\_\-\-N\-O\-T\-\_\-\-V\-A\-L\-I\-D}, 
+\\*
+\hyperlink{group__dbg__intf_gga4609b307edd90e35a1b5f8f6e7923e92a5d5958107ab6f5e98e71edd70fc6ee68}{E\-S\-\_\-\-D\-B\-G\-\_\-\-P\-O\-I\-N\-T\-E\-R\-\_\-\-N\-U\-L\-L}, 
+\\*
+\hyperlink{group__dbg__intf_gga4609b307edd90e35a1b5f8f6e7923e92af13d39124e0d44b1dd10af1cf4a5c071}{E\-S\-\_\-\-D\-B\-G\-\_\-\-U\-S\-A\-G\-E\-\_\-\-F\-A\-I\-L\-U\-R\-E}, 
+\\*
+\hyperlink{group__dbg__intf_gga4609b307edd90e35a1b5f8f6e7923e92a108434c02714d8cd87822f04e41979b8}{E\-S\-\_\-\-D\-B\-G\-\_\-\-N\-O\-T\-\_\-\-E\-N\-O\-U\-G\-H\-\_\-\-M\-E\-M}, 
+\\*
+\hyperlink{group__dbg__intf_gga4609b307edd90e35a1b5f8f6e7923e92afb392881158dbd43190762d0f18b51b2}{E\-S\-\_\-\-D\-B\-G\-\_\-\-N\-O\-T\-\_\-\-I\-M\-P\-L\-E\-M\-E\-N\-T\-E\-D}, 
+\\*
+\hyperlink{group__dbg__intf_gga4609b307edd90e35a1b5f8f6e7923e92ad073b50d452e7cd23ca27463c90ae8f2}{E\-S\-\_\-\-D\-B\-G\-\_\-\-U\-N\-K\-N\-O\-W\-N\-\_\-\-E\-R\-R\-O\-R}
+ \}
+\begin{DoxyCompactList}\small\item\em Debug messages. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsubsection*{Error checking}
+\label{_amgrpc3e04bd7ea7a3958c683753317428f1a}%
+For more details see \hyperlink{errors}{Debug\-: Error checking}. \begin{DoxyCompactItemize}
+\item 
+\#define \hyperlink{group__dbg__intf_gac5dec3aeb40dea882b8689cf3487559f}{E\-S\-\_\-\-D\-B\-G\-\_\-\-S\-T\-A\-T\-I\-C\-\_\-\-A\-S\-S\-E\-R\-T}(msg, expr)~extern char E\-S\-\_\-\-D\-B\-G\-\_\-\-S\-T\-A\-T\-I\-C\-\_\-\-A\-S\-S\-E\-R\-T\-\_\-has\-\_\-failed\-\_\-\#\#msg\mbox{[}(expr) ? 1 \-: -\/1\mbox{]}
+\begin{DoxyCompactList}\small\item\em Static assert macro. \end{DoxyCompactList}\item 
+\#define \hyperlink{group__dbg__intf_ga3826c957cc3aed7873397c0dac0b7030}{E\-S\-\_\-\-D\-B\-G\-\_\-\-A\-S\-S\-E\-R\-T}(msg, expr)~(void)0
+\begin{DoxyCompactList}\small\item\em Generic assert macro. \end{DoxyCompactList}\item 
+\#define \hyperlink{group__dbg__intf_gacb07b54b924ab75eff1612d03091d48c}{E\-S\-\_\-\-D\-B\-G\-\_\-\-A\-S\-S\-E\-R\-T\-\_\-\-A\-L\-W\-A\-Y\-S}(msg, text)~(void)0
+\begin{DoxyCompactList}\small\item\em Assert macro that will always execute (no conditional). \end{DoxyCompactList}\item 
+P\-O\-R\-T\-\_\-\-C\-\_\-\-N\-O\-R\-E\-T\-U\-R\-N void \hyperlink{group__dbg__intf_ga736bb1b558e8daecde7534dad729f53b}{dbg\-Assert} (const P\-O\-R\-T\-\_\-\-C\-\_\-\-R\-O\-M struct \hyperlink{structdbgCobj__}{dbg\-Cobj\-\_\-} $\ast$c\-Obj, const P\-O\-R\-T\-\_\-\-C\-\_\-\-R\-O\-M char $\ast$expr, enum \hyperlink{group__dbg__intf_ga4609b307edd90e35a1b5f8f6e7923e92}{es\-Dbg\-Msg\-Num} msg)
+\begin{DoxyCompactList}\small\item\em An assertion has failed. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsubsection{Detailed Description}
+Debug basic functionality. \begin{DoxyAuthor}{Author}
+Nenad Radulovic 
+\end{DoxyAuthor}

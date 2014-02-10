@@ -1,0 +1,174 @@
+\hypertarget{group__kern__sched}{\subsection{Scheduler notification and invocation}
+\label{group__kern__sched}\index{Scheduler notification and invocation@{Scheduler notification and invocation}}
+}
+
+
+Low-\/level scheduler services.  
+
+
+Collaboration diagram for Scheduler notification and invocation\-:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=282pt]{group__kern__sched}
+\end{center}
+\end{figure}
+\subsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \hyperlink{group__kern__sched_ga73e14b1860ce824c822adc407aee0977}{es\-Sched\-Rdy\-Add\-I} (\hyperlink{group__kern__thd_ga62e3a3ca0a4597a19c43cb8868810d82}{es\-Thd\-\_\-\-T} $\ast$thd)
+\begin{DoxyCompactList}\small\item\em Add thread {\ttfamily thd} to the ready thread list and notify the scheduler. \end{DoxyCompactList}\item 
+void \hyperlink{group__kern__sched_ga0b8263c5024ebb59cd9b95cc9253b44d}{es\-Sched\-Rdy\-Rm\-I} (\hyperlink{group__kern__thd_ga62e3a3ca0a4597a19c43cb8868810d82}{es\-Thd\-\_\-\-T} $\ast$thd)
+\begin{DoxyCompactList}\small\item\em Remove thread {\ttfamily thd} from the ready thread list and notify the scheduler. \end{DoxyCompactList}\item 
+void \hyperlink{group__kern__sched_gaf90e487bfce974dafaeed5009e189810}{es\-Sched\-Yield\-I} (void)
+\begin{DoxyCompactList}\small\item\em Force the scheduler invocation which will evaluate all ready threads and switch to ready thread with the highest priority. \end{DoxyCompactList}\item 
+void \hyperlink{group__kern__sched_gafbea29b376b29f11bbfc48a0f5144e9a}{es\-Sched\-Yield\-Isr\-I} (void)
+\begin{DoxyCompactList}\small\item\em Force the scheduler invocation which will evaluate all ready threads and switch to ready thread with the highest priority. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsubsection{Detailed Description}
+Low-\/level scheduler services. 
+
+\subsubsection{Function Documentation}
+\hypertarget{group__kern__sched_ga73e14b1860ce824c822adc407aee0977}{\index{Scheduler notification and invocation@{Scheduler notification and invocation}!es\-Sched\-Rdy\-Add\-I@{es\-Sched\-Rdy\-Add\-I}}
+\index{es\-Sched\-Rdy\-Add\-I@{es\-Sched\-Rdy\-Add\-I}!Scheduler notification and invocation@{Scheduler notification and invocation}}
+\paragraph[{es\-Sched\-Rdy\-Add\-I}]{\setlength{\rightskip}{0pt plus 5cm}void es\-Sched\-Rdy\-Add\-I (
+\begin{DoxyParamCaption}
+\item[{{\bf es\-Thd\-\_\-\-T} $\ast$}]{thd}
+\end{DoxyParamCaption}
+)}}\label{group__kern__sched_ga73e14b1860ce824c822adc407aee0977}
+
+
+Add thread {\ttfamily thd} to the ready thread list and notify the scheduler. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em thd} & Pointer to the initialized thread I\-D structure, \hyperlink{structesThd}{es\-Thd}. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyPrecond}{Precondition}
+1) {\ttfamily The kernel state $<$ E\-S\-\_\-\-K\-E\-R\-N\-\_\-\-I\-N\-A\-C\-T\-I\-V\-E}, see \hyperlink{states}{Kernel states}. 
+
+2) {\ttfamily thd != N\-U\-L\-L} 
+
+3) {\ttfamily thd-\/$>$signature == D\-E\-F\-\_\-\-T\-H\-D\-\_\-\-C\-O\-N\-T\-R\-A\-C\-T\-\_\-\-S\-I\-G\-N\-A\-T\-U\-R\-E}, the pointer must point to a valid \hyperlink{structesThd}{es\-Thd} structure. 
+
+4) {\ttfamily thd-\/$>$thd\-L\-\_\-.\-q == N\-U\-L\-L}, thread must not be in a queue. 
+\end{DoxyPrecond}
+\begin{DoxyParagraph}{This service can be called from\-:}
+
+\begin{DoxyItemize}
+\item Application initialization code
+\item Application thread code
+\item Interrupt service routine 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Rescheduling\-:}
+
+\begin{DoxyItemize}
+\item never 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Function class\-:}
+{\bfseries I class}, Interrupt-\/lock A\-P\-I function, this function can be called only from interrupts locked code sections. 
+\end{DoxyParagraph}
+\hypertarget{group__kern__sched_ga0b8263c5024ebb59cd9b95cc9253b44d}{\index{Scheduler notification and invocation@{Scheduler notification and invocation}!es\-Sched\-Rdy\-Rm\-I@{es\-Sched\-Rdy\-Rm\-I}}
+\index{es\-Sched\-Rdy\-Rm\-I@{es\-Sched\-Rdy\-Rm\-I}!Scheduler notification and invocation@{Scheduler notification and invocation}}
+\paragraph[{es\-Sched\-Rdy\-Rm\-I}]{\setlength{\rightskip}{0pt plus 5cm}void es\-Sched\-Rdy\-Rm\-I (
+\begin{DoxyParamCaption}
+\item[{{\bf es\-Thd\-\_\-\-T} $\ast$}]{thd}
+\end{DoxyParamCaption}
+)}}\label{group__kern__sched_ga0b8263c5024ebb59cd9b95cc9253b44d}
+
+
+Remove thread {\ttfamily thd} from the ready thread list and notify the scheduler. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em thd} & Pointer to the initialized thread I\-D structure, \hyperlink{structesThd}{es\-Thd}. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyPrecond}{Precondition}
+1) {\ttfamily The kernel state $<$ E\-S\-\_\-\-K\-E\-R\-N\-\_\-\-I\-N\-A\-C\-T\-I\-V\-E}, see \hyperlink{states}{Kernel states}. 
+
+2) {\ttfamily thd != N\-U\-L\-L} 
+
+3) {\ttfamily thd-\/$>$signature == D\-E\-F\-\_\-\-T\-H\-D\-\_\-\-C\-O\-N\-T\-R\-A\-C\-T\-\_\-\-S\-I\-G\-N\-A\-T\-U\-R\-E}, the pointer must point to a valid \hyperlink{structesThd}{es\-Thd} structure. 
+
+4) {\ttfamily thd-\/$>$thd\-L\-\_\-.\-q == \&g\-Rdy\-Queue}, thread must be in Ready Threads queue. 
+\end{DoxyPrecond}
+\begin{DoxyParagraph}{This service can be called from\-:}
+
+\begin{DoxyItemize}
+\item Application initialization code
+\item Application thread code
+\item Interrupt service routine 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Rescheduling\-:}
+
+\begin{DoxyItemize}
+\item never 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Function class\-:}
+{\bfseries I class}, Interrupt-\/lock A\-P\-I function, this function can be called only from interrupts locked code sections. 
+\end{DoxyParagraph}
+\hypertarget{group__kern__sched_gaf90e487bfce974dafaeed5009e189810}{\index{Scheduler notification and invocation@{Scheduler notification and invocation}!es\-Sched\-Yield\-I@{es\-Sched\-Yield\-I}}
+\index{es\-Sched\-Yield\-I@{es\-Sched\-Yield\-I}!Scheduler notification and invocation@{Scheduler notification and invocation}}
+\paragraph[{es\-Sched\-Yield\-I}]{\setlength{\rightskip}{0pt plus 5cm}void es\-Sched\-Yield\-I (
+\begin{DoxyParamCaption}
+\item[{void}]{}
+\end{DoxyParamCaption}
+)}}\label{group__kern__sched_gaf90e487bfce974dafaeed5009e189810}
+
+
+Force the scheduler invocation which will evaluate all ready threads and switch to ready thread with the highest priority. 
+
+\begin{DoxyPrecond}{Precondition}
+1) {\ttfamily The kernel state $<$ E\-S\-\_\-\-K\-E\-R\-N\-\_\-\-I\-N\-A\-C\-T\-I\-V\-E}, see \hyperlink{states}{Kernel states}. 
+\end{DoxyPrecond}
+\begin{DoxyParagraph}{This service can be called from\-:}
+
+\begin{DoxyItemize}
+\item Application thread code 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Rescheduling\-:}
+
+\begin{DoxyItemize}
+\item possible 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Function class\-:}
+{\bfseries I class}, Interrupt-\/lock A\-P\-I function, this function can be called only from interrupts locked code sections. 
+\end{DoxyParagraph}
+\hypertarget{group__kern__sched_gafbea29b376b29f11bbfc48a0f5144e9a}{\index{Scheduler notification and invocation@{Scheduler notification and invocation}!es\-Sched\-Yield\-Isr\-I@{es\-Sched\-Yield\-Isr\-I}}
+\index{es\-Sched\-Yield\-Isr\-I@{es\-Sched\-Yield\-Isr\-I}!Scheduler notification and invocation@{Scheduler notification and invocation}}
+\paragraph[{es\-Sched\-Yield\-Isr\-I}]{\setlength{\rightskip}{0pt plus 5cm}void es\-Sched\-Yield\-Isr\-I (
+\begin{DoxyParamCaption}
+\item[{void}]{}
+\end{DoxyParamCaption}
+)}}\label{group__kern__sched_gafbea29b376b29f11bbfc48a0f5144e9a}
+
+
+Force the scheduler invocation which will evaluate all ready threads and switch to ready thread with the highest priority. 
+
+\begin{DoxyPrecond}{Precondition}
+1) {\ttfamily The kernel state $<$ E\-S\-\_\-\-K\-E\-R\-N\-\_\-\-I\-N\-A\-C\-T\-I\-V\-E}, see \hyperlink{states}{Kernel states}. 
+\end{DoxyPrecond}
+\begin{DoxyParagraph}{This service can be called from\-:}
+
+\begin{DoxyItemize}
+\item Interrupt service routine 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Rescheduling\-:}
+
+\begin{DoxyItemize}
+\item possible 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Function class\-:}
+{\bfseries I class}, Interrupt-\/lock A\-P\-I function, this function can be called only from interrupts locked code sections. 
+\end{DoxyParagraph}

@@ -1,0 +1,354 @@
+.TH "CPU port interface" 3 "Sat Nov 30 2013" "Version 1.0BetaR02" "eSolid - Real-Time Kernel" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+CPU port interface \- 
+.PP
+CPU port macros and functions\&.  
+
+.SS "Data Structures"
+
+.in +1c
+.ti -1c
+.RI "struct \fBportStck\fP"
+.br
+.RI "\fIStack structure used for stack declaration in order to force the alignment Alignment of stack structure\&. \fP"
+.ti -1c
+.RI "struct \fBportCtx\fP"
+.br
+.RI "\fIPort context structure\&. \fP"
+.in -1c
+.SS "Typedefs"
+
+.in +1c
+.ti -1c
+.RI "typedef struct \fBportStck\fP \fBportStck_T\fP"
+.br
+.RI "\fIStack type\&. \fP"
+.in -1c
+.SS "Variables"
+
+.in +1c
+.ti -1c
+.RI "portReg_T \fBPortIsrNesting\fP"
+.br
+.RI "\fIVariable to keep track of ISR nesting\&. \fP"
+.in -1c
+.SS "Port constants"
+
+.in +1c
+.ti -1c
+.RI "#define \fBPORT_DEF_STCK_MINSIZE\fP   (sizeof(struct \fBportCtx\fP) / sizeof(portReg_T))"
+.br
+.RI "\fIThis macro specifies the minimal size of the thread stack\&. \fP"
+.in -1c
+.SS "System timer constants"
+
+.in +1c
+.ti -1c
+.RI "#define \fBPORT_DEF_SYSTMR_WAKEUP_TH_VAL\fP   600u"
+.br
+.RI "\fIThreshold system timer value for new tick\&. \fP"
+.in -1c
+.SS "Kernel threads port dependent settings"
+Kernel uses several threads for system management\&. This section defines port dependent settings for the threads\&. 
+.in +1c
+.ti -1c
+.RI "#define \fBPORT_DEF_KVTMR_STCK_SIZE\fP   40u"
+.br
+.RI "\fIKernel Virtual Timer Thread stack size\&. \fP"
+.ti -1c
+.RI "#define \fBPORT_DEF_KIDLE_STCK_SIZE\fP   40u"
+.br
+.RI "\fIKernel Idle Thread stack size\&. \fP"
+.in -1c
+.SS "Interrupt management"
+PORT_ISR_\&.\&.\&. macros are used by esKernIsrEnter() and esKernIsrExit() functions\&. They are used to keep the current level of ISR nesting\&. Scheduler should be invoked only from the last ISR that is executing\&. 
+.in +1c
+.ti -1c
+.RI "#define \fBPORT_ISR_ENTER\fP()"
+.br
+.RI "\fIEnter ISR\&. Increment PortIsrNesting variable to keep track of ISR nesting\&. \fP"
+.ti -1c
+.RI "#define \fBPORT_ISR_EXIT\fP()"
+.br
+.RI "\fIExit ISR\&. Decrement PortIsrNesting variable to keep track of ISR nesting\&. \fP"
+.ti -1c
+.RI "#define \fBPORT_ISR_IS_LAST\fP()   (0u == PortIsrNesting ? TRUE : FALSE)"
+.br
+.RI "\fIIf isrNesting variable is zero then the last ISR is executing and scheduler should be invoked\&. \fP"
+.in -1c
+.SS "Dispatcher context switching"
+
+.in +1c
+.ti -1c
+.RI "void * \fBportCtxInit\fP (void *stck, size_t stckSize, void(*fn)(void *), void *arg)"
+.br
+.RI "\fIInitialize the thread context\&. \fP"
+.ti -1c
+.RI "#define \fBPORT_CTX_INIT\fP(stck, stackSize, thread, arg)"
+.br
+.RI "\fIInitialize the thread context\&. \fP"
+.ti -1c
+.RI "#define \fBPORT_CTX_SW\fP()"
+.br
+.RI "\fIDo the context switch - invoked from API level\&. \fP"
+.ti -1c
+.RI "#define \fBPORT_CTX_SW_ISR\fP()"
+.br
+.RI "\fIDo the context switch - invoked from ISR level\&. \fP"
+.ti -1c
+.RI "#define \fBPORT_CTX_SW_START\fP()"
+.br
+.RI "\fIStart the first thread\&. \fP"
+.in -1c
+.SS "General port macros"
+
+.in +1c
+.ti -1c
+.RI "#define \fBPORT_KCORE_INIT_EARLY\fP()"
+.br
+.RI "\fIEarly port initialization\&. \fP"
+.ti -1c
+.RI "#define \fBPORT_KCORE_INIT\fP()"
+.br
+.RI "\fIPort initialization\&. \fP"
+.ti -1c
+.RI "#define \fBPORT_KCORE_INIT_LATE\fP()"
+.br
+.RI "\fILate port initialization\&. \fP"
+.ti -1c
+.RI "#define \fBPORT_KCORE_TERM\fP()"
+.br
+.RI "\fITerminate port\&. \fP"
+.ti -1c
+.RI "#define \fBPORT_STCK_SIZE\fP(size)   (size + \fBPORT_DEF_STCK_MINSIZE\fP)"
+.br
+.RI "\fICalculate the stack size\&. \fP"
+.ti -1c
+.RI "#define \fBPORT_CRITICAL_EXIT_SLEEP\fP()   portIntSetSleepEnter_(intStatus_)"
+.br
+.RI "\fIExit critical section and enter sleep state\&. \fP"
+.in -1c
+.SH "Detailed Description"
+.PP 
+CPU port macros and functions\&. 
+
+Since this header file is included with the API of the kernel a few naming conventions are defined in order to avoid name clashing with the names of objects from libraries included by application code\&.
+.PP
+\fB1) Macro naming conventions\fP
+.RS 4
+For macro naming try to follow these rules:
+.IP "\(bu" 2
+All standard PORT API macro names are prefixed with: \fB\fCPORT_\fP\&.\fP 
+.IP "\(bu" 2
+All other macros which are specific to the port used are prefixed with: \fB\fCCPU_\fP\&.\fP 
+.PP
+.RE
+.PP
+\fB2) Type declaration naming conventions\fP
+.RS 4
+For type declaration naming try to follow these rules:
+.IP "\(bu" 2
+All type declaration names are prefixed with: \fB\fCport\fP\&.\fP 
+.PP
+.RE
+.PP
+\fB3) Global variable naming conventions\fP
+.RS 4
+For global variable naming try to follow these rules:
+.IP "\(bu" 2
+All global variable names are prefixed with: \fB\fCPort\fP\&.\fP 
+.PP
+.RE
+.PP
+\fB4) Function naming conventions\fP
+.RS 4
+For functions naming try to follow these rules:
+.IP "\(bu" 2
+All standard PORT API function names are prefixed with: \fB\fCport\fP\fP\&.
+.IP "\(bu" 2
+All other functions which are specific to the port used are prefixed with: \fB\fCcpu\fP\fP
+.IP "\(bu" 2
+All inline functions are additionally postfixed with: \fB\fC_\fP \fP(underscore)\&.
+.IP "\(bu" 2
+The \fCexception\fP to above two rules are the names of functions used for Interrupt Service Routines\&. They can have any name required by the port\&. 
+.PP
+.RE
+.PP
+
+.SH "Macro Definition Documentation"
+.PP 
+.SS "#define PORT_DEF_STCK_MINSIZE   (sizeof(struct \fBportCtx\fP) / sizeof(portReg_T))"
+
+.PP
+This macro specifies the minimal size of the thread stack\&. Generally minimal stack size is equal to the size of context structure 
+.SS "#define PORT_DEF_SYSTMR_WAKEUP_TH_VAL   600u"
+
+.PP
+Threshold system timer value for new tick\&. 
+.SS "#define PORT_DEF_KVTMR_STCK_SIZE   40u"
+
+.PP
+Kernel Virtual Timer Thread stack size\&. 
+.PP
+\fBTodo\fP
+.RS 4
+This value needs tweaking 
+.RE
+.PP
+
+.SS "#define PORT_DEF_KIDLE_STCK_SIZE   40u"
+
+.PP
+Kernel Idle Thread stack size\&. 
+.PP
+\fBTodo\fP
+.RS 4
+This value needs tweaking 
+.RE
+.PP
+
+.SS "#define PORT_ISR_ENTER()"
+\fBValue:\fP
+.PP
+.nf
+do {                                                                        \\
+        PortIsrNesting++;                                                       \\
+        esKernIsrEnterI();                                                      \
+    } while (0u)
+.fi
+.PP
+Enter ISR\&. Increment PortIsrNesting variable to keep track of ISR nesting\&. Variable PortIsrNesting is needed only if the port does not support any other method of detecting when the last ISR is executing\&. 
+.SS "#define PORT_ISR_EXIT()"
+\fBValue:\fP
+.PP
+.nf
+do {                                                                        \\
+        PortIsrNesting--;                                                       \\
+        esKernIsrExitI();                                                       \
+    } while (0u)
+.fi
+.PP
+Exit ISR\&. Decrement PortIsrNesting variable to keep track of ISR nesting\&. Variable PortIsrNesting is needed only if the port does not support any other method of detecting when the last ISR is executing\&. 
+.SS "#define PORT_ISR_IS_LAST()   (0u == PortIsrNesting ? TRUE : FALSE)"
+
+.PP
+If isrNesting variable is zero then the last ISR is executing and scheduler should be invoked\&. 
+.PP
+\fBReturns:\fP
+.RS 4
+Is the currently executed ISR the last one? 
+.RE
+.PP
+\fBReturn values:\fP
+.RS 4
+\fITRUE\fP - this is last ISR 
+.br
+\fIFALSE\fP - this is not the last ISR 
+.RE
+.PP
+
+.SS "#define PORT_CTX_INIT(stck, stackSize, thread, arg)"
+
+.PP
+Initialize the thread context\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIstck\fP Pointer to the allocated thread stack\&. The pointer points to the beginning of the memory as defined per C language\&. It's up to port function to adjust the pointer according to the stack type: full descending or full ascending one\&. 
+.br
+\fIstackSize\fP The size of allocated stack in bytes\&. 
+.br
+\fIthread\fP Pointer to the thread function\&. 
+.br
+\fIarg\fP Argument that will be passed to thread function at the starting of execution\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The new top of stack after thread context initialization\&. 
+.RE
+.PP
+
+.SS "#define PORT_CTX_SW()"
+
+.PP
+Do the context switch - invoked from API level\&. 
+.SS "#define PORT_CTX_SW_ISR()"
+
+.PP
+Do the context switch - invoked from ISR level\&. 
+.SS "#define PORT_CTX_SW_START()"
+
+.PP
+Start the first thread\&. 
+.SS "#define PORT_KCORE_INIT_EARLY()"
+
+.PP
+Early port initialization\&. This macro will be called at early initialization stage from \fBesKernInit()\fP function\&. It is called before any kernel data initialization\&. Usually this macro would be used to setup memory space, fill the memory with debug value or something similar\&. 
+.SS "#define PORT_KCORE_INIT()"
+
+.PP
+Port initialization\&. This macro will be called after kernel data structure initialization from \fBesKernInit()\fP function\&. 
+.SS "#define PORT_KCORE_INIT_LATE()"
+
+.PP
+Late port initialization\&. This macro will be called just a moment before the multitasking is started\&. The macro is called from \fBesKernStart()\fP function\&. 
+.SS "#define PORT_KCORE_TERM()"
+
+.PP
+Terminate port\&. This macro will be called when there is a need to stop any further execution (example: an error occurred and CPU needs to stop)\&. 
+.SS "#define PORT_STCK_SIZE(size)   (size + \fBPORT_DEF_STCK_MINSIZE\fP)"
+
+.PP
+Calculate the stack size\&. This macro is used when specifying the size of thread stack\&. Responsibility:
+.IP "\(bu" 2
+add to \fCsize\fP the minimal stack size specified by \fCPORT_DEF_DATA_WIDTH\fP macro\&.
+.IP "\(bu" 2
+if it is needed by the port make sure the alignment is correct\&. 
+.PP
+
+.SS "#define PORT_CRITICAL_EXIT_SLEEP()   portIntSetSleepEnter_(intStatus_)"
+
+.PP
+Exit critical section and enter sleep state\&. 
+.SH "Typedef Documentation"
+.PP 
+.SS "typedef struct \fBportStck\fP \fBportStck_T\fP"
+
+.PP
+Stack type\&. Stack type 
+.SH "Function Documentation"
+.PP 
+.SS "void* portCtxInit (void *stck, size_tstckSize, void(*)(void *)fn, void *arg)"
+
+.PP
+Initialize the thread context\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIstck\fP Pointer to the allocated thread stack\&. The pointer points to the beginning of the memory as defined per C language\&. It's up to port function to adjust the pointer according to the stack type: full descending or full ascending one\&. 
+.br
+\fIstckSize\fP The size of allocated stack in bytes\&. 
+.br
+\fIfn\fP Pointer to the thread function\&. 
+.br
+\fIarg\fP Argument that will be passed to thread function at the starting of execution\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The new top of stack after thread context initialization\&. 
+.RE
+.PP
+
+.SH "Variable Documentation"
+.PP 
+.SS "portReg_T PortIsrNesting"
+
+.PP
+Variable to keep track of ISR nesting\&. 
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for eSolid - Real-Time Kernel from the source code\&.

@@ -32,12 +32,14 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include <stdbool.h>
 
-#include "arch/compiler.h"
+#include "plat/compiler.h"
 #include "arch/cpu.h"
 #include "arch/intr.h"
-#include "arch/sysctrl.h"
+#include "arch/systimer.h"
 #include "arch/kcore_cfg.h"
+#include "family/profile.h"
 #include "kernel/kernel_cfg.h"
 
 /*===============================================================  MACRO's  ==*/
@@ -47,10 +49,10 @@
  * @{ *//*--------------------------------------------------------------------*/
 
 /**@brief       Minimal stack size value is the number of elements in struct
- *              @ref portCtx
+ *              @ref esThreadCtx
  */
-#define PORT_DEF_STCK_MINSIZE                                                   \
-    (sizeof(struct portCtx) / sizeof(portReg_T))
+#define PORT_STACK_MINSIZE                                                   \
+    (sizeof(struct esThreadCtx) / sizeof(esCpuReg))
 
 /**@} *//*----------------------------------------------------------------*//**
  * @name        System timer constants
@@ -111,8 +113,8 @@
 
 #define PORT_KCORE_TERM()               portKCoreTerm()
 
-#define PORT_STCK_SIZE(size)                                                    \
-    (size + PORT_DEF_STCK_MINSIZE)
+#define PORT_STACK_SIZE(size)                                                   \
+    (size + PORT_STACK_MINSIZE)
 
 /** @} *//*---------------------------------------------  C++ extern begin  --*/
 #ifdef __cplusplus
@@ -123,38 +125,38 @@ extern "C" {
 
 /**@brief       Stack structure used for stack in order to force the alignment
  */
-struct portStck {
-    uint32_t            reg;
+struct esThreadStack {
+    esCpuReg            reg;
 } __attribute__ ((aligned (8)));
 
 /**@brief       Stack type
  */
-typedef struct portStck portStck_T;
+typedef struct esThreadStack esThreadStack;
 
 /**@brief       Structure of the context switch
  * @details     There are 16, 32-bit wide core (integer) registers visible to
  *              the ARM and Thumb instruction sets.
  */
-struct portCtx {
+struct esThreadCtx {
 /* Registers saved by the context switcher                                    */
-    portReg_T           r4;                                                     /**< @brief R4, Variable register 1                         */
-    portReg_T           r5;                                                     /**< @brief R5, Variable register 2                         */
-    portReg_T           r6;                                                     /**< @brief R6, Variable register 3                         */
-    portReg_T           r7;                                                     /**< @brief R7, Variable register 4                         */
-    portReg_T           r8;                                                     /**< @brief R8, Variable register 5                         */
-    portReg_T           r9;                                                     /**< @brief R9, Platform register/variable register 6       */
-    portReg_T           r10;                                                    /**< @brief R10, Variable register 7                        */
-    portReg_T           r11;                                                    /**< @brief R11, Variable register 8                        */
+    esCpuReg            r4;                                                     /**< @brief R4, Variable register 1                         */
+    esCpuReg            r5;                                                     /**< @brief R5, Variable register 2                         */
+    esCpuReg            r6;                                                     /**< @brief R6, Variable register 3                         */
+    esCpuReg            r7;                                                     /**< @brief R7, Variable register 4                         */
+    esCpuReg            r8;                                                     /**< @brief R8, Variable register 5                         */
+    esCpuReg            r9;                                                     /**< @brief R9, Platform register/variable register 6       */
+    esCpuReg            r10;                                                    /**< @brief R10, Variable register 7                        */
+    esCpuReg            r11;                                                    /**< @brief R11, Variable register 8                        */
 
 /* Registers saved by the hardware                                            */
-    portReg_T           r0;                                                     /**< @brief R0, Argument/result/scratch register 1          */
-    portReg_T           r1;                                                     /**< @brief R1, Argument/result/scratch register 2          */
-    portReg_T           r2;                                                     /**< @brief R2, Argument/scratch register 3                 */
-    portReg_T           r3;                                                     /**< @brief R3, Argument/scratch register 3                 */
-    portReg_T           r12;                                                    /**< @brief R12, IP, The Intra-Procedure-call scratch reg.  */
-    portReg_T           lr;                                                     /**< @brief R14, LR, The Link Register                      */
-    portReg_T           pc;                                                     /**< @brief R15, PC, The Program Counter                    */
-    portReg_T           xpsr;                                                   /**< @brief Special, Program Status Register                */
+    esCpuReg            r0;                                                     /**< @brief R0, Argument/result/scratch register 1          */
+    esCpuReg            r1;                                                     /**< @brief R1, Argument/result/scratch register 2          */
+    esCpuReg            r2;                                                     /**< @brief R2, Argument/scratch register 3                 */
+    esCpuReg            r3;                                                     /**< @brief R3, Argument/scratch register 3                 */
+    esCpuReg            r12;                                                    /**< @brief R12, IP, The Intra-Procedure-call scratch reg.  */
+    esCpuReg            lr;                                                     /**< @brief R14, LR, The Link Register                      */
+    esCpuReg            pc;                                                     /**< @brief R15, PC, The Program Counter                    */
+    esCpuReg            xpsr;                                                   /**< @brief Special, Program Status Register                */
 };
 
 /*======================================================  GLOBAL VARIABLES  ==*/
@@ -162,19 +164,19 @@ struct portCtx {
 
 /**@brief       Check if this is the last ISR executing
  * @return      Is the currently executed ISR the last one?
- *  @retval     TRUE - this is last ISR
- *  @retval     FALSE - this is not the last ISR
+ *  @retval     true - this is last ISR
+ *  @retval     false - this is not the last ISR
  * @inline
  */
-static PORT_C_INLINE_ALWAYS bool_T portIsrIsLast_(
+static PORT_C_INLINE_ALWAYS bool portIsrIsLast_(
     void) {
 
-    bool_T              ans;
+    bool              ans;
 
-    if (0u != (SYS_SCB->icsr & SYS_SCB_ICSR_RETTOBASE_Msk)) {
-        ans = TRUE;
+    if (0u != (PORT_SCB->ICSR & PORT_SCB_ICSR_RETTOBASE_Msk)) {
+        ans = true;
     } else {
-        ans = FALSE;
+        ans = false;
     }
 
     return (ans);
@@ -185,7 +187,7 @@ static PORT_C_INLINE_ALWAYS bool_T portIsrIsLast_(
  * @{ *//*--------------------------------------------------------------------*/
 
 /**@brief       Initializes the thread context
- * @param       stck
+ * @param       stack
  *              Pointer to the allocated thread stack. The pointer points to the
  *              beginning of the memory as defined per C language. The function
  *              will adjust the pointer according to the stack full descending
@@ -204,7 +206,7 @@ static PORT_C_INLINE_ALWAYS bool_T portIsrIsLast_(
 void * portCtxInit(
     void *          stck,
     size_t          stckSize,
-    void (* fn)(void *),
+    void         (* fn)(void *),
     void *          arg);
 
 /**@brief       Do the context switch
@@ -215,7 +217,7 @@ void * portCtxInit(
 static PORT_C_INLINE_ALWAYS void portCtxSw_(
     void) {
 
-    SYS_SCB->icsr |= SYS_SCB_ICSR_PENDSVSET_Msk;
+    PORT_SCB->ICSR |= PORT_SCB_ICSR_PENDSVSET_Msk;
 }
 
 /**@brief       Start the first context switch
@@ -252,7 +254,7 @@ void portKCoreTerm(
 
 /**@brief       Pop the first thread stack
  * @details     During the thread initialization a false stack was created
- *              mimicking the real interrupt stack described in @ref portCtx.
+ *              mimicking the real interrupt stack described in @ref esThreadCtx.
  *              With this function we restore the false stack and start the
  *              thread. This function is invoked only once from esKernStart()
  *              function.
@@ -286,7 +288,7 @@ void portSysTmr(
 
 /*================================*//** @cond *//*==  CONFIGURATION ERRORS  ==*/
 
-#if (PORT_DEF_SYSTMR_MAX_VAL < PORT_DEF_SYSTMR_ONE_TICK)
+#if (ES_PROFILE_MAX_SYSTIMER_VAL < ES_SYSTIMER_ONE_TICK)
 # error "eSolid RT Kernel port: System Timer overflow, please check CFG_SYSTMR_CLOCK_FREQUENCY and CFG_SYSTMR_EVENT_FREQUENCY options."
 #endif
 

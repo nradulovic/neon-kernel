@@ -30,8 +30,9 @@
 
 /*=========================================================  INCLUDE FILES  ==*/
 
+#include "plat/critical.h"
+#include "base/base.h"
 #include "kernel/kernel.h"
-#include "base/critical.h"
 
 /*=========================================================  LOCAL MACRO's  ==*/
 
@@ -47,45 +48,45 @@
 
 /**@brief       Thread structure signature.
  * @details     The signature is used to confirm that a structure passed to a
- *              kernel function is indeed a esThd_T thread structure.
+ *              kernel function is indeed a esThread thread structure.
  */
-#define DEF_THD_CONTRACT_SIGNATURE      ((portReg_T)0xfeedbeeful)
+#define DEF_THD_CONTRACT_SIGNATURE      ((esAtomic)0xfeedbeeful)
 
 /**@brief       Thread Queue structure signature.
  * @details     The signature is used to confirm that a structure passed to a
- *              kernel function is indeed a esThdQ_T thread queue structure.
+ *              kernel function is indeed a esThreadQ thread queue structure.
  */
-#define DEF_THDQ_CONTRACT_SIGNATURE     ((portReg_T)0xfeedbef0ul)
+#define DEF_THDQ_CONTRACT_SIGNATURE     ((esAtomic)0xfeedbef0ul)
 
 /**@brief       Timer structure signature.
  * @details     The signature is used to confirm that a structure passed to a
  *              timer function is indeed a esVTmr_T timer structure.
  */
-#define DEF_VTMR_CONTRACT_SIGNATURE     ((portReg_T)0xfeedbef1ul)
+#define DEF_VTMR_CONTRACT_SIGNATURE     ((esAtomic)0xfeedbef1ul)
 
 /**@brief       DList macro: is the thread the first one in the list
  */
-#define DLIST_IS_ENTRY_FIRST(list, entry)                                       \
+#define PQLIST_IS_ENTRY_FIRST(list, entry)                                       \
     ((entry) == (entry)->list.next)
 
 /**@brief       DList macro: is the thread the last one in the list
  */
-#define DLIST_IS_ENTRY_LAST(list, entry)                                        \
-    DLIST_IS_ENTRY_FIRST(list, entry)
+#define PQLIST_IS_ENTRY_LAST(list, entry)                                        \
+    PQLIST_IS_ENTRY_FIRST(list, entry)
 
 /**@brief       DList macro: is the thread single in the list
  */
-#define DLIST_IS_ENTRY_SINGLE(list, entry)                                      \
-    DLIST_IS_ENTRY_FIRST(list, entry)
+#define PQLIST_IS_ENTRY_SINGLE(list, entry)                                      \
+    PQLIST_IS_ENTRY_FIRST(list, entry)
 
 /**@brief       DList macro: get the next entry
  */
-#define DLIST_ENTRY_NEXT(list, entry)                                           \
+#define PQLIST_ENTRY_NEXT(list, entry)                                           \
     (entry)->list.next
 
 /**@brief       DList macro: initialize entry
  */
-#define DLIST_ENTRY_INIT(list, entry)                                           \
+#define PQLIST_ENTRY_INIT(list, entry)                                           \
     do {                                                                        \
         (entry)->list.next = (entry);                                           \
         (entry)->list.prev = (entry);                                           \
@@ -93,7 +94,7 @@
 
 /**@brief       DList macro: add new @c entry after @c current entry
  */
-#define DLIST_ENTRY_ADD_AFTER(list, current, entry)                             \
+#define PQLIST_ENTRY_ADD_AFTER(list, current, entry)                             \
     do {                                                                        \
         (entry)->list.next = (current);                                         \
         (entry)->list.prev = (entry)->list.next->list.prev;                     \
@@ -123,9 +124,9 @@
 struct sysTmr {
     uint_fast16_t       vTmrArmed;                                              /**< @brief The number of armed virtual timers in system.   */
     uint_fast16_t       vTmrPend;                                               /**< @brief The number of pending timers for arming.        */
-    esTick_T            ctick;                                                  /**< @brief Current system timer tick value.                */
+    esVTmrTick            ctick;                                                  /**< @brief Current system timer tick value.                */
 #if   (1u == CFG_SYSTMR_ADAPTIVE_MODE) || defined(__DOXYGEN__)
-    esTick_T            ptick;                                                  /**< @brief Pending ticks during the timer sleep mode.      */
+    esVTmrTick            ptick;                                                  /**< @brief Pending ticks during the timer sleep mode.      */
 #endif
 };
 
@@ -144,20 +145,20 @@ struct sysTmr {
 static PORT_C_INLINE void pbmInit(
     struct pbm_ *       pbm);
 
-/**@brief       Set the bit corresponding to the prio argument
+/**@brief       Set the bit corresponding to the priority argument
  * @param       pbm
  *              Pointer to the bit map structure
- * @param       prio
+ * @param       priority
  *              Priority which will be marked as used
  */
 static PORT_C_INLINE void pbmSet(
     struct pbm_ *       pbm,
     uint_fast8_t        prio);
 
-/**@brief       Clear the bit corresponding to the prio argument
+/**@brief       Clear the bit corresponding to the priority argument
  * @param       pbm
  *              Pointer to the bit map structure
- * @param       prio
+ * @param       priority
  *              Priority which will be marked as unused
  */
 static PORT_C_INLINE void pbmClear(
@@ -176,10 +177,10 @@ static PORT_C_INLINE uint_fast8_t pbmGetHighest(
  * @param       pbm
  *              Pointer to the bit map structure
  * @return      The status of the bit map
- *  @retval     TRUE - bit map is empty
- *  @retval     FALSE - there is at least one bit set
+ *  @retval     true - bit map is empty
+ *  @retval     false - there is at least one bit set
  */
-static PORT_C_INLINE bool_T pbmIsEmpty(
+static PORT_C_INLINE bool pbmIsEmpty(
     const struct pbm_ * pbm);
 
 
@@ -225,7 +226,7 @@ static PORT_C_INLINE void schedWakeUpI(
  *              phase of the kernel.
  */
 static PORT_C_INLINE void schedRdyAddInitI(
-    esThd_T *       thd);
+    esThread *       thd);
 
 /**@brief       Fetch and try to schedule the next thread of the same priority
  *              as the current thread
@@ -277,7 +278,7 @@ static PORT_C_INLINE void sysTmrDeactivateI(
  */
 #if   (1u == CFG_SYSTMR_ADAPTIVE_MODE) || defined(__DOXYGEN__)
 static PORT_C_INLINE void vTmrSleep(
-    esTick_T            ticks);
+    esVTmrTick            ticks);
 #endif
 
 /**@brief       Evaluate armed virtual timers
@@ -345,7 +346,7 @@ static void kIdle(
  *              Pointer to thread which needs to be signaled
  */
 void thdPost(
-    esThd_T *           thd);
+    esThread *           thd);
 
 /**@brief       Wait for a signal
  */
@@ -358,7 +359,7 @@ void thdWait(
 
 /**@brief       Module identification info
  */
-DECL_MODULE_INFO("Kernel", ES_KERN_ID, "Nenad Radulovic");
+static ES_MODULE_INFO_CREATE("Kernel", ES_KERN_ID, "Nenad Radulovic");
 
 /*------------------------------------------------------------------------*//**
  * @name        Scheduler
@@ -366,7 +367,7 @@ DECL_MODULE_INFO("Kernel", ES_KERN_ID, "Nenad Radulovic");
 
 /**@brief       Ready Thread queue
  */
-static struct esThdQ RdyQueue;
+static struct esThreadQ RdyQueue;
 
 /**@} *//*----------------------------------------------------------------*//**
  * @name        System timer
@@ -401,7 +402,7 @@ static struct esVTmr VTmrArmed = {
 #endif
    NULL,
    NULL,
-#if   (1u == CFG_DBG_API_VALIDATION)
+#if   (1u == CONFIG_DEBUG_API_VALIDATION)
    DEF_VTMR_CONTRACT_SIGNATURE
 #endif
 };
@@ -417,14 +418,14 @@ static struct esVTmr VTmrPend = {
    0u,
    NULL,
    NULL,
-#if   (1u == CFG_DBG_API_VALIDATION)
+#if   (1u == CONFIG_DEBUG_API_VALIDATION)
    DEF_VTMR_CONTRACT_SIGNATURE
 #endif
 };
 
 /**@brief       Virtual timer thread ID
  */
-static struct esThd KVTmr;
+static struct esThread KVTmr;
 
 /**@} *//*----------------------------------------------------------------*//**
  * @name        Idle kernel thread
@@ -432,7 +433,7 @@ static struct esThd KVTmr;
 
 /**@brief       Idle thread ID
  */
-static struct esThd KIdle;
+static struct esThread KIdle;
 
 /**@} *//*--------------------------------------------------------------------*/
 
@@ -458,15 +459,15 @@ const volatile struct kernCtrl_ KernCtrl = {
 static PORT_C_INLINE void pbmInit(
     struct pbm_ *       pbm) {
 
-#if   (CFG_SCHED_PRIO_LVL > PORT_DEF_DATA_WIDTH)
-    uint_fast8_t        grp;
+#if   (CFG_SCHED_PRIO_LVL > ES_CPU_DEF_DATA_WIDTH)
+    uint_fast8_t        list;
 
-    pbm->bitGrp = 0u;
-    grp         = ES_DIV_ROUNDUP(CFG_SCHED_PRIO_LVL, PORT_DEF_DATA_WIDTH);
+    pbm->bitGroup = 0u;
+    list         = ES_DIV_ROUNDUP(CFG_SCHED_PRIO_LVL, ES_CPU_DEF_DATA_WIDTH);
 
-    while (0u != grp) {
-        grp--;
-        pbm->bit[grp] = 0u;
+    while (0u != list) {
+        list--;
+        pbm->bit[list] = 0u;
     }
 #else
     pbm->bit[0] = 0u;
@@ -477,17 +478,17 @@ static PORT_C_INLINE void pbmSet(
     struct pbm_ *       pbm,
     uint_fast8_t        prio) {
 
-#if   (CFG_SCHED_PRIO_LVL > PORT_DEF_DATA_WIDTH)
+#if   (CFG_SCHED_PRIO_LVL > ES_CPU_DEF_DATA_WIDTH)
     uint_fast8_t        grpIndx;
     uint_fast8_t        bitIndx;
 
-    bitIndx = prio &
-        (~((uint_fast8_t)0u) >> (sizeof(prio) * 8u - ES_BIT_UINT8_LOG2(PORT_DEF_DATA_WIDTH)));
-    grpIndx = prio >> ES_BIT_UINT8_LOG2(PORT_DEF_DATA_WIDTH);
-    pbm->bitGrp |= ES_BIT_PWR2(grpIndx);
-    pbm->bit[grpIndx] |= ES_BIT_PWR2(bitIndx);
+    bitIndx = priority &
+        (~((uint_fast8_t)0u) >> (sizeof(priority) * 8u - ES_UINT8_LOG2(ES_CPU_DEF_DATA_WIDTH)));
+    grpIndx = priority >> ES_UINT8_LOG2(ES_CPU_DEF_DATA_WIDTH);
+    pbm->bitGroup |= ES_CPU_PWR2(grpIndx);
+    pbm->bit[grpIndx] |= ES_CPU_PWR2(bitIndx);
 #else
-    pbm->bit[0] |= ES_BIT_PWR2(prio);
+    pbm->bit[0] |= ES_CPU_PWR2(prio);
 #endif
 }
 
@@ -495,63 +496,63 @@ static PORT_C_INLINE void pbmClear(
     struct pbm_ *       pbm,
     uint_fast8_t        prio) {
 
-#if   (CFG_SCHED_PRIO_LVL > PORT_DEF_DATA_WIDTH)
+#if   (CFG_SCHED_PRIO_LVL > ES_CPU_DEF_DATA_WIDTH)
     uint_fast8_t        grpIndx;
     uint_fast8_t        bitIndx;
 
-    bitIndx = prio &
-        (~((uint_fast8_t)0u) >> (sizeof(prio) * 8u - ES_BIT_UINT8_LOG2(PORT_DEF_DATA_WIDTH)));
-    grpIndx = prio >> ES_BIT_UINT8_LOG2(PORT_DEF_DATA_WIDTH);
-    pbm->bit[grpIndx] &= ~ES_BIT_PWR2(bitIndx);
+    bitIndx = priority &
+        (~((uint_fast8_t)0u) >> (sizeof(priority) * 8u - ES_UINT8_LOG2(ES_CPU_DEF_DATA_WIDTH)));
+    grpIndx = priority >> ES_UINT8_LOG2(ES_CPU_DEF_DATA_WIDTH);
+    pbm->bit[grpIndx] &= ~ES_CPU_PWR2(bitIndx);
 
-    if (0u == pbm->bit[grpIndx]) {                                              /* Is this the last one bit cleared in this group?          */
-        pbm->bitGrp &= ~ES_BIT_PWR2(grpIndx);                                   /* Yes: then clear bit group indicator, too.                */
+    if (0u == pbm->bit[grpIndx]) {                                              /* Is this the last one bit cleared in this list?          */
+        pbm->bitGroup &= ~ES_CPU_PWR2(grpIndx);                                   /* Yes: then clear bit list indicator, too.                */
     }
 #else
-    pbm->bit[0] &= ~ES_BIT_PWR2(prio);
+    pbm->bit[0] &= ~ES_CPU_PWR2(prio);
 #endif
 }
 
 static PORT_C_INLINE uint_fast8_t pbmGetHighest(
     const struct pbm_ * pbm) {
 
-#if   (CFG_SCHED_PRIO_LVL > PORT_DEF_DATA_WIDTH)
+#if   (CFG_SCHED_PRIO_LVL > ES_CPU_DEF_DATA_WIDTH)
     uint_fast8_t        grpIndx;
     uint_fast8_t        bitIndx;
 
-    grpIndx = ES_BIT_FIND_LAST_SET(pbm->bitGrp);
-    bitIndx = ES_BIT_FIND_LAST_SET(pbm->bit[grpIndx]);
+    grpIndx = ES_CPU_FLS(pbm->bitGroup);
+    bitIndx = ES_CPU_FLS(pbm->bit[grpIndx]);
 
-    return ((grpIndx << ES_BIT_UINT8_LOG2(PORT_DEF_DATA_WIDTH)) | bitIndx);
+    return ((grpIndx << ES_UINT8_LOG2(ES_CPU_DEF_DATA_WIDTH)) | bitIndx);
 #else
     uint_fast8_t        bitIndx;
 
-    bitIndx = ES_BIT_FIND_LAST_SET(pbm->bit[0]);
+    bitIndx = ES_CPU_FLS(pbm->bit[0]);
 
     return (bitIndx);
 #endif
 }
 
-static PORT_C_INLINE bool_T pbmIsEmpty(
+static PORT_C_INLINE bool pbmIsEmpty(
     const struct pbm_ * pbm) {
 
-#if   (CFG_SCHED_PRIO_LVL > PORT_DEF_DATA_WIDTH)
-    bool_T              ret;
+#if   (CFG_SCHED_PRIO_LVL > ES_CPU_DEF_DATA_WIDTH)
+    bool              ret;
 
-    if (0u == pbm->bitGrp) {
-        ret = TRUE;
+    if (0u == pbm->bitGroup) {
+        ret = true;
     } else {
-        ret = FALSE;
+        ret = false;
     }
 
     return (ret);
 #else
-    bool_T              ret;
+    bool              ret;
 
     if (0u == pbm->bit[0]) {
-        ret = TRUE;
+        ret = true;
     } else {
-        ret = FALSE;
+        ret = false;
     }
 
     return (ret);
@@ -572,25 +573,25 @@ static PORT_C_INLINE void schedInit(
 static PORT_C_INLINE void schedStart(
     void) {
 
-    portReg_T           intCtx;
-    esThd_T *           nthd;
+    esIntrCtx           intrCtx;
+    esThread *           nthd;
 
-    ES_CRITICAL_LOCK_ENTER(&intCtx);
+    ES_CRITICAL_LOCK_ENTER(&intrCtx);
     nthd = esThdQFetchI(                                                        /* Get the highest priority thread                          */
         &RdyQueue);
     ((struct kernCtrl_ *)&KernCtrl)->cthd  = nthd;
     ((struct kernCtrl_ *)&KernCtrl)->pthd  = nthd;
     ((struct kernCtrl_ *)&KernCtrl)->state = ES_KERN_RUN;
-    ES_CRITICAL_LOCK_EXIT(intCtx);
+    ES_CRITICAL_LOCK_EXIT(intrCtx);
 }
 
 #if   (1u == CFG_SCHED_POWER_SAVE) || defined(__DOXYGEN__)
 static PORT_C_INLINE void schedSleep(
     void) {
 
-    portReg_T         intCtx;
+    esIntrCtx           intrCtx;
 
-    ES_CRITICAL_LOCK_ENTER(&intCtx);
+    ES_CRITICAL_LOCK_ENTER(&intrCtx);
     esKernLockEnterI();
 # if (1u == CFG_HOOK_PRE_IDLE)
     userPreIdle();
@@ -602,17 +603,22 @@ static PORT_C_INLINE void schedSleep(
 # endif
     do {
 # if (0u == CFG_DBG_ENABLE)
+        /*
+         * TODO: What to do here?
+         */
+#if 0
     PORT_CRITICAL_EXIT_SLEEP_ENTER();                                           /* Enter sleep state and wait for an interrupt.             */
+#endif
 # else
-    ES_CRITICAL_LOCK_EXIT(intCtx);
+    ES_CRITICAL_LOCK_EXIT(intrCtx);
 # endif
-    ES_CRITICAL_LOCK_ENTER(&intCtx);
+    ES_CRITICAL_LOCK_ENTER(&intrCtx);
     } while (KernCtrl.cthd == KernCtrl.pthd);
 # if (1u == CFG_HOOK_POST_IDLE)
     userPostIdle();
 # endif
     esKernLockExitI();
-    ES_CRITICAL_LOCK_EXIT(intCtx);
+    ES_CRITICAL_LOCK_EXIT(intrCtx);
 }
 #endif
 
@@ -628,9 +634,9 @@ static PORT_C_INLINE void schedWakeUpI(
 #endif
 
 static PORT_C_INLINE void schedRdyAddInitI(
-    esThd_T *           thd) {
+    esThread *           thd) {
 
-    if (NULL == KernCtrl.pthd) {
+    if (KernCtrl.pthd == NULL) {
         ((struct kernCtrl_ *)&KernCtrl)->pthd = thd;
     }
 }
@@ -638,11 +644,11 @@ static PORT_C_INLINE void schedRdyAddInitI(
 static PORT_C_INLINE void schedQmNextI(
     void) {
 
-    esThd_T * nthd;
-    esThd_T * cthd;
+    esThread * nthd;
+    esThread * cthd;
 
     cthd = KernCtrl.cthd;
-    nthd = esThdQFetchRotateI(                                                  /* Fetch the next thread and rotate this priority group     */
+    nthd = esThdQFetchRotateI(                                                  /* Fetch the next thread and rotate this priority list     */
         &RdyQueue,
         cthd->prio);
 
@@ -655,15 +661,15 @@ static PORT_C_INLINE void schedQmI(
     void) {
 
     if (ES_KERN_LOCK > KernCtrl.state) {                                        /* Round-Robin is not enabled in kernel LOCK state          */
-        esThd_T * cthd;
+        esThread * cthd;
 
         cthd = KernCtrl.cthd;                                                   /* Get the current thread                                   */
 
-        if (!DLIST_IS_ENTRY_SINGLE(thdL, cthd)) {
-            cthd->qCnt--;                                                       /* Decrement current thread time quantum                    */
+        if (!PQLIST_IS_ENTRY_SINGLE(thdL, cthd)) {
+            cthd->quantumCounter--;                                                       /* Decrement current thread time quantum                    */
 
-            if (0u == cthd->qCnt) {
-                cthd->qCnt = cthd->qRld;                                        /* Reload thread time quantum                               */
+            if (0u == cthd->quantumCounter) {
+                cthd->quantumCounter = cthd->quantumReload;                                        /* Reload thread time quantum                               */
                 schedQmNextI();
             }
         }
@@ -676,9 +682,9 @@ static PORT_C_INLINE void schedQmI(
 static PORT_C_INLINE void sysTmrInit(
     void) {
 
-    PORT_SYSTMR_INIT(PORT_DEF_SYSTMR_ONE_TICK);
-    PORT_SYSTMR_ENABLE();
-    PORT_SYSTMR_ISR_ENABLE();
+    ES_SYSTIMER_INIT(ES_SYSTIMER_ONE_TICK);
+    ES_SYSTIMER_ENABLE();
+    ES_SYSTIMER_ISR_ENABLE();
 }
 
 #if   (1u == CFG_SYSTMR_ADAPTIVE_MODE) || defined(__DOXYGEN__)
@@ -690,29 +696,29 @@ static PORT_C_INLINE void sysTmrActivate(
         if (0u != SysTmr.vTmrArmed) {                                           /* System timer was enabled during sleep.                   */
             portSysTmrReg_T tmrVal;
 
-            tmrVal = PORT_SYSTMR_GET_RVAL() - PORT_SYSTMR_GET_CVAL();
-            tmrVal = PORT_DEF_SYSTMR_ONE_TICK - tmrVal;
-            PORT_SYSTMR_RLD(tmrVal);
+            tmrVal = ES_SYSTIMER_GET_RVAL() - ES_SYSTIMER_GET_CVAL();
+            tmrVal = ES_SYSTIMER_ONE_TICK - tmrVal;
+            ES_SYSTIMER_RELOAD(tmrVal);
         } else {                                                                /* System timer was disabled during sleep.                  */
-            PORT_SYSTMR_RLD(PORT_DEF_SYSTMR_ONE_TICK);                          /* Reload macro will also re-enable the timer               */
-            PORT_SYSTMR_ISR_ENABLE();
+            ES_SYSTIMER_RELOAD(ES_SYSTIMER_ONE_TICK);                          /* Reload macro will also re-enable the timer               */
+            ES_SYSTIMER_ISR_ENABLE();
         }
     } else {                                                                    /* Preempted wake up, system timer was enabled during sleep.*/
         esVTmr_T *  vTmr;
-        esTick_T    ticks;
+        esVTmrTick    ticks;
         portSysTmrReg_T tmrVal;
 
-        tmrVal = PORT_SYSTMR_GET_RVAL() - PORT_SYSTMR_GET_CVAL();
-        ticks = tmrVal / PORT_DEF_SYSTMR_ONE_TICK;
-        tmrVal -= (PORT_DEF_SYSTMR_ONE_TICK * ticks);
-        tmrVal = PORT_DEF_SYSTMR_ONE_TICK - tmrVal;
+        tmrVal = ES_SYSTIMER_GET_RVAL() - ES_SYSTIMER_GET_CVAL();
+        ticks = tmrVal / ES_SYSTIMER_ONE_TICK;
+        tmrVal -= (ES_SYSTIMER_ONE_TICK * ticks);
+        tmrVal = ES_SYSTIMER_ONE_TICK - tmrVal;
 
         if (PORT_DEF_SYSTMR_WAKEUP_TH_VAL > tmrVal) {
-            PORT_SYSTMR_RLD(tmrVal);
+            ES_SYSTIMER_RELOAD(tmrVal);
         } else {
-            PORT_SYSTMR_RLD(tmrVal + PORT_DEF_SYSTMR_ONE_TICK);
+            ES_SYSTIMER_RELOAD(tmrVal + ES_SYSTIMER_ONE_TICK);
         }
-        vTmr = DLIST_ENTRY_NEXT(tmrL_, &VTmrArmed);
+        vTmr = PQLIST_ENTRY_NEXT(tmrL_, &VTmrArmed);
         vTmr->rtick -= ticks;
         SysTmr.ctick += ticks;
         SysTmr.ptick = 0u;
@@ -727,12 +733,12 @@ static PORT_C_INLINE void sysTmrDeactivateI(
     if (0u != SysTmr.vTmrArmed) {                                               /* There is an armed timer: put system timer to sleep sleep.*/
         esVTmr_T * vTmr;
 
-        vTmr = DLIST_ENTRY_NEXT(tmrL_, &VTmrArmed);
+        vTmr = PQLIST_ENTRY_NEXT(tmrL_, &VTmrArmed);
         vTmrSleep(
             vTmr->rtick);
     } else {                                                                    /* No virtual timer is armed: set system timer to disabled. */
-        PORT_SYSTMR_ISR_DISABLE();
-        PORT_SYSTMR_DISABLE();
+        ES_SYSTIMER_ISR_DISABLE();
+        ES_SYSTIMER_DISABLE();
     }
 }
 #endif
@@ -742,21 +748,21 @@ static PORT_C_INLINE void sysTmrDeactivateI(
 
 #if   (1u == CFG_SYSTMR_ADAPTIVE_MODE) || defined(__DOXYGEN__)
 static PORT_C_INLINE void vTmrSleep(
-    esTick_T            ticks) {
+    esVTmrTick            ticks) {
 
     portSysTmrReg_T sysTmrVal;
 
-    if (PORT_DEF_SYSTMR_MAX_TICKS < ticks) {                                    /* Limit the number of ticks according to hardware maximum  */
-        ticks = PORT_DEF_SYSTMR_MAX_TICKS;                                      /* specification.                                           */
+    if (ES_SYSTIMER_MAX_TICKS < ticks) {                                    /* Limit the number of ticks according to hardware maximum  */
+        ticks = ES_SYSTIMER_MAX_TICKS;                                      /* specification.                                           */
     }
     SysTmr.ptick = ticks;
 
     if (0u != ticks) {
-        sysTmrVal = PORT_DEF_SYSTMR_ONE_TICK * (ticks - 1u);
-        sysTmrVal += PORT_SYSTMR_GET_CVAL() % PORT_DEF_SYSTMR_ONE_TICK;         /* Add the remaining time of current tick period.           */
+        sysTmrVal = ES_SYSTIMER_ONE_TICK * (ticks - 1u);
+        sysTmrVal += ES_SYSTIMER_GET_CVAL() % ES_SYSTIMER_ONE_TICK;         /* Add the remaining time of current tick period.           */
 
-        if (PORT_SYSTMR_GET_RVAL() != sysTmrVal) {
-            PORT_SYSTMR_RLD(sysTmrVal);
+        if (ES_SYSTIMER_GET_RVAL() != sysTmrVal) {
+            ES_SYSTIMER_RELOAD(sysTmrVal);
         }
     }
 }
@@ -769,15 +775,15 @@ static PORT_C_INLINE void vTmrEvaluateI(
     if (0u != SysTmr.vTmrArmed) {                                               /* There is an armed timer waiting.                         */
         esVTmr_T * vTmr;
 
-        vTmr = DLIST_ENTRY_NEXT(tmrL, &VTmrArmed);
+        vTmr = PQLIST_ENTRY_NEXT(tmrL, &VTmrArmed);
 
 #if   (0u == CFG_SYSTMR_ADAPTIVE_MODE)
         --vTmr->rtick;
 #elif (1u == CFG_SYSTMR_ADAPTIVE_MODE)
         if (0u == SysTmr.ptick) {                                               /* Normal system tick.                                      */
 
-            if (PORT_DEF_SYSTMR_ONE_TICK != PORT_SYSTMR_GET_RVAL()) {           /* If system timer is in adaptive mode switch it to fixed   */
-                PORT_SYSTMR_RLD(PORT_DEF_SYSTMR_ONE_TICK);                      /* mode.                                                    */
+            if (ES_SYSTIMER_ONE_TICK != ES_SYSTIMER_GET_RVAL()) {           /* If system timer is in adaptive mode switch it to fixed   */
+                ES_SYSTIMER_RELOAD(ES_SYSTIMER_ONE_TICK);                      /* mode.                                                    */
             }
             --vTmr->rtick;
         } else {                                                                /* Low power tick.                                          */
@@ -809,18 +815,18 @@ static void vTmrAddArmedS(
     esVTmr_T *          vTmr) {
 
     esVTmr_T *          tmp;
-    esTick_T            tick;
+    esVTmrTick            tick;
 
     vTmr->tmrL.q = &VTmrArmed;
-    tmp = DLIST_ENTRY_NEXT(tmrL, &VTmrArmed);
+    tmp = PQLIST_ENTRY_NEXT(tmrL, &VTmrArmed);
     tick = vTmr->rtick;
 
     while (tmp->rtick <= tick) {
         tick -= tmp->rtick;
-        tmp = DLIST_ENTRY_NEXT(tmrL, tmp);
+        tmp = PQLIST_ENTRY_NEXT(tmrL, tmp);
     }
     vTmr->rtick = tick;
-    DLIST_ENTRY_ADD_AFTER(tmrL, tmp, vTmr);
+    PQLIST_ENTRY_ADD_AFTER(tmrL, tmp, vTmr);
 
     if (&VTmrArmed != tmp) {
         tmp->rtick -= vTmr->rtick;
@@ -836,7 +842,7 @@ static PORT_C_INLINE void vTmrImportPendSleepI(
 
         --SysTmr.vTmrPend;
         ++SysTmr.vTmrArmed;
-        tmr = DLIST_ENTRY_NEXT(tmrL_, &VTmrPend);
+        tmr = PQLIST_ENTRY_NEXT(tmrL_, &VTmrPend);
         DLIST_ENTRY_RM(tmrL_, tmr);
         vTmrAddArmedS(
             tmr);
@@ -850,9 +856,9 @@ static PORT_C_INLINE void vTmrImportPendSleepI(
 static void vTmrImportPend(
     void) {
 
-    portReg_T         lockCtx;
+    esIntrCtx           intrCtx;
 
-    ES_CRITICAL_LOCK_ENTER(&lockCtx);
+    ES_CRITICAL_LOCK_ENTER(&intrCtx);
     esKernLockEnterI();
 
     while (0u != SysTmr.vTmrPend) {
@@ -860,16 +866,16 @@ static void vTmrImportPend(
 
         --SysTmr.vTmrPend;
         ++SysTmr.vTmrArmed;
-        tmr = DLIST_ENTRY_NEXT(tmrL, &VTmrPend);
+        tmr = PQLIST_ENTRY_NEXT(tmrL, &VTmrPend);
         DLIST_ENTRY_RM(tmrL, tmr);
-        ES_CRITICAL_LOCK_EXIT(lockCtx);
+        ES_CRITICAL_LOCK_EXIT(intrCtx);
         --tmr->rtick;                                                           /* Timer thread requires one tick less than original value. */
         vTmrAddArmedS(
             tmr);
-        ES_CRITICAL_LOCK_ENTER(&lockCtx);
+        ES_CRITICAL_LOCK_ENTER(&intrCtx);
     }
     esKernLockExitI();
-    ES_CRITICAL_LOCK_EXIT(lockCtx);
+    ES_CRITICAL_LOCK_EXIT(intrCtx);
 }
 
 /* 1)       Kernel Virtual Timer thread must have the highest priority available.
@@ -877,7 +883,7 @@ static void vTmrImportPend(
 static void kVTmrInit(
     void) {
 
-    static portStck_T kVTmrStck[ES_STCK_SIZE(PORT_DEF_KVTMR_STCK_SIZE)];        /* Virtual timer kernel thread stack.                       */
+    static esThreadStack kVTmrStck[ES_STACK_SIZE(PORT_DEF_KVTMR_STCK_SIZE)];        /* Virtual timer kernel thread stack.                       */
 
     esThdInit(
         &KVTmr,
@@ -898,14 +904,14 @@ static void kVTmr(
 
     (void)arg;
 
-    while (TRUE) {
+    while (true) {
 
         thdWait();
 
         if (0u != SysTmr.vTmrArmed) {                                           /* There is at least one armed timer.                       */
             esVTmr_T * tmr;
 
-            tmr = DLIST_ENTRY_NEXT(tmrL, &VTmrArmed);
+            tmr = PQLIST_ENTRY_NEXT(tmrL, &VTmrArmed);
 
             while (0u == tmr->rtick) {
                 esVTmr_T * tmpTmr;
@@ -913,8 +919,8 @@ static void kVTmr(
                 --SysTmr.vTmrArmed;
                 DLIST_ENTRY_RM(tmrL, tmr);
                 tmpTmr = tmr;
-                ES_DBG_API_OBLIGATION(tmr->signature = ~DEF_VTMR_CONTRACT_SIGNATURE);
-                tmr = DLIST_ENTRY_NEXT(tmrL, &VTmrArmed);
+                ES_DEBUG_API_OBLIGATION(tmr->signature = ~DEF_VTMR_CONTRACT_SIGNATURE);
+                tmr = PQLIST_ENTRY_NEXT(tmrL, &VTmrArmed);
                 (* tmpTmr->fn)(tmpTmr->arg);
             }
         }
@@ -930,7 +936,7 @@ static void kVTmr(
 static void kIdleInit(
     void) {
 
-    static portStck_T kIdleStck[ES_STCK_SIZE(PORT_DEF_KIDLE_STCK_SIZE)];        /* Idle kernel thread stack.                                */
+    static esThreadStack kIdleStck[ES_STACK_SIZE(PORT_DEF_KIDLE_STCK_SIZE)];        /* Idle kernel thread stack.                                */
 
     esThdInit(
         &KIdle,
@@ -948,7 +954,7 @@ static void kIdle(
 
     (void)arg;
 
-    while (TRUE) {
+    while (true) {
 #if   (1u == CFG_SCHED_POWER_SAVE)
         schedSleep();
 #endif
@@ -963,29 +969,29 @@ static void kIdle(
  *          a queue.
  */
 void thdPost(
-    esThd_T *           thd) {
+    esThread *           thd) {
 
-    portReg_T           intCtx;
+    esIntrCtx           intrCtx;
 
-    ES_CRITICAL_LOCK_ENTER(&intCtx);
+    ES_CRITICAL_LOCK_ENTER(&intrCtx);
     if (NULL == thd->thdL.q) {
         esSchedRdyAddI(
             thd);
         esSchedYieldI();
     }
-    ES_CRITICAL_LOCK_EXIT(intCtx);
+    ES_CRITICAL_LOCK_EXIT(intrCtx);
 }
 
 void thdWait(
     void) {
 
-    portReg_T           intCtx;
+    esIntrCtx           intrCtx;
 
-    ES_CRITICAL_LOCK_ENTER(&intCtx);
+    ES_CRITICAL_LOCK_ENTER(&intrCtx);
     esSchedRdyRmI(
         esThdGetId());
     esSchedYieldI();
-    ES_CRITICAL_LOCK_EXIT(intCtx);
+    ES_CRITICAL_LOCK_EXIT(intrCtx);
 }
 
 /*===================================  GLOBAL PRIVATE FUNCTION DEFINITIONS  ==*/
@@ -997,12 +1003,12 @@ void thdWait(
 void esKernInit(
     void) {
 
-    ES_DBG_API_REQUIRE(ES_DBG_USAGE_FAILURE, ES_KERN_INACTIVE == KernCtrl.state);
+    ES_DEBUG_API_REQUIRE(ES_DEBUG_USAGE, ES_KERN_INACTIVE == KernCtrl.state);
 
 #if   (1u == CFG_HOOK_PRE_KERN_INIT)
     userPreKernInit();
 #endif
-    PORT_INTR_DISABLE();
+    ES_INTR_DISABLE();
     PORT_KCORE_INIT_EARLY();
     sysTmrInit();
     schedInit();
@@ -1020,7 +1026,7 @@ void esKernInit(
 PORT_C_NORETURN void esKernStart(
     void) {
 
-    ES_DBG_API_REQUIRE(ES_DBG_USAGE_FAILURE, ES_KERN_INIT == KernCtrl.state);
+    ES_DEBUG_API_REQUIRE(ES_DEBUG_USAGE, ES_KERN_INIT == KernCtrl.state);
 
 #if   (1u == CFG_HOOK_PRE_KERN_START)
     userPreKernStart();
@@ -1029,41 +1035,42 @@ PORT_C_NORETURN void esKernStart(
     schedStart();                                                               /* Initialize scheduler data structures for multi-threading */
     PORT_CTX_SW_START();                                                        /* Start the first thread                                   */
 
-    while (TRUE);                                                               /* Prevent compiler `function does return` warnings.        */
+    while (true);                                                               /* Prevent compiler `function does return` warnings.        */
 }
 
 void esKernSysTmr(
     void) {
 
-    portReg_T         lockCtx;
+    esIntrCtx           intrCtx;
 
-    ES_DBG_API_REQUIRE(ES_DBG_USAGE_FAILURE, KernCtrl.cthd != &KVTmr);
+    ES_DEBUG_API_REQUIRE(ES_DEBUG_USAGE, KernCtrl.cthd != &KVTmr);
 
 #if   (1u == CFG_HOOK_PRE_SYSTMR_EVENT)
     userPreSysTmr();
 #endif
-    ES_CRITICAL_LOCK_ENTER(
-        &lockCtx);
+    ES_CRITICAL_LOCK_ENTER(&intrCtx);
     vTmrEvaluateI();
     schedQmI();
-    ES_CRITICAL_LOCK_EXIT(
-        lockCtx);
+    ES_CRITICAL_LOCK_EXIT(intrCtx);
 }
 
 void esKernIsrEnterI(
     void) {
 
-    ES_DBG_API_REQUIRE(ES_DBG_USAGE_FAILURE, ES_KERN_INIT > KernCtrl.state);
+    ES_DEBUG_API_REQUIRE(ES_DEBUG_USAGE, ES_KERN_INIT > KernCtrl.state);
 
+    PORT_ISR_ENTER();
     ((struct kernCtrl_ *)&KernCtrl)->state |= DEF_SCHED_STATE_INTSRV_MSK;
 }
 
 void esKernIsrExitI(
     void) {
 
-    ES_DBG_API_REQUIRE(ES_DBG_USAGE_FAILURE, ES_KERN_INIT > KernCtrl.state);
+    ES_DEBUG_API_REQUIRE(ES_DEBUG_USAGE, ES_KERN_INIT > KernCtrl.state);
 
-    if (TRUE == PORT_ISR_IS_LAST()) {
+    PORT_ISR_EXIT();
+
+    if (true == PORT_ISR_IS_LAST()) {
         ((struct kernCtrl_ *)&KernCtrl)->state &= ~DEF_SCHED_STATE_INTSRV_MSK;
         esSchedYieldIsrI();
     }
@@ -1073,23 +1080,23 @@ void esKernIsrExitI(
 /*--  Critical code section locking management  ------------------------------*/
 
 void esKernLockIntEnter(
-    esLockCtx_T *       lockCtx) {
+    esIntrCtx *       lockCtx) {
 
-    PORT_INTR_MASK_REPLACE(lockCtx, PORT_DEF_MAX_ISR_PRIO);
+    ES_CRITICAL_LOCK_ENTER(lockCtx);
     esKernLockEnterI();
 }
 
 void esKernLockIntExit(
-    esLockCtx_T         lockCtx) {
+    esIntrCtx         lockCtx) {
 
     esKernLockExitI();
-    PORT_INTR_MASK_SET(lockCtx);
+    ES_CRITICAL_LOCK_EXIT(lockCtx);
 }
 
 void esKernLockEnterI(
     void) {
 
-    ES_DBG_API_REQUIRE(ES_DBG_USAGE_FAILURE, ES_KERN_INIT > KernCtrl.state);
+    ES_DEBUG_API_REQUIRE(ES_DEBUG_USAGE, ES_KERN_INIT > KernCtrl.state);
 
     ((struct kernCtrl_ *)&KernCtrl)->state |= DEF_SCHED_STATE_LOCK_MSK;
     ++KernLockCnt;
@@ -1098,8 +1105,8 @@ void esKernLockEnterI(
 void esKernLockExitI(
     void) {
 
-    ES_DBG_API_REQUIRE(ES_DBG_USAGE_FAILURE, ES_KERN_LOCK == KernCtrl.state);
-    ES_DBG_API_REQUIRE(ES_DBG_USAGE_FAILURE, 0u != KernLockCnt);
+    ES_DEBUG_API_REQUIRE(ES_DEBUG_USAGE, ES_KERN_LOCK == KernCtrl.state);
+    ES_DEBUG_API_REQUIRE(ES_DEBUG_USAGE, 0u != KernLockCnt);
 
     --KernLockCnt;
 
@@ -1112,63 +1119,63 @@ void esKernLockExitI(
 void esKernLockEnter(
     void) {
 
-    portReg_T           intCtx;
+    esIntrCtx           intrCtx;
 
-    ES_CRITICAL_LOCK_ENTER(&intCtx);
+    ES_CRITICAL_LOCK_ENTER(&intrCtx);
     esKernLockEnterI();
-    ES_CRITICAL_LOCK_EXIT(intCtx);
+    ES_CRITICAL_LOCK_EXIT(intrCtx);
 }
 
 void esKernLockExit(
     void) {
 
-    portReg_T           intCtx;
+    esIntrCtx           intrCtx;
 
-    ES_CRITICAL_LOCK_ENTER(&intCtx);
+    ES_CRITICAL_LOCK_ENTER(&intrCtx);
     esKernLockExitI();
-    ES_CRITICAL_LOCK_EXIT(intCtx);
+    ES_CRITICAL_LOCK_EXIT(intrCtx);
 }
 
 
 /*--  Thread management  -----------------------------------------------------*/
 
 void esThdInit(
-    esThd_T *           thd,
+    esThread *           thd,
     void (* fn)(void *),
     void *              arg,
-    portStck_T *        stck,
+    esThreadStack *        stck,
     size_t              stckSize,
     uint8_t             prio) {
 
-    portReg_T           intCtx;
+    esIntrCtx           intrCtx;
 
-    ES_DBG_API_REQUIRE(ES_DBG_USAGE_FAILURE, ES_KERN_INACTIVE > KernCtrl.state);
-    ES_DBG_API_REQUIRE(ES_DBG_POINTER_NULL, NULL != thd);
-    ES_DBG_API_REQUIRE(ES_DBG_OBJECT_NOT_VALID, DEF_THD_CONTRACT_SIGNATURE != thd->signature);
-    ES_DBG_API_REQUIRE(ES_DBG_POINTER_NULL, NULL != fn);
-    ES_DBG_API_REQUIRE(ES_DBG_POINTER_NULL, NULL != stck);
-    ES_DBG_API_REQUIRE(ES_DBG_OUT_OF_RANGE, PORT_DEF_STCK_MINSIZE <= (stckSize * sizeof(portReg_T)));
-    ES_DBG_API_REQUIRE(ES_DBG_OUT_OF_RANGE, CFG_SCHED_PRIO_LVL > prio);
-    ES_DBG_API_REQUIRE(ES_DBG_OUT_OF_RANGE, ((&KVTmr != thd) && ((CFG_SCHED_PRIO_LVL - 1u) > prio)) || (&KVTmr == thd));
-    ES_DBG_API_REQUIRE(ES_DBG_OUT_OF_RANGE, ((&KIdle != thd) && (0u < prio)) || (&KIdle == thd));
+    ES_DEBUG_API_REQUIRE(ES_DEBUG_USAGE, ES_KERN_INACTIVE > KernCtrl.state);
+    ES_DEBUG_API_REQUIRE(ES_DEBUG_POINTER, NULL != thd);
+    ES_DEBUG_API_REQUIRE(ES_DEBUG_OBJECT, DEF_THD_CONTRACT_SIGNATURE != thd->signature);
+    ES_DEBUG_API_REQUIRE(ES_DEBUG_POINTER, NULL != fn);
+    ES_DEBUG_API_REQUIRE(ES_DEBUG_POINTER, NULL != stck);
+    ES_DEBUG_API_REQUIRE(ES_DEBUG_RANGE, PORT_STACK_MINSIZE <= (stckSize * sizeof(esCpuReg)));
+    ES_DEBUG_API_REQUIRE(ES_DEBUG_RANGE, CFG_SCHED_PRIO_LVL > prio);
+    ES_DEBUG_API_REQUIRE(ES_DEBUG_RANGE, ((&KVTmr != thd) && ((CFG_SCHED_PRIO_LVL - 1u) > prio)) || (&KVTmr == thd));
+    ES_DEBUG_API_REQUIRE(ES_DEBUG_RANGE, ((&KIdle != thd) && (0u < prio)) || (&KIdle == thd));
 
-    thd->stck   = PORT_CTX_INIT(stck, stckSize, fn, arg);                       /* Make a fake thread stack.                                */
+    thd->stack   = PORT_CTX_INIT(stck, stckSize, fn, arg);                       /* Make a fake thread stack.                                */
     thd->thdL.q = NULL;                                                         /* This thread is not in any thread queue.                  */
-    DLIST_ENTRY_INIT(thdL, thd);
+    PQLIST_ENTRY_INIT(thdL, thd);
     thd->prio   = prio;                                                         /* Set the priority.                                        */
-    thd->iprio  = prio;                                                         /* This is constant priority, it never changes.             */
-    thd->qCnt   = CFG_SCHED_TIME_QUANTUM;
-    thd->qRld   = CFG_SCHED_TIME_QUANTUM;
+    thd->ipriority  = prio;                                                         /* This is constant priority, it never changes.             */
+    thd->quantumCounter   = CFG_SCHED_TIME_QUANTUM;
+    thd->quantumReload   = CFG_SCHED_TIME_QUANTUM;
 
-    ES_DBG_API_OBLIGATION(thd->signature = DEF_THD_CONTRACT_SIGNATURE);             /* Make thread structure valid.                             */
+    ES_DEBUG_API_OBLIGATION(thd->signature = DEF_THD_CONTRACT_SIGNATURE);             /* Make thread structure valid.                             */
 
-    ES_CRITICAL_LOCK_ENTER(&intCtx);
+    ES_CRITICAL_LOCK_ENTER(&intrCtx);
     schedRdyAddInitI(
         thd);                                                                   /* Initialize thread before adding it to Ready Thread queue.*/
     esSchedRdyAddI(
         thd);                                                                   /* Add the thread to Ready Thread queue.                    */
     esSchedYieldI();                                                            /* Invoke the scheduler.                                    */
-    ES_CRITICAL_LOCK_EXIT(intCtx);
+    ES_CRITICAL_LOCK_EXIT(intrCtx);
 
 #if   (1u == CFG_HOOK_POST_THD_INIT)
     userPostThdInit();
@@ -1176,14 +1183,14 @@ void esThdInit(
 }
 
 void esThdTerm(
-    esThd_T *           thd) {
+    esThread *           thd) {
 
-    portReg_T           intCtx;
+    esIntrCtx           intCtx;
 
-    ES_DBG_API_REQUIRE(ES_DBG_USAGE_FAILURE, ES_KERN_INACTIVE > KernCtrl.state);
-    ES_DBG_API_REQUIRE(ES_DBG_POINTER_NULL, NULL != thd);
-    ES_DBG_API_REQUIRE(ES_DBG_OBJECT_NOT_VALID, DEF_THD_CONTRACT_SIGNATURE == thd->signature);
-    ES_DBG_API_REQUIRE(ES_DBG_POINTER_NULL, (NULL == thd->thdL.q) || (&RdyQueue == thd->thdL.q));
+    ES_DEBUG_API_REQUIRE(ES_DEBUG_USAGE, ES_KERN_INACTIVE > KernCtrl.state);
+    ES_DEBUG_API_REQUIRE(ES_DEBUG_POINTER, NULL != thd);
+    ES_DEBUG_API_REQUIRE(ES_DEBUG_OBJECT, DEF_THD_CONTRACT_SIGNATURE == thd->signature);
+    ES_DEBUG_API_REQUIRE(ES_DEBUG_POINTER, (NULL == thd->thdL.q) || (&RdyQueue == thd->thdL.q));
 
 #if   (1u == CFG_HOOK_PRE_THD_TERM)
     userPreThdTerm();
@@ -1199,23 +1206,23 @@ void esThdTerm(
             thd);
     }
 
-    ES_DBG_API_OBLIGATION(thd->signature = ~DEF_THD_CONTRACT_SIGNATURE);            /* Mark the thread ID structure as invalid.                 */
+    ES_DEBUG_API_OBLIGATION(thd->signature = ~DEF_THD_CONTRACT_SIGNATURE);            /* Mark the thread ID structure as invalid.                 */
 
     esSchedYieldI();
     ES_CRITICAL_LOCK_EXIT(intCtx);
 }
 
 void esThdSetPrioI(
-    esThd_T *           thd,
+    esThread *           thd,
     uint8_t             prio) {
 
-    ES_DBG_API_REQUIRE(ES_DBG_USAGE_FAILURE, ES_KERN_INACTIVE > KernCtrl.state);
-    ES_DBG_API_REQUIRE(ES_DBG_POINTER_NULL, NULL != thd);
-    ES_DBG_API_REQUIRE(ES_DBG_OBJECT_NOT_VALID, DEF_THD_CONTRACT_SIGNATURE == thd->signature);
-    ES_DBG_API_REQUIRE(ES_DBG_OUT_OF_RANGE, CFG_SCHED_PRIO_LVL >= prio);
+    ES_DEBUG_API_REQUIRE(ES_DEBUG_USAGE, ES_KERN_INACTIVE > KernCtrl.state);
+    ES_DEBUG_API_REQUIRE(ES_DEBUG_POINTER, NULL != thd);
+    ES_DEBUG_API_REQUIRE(ES_DEBUG_OBJECT, DEF_THD_CONTRACT_SIGNATURE == thd->signature);
+    ES_DEBUG_API_REQUIRE(ES_DEBUG_RANGE, CFG_SCHED_PRIO_LVL >= prio);
 
     if (NULL == thd->thdL.q) {                                                  /* Is thread inserted in any queue?                         */
-        thd->prio = prio;                                                       /* Just change it's prio value.                             */
+        thd->prio = prio;                                                       /* Just change it's priority value.                             */
     } else {
         esThdQRmI(
             thd->thdL.q,
@@ -1227,7 +1234,7 @@ void esThdSetPrioI(
 
         if (&RdyQueue == thd->thdL.q) {                                         /* Is thread in ready thread queue?                         */
 
-            if (thd->prio > KernCtrl.pthd->prio) {                              /* If new prio is higher than the current prio notify the   */
+            if (thd->prio > KernCtrl.pthd->prio) {                              /* If new priority is higher than the current priority notify the   */
                 ((struct kernCtrl_ *)&KernCtrl)->pthd = thd;                    /* scheduler about new thread.                              */
             } else {
                 ((struct kernCtrl_ *)&KernCtrl)->pthd = esThdQFetchI(
@@ -1241,145 +1248,105 @@ void esThdSetPrioI(
 /*--  Thread Queue management  -----------------------------------------------*/
 
 void esThdQInit(
-    esThdQ_T *          thdQ) {
+    esThreadQ *          thdQ) {
 
     uint_fast8_t        grp;
 
-    ES_DBG_API_REQUIRE(ES_DBG_POINTER_NULL, NULL != thdQ);
-    ES_DBG_API_REQUIRE(ES_DBG_OBJECT_NOT_VALID, DEF_THDQ_CONTRACT_SIGNATURE != thdQ->signature);
+    ES_DEBUG_API_REQUIRE(ES_DEBUG_POINTER, NULL != thdQ);
+    ES_DEBUG_API_REQUIRE(ES_DEBUG_OBJECT, DEF_THDQ_CONTRACT_SIGNATURE != thdQ->signature);
 
-    pbmInit(
-        &thdQ->prioOcc);
-    grp = CFG_SCHED_PRIO_LVL;
-
-    while (0u != grp) {
-        grp--;
-        thdQ->grp[grp].head = NULL;
-        thdQ->grp[grp].next = NULL;
-    }
-    ES_DBG_API_OBLIGATION(thdQ->signature = DEF_THDQ_CONTRACT_SIGNATURE);
+    esPqInit(&thdQ->pq);
+    ES_DEBUG_API_OBLIGATION(thdQ->signature = DEF_THDQ_CONTRACT_SIGNATURE);
 }
 
 /* 1)       When API validation is not used then this function will become empty.
  */
 void esThdQTerm(
-    esThdQ_T *          thdQ) {
+    esThreadQ *          thdQ) {
 
-    ES_DBG_API_REQUIRE(ES_DBG_POINTER_NULL, NULL != thdQ);
-    ES_DBG_API_REQUIRE(ES_DBG_OBJECT_NOT_VALID, DEF_THDQ_CONTRACT_SIGNATURE == thdQ->signature);
+    ES_DEBUG_API_REQUIRE(ES_DEBUG_POINTER, NULL != thdQ);
+    ES_DEBUG_API_REQUIRE(ES_DEBUG_OBJECT, DEF_THDQ_CONTRACT_SIGNATURE == thdQ->signature);
 
-    ES_DBG_API_OBLIGATION(thdQ->signature = ~DEF_THDQ_CONTRACT_SIGNATURE);
+    ES_DEBUG_API_OBLIGATION(thdQ->signature = ~DEF_THDQ_CONTRACT_SIGNATURE);
 
-#if   (0u == CFG_DBG_API_VALIDATION)
+#if   (0u == CONFIG_DEBUG_API_VALIDATION)
     (void)thdQ;                                                                 /* Prevent compiler warning about unused argument.          */
 #endif
 }
 
 void esThdQAddI(
-    esThdQ_T *          thdQ,
-    esThd_T *           thd) {
+    esThreadQ *          thdQ,
+    esThread *           thd) {
 
     struct thdLSent_ *  sentinel;
 
-    ES_DBG_API_REQUIRE(ES_DBG_POINTER_NULL, NULL != thdQ);
-    ES_DBG_API_REQUIRE(ES_DBG_OBJECT_NOT_VALID, DEF_THDQ_CONTRACT_SIGNATURE == thdQ->signature);
-    ES_DBG_API_REQUIRE(ES_DBG_POINTER_NULL, NULL != thd);
-    ES_DBG_API_REQUIRE(ES_DBG_OBJECT_NOT_VALID, DEF_THD_CONTRACT_SIGNATURE == thd->signature);
-    ES_DBG_API_REQUIRE(ES_DBG_POINTER_NULL, NULL == thd->thdL.q);
+    ES_DEBUG_API_REQUIRE(ES_DEBUG_POINTER, NULL != thdQ);
+    ES_DEBUG_API_REQUIRE(ES_DEBUG_OBJECT, DEF_THDQ_CONTRACT_SIGNATURE == thdQ->signature);
+    ES_DEBUG_API_REQUIRE(ES_DEBUG_POINTER, NULL != thd);
+    ES_DEBUG_API_REQUIRE(ES_DEBUG_OBJECT, DEF_THD_CONTRACT_SIGNATURE == thd->signature);
 
-    sentinel = &(thdQ->grp[thd->prio]);                                         /* Get the sentinel from thread priority level.             */
-
-    if (NULL == sentinel->head) {                                               /* Is thdL_ list empty?                                      */
-        sentinel->head = thd;                                                   /* This thread becomes first in the list.                   */
-        sentinel->next = thd;
-        pbmSet(
-            &thdQ->prioOcc,
-            thd->prio);                                                         /* Mark the priority group as used.                         */
-    } else {
-        DLIST_ENTRY_ADD_AFTER(thdL, sentinel->head, thd);                       /* Thread is added at the next of the list.                 */
-    }
-    thd->thdL.q = thdQ;                                                         /* Set the pointer to the thread queue being used.          */
+    esPqAdd(&thdQ->pq, &thd->pqElem);
 }
 
 void esThdQRmI(
-    esThdQ_T *          thdQ,
-    esThd_T *           thd) {
+    esThreadQ *          thdQ,
+    esThread *           thd) {
 
     struct thdLSent_ *  sentinel;
 
-    ES_DBG_API_REQUIRE(ES_DBG_POINTER_NULL, NULL != thd);
-    ES_DBG_API_REQUIRE(ES_DBG_OBJECT_NOT_VALID, DEF_THD_CONTRACT_SIGNATURE == thd->signature);
-    ES_DBG_API_REQUIRE(ES_DBG_POINTER_NULL, NULL != thdQ);
-    ES_DBG_API_REQUIRE(ES_DBG_OBJECT_NOT_VALID, DEF_THDQ_CONTRACT_SIGNATURE == thdQ->signature);
-    ES_DBG_API_REQUIRE(ES_DBG_USAGE_FAILURE, thdQ == thd->thdL.q);
+    ES_DEBUG_API_REQUIRE(ES_DEBUG_POINTER, NULL != thd);
+    ES_DEBUG_API_REQUIRE(ES_DEBUG_OBJECT, DEF_THD_CONTRACT_SIGNATURE == thd->signature);
+    ES_DEBUG_API_REQUIRE(ES_DEBUG_POINTER, NULL != thdQ);
+    ES_DEBUG_API_REQUIRE(ES_DEBUG_OBJECT, DEF_THDQ_CONTRACT_SIGNATURE == thdQ->signature);
 
-    sentinel = &(thdQ->grp[thd->prio]);                                         /* Get the sentinel from thread priority level.             */
-
-    if (DLIST_IS_ENTRY_LAST(thdL, thd)) {                                       /* Is this thread last one in the thdL_ list?                */
-        sentinel->head = NULL;                                                  /* Make the list sentinel empty.                            */
-        pbmClear(
-            &thdQ->prioOcc,
-            thd->prio);                                                         /* Remove the mark since this group is not used.            */
-    } else {                                                                    /* This thread is not the last one in the thdL_ list.        */
-
-        if (sentinel->head == thd) {                                            /* In case we are removing first thread in linked list then */
-            sentinel->head = DLIST_ENTRY_NEXT(thdL, thd);                       /* advance the head to point to the next one in the list.   */
-        }
-
-        if (sentinel->next == thd) {                                            /* In case we are removing next thread in the linked list   */
-            sentinel->next = DLIST_ENTRY_NEXT(thdL, thd);                       /* then move next to point to a next one in the list.       */
-        }
-        DLIST_ENTRY_RM(thdL, thd);
-        DLIST_ENTRY_INIT(thdL, thd);
-    }
-    thd->thdL.q = NULL;
+    esPqRm(&thd->pqElem);
 }
 
-esThd_T * esThdQFetchI(
-    const esThdQ_T *    thdQ) {
+esThread * esThdQFetchI(
+    const esThreadQ *    thdQ) {
 
     struct thdLSent_ *  sentinel;
     uint_fast8_t        prio;
 
-    ES_DBG_API_REQUIRE(ES_DBG_POINTER_NULL, NULL != thdQ);
-    ES_DBG_API_REQUIRE(ES_DBG_OBJECT_NOT_VALID, DEF_THDQ_CONTRACT_SIGNATURE == thdQ->signature);
-    ES_DBG_API_REQUIRE(ES_DBG_USAGE_FAILURE, FALSE == pbmIsEmpty(&thdQ->prioOcc));
+    ES_DEBUG_API_REQUIRE(ES_DEBUG_POINTER, NULL != thdQ);
+    ES_DEBUG_API_REQUIRE(ES_DEBUG_OBJECT, DEF_THDQ_CONTRACT_SIGNATURE == thdQ->signature);
+    ES_DEBUG_API_REQUIRE(ES_DEBUG_USAGE, false == pbmIsEmpty(&thdQ->prioOcc));
 
     prio = pbmGetHighest(
         &thdQ->prioOcc);                                                        /* Get the highest priority ready to run.                   */
     sentinel = (struct thdLSent_ *)&(thdQ->grp[prio]);                          /* Get the Group Head pointer for that priority.            */
                                                                                 /* The type cast is needed to avoid compiler warnings.      */
-    ES_DBG_API_ENSURE(ES_DBG_OBJECT_NOT_VALID, DEF_THD_CONTRACT_SIGNATURE == sentinel->next->signature);
+    ES_DBG_API_ENSURE(ES_DEBUG_OBJECT, DEF_THD_CONTRACT_SIGNATURE == sentinel->next->signature);
 
     return (sentinel->next);
 }
 
-esThd_T * esThdQFetchRotateI(
-    esThdQ_T *          thdQ,
+esThread * esThdQFetchRotateI(
+    esThreadQ *          thdQ,
     uint_fast8_t        prio) {
 
     struct thdLSent_ *  sentinel;
 
-    ES_DBG_API_REQUIRE(ES_DBG_POINTER_NULL, NULL != thdQ);
-    ES_DBG_API_REQUIRE(ES_DBG_OBJECT_NOT_VALID, DEF_THDQ_CONTRACT_SIGNATURE == thdQ->signature);
-    ES_DBG_API_REQUIRE(ES_DBG_OUT_OF_RANGE, CFG_SCHED_PRIO_LVL >= prio);
-    ES_DBG_API_REQUIRE(ES_DBG_POINTER_NULL, NULL != thdQ->grp[prio].next);
+    ES_DEBUG_API_REQUIRE(ES_DEBUG_POINTER, NULL != thdQ);
+    ES_DEBUG_API_REQUIRE(ES_DEBUG_OBJECT, DEF_THDQ_CONTRACT_SIGNATURE == thdQ->signature);
+    ES_DEBUG_API_REQUIRE(ES_DEBUG_RANGE, CFG_SCHED_PRIO_LVL >= prio);
+    ES_DEBUG_API_REQUIRE(ES_DEBUG_POINTER, NULL != thdQ->grp[prio].next);
 
     sentinel = &(thdQ->grp[prio]);                                              /* Get the Group Head pointer from thread priority.         */
-    sentinel->next = DLIST_ENTRY_NEXT(thdL, sentinel->next);
+    sentinel->next = PQLIST_ENTRY_NEXT(thdL, sentinel->next);
 
-    ES_DBG_API_ENSURE(ES_DBG_OBJECT_NOT_VALID, DEF_THD_CONTRACT_SIGNATURE == sentinel->next->signature);
+    ES_DBG_API_ENSURE(ES_DEBUG_OBJECT, DEF_THD_CONTRACT_SIGNATURE == sentinel->next->signature);
 
     return (sentinel->next);
 }
 
-bool_T esThdQIsEmpty(
-    const esThdQ_T *    thdQ) {
+bool esThdQIsEmpty(
+    const esThreadQ *    thdQ) {
 
-    bool_T              ret;
+    bool              ret;
 
-    ES_DBG_API_REQUIRE(ES_DBG_POINTER_NULL, NULL != thdQ);
-    ES_DBG_API_REQUIRE(ES_DBG_OBJECT_NOT_VALID, DEF_THDQ_CONTRACT_SIGNATURE == thdQ->signature);
+    ES_DEBUG_API_REQUIRE(ES_DEBUG_POINTER, NULL != thdQ);
+    ES_DEBUG_API_REQUIRE(ES_DEBUG_OBJECT, DEF_THDQ_CONTRACT_SIGNATURE == thdQ->signature);
 
     ret = pbmIsEmpty(
         &thdQ->prioOcc);
@@ -1391,12 +1358,12 @@ bool_T esThdQIsEmpty(
 /*--  Scheduler notification and invocation  ---------------------------------*/
 
 void esSchedRdyAddI(
-    esThd_T *           thd) {
+    esThread *           thd) {
 
-    ES_DBG_API_REQUIRE(ES_DBG_USAGE_FAILURE, ES_KERN_INACTIVE > KernCtrl.state);
-    ES_DBG_API_REQUIRE(ES_DBG_POINTER_NULL, NULL != thd);
-    ES_DBG_API_REQUIRE(ES_DBG_OBJECT_NOT_VALID, DEF_THD_CONTRACT_SIGNATURE == thd->signature);
-    ES_DBG_API_REQUIRE(ES_DBG_POINTER_NULL, NULL == thd->thdL.q);
+    ES_DEBUG_API_REQUIRE(ES_DEBUG_USAGE, ES_KERN_INACTIVE > KernCtrl.state);
+    ES_DEBUG_API_REQUIRE(ES_DEBUG_POINTER, NULL != thd);
+    ES_DEBUG_API_REQUIRE(ES_DEBUG_OBJECT, DEF_THD_CONTRACT_SIGNATURE == thd->signature);
+    ES_DEBUG_API_REQUIRE(ES_DEBUG_POINTER, NULL == thd->thdL.q);
 
     esThdQAddI(
         &RdyQueue,
@@ -1412,12 +1379,12 @@ void esSchedRdyAddI(
  *          priority thread.
  */
 void esSchedRdyRmI(
-    esThd_T *           thd) {
+    esThread *           thd) {
 
-    ES_DBG_API_REQUIRE(ES_DBG_USAGE_FAILURE, ES_KERN_INACTIVE > KernCtrl.state);
-    ES_DBG_API_REQUIRE(ES_DBG_POINTER_NULL, NULL != thd);
-    ES_DBG_API_REQUIRE(ES_DBG_OBJECT_NOT_VALID, DEF_THD_CONTRACT_SIGNATURE == thd->signature);
-    ES_DBG_API_REQUIRE(ES_DBG_USAGE_FAILURE, &RdyQueue == thd->thdL.q);
+    ES_DEBUG_API_REQUIRE(ES_DEBUG_USAGE, ES_KERN_INACTIVE > KernCtrl.state);
+    ES_DEBUG_API_REQUIRE(ES_DEBUG_POINTER, NULL != thd);
+    ES_DEBUG_API_REQUIRE(ES_DEBUG_OBJECT, DEF_THD_CONTRACT_SIGNATURE == thd->signature);
+    ES_DEBUG_API_REQUIRE(ES_DEBUG_USAGE, &RdyQueue == thd->thdL.q);
 
     esThdQRmI(
         &RdyQueue,
@@ -1432,7 +1399,7 @@ void esSchedRdyRmI(
 void esSchedYieldI(
     void) {
 
-    ES_DBG_API_REQUIRE(ES_DBG_USAGE_FAILURE, ES_KERN_INACTIVE > KernCtrl.state);
+    ES_DEBUG_API_REQUIRE(ES_DEBUG_USAGE, ES_KERN_INACTIVE > KernCtrl.state);
 
     if (KernCtrl.cthd != KernCtrl.pthd) {                                       /* Context switching is needed only when cthd and pthd are  */
                                                                                 /* different.                                               */
@@ -1455,7 +1422,7 @@ void esSchedYieldI(
 void esSchedYieldIsrI(
     void) {
 
-    ES_DBG_API_REQUIRE(ES_DBG_USAGE_FAILURE, ES_KERN_INACTIVE > KernCtrl.state);
+    ES_DEBUG_API_REQUIRE(ES_DEBUG_USAGE, ES_KERN_INACTIVE > KernCtrl.state);
 
     if (KernCtrl.cthd != KernCtrl.pthd) {
 
@@ -1479,23 +1446,23 @@ void esSchedYieldIsrI(
 
 /*--  Virtual Timer management  ----------------------------------------------*/
 
-void esVTmrInitI(
+void esKTmrInitI(
     esVTmr_T *          vTmr,
-    esTick_T            tick,
+    esVTmrTick            tick,
     void (* fn)(void *),
     void *              arg) {
 
-    ES_DBG_API_REQUIRE(ES_DBG_USAGE_FAILURE, ES_KERN_INACTIVE > KernCtrl.state);
-    ES_DBG_API_REQUIRE(ES_DBG_POINTER_NULL, NULL != vTmr);
-    ES_DBG_API_REQUIRE(ES_DBG_OBJECT_NOT_VALID, DEF_VTMR_CONTRACT_SIGNATURE != vTmr->signature);
-    ES_DBG_API_REQUIRE(ES_DBG_OUT_OF_RANGE, 1u < tick);
-    ES_DBG_API_REQUIRE(ES_DBG_POINTER_NULL, NULL != fn);
+    ES_DEBUG_API_REQUIRE(ES_DEBUG_USAGE, ES_KERN_INACTIVE > KernCtrl.state);
+    ES_DEBUG_API_REQUIRE(ES_DEBUG_POINTER, NULL != vTmr);
+    ES_DEBUG_API_REQUIRE(ES_DEBUG_OBJECT, DEF_VTMR_CONTRACT_SIGNATURE != vTmr->signature);
+    ES_DEBUG_API_REQUIRE(ES_DEBUG_RANGE, 1u < tick);
+    ES_DEBUG_API_REQUIRE(ES_DEBUG_POINTER, NULL != fn);
 
     vTmr->rtick     = tick;
     vTmr->fn        = fn;
     vTmr->arg       = arg;
     vTmr->tmrL.q    = &VTmrPend;
-    DLIST_ENTRY_ADD_AFTER(tmrL, &VTmrPend, vTmr);
+    PQLIST_ENTRY_ADD_AFTER(tmrL, &VTmrPend, vTmr);
     ++SysTmr.vTmrPend;
 
 #if   (1u == CFG_SYSTMR_ADAPTIVE_MODE)
@@ -1504,19 +1471,19 @@ void esVTmrInitI(
             &KVTmr);
     }
 #endif
-    ES_DBG_API_OBLIGATION(vTmr->signature = DEF_VTMR_CONTRACT_SIGNATURE);
+    ES_DEBUG_API_OBLIGATION(vTmr->signature = DEF_VTMR_CONTRACT_SIGNATURE);
 }
 
 void esVTmrInit(
     esVTmr_T *          vTmr,
-    esTick_T            tick,
+    esVTmrTick            tick,
     void (* fn)(void *),
     void *              arg) {
 
-    portReg_T           intCtx;
+    esIntrCtx           intCtx;
 
     ES_CRITICAL_LOCK_ENTER(&intCtx);
-    esVTmrInitI(
+    esKTmrInitI(
         vTmr,
         tick,
         fn,
@@ -1527,11 +1494,11 @@ void esVTmrInit(
 void esVTmrTermI(
     esVTmr_T *          vTmr) {
 
-    ES_DBG_API_REQUIRE(ES_DBG_USAGE_FAILURE, ES_KERN_INACTIVE > KernCtrl.state);
-    ES_DBG_API_REQUIRE(ES_DBG_POINTER_NULL, NULL != vTmr);
-    ES_DBG_API_REQUIRE(ES_DBG_OBJECT_NOT_VALID, DEF_VTMR_CONTRACT_SIGNATURE == vTmr->signature);
+    ES_DEBUG_API_REQUIRE(ES_DEBUG_USAGE, ES_KERN_INACTIVE > KernCtrl.state);
+    ES_DEBUG_API_REQUIRE(ES_DEBUG_POINTER, NULL != vTmr);
+    ES_DEBUG_API_REQUIRE(ES_DEBUG_OBJECT, DEF_VTMR_CONTRACT_SIGNATURE == vTmr->signature);
 
-    ES_DBG_API_OBLIGATION(vTmr->signature = ~DEF_VTMR_CONTRACT_SIGNATURE);
+    ES_DEBUG_API_OBLIGATION(vTmr->signature = ~DEF_VTMR_CONTRACT_SIGNATURE);
 
     if (&VTmrPend == vTmr->tmrL.q) {                                            /* A pending timer is being deleted.                        */
         DLIST_ENTRY_RM(tmrL, vTmr);
@@ -1542,7 +1509,7 @@ void esVTmrTermI(
         esVTmr_T *      nextVTmr;
 
         --SysTmr.vTmrArmed;
-        nextVTmr = DLIST_ENTRY_NEXT(tmrL, vTmr);
+        nextVTmr = PQLIST_ENTRY_NEXT(tmrL, vTmr);
 
         if (&VTmrArmed != nextVTmr) {
             nextVTmr->rtick += vTmr->rtick;
@@ -1552,21 +1519,21 @@ void esVTmrTermI(
         --SysTmr.vTmrArmed;
 
         if ((0u != SysTmr.ptick) &&
-            (DLIST_ENTRY_NEXT(tmrL_, &VTmrArmed) == vTmr)) {                    /* System timer was sleeping and vTmr is the current timer. */
+            (PQLIST_ENTRY_NEXT(tmrL_, &VTmrArmed) == vTmr)) {                    /* System timer was sleeping and vTmr is the current timer. */
             DLIST_ENTRY_RM(tmrL_, vTmr);
 
             if (0u != SysTmr.vTmrArmed) {                                       /* The last timer is not being deleted: remaining time is   */
                 esVTmr_T * nextVTmr;                                            /* calculated to add to next timer in list.                 */
 
-                vTmr->rtick -= (PORT_SYSTMR_GET_RVAL() - PORT_SYSTMR_GET_CVAL()) / PORT_DEF_SYSTMR_ONE_TICK;
-                nextVTmr = DLIST_ENTRY_NEXT(tmrL_, &VTmrArmed);
+                vTmr->rtick -= (ES_SYSTIMER_GET_RVAL() - ES_SYSTIMER_GET_CVAL()) / ES_SYSTIMER_ONE_TICK;
+                nextVTmr = PQLIST_ENTRY_NEXT(tmrL_, &VTmrArmed);
                 nextVTmr->rtick += vTmr->rtick;
             }
             sysTmrDeactivateI();
         } else {
             esVTmr_T * nextVTmr;
 
-            nextVTmr = DLIST_ENTRY_NEXT(tmrL_, vTmr);
+            nextVTmr = PQLIST_ENTRY_NEXT(tmrL_, vTmr);
 
             if (&VTmrArmed != nextVTmr) {
                 nextVTmr->rtick += vTmr->rtick;
@@ -1580,16 +1547,16 @@ void esVTmrTermI(
 void esVTmrTerm(
     esVTmr_T *          vTmr) {
 
-    portReg_T           intCtx;
+    esIntrCtx           intrCtx;
 
-    ES_CRITICAL_LOCK_ENTER(&intCtx);
+    ES_CRITICAL_LOCK_ENTER(&intrCtx);
     esVTmrTermI(
         vTmr);
-    ES_CRITICAL_LOCK_EXIT(intCtx);
+    ES_CRITICAL_LOCK_EXIT(intrCtx);
 }
 
 void esVTmrDelay(
-    esTick_T            tick) {
+    esVTmrTick            tick) {
 
     esVTmr_T            vTmr;
 
@@ -1603,12 +1570,12 @@ void esVTmrDelay(
 
 /*--  Kernel time management  ------------------------------------------------*/
 
-esTick_T esSysTmrTickGet(
+esVTmrTick esSysTmrTickGet(
     void) {
 
-    esTick_T            tick;
+    esVTmrTick            tick;
 
-    ES_DBG_API_REQUIRE(ES_DBG_USAGE_FAILURE, ES_KERN_INACTIVE > KernCtrl.state);
+    ES_DEBUG_API_REQUIRE(ES_DEBUG_USAGE, ES_KERN_INACTIVE > KernCtrl.state);
 
 #if   (0u == CFG_SYSTMR_ADAPTIVE_MODE)
 # if   (PORT_DATA_SIZE_VAL >= SYSTMR_TICK_TYPE_SIZE)
@@ -1617,7 +1584,7 @@ esTick_T esSysTmrTickGet(
     return (tick);
 # else
     {
-        portReg_T       intCtx;
+        esIntrCtx       intCtx;
 
         ES_CRITICAL_LOCK_ENTER(&intCtx);
         tick = SysTmr.ctick;
@@ -1634,8 +1601,8 @@ esTick_T esSysTmrTickGet(
         if (0u != SysTmr.vTmrArmed) {                                           /* System timer was enabled during sleep.                   */
             portSysTmrReg_T tmrVal;
 
-            tmrVal = (PORT_SYSTMR_GET_RVAL() - PORT_SYSTMR_GET_CVAL());
-            tick = tmrVal / PORT_DEF_SYSTMR_ONE_TICK;
+            tmrVal = (ES_SYSTIMER_GET_RVAL() - ES_SYSTIMER_GET_CVAL());
+            tick = tmrVal / ES_SYSTIMER_ONE_TICK;
         } else {                                                                /* System timer was disabled during sleep.                  */
 # if   (0u == CFG_SYSTMR_TICK_TYPE)
             tick = UINT8_MAX;

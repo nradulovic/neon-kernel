@@ -1,0 +1,131 @@
+.TH "lock.h" 3 "Sat Nov 23 2013" "Version 1.0BetaR01" "eSolid - Real-Time Kernel" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+lock.h \- 
+.PP
+Critical code and kernel lock management\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+\fC#include 'arch/cpu\&.h'\fP
+.br
+
+.SS "Macros"
+
+.PP
+.RI "\fBCritical code management\fP"
+.br
+Disable/enable interrupts by preserving the interrupt context
+.PP
+Generally speaking these macros would store the interrupt context in the local variable of portReg_T type and then disable interrupts\&. Local variable is allocated in all of eSolid-Kernel functions that need to disable interrupts\&. Macros would restore the interrupt context by copying back the allocated variable into the interrupt controller status/control register\&. 
+.PP
+.in +1c
+.in +1c
+.ti -1c
+.RI "#define \fBES_CRITICAL_LOCK_ENTER\fP(intCtx)   \fBPORT_INT_PRIO_REPLACE\fP(intCtx, \fBPORT_DEF_MAX_ISR_PRIO\fP)"
+.br
+.RI "\fIEnter critical code section\&. \fP"
+.ti -1c
+.RI "#define \fBES_CRITICAL_LOCK_EXIT\fP(intCtx)   \fBPORT_INT_PRIO_SET\fP(intCtx)"
+.br
+.RI "\fIExit critical code section\&. \fP"
+.in -1c
+.in -1c
+.SS "Typedefs"
+
+.PP
+.RI "\fBCritical code section locking management\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "typedef \fBportReg_T\fP \fBesLockCtx_T\fP"
+.br
+.RI "\fIKernel lock context type\&. \fP"
+.in -1c
+.in -1c
+.SS "Functions"
+
+.PP
+.RI "\fBMulti-threading locking management\fP"
+.br
+These methods are often used to protect concurrent access to a protected resource\&.
+.PP
+For more details see \fBCritical sections\fP\&. 
+.PP
+.in +1c
+.in +1c
+.ti -1c
+.RI "void \fBesKernLockIntEnter\fP (\fBesLockCtx_T\fP *lockCtx)"
+.br
+.RI "\fIEnter a critical code lock\&. \fP"
+.ti -1c
+.RI "void \fBesKernLockIntExit\fP (\fBesLockCtx_T\fP lockCtx)"
+.br
+.RI "\fIExit a critical code lock\&. \fP"
+.ti -1c
+.RI "void \fBesKernLockEnterI\fP (void)"
+.br
+.RI "\fILock the scheduler\&. \fP"
+.ti -1c
+.RI "void \fBesKernLockExitI\fP (void)"
+.br
+.RI "\fIUnlock the scheduler\&. \fP"
+.ti -1c
+.RI "void \fBesKernLockEnter\fP (void)"
+.br
+.RI "\fILock the scheduler\&. \fP"
+.ti -1c
+.RI "void \fBesKernLockExit\fP (void)"
+.br
+.RI "\fIUnlock the scheduler\&. \fP"
+.in -1c
+.in -1c
+.SH "Detailed Description"
+.PP 
+Critical code and kernel lock management\&. 
+
+
+.PP
+\fBAuthor:\fP
+.RS 4
+Nenad Radulovic 
+.RE
+.PP
+
+.SH "Macro Definition Documentation"
+.PP 
+.SS "#define ES_CRITICAL_LOCK_ENTER(intCtx)   \fBPORT_INT_PRIO_REPLACE\fP(intCtx, \fBPORT_DEF_MAX_ISR_PRIO\fP)"
+
+.PP
+Enter critical code section\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIintCtx\fP Interrupt context, pointer to portable type variable which will hold the interrupt context state during the critical code section\&. 
+.RE
+.PP
+
+.SS "#define ES_CRITICAL_LOCK_EXIT(intCtx)   \fBPORT_INT_PRIO_SET\fP(intCtx)"
+
+.PP
+Exit critical code section\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIintCtx\fP Interrupt context, portable type variable which is holding a previously saved interrupt context state\&. 
+.RE
+.PP
+
+.SH "Typedef Documentation"
+.PP 
+.SS "typedef \fBportReg_T\fP \fBesLockCtx_T\fP"
+
+.PP
+Kernel lock context type\&. Variables declared using this type can hold current lock context which can be restored after a critical code section is exited\&. 
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for eSolid - Real-Time Kernel from the source code\&.

@@ -1,0 +1,109 @@
+\hypertarget{compiler_8h}{\subsection{compiler.\-h File Reference}
+\label{compiler_8h}\index{compiler.\-h@{compiler.\-h}}
+}
+
+
+Interface of Compiler port -\/ Template.  
+
+
+{\ttfamily \#include $<$stdint.\-h$>$}\\*
+{\ttfamily \#include $<$stddef.\-h$>$}\\*
+Include dependency graph for compiler.\-h\-:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=199pt]{compiler_8h__incl}
+\end{center}
+\end{figure}
+This graph shows which files directly or indirectly include this file\-:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=288pt]{compiler_8h__dep__incl}
+\end{center}
+\end{figure}
+\subsubsection*{Macros}
+\begin{Indent}{\bf Compiler provided macros}\par
+{\em Port interface macros and port specific macros
+
+These macros are used to ease the writing of ports. All macros prefixed with {\bfseries P\-O\-R\-T\-\_\-} are part of the port interface. }\begin{DoxyCompactItemize}
+\item 
+\#define \hyperlink{group__template__compiler_ga87952d6e574c7f437503926e833ba345}{P\-O\-R\-T\-\_\-\-C\-\_\-\-I\-N\-L\-I\-N\-E}~inline
+\begin{DoxyCompactList}\small\item\em C extension -\/ make a function inline. \end{DoxyCompactList}\item 
+\#define \hyperlink{group__template__compiler_ga89152d5aab4045f552113b32920741ce}{P\-O\-R\-T\-\_\-\-C\-\_\-\-I\-N\-L\-I\-N\-E\-\_\-\-A\-L\-W\-A\-Y\-S}~inline
+\begin{DoxyCompactList}\small\item\em C extension -\/ make a function inline -\/ always. \end{DoxyCompactList}\item 
+\#define \hyperlink{group__template__compiler_gaf50b092bb255c796c99927cebbdb8631}{P\-O\-R\-T\-\_\-\-C\-\_\-\-N\-A\-K\-E\-D}
+\begin{DoxyCompactList}\small\item\em Omit function prologue/epilogue sequences. \end{DoxyCompactList}\item 
+\#define \hyperlink{group__template__compiler_ga6fe63660c6d0ccbabb032c026714863e}{P\-O\-R\-T\-\_\-\-C\-\_\-\-F\-U\-N\-C}~\char`\"{}unknown\char`\"{}
+\begin{DoxyCompactList}\small\item\em Provides function name for assert macros. \end{DoxyCompactList}\item 
+\#define \hyperlink{group__template__compiler_ga70c3ad4cff78229fae591d039b59f4d1}{P\-O\-R\-T\-\_\-\-C\-\_\-\-W\-E\-A\-K}
+\begin{DoxyCompactList}\small\item\em Declares a weak function. \end{DoxyCompactList}\item 
+\#define \hyperlink{group__template__compiler_ga4d6b8bd33e54fa5af4c5291c92dda288}{P\-O\-R\-T\-\_\-\-C\-\_\-\-A\-L\-I\-G\-N\-E\-D}(expr)
+\begin{DoxyCompactList}\small\item\em This attribute specifies a minimum alignment (in bytes) for variables of the specified type. \end{DoxyCompactList}\item 
+\#define \hyperlink{group__template__compiler_ga47fdf2153dba3df8c6a840829f02bd66}{P\-O\-R\-T\-\_\-\-H\-W\-R\-E\-G\-\_\-\-S\-E\-T}(reg, mask, val)
+\begin{DoxyCompactList}\small\item\em A standardized way of properly setting the value of H\-W register. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\end{Indent}
+\subsubsection*{Compiler provided data types}
+\label{_amgrp0fa76376c1171116a77221ec211612f0}%
+The compiler port must provide some C90 (C99) data types
+
+The compiler port must\-:
+\begin{DoxyItemize}
+\item declare sets of integer types having specified widths, standard type definitions and shall define corresponding sets of macros.
+\end{DoxyItemize}
+
+Types are defined in the following categories\-:
+\begin{DoxyItemize}
+\item Integer types having certain exact widths
+\item Fastest integer types having at least certain specified widths
+\item Integer types wide enough to hold pointers to objects
+\item standard type definitions
+\end{DoxyItemize}
+
+The following exact-\/width integer types are required\-:
+\begin{DoxyItemize}
+\item int8\-\_\-t
+\item int16\-\_\-t
+\item int32\-\_\-t
+\item uint8\-\_\-t
+\item uint16\-\_\-t
+\item uint32\-\_\-t
+\end{DoxyItemize}
+
+The following fastest minimum-\/width integer types are required\-:
+\begin{DoxyItemize}
+\item int\-\_\-fast8\-\_\-t
+\item int\-\_\-fast16\-\_\-t
+\item int\-\_\-fast32\-\_\-t
+\item uint\-\_\-fast8\-\_\-t
+\item uint\-\_\-fast16\-\_\-t
+\item uint\-\_\-fast32\-\_\-t
+\end{DoxyItemize}
+
+The following integer types capable of holding object pointers are required\-:
+\begin{DoxyItemize}
+\item intptr\-\_\-t
+\item uintptr\-\_\-t
+\end{DoxyItemize}
+
+The following standard type definitions are required\-:
+\begin{DoxyItemize}
+\item N\-U\-L\-L
+\item ptrdiff\-\_\-t
+\item size\-\_\-t 
+\end{DoxyItemize}\begin{DoxyCompactItemize}
+\item 
+enum \hyperlink{group__template__compiler_ga05f6c3f21a0d28271ad754637673d8fa}{bool\-Type} \{ \\*
+\hyperlink{group__template__compiler_gga05f6c3f21a0d28271ad754637673d8faaa82764c3079aea4e60c80e45befbb839}{T\-R\-U\-E} = 1\-U, 
+\\*
+\hyperlink{group__template__compiler_gga05f6c3f21a0d28271ad754637673d8faaa1e095cc966dbecf6a0d8aad75348d1a}{F\-A\-L\-S\-E} = 0\-U
+ \}
+\begin{DoxyCompactList}\small\item\em Bool data type. \end{DoxyCompactList}\item 
+typedef enum \hyperlink{group__template__compiler_ga05f6c3f21a0d28271ad754637673d8fa}{bool\-Type} \hyperlink{group__template__compiler_ga74fbee312f9185efb602f89d21b53404}{bool\-\_\-\-T}
+\begin{DoxyCompactList}\small\item\em Bool data type. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsubsection{Detailed Description}
+Interface of Compiler port -\/ Template. \begin{DoxyAuthor}{Author}
+Nenad Radulovic 
+\end{DoxyAuthor}

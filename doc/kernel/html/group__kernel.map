@@ -1,0 +1,5 @@
+<map id="Kernel" name="Kernel">
+<area shape="rect" id="node2" href="$group__kern__intf.html" title="Kernel main interface. " alt="" coords="125,5,198,32"/>
+<area shape="rect" id="node3" href="$group__kern__cfg.html" title="Kernel Configuration settings. " alt="" coords="112,56,211,83"/>
+<area shape="rect" id="node4" href="$group__kern__impl.html" title="Implementation of kernel port independent code. " alt="" coords="125,107,197,133"/>
+</map>

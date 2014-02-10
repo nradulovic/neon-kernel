@@ -1,0 +1,71 @@
+.TH "esThdQ" 3 "Sat Nov 30 2013" "Version 1.0BetaR02" "eSolid - Real-Time Kernel" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+esThdQ \- 
+.PP
+Thread Queue structure\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <kernel\&.h>\fP
+.SS "Data Structures"
+
+.in +1c
+.ti -1c
+.RI "struct \fBpbm_\fP"
+.br
+.RI "\fIPriority Bit Map structure\&. \fP"
+.ti -1c
+.RI "struct \fBthdLSent_\fP"
+.br
+.RI "\fIThread linked list sentinel structure\&. \fP"
+.in -1c
+.SS "Data Fields"
+
+.in +1c
+.ti -1c
+.RI "struct \fBesThdQ::pbm_\fP \fBprioOcc\fP"
+.br
+.RI "\fIPriority Occupancy\&. \fP"
+.ti -1c
+.RI "struct \fBesThdQ::thdLSent_\fP \fBgrp\fP [\fBCFG_SCHED_PRIO_LVL\fP]"
+.br
+.RI "\fIArray of thread linked list sentinel structures\&. \fP"
+.ti -1c
+.RI "portReg_T \fBsignature\fP"
+.br
+.RI "\fIThread Queue struct signature\&. \fP"
+.in -1c
+.SH "Detailed Description"
+.PP 
+Thread Queue structure\&. 
+
+
+.PP
+\fBObject class:\fP
+.RS 4
+Regular \fBAPI\fP object, this object is part of the application programming interface\&. 
+.RE
+.PP
+
+.SH "Field Documentation"
+.PP 
+.SS "struct \fBesThdQ::pbm_\fP                esThdQ::prioOcc"
+
+.PP
+Priority Occupancy\&. 
+.SS "struct \fBesThdQ::thdLSent_\fP                esThdQ::grp[\fBCFG_SCHED_PRIO_LVL\fP]"
+
+.PP
+Array of thread linked list sentinel structures\&. 
+.SS "portReg_T esThdQ::signature"
+
+.PP
+Thread Queue struct signature\&. 
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for eSolid - Real-Time Kernel from the source code\&.

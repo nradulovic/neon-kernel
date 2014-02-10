@@ -1,0 +1,237 @@
+\hypertarget{group__kern__lock}{\subsection{Kernel lock}
+\label{group__kern__lock}\index{Kernel lock@{Kernel lock}}
+}
+
+
+Kernel lock management.  
+
+
+Collaboration diagram for Kernel lock\-:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=238pt]{group__kern__lock}
+\end{center}
+\end{figure}
+\subsubsection*{Typedefs}
+\begin{DoxyCompactItemize}
+\item 
+typedef port\-Reg\-\_\-\-T \hyperlink{group__kern__lock_gad8b2b8257c3bf42c064adb66c0d45e2e}{es\-Lock\-Ctx\-\_\-\-T}
+\begin{DoxyCompactList}\small\item\em Kernel lock context type. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \hyperlink{group__kern__lock_gaa3ca4a02fafcfb840442506f42175a13}{es\-Kern\-Lock\-Int\-Enter} (\hyperlink{group__kern__lock_gad8b2b8257c3bf42c064adb66c0d45e2e}{es\-Lock\-Ctx\-\_\-\-T} $\ast$lock\-Ctx)
+\begin{DoxyCompactList}\small\item\em Enter a critical code lock. \end{DoxyCompactList}\item 
+void \hyperlink{group__kern__lock_gad8cb192a48802804cc12162edd18668d}{es\-Kern\-Lock\-Int\-Exit} (\hyperlink{group__kern__lock_gad8b2b8257c3bf42c064adb66c0d45e2e}{es\-Lock\-Ctx\-\_\-\-T} lock\-Ctx)
+\begin{DoxyCompactList}\small\item\em Exit a critical code lock. \end{DoxyCompactList}\item 
+void \hyperlink{group__kern__lock_ga6dd45355c20a10f7272bd39670353428}{es\-Kern\-Lock\-Enter\-I} (void)
+\begin{DoxyCompactList}\small\item\em Lock the scheduler. \end{DoxyCompactList}\item 
+void \hyperlink{group__kern__lock_ga3287aefb2c7dd24672c716d86a008ad3}{es\-Kern\-Lock\-Exit\-I} (void)
+\begin{DoxyCompactList}\small\item\em Unlock the scheduler. \end{DoxyCompactList}\item 
+void \hyperlink{group__kern__lock_ga86ec4f4cbaa889b0f23c7e2ebdcbbb97}{es\-Kern\-Lock\-Enter} (void)
+\begin{DoxyCompactList}\small\item\em Lock the scheduler. \end{DoxyCompactList}\item 
+void \hyperlink{group__kern__lock_gaf1eec663f7cc5c414b113901382ccd82}{es\-Kern\-Lock\-Exit} (void)
+\begin{DoxyCompactList}\small\item\em Unlock the scheduler. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsubsection{Detailed Description}
+Kernel lock management. These methods provide the most basic mechanism to protect concurrent access to a shared resource.
+
+For more details see \hyperlink{critical_section}{Critical sections}. 
+
+\subsubsection{Typedef Documentation}
+\hypertarget{group__kern__lock_gad8b2b8257c3bf42c064adb66c0d45e2e}{\index{Kernel lock@{Kernel lock}!es\-Lock\-Ctx\-\_\-\-T@{es\-Lock\-Ctx\-\_\-\-T}}
+\index{es\-Lock\-Ctx\-\_\-\-T@{es\-Lock\-Ctx\-\_\-\-T}!Kernel lock@{Kernel lock}}
+\paragraph[{es\-Lock\-Ctx\-\_\-\-T}]{\setlength{\rightskip}{0pt plus 5cm}typedef port\-Reg\-\_\-\-T {\bf es\-Lock\-Ctx\-\_\-\-T}}}\label{group__kern__lock_gad8b2b8257c3bf42c064adb66c0d45e2e}
+
+
+Kernel lock context type. 
+
+Variables declared using this type can hold current lock context which can be restored after a critical code section is exited. 
+
+\subsubsection{Function Documentation}
+\hypertarget{group__kern__lock_gaa3ca4a02fafcfb840442506f42175a13}{\index{Kernel lock@{Kernel lock}!es\-Kern\-Lock\-Int\-Enter@{es\-Kern\-Lock\-Int\-Enter}}
+\index{es\-Kern\-Lock\-Int\-Enter@{es\-Kern\-Lock\-Int\-Enter}!Kernel lock@{Kernel lock}}
+\paragraph[{es\-Kern\-Lock\-Int\-Enter}]{\setlength{\rightskip}{0pt plus 5cm}void es\-Kern\-Lock\-Int\-Enter (
+\begin{DoxyParamCaption}
+\item[{{\bf es\-Lock\-Ctx\-\_\-\-T} $\ast$}]{lock\-Ctx}
+\end{DoxyParamCaption}
+)}}\label{group__kern__lock_gaa3ca4a02fafcfb840442506f42175a13}
+
+
+Enter a critical code lock. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em lock\-Ctx} & Pointer to context variable where to store the current lock context. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyParagraph}{This service can be called from\-:}
+
+\begin{DoxyItemize}
+\item Application initialization code
+\item Application thread code 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Rescheduling\-:}
+
+\begin{DoxyItemize}
+\item never 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Object class\-:}
+Regular {\bfseries A\-P\-I} object, this object is part of the application programming interface. 
+\end{DoxyParagraph}
+\hypertarget{group__kern__lock_gad8cb192a48802804cc12162edd18668d}{\index{Kernel lock@{Kernel lock}!es\-Kern\-Lock\-Int\-Exit@{es\-Kern\-Lock\-Int\-Exit}}
+\index{es\-Kern\-Lock\-Int\-Exit@{es\-Kern\-Lock\-Int\-Exit}!Kernel lock@{Kernel lock}}
+\paragraph[{es\-Kern\-Lock\-Int\-Exit}]{\setlength{\rightskip}{0pt plus 5cm}void es\-Kern\-Lock\-Int\-Exit (
+\begin{DoxyParamCaption}
+\item[{{\bf es\-Lock\-Ctx\-\_\-\-T}}]{lock\-Ctx}
+\end{DoxyParamCaption}
+)}}\label{group__kern__lock_gad8cb192a48802804cc12162edd18668d}
+
+
+Exit a critical code lock. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em lock\-Ctx} & Context variable value\\
+\hline
+\end{DoxyParams}
+Restores the lock context to state before the \hyperlink{group__kern__lock_gaa3ca4a02fafcfb840442506f42175a13}{es\-Kern\-Lock\-Int\-Enter()} was called. \begin{DoxyParagraph}{This service can be called from\-:}
+
+\begin{DoxyItemize}
+\item Application initialization code
+\item Application thread code 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Rescheduling\-:}
+
+\begin{DoxyItemize}
+\item possible 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Object class\-:}
+Regular {\bfseries A\-P\-I} object, this object is part of the application programming interface. 
+\end{DoxyParagraph}
+\hypertarget{group__kern__lock_ga6dd45355c20a10f7272bd39670353428}{\index{Kernel lock@{Kernel lock}!es\-Kern\-Lock\-Enter\-I@{es\-Kern\-Lock\-Enter\-I}}
+\index{es\-Kern\-Lock\-Enter\-I@{es\-Kern\-Lock\-Enter\-I}!Kernel lock@{Kernel lock}}
+\paragraph[{es\-Kern\-Lock\-Enter\-I}]{\setlength{\rightskip}{0pt plus 5cm}void es\-Kern\-Lock\-Enter\-I (
+\begin{DoxyParamCaption}
+\item[{void}]{}
+\end{DoxyParamCaption}
+)}}\label{group__kern__lock_ga6dd45355c20a10f7272bd39670353428}
+
+
+Lock the scheduler. 
+
+\begin{DoxyPrecond}{Precondition}
+1) {\ttfamily The kernel state $<$ E\-S\-\_\-\-K\-E\-R\-N\-\_\-\-I\-N\-I\-T}, see \hyperlink{states}{Kernel states}. 
+\end{DoxyPrecond}
+\begin{DoxyParagraph}{This service can be called from\-:}
+
+\begin{DoxyItemize}
+\item Application thread code 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Rescheduling\-:}
+
+\begin{DoxyItemize}
+\item never 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Function class\-:}
+{\bfseries I class}, Interrupt-\/lock A\-P\-I function, this function can be called only from interrupts locked code sections. 
+\end{DoxyParagraph}
+\hypertarget{group__kern__lock_ga3287aefb2c7dd24672c716d86a008ad3}{\index{Kernel lock@{Kernel lock}!es\-Kern\-Lock\-Exit\-I@{es\-Kern\-Lock\-Exit\-I}}
+\index{es\-Kern\-Lock\-Exit\-I@{es\-Kern\-Lock\-Exit\-I}!Kernel lock@{Kernel lock}}
+\paragraph[{es\-Kern\-Lock\-Exit\-I}]{\setlength{\rightskip}{0pt plus 5cm}void es\-Kern\-Lock\-Exit\-I (
+\begin{DoxyParamCaption}
+\item[{void}]{}
+\end{DoxyParamCaption}
+)}}\label{group__kern__lock_ga3287aefb2c7dd24672c716d86a008ad3}
+
+
+Unlock the scheduler. 
+
+\begin{DoxyPrecond}{Precondition}
+1) {\ttfamily The kernel state $<$ E\-S\-\_\-\-K\-E\-R\-N\-\_\-\-I\-N\-I\-T}, see \hyperlink{states}{Kernel states}. 
+
+2) {\ttfamily g\-Kern\-Lock\-Cnt $>$ 0u}, current number of locks must be greater than zero, in other words\-: each call to kernel lock function must have its matching call to kernel unlock function. 
+\end{DoxyPrecond}
+\begin{DoxyParagraph}{This service can be called from\-:}
+
+\begin{DoxyItemize}
+\item Application thread code 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Rescheduling\-:}
+
+\begin{DoxyItemize}
+\item possible 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Function class\-:}
+{\bfseries I class}, Interrupt-\/lock A\-P\-I function, this function can be called only from interrupts locked code sections. 
+\end{DoxyParagraph}
+\hypertarget{group__kern__lock_ga86ec4f4cbaa889b0f23c7e2ebdcbbb97}{\index{Kernel lock@{Kernel lock}!es\-Kern\-Lock\-Enter@{es\-Kern\-Lock\-Enter}}
+\index{es\-Kern\-Lock\-Enter@{es\-Kern\-Lock\-Enter}!Kernel lock@{Kernel lock}}
+\paragraph[{es\-Kern\-Lock\-Enter}]{\setlength{\rightskip}{0pt plus 5cm}void es\-Kern\-Lock\-Enter (
+\begin{DoxyParamCaption}
+\item[{void}]{}
+\end{DoxyParamCaption}
+)}}\label{group__kern__lock_ga86ec4f4cbaa889b0f23c7e2ebdcbbb97}
+
+
+Lock the scheduler. 
+
+\begin{DoxyPrecond}{Precondition}
+1) {\ttfamily The kernel state $<$ E\-S\-\_\-\-K\-E\-R\-N\-\_\-\-I\-N\-I\-T}, see \hyperlink{states}{Kernel states}. 
+\end{DoxyPrecond}
+\begin{DoxyParagraph}{This service can be called from\-:}
+
+\begin{DoxyItemize}
+\item Application thread code 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Rescheduling\-:}
+
+\begin{DoxyItemize}
+\item never 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Object class\-:}
+Regular {\bfseries A\-P\-I} object, this object is part of the application programming interface. 
+\end{DoxyParagraph}
+\hypertarget{group__kern__lock_gaf1eec663f7cc5c414b113901382ccd82}{\index{Kernel lock@{Kernel lock}!es\-Kern\-Lock\-Exit@{es\-Kern\-Lock\-Exit}}
+\index{es\-Kern\-Lock\-Exit@{es\-Kern\-Lock\-Exit}!Kernel lock@{Kernel lock}}
+\paragraph[{es\-Kern\-Lock\-Exit}]{\setlength{\rightskip}{0pt plus 5cm}void es\-Kern\-Lock\-Exit (
+\begin{DoxyParamCaption}
+\item[{void}]{}
+\end{DoxyParamCaption}
+)}}\label{group__kern__lock_gaf1eec663f7cc5c414b113901382ccd82}
+
+
+Unlock the scheduler. 
+
+\begin{DoxyPrecond}{Precondition}
+1) {\ttfamily The kernel state $<$ E\-S\-\_\-\-K\-E\-R\-N\-\_\-\-I\-N\-I\-T}, see \hyperlink{states}{Kernel states}. 
+
+2) {\ttfamily g\-Kern\-Lock\-Cnt $>$ 0u}, current number of locks must be greater than zero, in other words\-: each call to kernel lock function must have its matching call to kernel unlock function. 
+\end{DoxyPrecond}
+\begin{DoxyParagraph}{This service can be called from\-:}
+
+\begin{DoxyItemize}
+\item Application thread code 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Rescheduling\-:}
+
+\begin{DoxyItemize}
+\item possible 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Object class\-:}
+Regular {\bfseries A\-P\-I} object, this object is part of the application programming interface. 
+\end{DoxyParagraph}

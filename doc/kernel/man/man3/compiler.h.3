@@ -1,0 +1,147 @@
+.TH "compiler.h" 3 "Sat Nov 30 2013" "Version 1.0BetaR02" "eSolid - Real-Time Kernel" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+compiler.h \- 
+.PP
+Interface of Compiler port - Template\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+\fC#include <stdint\&.h>\fP
+.br
+\fC#include <stddef\&.h>\fP
+.br
+
+.SS "Macros"
+
+.PP
+.RI "\fBCompiler provided macros\fP"
+.br
+Port interface macros and port specific macros
+.PP
+These macros are used to ease the writing of ports\&. All macros prefixed with \fBPORT_\fP are part of the port interface\&. 
+.PP
+.in +1c
+.in +1c
+.ti -1c
+.RI "#define \fBPORT_C_INLINE\fP   inline"
+.br
+.RI "\fIC extension - make a function inline\&. \fP"
+.ti -1c
+.RI "#define \fBPORT_C_INLINE_ALWAYS\fP   inline"
+.br
+.RI "\fIC extension - make a function inline - always\&. \fP"
+.ti -1c
+.RI "#define \fBPORT_C_NAKED\fP"
+.br
+.RI "\fIOmit function prologue/epilogue sequences\&. \fP"
+.ti -1c
+.RI "#define \fBPORT_C_FUNC\fP   'unknown'"
+.br
+.RI "\fIProvides function name for assert macros\&. \fP"
+.ti -1c
+.RI "#define \fBPORT_C_WEAK\fP"
+.br
+.RI "\fIDeclares a weak function\&. \fP"
+.ti -1c
+.RI "#define \fBPORT_C_ALIGNED\fP(expr)"
+.br
+.RI "\fIThis attribute specifies a minimum alignment (in bytes) for variables of the specified type\&. \fP"
+.ti -1c
+.RI "#define \fBPORT_HWREG_SET\fP(reg, mask, val)"
+.br
+.RI "\fIA standardized way of properly setting the value of HW register\&. \fP"
+.in -1c
+.in -1c
+.SS "Compiler provided data types"
+The compiler port must provide some C90 (C99) data types
+.PP
+The compiler port must:
+.IP "\(bu" 2
+declare sets of integer types having specified widths, standard type definitions and shall define corresponding sets of macros\&.
+.PP
+.PP
+Types are defined in the following categories:
+.IP "\(bu" 2
+Integer types having certain exact widths
+.IP "\(bu" 2
+Fastest integer types having at least certain specified widths
+.IP "\(bu" 2
+Integer types wide enough to hold pointers to objects
+.IP "\(bu" 2
+standard type definitions
+.PP
+.PP
+The following exact-width integer types are required:
+.IP "\(bu" 2
+int8_t
+.IP "\(bu" 2
+int16_t
+.IP "\(bu" 2
+int32_t
+.IP "\(bu" 2
+uint8_t
+.IP "\(bu" 2
+uint16_t
+.IP "\(bu" 2
+uint32_t
+.PP
+.PP
+The following fastest minimum-width integer types are required:
+.IP "\(bu" 2
+int_fast8_t
+.IP "\(bu" 2
+int_fast16_t
+.IP "\(bu" 2
+int_fast32_t
+.IP "\(bu" 2
+uint_fast8_t
+.IP "\(bu" 2
+uint_fast16_t
+.IP "\(bu" 2
+uint_fast32_t
+.PP
+.PP
+The following integer types capable of holding object pointers are required:
+.IP "\(bu" 2
+intptr_t
+.IP "\(bu" 2
+uintptr_t
+.PP
+.PP
+The following standard type definitions are required:
+.IP "\(bu" 2
+NULL
+.IP "\(bu" 2
+ptrdiff_t
+.IP "\(bu" 2
+size_t 
+.PP
+
+.in +1c
+.ti -1c
+.RI "enum \fBboolType\fP { \fBTRUE\fP = 1U, \fBFALSE\fP = 0U }"
+.br
+.RI "\fIBool data type\&. \fP"
+.ti -1c
+.RI "typedef enum \fBboolType\fP \fBbool_T\fP"
+.br
+.RI "\fIBool data type\&. \fP"
+.in -1c
+.SH "Detailed Description"
+.PP 
+Interface of Compiler port - Template\&. 
+
+
+.PP
+\fBAuthor:\fP
+.RS 4
+Nenad Radulovic 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for eSolid - Real-Time Kernel from the source code\&.

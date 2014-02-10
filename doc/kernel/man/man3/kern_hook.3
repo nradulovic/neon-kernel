@@ -1,0 +1,180 @@
+.TH "Kernel hook functions" 3 "Sat Nov 30 2013" "Version 1.0BetaR02" "eSolid - Real-Time Kernel" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+Kernel hook functions \- 
+.PP
+User defined hook (callback) function prototypes\&.  
+
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "void \fBuserPreSysTmr\fP (void)"
+.br
+.RI "\fISystem timer hook function, called from system system timer ISR function before the kernel functions\&. \fP"
+.ti -1c
+.RI "void \fBuserPreKernInit\fP (void)"
+.br
+.RI "\fIKernel initialization hook function, called from \fBesKernInit()\fP function before kernel initialization\&. \fP"
+.ti -1c
+.RI "void \fBuserPostKernInit\fP (void)"
+.br
+.RI "\fIKernel initialization hook function, called from \fBesKernInit()\fP function after kernel initialization\&. \fP"
+.ti -1c
+.RI "void \fBuserPreKernStart\fP (void)"
+.br
+.RI "\fIKernel start hook function, called from \fBesKernStart()\fP function\&. \fP"
+.ti -1c
+.RI "void \fBuserPostThdInit\fP (\fBesThd_T\fP *thd)"
+.br
+.RI "\fIThread initialization end hook function, called from \fBesThdInit()\fP function\&. \fP"
+.ti -1c
+.RI "void \fBuserPreThdTerm\fP (void)"
+.br
+.RI "\fIThread terminate hook function, called from \fBesThdTerm()\fP or when a thread terminates itself\&. \fP"
+.ti -1c
+.RI "void \fBuserPreIdle\fP (void)"
+.br
+.RI "\fIPre Idle hook function, called from idle thread, just before entering idle period\&. \fP"
+.ti -1c
+.RI "void \fBuserPostIdle\fP (void)"
+.br
+.RI "\fIPost idle hook function, called from idle thread, just after exiting idle period\&. \fP"
+.ti -1c
+.RI "void \fBuserPreCtxSw\fP (\fBesThd_T\fP *oldThd, \fBesThd_T\fP *newThd)"
+.br
+.RI "\fIKernel context switch hook function, called from \fBesSchedYieldI()\fP and \fBesSchedYieldIsrI()\fP functions just before context switch\&. \fP"
+.in -1c
+.SH "Detailed Description"
+.PP 
+User defined hook (callback) function prototypes\&. 
+
+
+.PP
+\fBNote:\fP
+.RS 4
+1) The definition of this functions must be written by the user\&. 
+.RE
+.PP
+
+.SH "Function Documentation"
+.PP 
+.SS "void userPreSysTmr (void)"
+
+.PP
+System timer hook function, called from system system timer ISR function before the kernel functions\&. 
+.PP
+\fBNote:\fP
+.RS 4
+1) This function is called only if \fBCFG_HOOK_PRE_SYSTMR_EVENT\fP is active\&.
+.RE
+.PP
+This function is called whenever a system event is generated\&. 
+.SS "void userPreKernInit (void)"
+
+.PP
+Kernel initialization hook function, called from \fBesKernInit()\fP function before kernel initialization\&. 
+.PP
+\fBNote:\fP
+.RS 4
+1) This function is called only if \fBCFG_HOOK_PRE_KERN_INIT\fP is active\&.
+.RE
+.PP
+This function is called before the kernel initialization\&. 
+.SS "void userPostKernInit (void)"
+
+.PP
+Kernel initialization hook function, called from \fBesKernInit()\fP function after kernel initialization\&. 
+.PP
+\fBNote:\fP
+.RS 4
+1) This function is called only if \fBCFG_HOOK_POST_KERN_INIT\fP is active\&.
+.RE
+.PP
+This function is called after the kernel initialization\&. 
+.SS "void userPreKernStart (void)"
+
+.PP
+Kernel start hook function, called from \fBesKernStart()\fP function\&. 
+.PP
+\fBNote:\fP
+.RS 4
+1) This function is called only if \fBCFG_HOOK_PRE_KERN_START\fP is active\&.
+.RE
+.PP
+This function is called before kernel start\&. 
+.SS "void userPostThdInit (\fBesThd_T\fP *thd)"
+
+.PP
+Thread initialization end hook function, called from \fBesThdInit()\fP function\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIthd\fP Thread: pointer to thread Id structure that has just been initialized\&. 
+.RE
+.PP
+\fBNote:\fP
+.RS 4
+1) This function is called only if \fBCFG_HOOK_POST_THD_INIT\fP is active\&.
+.RE
+.PP
+This function is called after the thread initialization\&. 
+.SS "void userPreThdTerm (void)"
+
+.PP
+Thread terminate hook function, called from \fBesThdTerm()\fP or when a thread terminates itself\&. 
+.PP
+\fBNote:\fP
+.RS 4
+1) This function is called only if \fBCFG_HOOK_PRE_THD_TERM\fP is active\&. 
+.RE
+.PP
+
+.SS "void userPreIdle (void)"
+
+.PP
+Pre Idle hook function, called from idle thread, just before entering idle period\&. 
+.PP
+\fBNote:\fP
+.RS 4
+1) This function is called only if \fBCFG_HOOK_PRE_IDLE\fP and \fBCFG_SCHED_POWER_SAVE\fP are active\&. 
+.PP
+2) This function is called with interrupts and scheduler locked\&. 
+.RE
+.PP
+
+.SS "void userPostIdle (void)"
+
+.PP
+Post idle hook function, called from idle thread, just after exiting idle period\&. 
+.PP
+\fBNote:\fP
+.RS 4
+1) This function is called only if \fBCFG_HOOK_POST_IDLE\fP and \fBCFG_SCHED_POWER_SAVE\fP are active\&. 
+.PP
+2) This function is called with scheduler locked\&. 
+.RE
+.PP
+
+.SS "void userPreCtxSw (\fBesThd_T\fP *oldThd, \fBesThd_T\fP *newThd)"
+
+.PP
+Kernel context switch hook function, called from \fBesSchedYieldI()\fP and \fBesSchedYieldIsrI()\fP functions just before context switch\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIoldThd\fP Pointer to the thread being switched out\&. 
+.br
+\fInewThd\fP Pointer to the thread being switched in\&. 
+.RE
+.PP
+\fBNote:\fP
+.RS 4
+1) This function is called only if \fBCFG_HOOK_PRE_CTX_SW\fP is active\&.
+.RE
+.PP
+This function is called at each context switch\&. 
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for eSolid - Real-Time Kernel from the source code\&.

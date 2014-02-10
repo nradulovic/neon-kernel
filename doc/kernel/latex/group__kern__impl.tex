@@ -1,0 +1,2091 @@
+\hypertarget{group__kern__impl}{\subsection{Implementation}
+\label{group__kern__impl}\index{Implementation@{Implementation}}
+}
+
+
+Kernel port independent code implementation.  
+
+
+Collaboration diagram for Implementation\-:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=244pt]{group__kern__impl}
+\end{center}
+\end{figure}
+\subsubsection*{Data Structures}
+\begin{DoxyCompactItemize}
+\item 
+struct \hyperlink{structsysTmr}{sys\-Tmr}
+\begin{DoxyCompactList}\small\item\em Main System Timer structure. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsubsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\#define \hyperlink{group__kern__impl_ga8558d079ebfe8a9af11fc796d46d9ab5}{D\-E\-F\-\_\-\-S\-C\-H\-E\-D\-\_\-\-S\-T\-A\-T\-E\-\_\-\-I\-N\-T\-S\-R\-V\-\_\-\-M\-S\-K}~(0x01u $<$$<$ 0)
+\begin{DoxyCompactList}\small\item\em Kernel state variable bit position which defines if the kernel is in interrupt servicing state. \end{DoxyCompactList}\item 
+\#define \hyperlink{group__kern__impl_gaaf8217f5d1bfca8caecc2206fa74abc7}{D\-E\-F\-\_\-\-S\-C\-H\-E\-D\-\_\-\-S\-T\-A\-T\-E\-\_\-\-L\-O\-C\-K\-\_\-\-M\-S\-K}~(0x01u $<$$<$ 1)
+\begin{DoxyCompactList}\small\item\em Kernel state variable bit position which defines if the kernel is locked or not. \end{DoxyCompactList}\item 
+\#define \hyperlink{group__kern__impl_ga19da32f7a4f44e5a4bddb5a588d73677}{D\-E\-F\-\_\-\-T\-H\-D\-\_\-\-C\-O\-N\-T\-R\-A\-C\-T\-\_\-\-S\-I\-G\-N\-A\-T\-U\-R\-E}~((port\-Reg\-\_\-\-T)0xfeedbeeful)
+\begin{DoxyCompactList}\small\item\em Thread structure signature. \end{DoxyCompactList}\item 
+\#define \hyperlink{group__kern__impl_ga7f087a59efb2fe7078a7479aa674b7b4}{D\-E\-F\-\_\-\-T\-H\-D\-Q\-\_\-\-C\-O\-N\-T\-R\-A\-C\-T\-\_\-\-S\-I\-G\-N\-A\-T\-U\-R\-E}~((port\-Reg\-\_\-\-T)0xfeedbef0ul)
+\begin{DoxyCompactList}\small\item\em Thread Queue structure signature. \end{DoxyCompactList}\item 
+\#define \hyperlink{group__kern__impl_gaed6b30b1e098b37a398f58e2a5b73b8b}{D\-E\-F\-\_\-\-V\-T\-M\-R\-\_\-\-C\-O\-N\-T\-R\-A\-C\-T\-\_\-\-S\-I\-G\-N\-A\-T\-U\-R\-E}~((port\-Reg\-\_\-\-T)0xfeedbef1ul)
+\begin{DoxyCompactList}\small\item\em Timer structure signature. \end{DoxyCompactList}\item 
+\#define \hyperlink{group__kern__impl_ga177fc11d78c08db1f70168bf971e0059}{D\-L\-I\-S\-T\-\_\-\-I\-S\-\_\-\-E\-N\-T\-R\-Y\-\_\-\-F\-I\-R\-S\-T}(list, entry)~((entry) == (entry)-\/$>$list.\-next)
+\begin{DoxyCompactList}\small\item\em D\-List macro\-: is the thread the first one in the list. \end{DoxyCompactList}\item 
+\#define \hyperlink{group__kern__impl_gaad48325fff9eb7b4c41788e190a28cf2}{D\-L\-I\-S\-T\-\_\-\-I\-S\-\_\-\-E\-N\-T\-R\-Y\-\_\-\-L\-A\-S\-T}(list, entry)~\hyperlink{group__kern__impl_ga177fc11d78c08db1f70168bf971e0059}{D\-L\-I\-S\-T\-\_\-\-I\-S\-\_\-\-E\-N\-T\-R\-Y\-\_\-\-F\-I\-R\-S\-T}(list, entry)
+\begin{DoxyCompactList}\small\item\em D\-List macro\-: is the thread the last one in the list. \end{DoxyCompactList}\item 
+\#define \hyperlink{group__kern__impl_ga77e64b5c52cb61e2bb7f6a4c6b0c9acc}{D\-L\-I\-S\-T\-\_\-\-I\-S\-\_\-\-E\-N\-T\-R\-Y\-\_\-\-S\-I\-N\-G\-L\-E}(list, entry)~\hyperlink{group__kern__impl_ga177fc11d78c08db1f70168bf971e0059}{D\-L\-I\-S\-T\-\_\-\-I\-S\-\_\-\-E\-N\-T\-R\-Y\-\_\-\-F\-I\-R\-S\-T}(list, entry)
+\begin{DoxyCompactList}\small\item\em D\-List macro\-: is the thread single in the list. \end{DoxyCompactList}\item 
+\#define \hyperlink{group__kern__impl_gab4b1b58e436cff32fc080493dfa35619}{D\-L\-I\-S\-T\-\_\-\-E\-N\-T\-R\-Y\-\_\-\-N\-E\-X\-T}(list, entry)~(entry)-\/$>$list.\-next
+\begin{DoxyCompactList}\small\item\em D\-List macro\-: get the next entry. \end{DoxyCompactList}\item 
+\#define \hyperlink{group__kern__impl_ga23a7667839eb576ddc4f55f2fcf77d65}{D\-L\-I\-S\-T\-\_\-\-E\-N\-T\-R\-Y\-\_\-\-I\-N\-I\-T}(list, entry)
+\begin{DoxyCompactList}\small\item\em D\-List macro\-: initialize entry. \end{DoxyCompactList}\item 
+\#define \hyperlink{group__kern__impl_gaff514b213c2cd3ad388fd5479275834f}{D\-L\-I\-S\-T\-\_\-\-E\-N\-T\-R\-Y\-\_\-\-A\-D\-D\-\_\-\-A\-F\-T\-E\-R}(list, current, entry)
+\begin{DoxyCompactList}\small\item\em D\-List macro\-: add new {\ttfamily entry} after {\ttfamily current} entry. \end{DoxyCompactList}\item 
+\#define \hyperlink{group__kern__impl_ga4a663d16206e95f1084af0a44e8518a0}{D\-L\-I\-S\-T\-\_\-\-E\-N\-T\-R\-Y\-\_\-\-R\-M}(list, entry)
+\begin{DoxyCompactList}\small\item\em D\-List macro\-: remove the {\ttfamily entry} from a list. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{group__kern__impl_ga52b5266d709bc1ce3ca9b1838f389023}{D\-E\-C\-L\-\_\-\-M\-O\-D\-U\-L\-E\-\_\-\-I\-N\-F\-O} (\char`\"{}Kernel\char`\"{}, E\-S\-\_\-\-K\-E\-R\-N\-\_\-\-I\-D,\char`\"{}Nenad Radulovic\char`\"{})
+\begin{DoxyCompactList}\small\item\em Module identification info. \end{DoxyCompactList}\item 
+void \hyperlink{group__kern__impl_ga9e9ff699d62d6035cd51121bb3140704}{es\-Kern\-Init} (void)
+\begin{DoxyCompactList}\small\item\em Initialize kernel internal data structures. \end{DoxyCompactList}\item 
+P\-O\-R\-T\-\_\-\-C\-\_\-\-N\-O\-R\-E\-T\-U\-R\-N void \hyperlink{group__kern__impl_ga0e7a0a6b9c02df58de0f98de0229a09d}{es\-Kern\-Start} (void)
+\begin{DoxyCompactList}\small\item\em Start the multi-\/threading. \end{DoxyCompactList}\item 
+void \hyperlink{group__kern__impl_ga3182e4c1a47897109d0a429b10a2483e}{es\-Kern\-Sys\-Tmr} (void)
+\begin{DoxyCompactList}\small\item\em Process the system timer event. \end{DoxyCompactList}\item 
+void \hyperlink{group__kern__impl_gac0d578bcd4a10b2c8e5fc90f0b86ccec}{es\-Kern\-Isr\-Enter\-I} (void)
+\begin{DoxyCompactList}\small\item\em Enter Interrupt Service Routine. \end{DoxyCompactList}\item 
+void \hyperlink{group__kern__impl_gaa6347925fff1684b5425dd2857c27129}{es\-Kern\-Isr\-Exit\-I} (void)
+\begin{DoxyCompactList}\small\item\em Exit Interrupt Service Routine. \end{DoxyCompactList}\item 
+void \hyperlink{group__kern__impl_gaa3ca4a02fafcfb840442506f42175a13}{es\-Kern\-Lock\-Int\-Enter} (\hyperlink{group__kern__lock_gad8b2b8257c3bf42c064adb66c0d45e2e}{es\-Lock\-Ctx\-\_\-\-T} $\ast$lock\-Ctx)
+\begin{DoxyCompactList}\small\item\em Enter a critical code lock. \end{DoxyCompactList}\item 
+void \hyperlink{group__kern__impl_gad8cb192a48802804cc12162edd18668d}{es\-Kern\-Lock\-Int\-Exit} (\hyperlink{group__kern__lock_gad8b2b8257c3bf42c064adb66c0d45e2e}{es\-Lock\-Ctx\-\_\-\-T} lock\-Ctx)
+\begin{DoxyCompactList}\small\item\em Exit a critical code lock. \end{DoxyCompactList}\item 
+void \hyperlink{group__kern__impl_ga6dd45355c20a10f7272bd39670353428}{es\-Kern\-Lock\-Enter\-I} (void)
+\begin{DoxyCompactList}\small\item\em Lock the scheduler. \end{DoxyCompactList}\item 
+void \hyperlink{group__kern__impl_ga3287aefb2c7dd24672c716d86a008ad3}{es\-Kern\-Lock\-Exit\-I} (void)
+\begin{DoxyCompactList}\small\item\em Unlock the scheduler. \end{DoxyCompactList}\item 
+void \hyperlink{group__kern__impl_ga86ec4f4cbaa889b0f23c7e2ebdcbbb97}{es\-Kern\-Lock\-Enter} (void)
+\begin{DoxyCompactList}\small\item\em Lock the scheduler. \end{DoxyCompactList}\item 
+void \hyperlink{group__kern__impl_gaf1eec663f7cc5c414b113901382ccd82}{es\-Kern\-Lock\-Exit} (void)
+\begin{DoxyCompactList}\small\item\em Unlock the scheduler. \end{DoxyCompactList}\item 
+void \hyperlink{group__kern__impl_gac91734f3ee867b519f59bf81cc7fde88}{es\-Thd\-Init} (\hyperlink{group__kern__thd_ga62e3a3ca0a4597a19c43cb8868810d82}{es\-Thd\-\_\-\-T} $\ast$thd, void($\ast$fn)(void $\ast$), void $\ast$arg, \hyperlink{group__template__cpu__intf_ga13cc91970e3e05fe4210440c068d3f4a}{port\-Stck\-\_\-\-T} $\ast$stck, size\-\_\-t stck\-Size, uint8\-\_\-t prio)
+\begin{DoxyCompactList}\small\item\em Initialize the specified thread. \end{DoxyCompactList}\item 
+void \hyperlink{group__kern__impl_gac9d1eac76f26096614e8196bcfd8b905}{es\-Thd\-Term} (\hyperlink{group__kern__thd_ga62e3a3ca0a4597a19c43cb8868810d82}{es\-Thd\-\_\-\-T} $\ast$thd)
+\begin{DoxyCompactList}\small\item\em Terminate the specified thread. \end{DoxyCompactList}\item 
+void \hyperlink{group__kern__impl_ga8eaa731d0026a8a1667d4422d5031df6}{es\-Thd\-Set\-Prio\-I} (\hyperlink{group__kern__thd_ga62e3a3ca0a4597a19c43cb8868810d82}{es\-Thd\-\_\-\-T} $\ast$thd, uint8\-\_\-t prio)
+\begin{DoxyCompactList}\small\item\em Set the priority of a thread. \end{DoxyCompactList}\item 
+void \hyperlink{group__kern__impl_gaddd5fe0557c91559b9452beb0fc236fd}{es\-Thd\-Q\-Init} (\hyperlink{group__kern__thdq_ga7a1a060699e83a01512ebb5540019556}{es\-Thd\-Q\-\_\-\-T} $\ast$thd\-Q)
+\begin{DoxyCompactList}\small\item\em Initialize Thread Queue. \end{DoxyCompactList}\item 
+void \hyperlink{group__kern__impl_gaa5f19b32a7f0c42616b5270dcbd73a3e}{es\-Thd\-Q\-Term} (\hyperlink{group__kern__thdq_ga7a1a060699e83a01512ebb5540019556}{es\-Thd\-Q\-\_\-\-T} $\ast$thd\-Q)
+\begin{DoxyCompactList}\small\item\em Terminate Thread Queue. \end{DoxyCompactList}\item 
+void \hyperlink{group__kern__impl_ga9da1e71c137d8adb8c9bdead7052b5fa}{es\-Thd\-Q\-Add\-I} (\hyperlink{group__kern__thdq_ga7a1a060699e83a01512ebb5540019556}{es\-Thd\-Q\-\_\-\-T} $\ast$thd\-Q, \hyperlink{group__kern__thd_ga62e3a3ca0a4597a19c43cb8868810d82}{es\-Thd\-\_\-\-T} $\ast$thd)
+\begin{DoxyCompactList}\small\item\em Add a thread to the Thread Queue. \end{DoxyCompactList}\item 
+void \hyperlink{group__kern__impl_gaa18afa95e34035da03c5cb7ea3a96320}{es\-Thd\-Q\-Rm\-I} (\hyperlink{group__kern__thdq_ga7a1a060699e83a01512ebb5540019556}{es\-Thd\-Q\-\_\-\-T} $\ast$thd\-Q, \hyperlink{group__kern__thd_ga62e3a3ca0a4597a19c43cb8868810d82}{es\-Thd\-\_\-\-T} $\ast$thd)
+\begin{DoxyCompactList}\small\item\em Removes the thread from the Thread Queue. \end{DoxyCompactList}\item 
+\hyperlink{group__kern__thd_ga62e3a3ca0a4597a19c43cb8868810d82}{es\-Thd\-\_\-\-T} $\ast$ \hyperlink{group__kern__impl_ga1670c123f31c346b24ec9d2b7ae35f88}{es\-Thd\-Q\-Fetch\-I} (const \hyperlink{group__kern__thdq_ga7a1a060699e83a01512ebb5540019556}{es\-Thd\-Q\-\_\-\-T} $\ast$thd\-Q)
+\begin{DoxyCompactList}\small\item\em Fetch the first high priority thread from the Thread Queue. \end{DoxyCompactList}\item 
+\hyperlink{group__kern__thd_ga62e3a3ca0a4597a19c43cb8868810d82}{es\-Thd\-\_\-\-T} $\ast$ \hyperlink{group__kern__impl_gae365b14292f1496a90d876baec84fb4e}{es\-Thd\-Q\-Fetch\-Rotate\-I} (\hyperlink{group__kern__thdq_ga7a1a060699e83a01512ebb5540019556}{es\-Thd\-Q\-\_\-\-T} $\ast$thd\-Q, uint\-\_\-fast8\-\_\-t prio)
+\begin{DoxyCompactList}\small\item\em Fetch the next thread and rotate thread linked list. \end{DoxyCompactList}\item 
+\hyperlink{group__template__compiler_ga74fbee312f9185efb602f89d21b53404}{bool\-\_\-\-T} \hyperlink{group__kern__impl_gacf2687b82ce64e2154d97fd3b69a4ab5}{es\-Thd\-Q\-Is\-Empty} (const \hyperlink{group__kern__thdq_ga7a1a060699e83a01512ebb5540019556}{es\-Thd\-Q\-\_\-\-T} $\ast$thd\-Q)
+\begin{DoxyCompactList}\small\item\em Is thread queue empty. \end{DoxyCompactList}\item 
+void \hyperlink{group__kern__impl_ga73e14b1860ce824c822adc407aee0977}{es\-Sched\-Rdy\-Add\-I} (\hyperlink{group__kern__thd_ga62e3a3ca0a4597a19c43cb8868810d82}{es\-Thd\-\_\-\-T} $\ast$thd)
+\begin{DoxyCompactList}\small\item\em Add thread {\ttfamily thd} to the ready thread list and notify the scheduler. \end{DoxyCompactList}\item 
+void \hyperlink{group__kern__impl_ga0b8263c5024ebb59cd9b95cc9253b44d}{es\-Sched\-Rdy\-Rm\-I} (\hyperlink{group__kern__thd_ga62e3a3ca0a4597a19c43cb8868810d82}{es\-Thd\-\_\-\-T} $\ast$thd)
+\begin{DoxyCompactList}\small\item\em Remove thread {\ttfamily thd} from the ready thread list and notify the scheduler. \end{DoxyCompactList}\item 
+void \hyperlink{group__kern__impl_gaf90e487bfce974dafaeed5009e189810}{es\-Sched\-Yield\-I} (void)
+\begin{DoxyCompactList}\small\item\em Force the scheduler invocation which will evaluate all ready threads and switch to ready thread with the highest priority. \end{DoxyCompactList}\item 
+void \hyperlink{group__kern__impl_gafbea29b376b29f11bbfc48a0f5144e9a}{es\-Sched\-Yield\-Isr\-I} (void)
+\begin{DoxyCompactList}\small\item\em Force the scheduler invocation which will evaluate all ready threads and switch to ready thread with the highest priority. \end{DoxyCompactList}\item 
+void \hyperlink{group__kern__impl_ga45fe650eac73e7fe203cc81565401555}{es\-V\-Tmr\-Init\-I} (\hyperlink{group__kern__vtmr_ga3c020f0ca54ff412bc1d1505502d2afc}{es\-V\-Tmr\-\_\-\-T} $\ast$v\-Tmr, \hyperlink{group__kern__vtmr_ga844873888c186ee81eb66620dadb0451}{es\-Tick\-\_\-\-T} tick, void($\ast$fn)(void $\ast$), void $\ast$arg)
+\begin{DoxyCompactList}\small\item\em Add and start a new virtual timer. \end{DoxyCompactList}\item 
+void \hyperlink{group__kern__impl_gad932cf00aec4ba03a0df02ccc493c4c2}{es\-V\-Tmr\-Init} (\hyperlink{group__kern__vtmr_ga3c020f0ca54ff412bc1d1505502d2afc}{es\-V\-Tmr\-\_\-\-T} $\ast$v\-Tmr, \hyperlink{group__kern__vtmr_ga844873888c186ee81eb66620dadb0451}{es\-Tick\-\_\-\-T} tick, void($\ast$fn)(void $\ast$), void $\ast$arg)
+\begin{DoxyCompactList}\small\item\em Add and start a new virtual timer. \end{DoxyCompactList}\item 
+void \hyperlink{group__kern__impl_ga96bb2c81f649c0305dfd08d1c79b2e37}{es\-V\-Tmr\-Term\-I} (\hyperlink{group__kern__vtmr_ga3c020f0ca54ff412bc1d1505502d2afc}{es\-V\-Tmr\-\_\-\-T} $\ast$v\-Tmr)
+\begin{DoxyCompactList}\small\item\em Cancel and remove a virtual timer. \end{DoxyCompactList}\item 
+void \hyperlink{group__kern__impl_gad6ec93a68e3526f18ed926cd441878cd}{es\-V\-Tmr\-Term} (\hyperlink{group__kern__vtmr_ga3c020f0ca54ff412bc1d1505502d2afc}{es\-V\-Tmr\-\_\-\-T} $\ast$v\-Tmr)
+\begin{DoxyCompactList}\small\item\em Cancel and remove a virtual timer. \end{DoxyCompactList}\item 
+void \hyperlink{group__kern__impl_ga26d10c6aaa0cd1d04261d2c9911e890d}{es\-V\-Tmr\-Delay} (\hyperlink{group__kern__vtmr_ga844873888c186ee81eb66620dadb0451}{es\-Tick\-\_\-\-T} tick)
+\begin{DoxyCompactList}\small\item\em Delay for specified amount of ticks. \end{DoxyCompactList}\item 
+\hyperlink{group__kern__vtmr_ga844873888c186ee81eb66620dadb0451}{es\-Tick\-\_\-\-T} \hyperlink{group__kern__impl_gacb0d88d6a7e467dc37a6a9a85945aaa6}{es\-Sys\-Tmr\-Tick\-Get} (void)
+\begin{DoxyCompactList}\small\item\em Get the current tick value. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+static uint\-\_\-fast8\-\_\-t \hyperlink{group__kern__impl_gad8535f99414ea3e0e37a91fd6600246e}{Kern\-Lock\-Cnt}
+\begin{DoxyCompactList}\small\item\em Kernel Lock Counter. \end{DoxyCompactList}\item 
+const struct \hyperlink{structkernCtrl__}{kern\-Ctrl\-\_\-} \hyperlink{group__kern__impl_ga93a7ee7768ffd94201bf1795a543194b}{Kern\-Ctrl}
+\begin{DoxyCompactList}\small\item\em Kernel control initialization. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsubsection*{System timer}
+\begin{DoxyCompactItemize}
+\item 
+static struct \hyperlink{structsysTmr}{sys\-Tmr} \hyperlink{group__kern__impl_gaf4fd8bfc453bbab3d94186c863a180c0}{Sys\-Tmr}
+\begin{DoxyCompactList}\small\item\em Main System Timer structure. \end{DoxyCompactList}\item 
+static struct \hyperlink{structesVTmr}{es\-V\-Tmr} \hyperlink{group__kern__impl_ga49813e0a9a014d99d076943e96b2408c}{V\-Tmr\-Armed}
+\begin{DoxyCompactList}\small\item\em List of virtual armed timers waiting to expire. \end{DoxyCompactList}\item 
+static struct \hyperlink{structesVTmr}{es\-V\-Tmr} \hyperlink{group__kern__impl_gac27c4e18276b392295b973fc00f31765}{V\-Tmr\-Pend}
+\begin{DoxyCompactList}\small\item\em Virtual timers pending to be inserted into waiting list. \end{DoxyCompactList}\item 
+static struct \hyperlink{structesThd}{es\-Thd} \hyperlink{group__kern__impl_gaab82048477ffd940e6eff13d4280eb72}{K\-V\-Tmr}
+\begin{DoxyCompactList}\small\item\em Virtual timer thread I\-D. \end{DoxyCompactList}\item 
+static \hyperlink{group__template__compiler_ga87952d6e574c7f437503926e833ba345}{P\-O\-R\-T\-\_\-\-C\-\_\-\-I\-N\-L\-I\-N\-E} void \hyperlink{group__kern__impl_gaa284b6ec458b79a49c54eedc738259fb}{sys\-Tmr\-Init} (void)
+\begin{DoxyCompactList}\small\item\em Initialize system timer hardware. \end{DoxyCompactList}\item 
+static \hyperlink{group__template__compiler_ga87952d6e574c7f437503926e833ba345}{P\-O\-R\-T\-\_\-\-C\-\_\-\-I\-N\-L\-I\-N\-E} void \hyperlink{group__kern__impl_gaac3698a7627e9d0b7b1f0d5f741d2816}{sys\-Tmr\-Activate} (void)
+\begin{DoxyCompactList}\small\item\em Try to activate system timer. \end{DoxyCompactList}\item 
+static \hyperlink{group__template__compiler_ga87952d6e574c7f437503926e833ba345}{P\-O\-R\-T\-\_\-\-C\-\_\-\-I\-N\-L\-I\-N\-E} void \hyperlink{group__kern__impl_gab564a700462dce0be7ba31f2d3022f7b}{sys\-Tmr\-Deactivate\-I} (void)
+\begin{DoxyCompactList}\small\item\em Try to deactivate system timer. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsubsection*{Priority Bit Map}
+\begin{DoxyCompactItemize}
+\item 
+static \hyperlink{group__template__compiler_ga87952d6e574c7f437503926e833ba345}{P\-O\-R\-T\-\_\-\-C\-\_\-\-I\-N\-L\-I\-N\-E} void \hyperlink{group__kern__impl_gaccc724ae39d88a6fcf21891c390ea845}{pbm\-Init} (struct pbm\-\_\- $\ast$pbm)
+\begin{DoxyCompactList}\small\item\em Initialize bitmap. \end{DoxyCompactList}\item 
+static \hyperlink{group__template__compiler_ga87952d6e574c7f437503926e833ba345}{P\-O\-R\-T\-\_\-\-C\-\_\-\-I\-N\-L\-I\-N\-E} void \hyperlink{group__kern__impl_gabd45c91981a68e1b23c765e8eb59b07b}{pbm\-Set} (struct pbm\-\_\- $\ast$pbm, uint\-\_\-fast8\-\_\-t prio)
+\begin{DoxyCompactList}\small\item\em Set the bit corresponding to the prio argument. \end{DoxyCompactList}\item 
+static \hyperlink{group__template__compiler_ga87952d6e574c7f437503926e833ba345}{P\-O\-R\-T\-\_\-\-C\-\_\-\-I\-N\-L\-I\-N\-E} void \hyperlink{group__kern__impl_ga53b46c788cfe6e4cc27ee6a3b6c1dfea}{pbm\-Clear} (struct pbm\-\_\- $\ast$pbm, uint\-\_\-fast8\-\_\-t prio)
+\begin{DoxyCompactList}\small\item\em Clear the bit corresponding to the prio argument. \end{DoxyCompactList}\item 
+static \hyperlink{group__template__compiler_ga87952d6e574c7f437503926e833ba345}{P\-O\-R\-T\-\_\-\-C\-\_\-\-I\-N\-L\-I\-N\-E} uint\-\_\-fast8\-\_\-t \hyperlink{group__kern__impl_ga126e2a40ac85cba9f8ce32b803cb8906}{pbm\-Get\-Highest} (const struct pbm\-\_\- $\ast$pbm)
+\begin{DoxyCompactList}\small\item\em Get the highest priority set. \end{DoxyCompactList}\item 
+static \hyperlink{group__template__compiler_ga87952d6e574c7f437503926e833ba345}{P\-O\-R\-T\-\_\-\-C\-\_\-\-I\-N\-L\-I\-N\-E} \hyperlink{group__template__compiler_ga74fbee312f9185efb602f89d21b53404}{bool\-\_\-\-T} \hyperlink{group__kern__impl_gae681fb07746d91e97533dfcd9d7b9a9c}{pbm\-Is\-Empty} (const struct pbm\-\_\- $\ast$pbm)
+\begin{DoxyCompactList}\small\item\em Is bit map empty? \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsubsection*{Scheduler}
+\begin{DoxyCompactItemize}
+\item 
+static struct \hyperlink{structesThdQ}{es\-Thd\-Q} \hyperlink{group__kern__impl_gafa3f26429f0f60e0d50eb119de1c8f49}{Rdy\-Queue}
+\begin{DoxyCompactList}\small\item\em Ready Thread queue. \end{DoxyCompactList}\item 
+static \hyperlink{group__template__compiler_ga87952d6e574c7f437503926e833ba345}{P\-O\-R\-T\-\_\-\-C\-\_\-\-I\-N\-L\-I\-N\-E} void \hyperlink{group__kern__impl_ga3a8d1dd61629856ac10022cd044591a3}{sched\-Init} (void)
+\begin{DoxyCompactList}\small\item\em Initialize Ready Thread Queue structure \hyperlink{group__kern__impl_gafa3f26429f0f60e0d50eb119de1c8f49}{Rdy\-Queue} and Kernel control structure \hyperlink{structkernCtrl__}{kern\-Ctrl\-\_\-}. \end{DoxyCompactList}\item 
+static \hyperlink{group__template__compiler_ga87952d6e574c7f437503926e833ba345}{P\-O\-R\-T\-\_\-\-C\-\_\-\-I\-N\-L\-I\-N\-E} void \hyperlink{group__kern__impl_gaa2fd7336d999c956fa8b74a2405cffc7}{sched\-Start} (void)
+\begin{DoxyCompactList}\small\item\em Set the scheduler data structures for multi-\/threading. \end{DoxyCompactList}\item 
+static \hyperlink{group__template__compiler_ga87952d6e574c7f437503926e833ba345}{P\-O\-R\-T\-\_\-\-C\-\_\-\-I\-N\-L\-I\-N\-E} void \hyperlink{group__kern__impl_gaaab2c30affeef2604f69bea4d19f32e4}{sched\-Sleep} (void)
+\begin{DoxyCompactList}\small\item\em Set the scheduler to sleep. \end{DoxyCompactList}\item 
+static \hyperlink{group__template__compiler_ga87952d6e574c7f437503926e833ba345}{P\-O\-R\-T\-\_\-\-C\-\_\-\-I\-N\-L\-I\-N\-E} void \hyperlink{group__kern__impl_ga0ac09697c7f2168695a853598caac057}{sched\-Wake\-Up\-I} (void)
+\begin{DoxyCompactList}\small\item\em Wake up the scheduler. \end{DoxyCompactList}\item 
+static \hyperlink{group__template__compiler_ga87952d6e574c7f437503926e833ba345}{P\-O\-R\-T\-\_\-\-C\-\_\-\-I\-N\-L\-I\-N\-E} void \hyperlink{group__kern__impl_ga1317c12a1355ee8db4f104338f1df88d}{sched\-Rdy\-Add\-Init\-I} (\hyperlink{group__kern__thd_ga62e3a3ca0a4597a19c43cb8868810d82}{es\-Thd\-\_\-\-T} $\ast$thd)
+\begin{DoxyCompactList}\small\item\em Initialize scheduler ready structure during the thread add operation. \end{DoxyCompactList}\item 
+static \hyperlink{group__template__compiler_ga87952d6e574c7f437503926e833ba345}{P\-O\-R\-T\-\_\-\-C\-\_\-\-I\-N\-L\-I\-N\-E} void \hyperlink{group__kern__impl_ga56290a8f51b1d3babec91602292c8d61}{sched\-Qm\-Next\-I} (void)
+\begin{DoxyCompactList}\small\item\em Fetch and try to schedule the next thread of the same priority as the current thread. \end{DoxyCompactList}\item 
+static \hyperlink{group__template__compiler_ga87952d6e574c7f437503926e833ba345}{P\-O\-R\-T\-\_\-\-C\-\_\-\-I\-N\-L\-I\-N\-E} void \hyperlink{group__kern__impl_gaf57b17dda8d71ce9e7ef57ea0e7ef534}{sched\-Qm\-I} (void)
+\begin{DoxyCompactList}\small\item\em Do the Quantum (Round-\/\-Robin) scheduling. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsubsection*{Virtual Timer and Virtual Timer kernel thread}
+\begin{DoxyCompactItemize}
+\item 
+static \hyperlink{group__template__compiler_ga87952d6e574c7f437503926e833ba345}{P\-O\-R\-T\-\_\-\-C\-\_\-\-I\-N\-L\-I\-N\-E} void \hyperlink{group__kern__impl_ga6ebc5795dbcc15e76f768133ba99ab17}{v\-Tmr\-Sleep} (\hyperlink{group__kern__vtmr_ga844873888c186ee81eb66620dadb0451}{es\-Tick\-\_\-\-T} ticks)
+\begin{DoxyCompactList}\small\item\em Set up system timer for different tick period during sleeping. \end{DoxyCompactList}\item 
+static \hyperlink{group__template__compiler_ga87952d6e574c7f437503926e833ba345}{P\-O\-R\-T\-\_\-\-C\-\_\-\-I\-N\-L\-I\-N\-E} void \hyperlink{group__kern__impl_gab4f2cc4d4d36c36efb272306595a4474}{v\-Tmr\-Evaluate\-I} (void)
+\begin{DoxyCompactList}\small\item\em Evaluate armed virtual timers. \end{DoxyCompactList}\item 
+static void \hyperlink{group__kern__impl_ga653b749536e91933ea9b651dbb8d5962}{v\-Tmr\-Add\-Armed\-S} (\hyperlink{group__kern__vtmr_ga3c020f0ca54ff412bc1d1505502d2afc}{es\-V\-Tmr\-\_\-\-T} $\ast$v\-Tmr)
+\begin{DoxyCompactList}\small\item\em Add a virtual timer into sorted list. \end{DoxyCompactList}\item 
+static \hyperlink{group__template__compiler_ga87952d6e574c7f437503926e833ba345}{P\-O\-R\-T\-\_\-\-C\-\_\-\-I\-N\-L\-I\-N\-E} void \hyperlink{group__kern__impl_ga0ac5061b01fd5124dc99cba3a10b6025}{v\-Tmr\-Import\-Pend\-Sleep\-I} (void)
+\begin{DoxyCompactList}\small\item\em Import timers from pending list to armed list. \end{DoxyCompactList}\item 
+static void \hyperlink{group__kern__impl_ga9ae79f667b0f7420b31e8a609c3150a0}{v\-Tmr\-Import\-Pend} (void)
+\begin{DoxyCompactList}\small\item\em Import timers from pending list to armed list. \end{DoxyCompactList}\item 
+static void \hyperlink{group__kern__impl_gaa03a91aeb99719724bc64c292f1a5959}{k\-V\-Tmr\-Init} (void)
+\begin{DoxyCompactList}\small\item\em Initialization of Virtual Timer kernel thread. \end{DoxyCompactList}\item 
+static void \hyperlink{group__kern__impl_gadef1fcf2218955344b2e1d5027f80bee}{k\-V\-Tmr} (void $\ast$arg)
+\begin{DoxyCompactList}\small\item\em Virtual Timer thread code. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsubsection*{Idle kernel thread}
+\begin{DoxyCompactItemize}
+\item 
+static struct \hyperlink{structesThd}{es\-Thd} \hyperlink{group__kern__impl_ga639ded61b40c01f4a1f54814c4b94513}{K\-Idle}
+\begin{DoxyCompactList}\small\item\em Idle thread I\-D. \end{DoxyCompactList}\item 
+static void \hyperlink{group__kern__impl_ga39cf986cee12aa37a066532e80a5f72a}{k\-Idle\-Init} (void)
+\begin{DoxyCompactList}\small\item\em Initialization of Idle thread. \end{DoxyCompactList}\item 
+static void \hyperlink{group__kern__impl_ga4e968162935156b6617ff0d5cbccbe1c}{k\-Idle} (void $\ast$arg)
+\begin{DoxyCompactList}\small\item\em Idle thread code. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsubsection*{Basic thread synchronization}
+\begin{DoxyCompactItemize}
+\item 
+void \hyperlink{group__kern__impl_gaae0a028e9f472994def9358f16cc40d3}{thd\-Post} (\hyperlink{group__kern__thd_ga62e3a3ca0a4597a19c43cb8868810d82}{es\-Thd\-\_\-\-T} $\ast$thd)
+\begin{DoxyCompactList}\small\item\em Post a signal to a thread which is waiting. \end{DoxyCompactList}\item 
+void \hyperlink{group__kern__impl_ga59935809f83133fb909c513fb72576b7}{thd\-Wait} (void)
+\begin{DoxyCompactList}\small\item\em Wait for a signal. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsubsection{Detailed Description}
+Kernel port independent code implementation. 
+
+\subsubsection{Macro Definition Documentation}
+\hypertarget{group__kern__impl_ga8558d079ebfe8a9af11fc796d46d9ab5}{\index{Implementation@{Implementation}!D\-E\-F\-\_\-\-S\-C\-H\-E\-D\-\_\-\-S\-T\-A\-T\-E\-\_\-\-I\-N\-T\-S\-R\-V\-\_\-\-M\-S\-K@{D\-E\-F\-\_\-\-S\-C\-H\-E\-D\-\_\-\-S\-T\-A\-T\-E\-\_\-\-I\-N\-T\-S\-R\-V\-\_\-\-M\-S\-K}}
+\index{D\-E\-F\-\_\-\-S\-C\-H\-E\-D\-\_\-\-S\-T\-A\-T\-E\-\_\-\-I\-N\-T\-S\-R\-V\-\_\-\-M\-S\-K@{D\-E\-F\-\_\-\-S\-C\-H\-E\-D\-\_\-\-S\-T\-A\-T\-E\-\_\-\-I\-N\-T\-S\-R\-V\-\_\-\-M\-S\-K}!Implementation@{Implementation}}
+\paragraph[{D\-E\-F\-\_\-\-S\-C\-H\-E\-D\-\_\-\-S\-T\-A\-T\-E\-\_\-\-I\-N\-T\-S\-R\-V\-\_\-\-M\-S\-K}]{\setlength{\rightskip}{0pt plus 5cm}\#define D\-E\-F\-\_\-\-S\-C\-H\-E\-D\-\_\-\-S\-T\-A\-T\-E\-\_\-\-I\-N\-T\-S\-R\-V\-\_\-\-M\-S\-K~(0x01u $<$$<$ 0)}}\label{group__kern__impl_ga8558d079ebfe8a9af11fc796d46d9ab5}
+
+
+Kernel state variable bit position which defines if the kernel is in interrupt servicing state. 
+
+\hypertarget{group__kern__impl_gaaf8217f5d1bfca8caecc2206fa74abc7}{\index{Implementation@{Implementation}!D\-E\-F\-\_\-\-S\-C\-H\-E\-D\-\_\-\-S\-T\-A\-T\-E\-\_\-\-L\-O\-C\-K\-\_\-\-M\-S\-K@{D\-E\-F\-\_\-\-S\-C\-H\-E\-D\-\_\-\-S\-T\-A\-T\-E\-\_\-\-L\-O\-C\-K\-\_\-\-M\-S\-K}}
+\index{D\-E\-F\-\_\-\-S\-C\-H\-E\-D\-\_\-\-S\-T\-A\-T\-E\-\_\-\-L\-O\-C\-K\-\_\-\-M\-S\-K@{D\-E\-F\-\_\-\-S\-C\-H\-E\-D\-\_\-\-S\-T\-A\-T\-E\-\_\-\-L\-O\-C\-K\-\_\-\-M\-S\-K}!Implementation@{Implementation}}
+\paragraph[{D\-E\-F\-\_\-\-S\-C\-H\-E\-D\-\_\-\-S\-T\-A\-T\-E\-\_\-\-L\-O\-C\-K\-\_\-\-M\-S\-K}]{\setlength{\rightskip}{0pt plus 5cm}\#define D\-E\-F\-\_\-\-S\-C\-H\-E\-D\-\_\-\-S\-T\-A\-T\-E\-\_\-\-L\-O\-C\-K\-\_\-\-M\-S\-K~(0x01u $<$$<$ 1)}}\label{group__kern__impl_gaaf8217f5d1bfca8caecc2206fa74abc7}
+
+
+Kernel state variable bit position which defines if the kernel is locked or not. 
+
+\hypertarget{group__kern__impl_ga19da32f7a4f44e5a4bddb5a588d73677}{\index{Implementation@{Implementation}!D\-E\-F\-\_\-\-T\-H\-D\-\_\-\-C\-O\-N\-T\-R\-A\-C\-T\-\_\-\-S\-I\-G\-N\-A\-T\-U\-R\-E@{D\-E\-F\-\_\-\-T\-H\-D\-\_\-\-C\-O\-N\-T\-R\-A\-C\-T\-\_\-\-S\-I\-G\-N\-A\-T\-U\-R\-E}}
+\index{D\-E\-F\-\_\-\-T\-H\-D\-\_\-\-C\-O\-N\-T\-R\-A\-C\-T\-\_\-\-S\-I\-G\-N\-A\-T\-U\-R\-E@{D\-E\-F\-\_\-\-T\-H\-D\-\_\-\-C\-O\-N\-T\-R\-A\-C\-T\-\_\-\-S\-I\-G\-N\-A\-T\-U\-R\-E}!Implementation@{Implementation}}
+\paragraph[{D\-E\-F\-\_\-\-T\-H\-D\-\_\-\-C\-O\-N\-T\-R\-A\-C\-T\-\_\-\-S\-I\-G\-N\-A\-T\-U\-R\-E}]{\setlength{\rightskip}{0pt plus 5cm}\#define D\-E\-F\-\_\-\-T\-H\-D\-\_\-\-C\-O\-N\-T\-R\-A\-C\-T\-\_\-\-S\-I\-G\-N\-A\-T\-U\-R\-E~((port\-Reg\-\_\-\-T)0xfeedbeeful)}}\label{group__kern__impl_ga19da32f7a4f44e5a4bddb5a588d73677}
+
+
+Thread structure signature. 
+
+The signature is used to confirm that a structure passed to a kernel function is indeed a es\-Thd\-\_\-\-T thread structure. \hypertarget{group__kern__impl_ga7f087a59efb2fe7078a7479aa674b7b4}{\index{Implementation@{Implementation}!D\-E\-F\-\_\-\-T\-H\-D\-Q\-\_\-\-C\-O\-N\-T\-R\-A\-C\-T\-\_\-\-S\-I\-G\-N\-A\-T\-U\-R\-E@{D\-E\-F\-\_\-\-T\-H\-D\-Q\-\_\-\-C\-O\-N\-T\-R\-A\-C\-T\-\_\-\-S\-I\-G\-N\-A\-T\-U\-R\-E}}
+\index{D\-E\-F\-\_\-\-T\-H\-D\-Q\-\_\-\-C\-O\-N\-T\-R\-A\-C\-T\-\_\-\-S\-I\-G\-N\-A\-T\-U\-R\-E@{D\-E\-F\-\_\-\-T\-H\-D\-Q\-\_\-\-C\-O\-N\-T\-R\-A\-C\-T\-\_\-\-S\-I\-G\-N\-A\-T\-U\-R\-E}!Implementation@{Implementation}}
+\paragraph[{D\-E\-F\-\_\-\-T\-H\-D\-Q\-\_\-\-C\-O\-N\-T\-R\-A\-C\-T\-\_\-\-S\-I\-G\-N\-A\-T\-U\-R\-E}]{\setlength{\rightskip}{0pt plus 5cm}\#define D\-E\-F\-\_\-\-T\-H\-D\-Q\-\_\-\-C\-O\-N\-T\-R\-A\-C\-T\-\_\-\-S\-I\-G\-N\-A\-T\-U\-R\-E~((port\-Reg\-\_\-\-T)0xfeedbef0ul)}}\label{group__kern__impl_ga7f087a59efb2fe7078a7479aa674b7b4}
+
+
+Thread Queue structure signature. 
+
+The signature is used to confirm that a structure passed to a kernel function is indeed a es\-Thd\-Q\-\_\-\-T thread queue structure. \hypertarget{group__kern__impl_gaed6b30b1e098b37a398f58e2a5b73b8b}{\index{Implementation@{Implementation}!D\-E\-F\-\_\-\-V\-T\-M\-R\-\_\-\-C\-O\-N\-T\-R\-A\-C\-T\-\_\-\-S\-I\-G\-N\-A\-T\-U\-R\-E@{D\-E\-F\-\_\-\-V\-T\-M\-R\-\_\-\-C\-O\-N\-T\-R\-A\-C\-T\-\_\-\-S\-I\-G\-N\-A\-T\-U\-R\-E}}
+\index{D\-E\-F\-\_\-\-V\-T\-M\-R\-\_\-\-C\-O\-N\-T\-R\-A\-C\-T\-\_\-\-S\-I\-G\-N\-A\-T\-U\-R\-E@{D\-E\-F\-\_\-\-V\-T\-M\-R\-\_\-\-C\-O\-N\-T\-R\-A\-C\-T\-\_\-\-S\-I\-G\-N\-A\-T\-U\-R\-E}!Implementation@{Implementation}}
+\paragraph[{D\-E\-F\-\_\-\-V\-T\-M\-R\-\_\-\-C\-O\-N\-T\-R\-A\-C\-T\-\_\-\-S\-I\-G\-N\-A\-T\-U\-R\-E}]{\setlength{\rightskip}{0pt plus 5cm}\#define D\-E\-F\-\_\-\-V\-T\-M\-R\-\_\-\-C\-O\-N\-T\-R\-A\-C\-T\-\_\-\-S\-I\-G\-N\-A\-T\-U\-R\-E~((port\-Reg\-\_\-\-T)0xfeedbef1ul)}}\label{group__kern__impl_gaed6b30b1e098b37a398f58e2a5b73b8b}
+
+
+Timer structure signature. 
+
+The signature is used to confirm that a structure passed to a timer function is indeed a es\-V\-Tmr\-\_\-\-T timer structure. \hypertarget{group__kern__impl_ga177fc11d78c08db1f70168bf971e0059}{\index{Implementation@{Implementation}!D\-L\-I\-S\-T\-\_\-\-I\-S\-\_\-\-E\-N\-T\-R\-Y\-\_\-\-F\-I\-R\-S\-T@{D\-L\-I\-S\-T\-\_\-\-I\-S\-\_\-\-E\-N\-T\-R\-Y\-\_\-\-F\-I\-R\-S\-T}}
+\index{D\-L\-I\-S\-T\-\_\-\-I\-S\-\_\-\-E\-N\-T\-R\-Y\-\_\-\-F\-I\-R\-S\-T@{D\-L\-I\-S\-T\-\_\-\-I\-S\-\_\-\-E\-N\-T\-R\-Y\-\_\-\-F\-I\-R\-S\-T}!Implementation@{Implementation}}
+\paragraph[{D\-L\-I\-S\-T\-\_\-\-I\-S\-\_\-\-E\-N\-T\-R\-Y\-\_\-\-F\-I\-R\-S\-T}]{\setlength{\rightskip}{0pt plus 5cm}\#define D\-L\-I\-S\-T\-\_\-\-I\-S\-\_\-\-E\-N\-T\-R\-Y\-\_\-\-F\-I\-R\-S\-T(
+\begin{DoxyParamCaption}
+\item[{}]{list, }
+\item[{}]{entry}
+\end{DoxyParamCaption}
+)~((entry) == (entry)-\/$>$list.\-next)}}\label{group__kern__impl_ga177fc11d78c08db1f70168bf971e0059}
+
+
+D\-List macro\-: is the thread the first one in the list. 
+
+\hypertarget{group__kern__impl_gaad48325fff9eb7b4c41788e190a28cf2}{\index{Implementation@{Implementation}!D\-L\-I\-S\-T\-\_\-\-I\-S\-\_\-\-E\-N\-T\-R\-Y\-\_\-\-L\-A\-S\-T@{D\-L\-I\-S\-T\-\_\-\-I\-S\-\_\-\-E\-N\-T\-R\-Y\-\_\-\-L\-A\-S\-T}}
+\index{D\-L\-I\-S\-T\-\_\-\-I\-S\-\_\-\-E\-N\-T\-R\-Y\-\_\-\-L\-A\-S\-T@{D\-L\-I\-S\-T\-\_\-\-I\-S\-\_\-\-E\-N\-T\-R\-Y\-\_\-\-L\-A\-S\-T}!Implementation@{Implementation}}
+\paragraph[{D\-L\-I\-S\-T\-\_\-\-I\-S\-\_\-\-E\-N\-T\-R\-Y\-\_\-\-L\-A\-S\-T}]{\setlength{\rightskip}{0pt plus 5cm}\#define D\-L\-I\-S\-T\-\_\-\-I\-S\-\_\-\-E\-N\-T\-R\-Y\-\_\-\-L\-A\-S\-T(
+\begin{DoxyParamCaption}
+\item[{}]{list, }
+\item[{}]{entry}
+\end{DoxyParamCaption}
+)~{\bf D\-L\-I\-S\-T\-\_\-\-I\-S\-\_\-\-E\-N\-T\-R\-Y\-\_\-\-F\-I\-R\-S\-T}(list, entry)}}\label{group__kern__impl_gaad48325fff9eb7b4c41788e190a28cf2}
+
+
+D\-List macro\-: is the thread the last one in the list. 
+
+\hypertarget{group__kern__impl_ga77e64b5c52cb61e2bb7f6a4c6b0c9acc}{\index{Implementation@{Implementation}!D\-L\-I\-S\-T\-\_\-\-I\-S\-\_\-\-E\-N\-T\-R\-Y\-\_\-\-S\-I\-N\-G\-L\-E@{D\-L\-I\-S\-T\-\_\-\-I\-S\-\_\-\-E\-N\-T\-R\-Y\-\_\-\-S\-I\-N\-G\-L\-E}}
+\index{D\-L\-I\-S\-T\-\_\-\-I\-S\-\_\-\-E\-N\-T\-R\-Y\-\_\-\-S\-I\-N\-G\-L\-E@{D\-L\-I\-S\-T\-\_\-\-I\-S\-\_\-\-E\-N\-T\-R\-Y\-\_\-\-S\-I\-N\-G\-L\-E}!Implementation@{Implementation}}
+\paragraph[{D\-L\-I\-S\-T\-\_\-\-I\-S\-\_\-\-E\-N\-T\-R\-Y\-\_\-\-S\-I\-N\-G\-L\-E}]{\setlength{\rightskip}{0pt plus 5cm}\#define D\-L\-I\-S\-T\-\_\-\-I\-S\-\_\-\-E\-N\-T\-R\-Y\-\_\-\-S\-I\-N\-G\-L\-E(
+\begin{DoxyParamCaption}
+\item[{}]{list, }
+\item[{}]{entry}
+\end{DoxyParamCaption}
+)~{\bf D\-L\-I\-S\-T\-\_\-\-I\-S\-\_\-\-E\-N\-T\-R\-Y\-\_\-\-F\-I\-R\-S\-T}(list, entry)}}\label{group__kern__impl_ga77e64b5c52cb61e2bb7f6a4c6b0c9acc}
+
+
+D\-List macro\-: is the thread single in the list. 
+
+\hypertarget{group__kern__impl_gab4b1b58e436cff32fc080493dfa35619}{\index{Implementation@{Implementation}!D\-L\-I\-S\-T\-\_\-\-E\-N\-T\-R\-Y\-\_\-\-N\-E\-X\-T@{D\-L\-I\-S\-T\-\_\-\-E\-N\-T\-R\-Y\-\_\-\-N\-E\-X\-T}}
+\index{D\-L\-I\-S\-T\-\_\-\-E\-N\-T\-R\-Y\-\_\-\-N\-E\-X\-T@{D\-L\-I\-S\-T\-\_\-\-E\-N\-T\-R\-Y\-\_\-\-N\-E\-X\-T}!Implementation@{Implementation}}
+\paragraph[{D\-L\-I\-S\-T\-\_\-\-E\-N\-T\-R\-Y\-\_\-\-N\-E\-X\-T}]{\setlength{\rightskip}{0pt plus 5cm}\#define D\-L\-I\-S\-T\-\_\-\-E\-N\-T\-R\-Y\-\_\-\-N\-E\-X\-T(
+\begin{DoxyParamCaption}
+\item[{}]{list, }
+\item[{}]{entry}
+\end{DoxyParamCaption}
+)~(entry)-\/$>$list.\-next}}\label{group__kern__impl_gab4b1b58e436cff32fc080493dfa35619}
+
+
+D\-List macro\-: get the next entry. 
+
+\hypertarget{group__kern__impl_ga23a7667839eb576ddc4f55f2fcf77d65}{\index{Implementation@{Implementation}!D\-L\-I\-S\-T\-\_\-\-E\-N\-T\-R\-Y\-\_\-\-I\-N\-I\-T@{D\-L\-I\-S\-T\-\_\-\-E\-N\-T\-R\-Y\-\_\-\-I\-N\-I\-T}}
+\index{D\-L\-I\-S\-T\-\_\-\-E\-N\-T\-R\-Y\-\_\-\-I\-N\-I\-T@{D\-L\-I\-S\-T\-\_\-\-E\-N\-T\-R\-Y\-\_\-\-I\-N\-I\-T}!Implementation@{Implementation}}
+\paragraph[{D\-L\-I\-S\-T\-\_\-\-E\-N\-T\-R\-Y\-\_\-\-I\-N\-I\-T}]{\setlength{\rightskip}{0pt plus 5cm}\#define D\-L\-I\-S\-T\-\_\-\-E\-N\-T\-R\-Y\-\_\-\-I\-N\-I\-T(
+\begin{DoxyParamCaption}
+\item[{}]{list, }
+\item[{}]{entry}
+\end{DoxyParamCaption}
+)}}\label{group__kern__impl_ga23a7667839eb576ddc4f55f2fcf77d65}
+{\bfseries Value\-:}
+\begin{DoxyCode}
+\textcolor{keywordflow}{do} \{                                                                        \(\backslash\)
+        (entry)->list.next = (entry);                                           \(\backslash\)
+        (entry)->list.prev = (entry);                                           \(\backslash\)
+    \} \textcolor{keywordflow}{while} (0u)
+\end{DoxyCode}
+
+
+D\-List macro\-: initialize entry. 
+
+\hypertarget{group__kern__impl_gaff514b213c2cd3ad388fd5479275834f}{\index{Implementation@{Implementation}!D\-L\-I\-S\-T\-\_\-\-E\-N\-T\-R\-Y\-\_\-\-A\-D\-D\-\_\-\-A\-F\-T\-E\-R@{D\-L\-I\-S\-T\-\_\-\-E\-N\-T\-R\-Y\-\_\-\-A\-D\-D\-\_\-\-A\-F\-T\-E\-R}}
+\index{D\-L\-I\-S\-T\-\_\-\-E\-N\-T\-R\-Y\-\_\-\-A\-D\-D\-\_\-\-A\-F\-T\-E\-R@{D\-L\-I\-S\-T\-\_\-\-E\-N\-T\-R\-Y\-\_\-\-A\-D\-D\-\_\-\-A\-F\-T\-E\-R}!Implementation@{Implementation}}
+\paragraph[{D\-L\-I\-S\-T\-\_\-\-E\-N\-T\-R\-Y\-\_\-\-A\-D\-D\-\_\-\-A\-F\-T\-E\-R}]{\setlength{\rightskip}{0pt plus 5cm}\#define D\-L\-I\-S\-T\-\_\-\-E\-N\-T\-R\-Y\-\_\-\-A\-D\-D\-\_\-\-A\-F\-T\-E\-R(
+\begin{DoxyParamCaption}
+\item[{}]{list, }
+\item[{}]{current, }
+\item[{}]{entry}
+\end{DoxyParamCaption}
+)}}\label{group__kern__impl_gaff514b213c2cd3ad388fd5479275834f}
+{\bfseries Value\-:}
+\begin{DoxyCode}
+\textcolor{keywordflow}{do} \{                                                                        \(\backslash\)
+        (entry)->list.next = (current);                                         \(\backslash\)
+        (entry)->list.prev = (entry)->list.next->list.prev;                     \(\backslash\)
+        (entry)->list.next->list.prev = (entry);                                \(\backslash\)
+        (entry)->list.prev->list.next = (entry);                                \(\backslash\)
+    \} \textcolor{keywordflow}{while} (0u)
+\end{DoxyCode}
+
+
+D\-List macro\-: add new {\ttfamily entry} after {\ttfamily current} entry. 
+
+\hypertarget{group__kern__impl_ga4a663d16206e95f1084af0a44e8518a0}{\index{Implementation@{Implementation}!D\-L\-I\-S\-T\-\_\-\-E\-N\-T\-R\-Y\-\_\-\-R\-M@{D\-L\-I\-S\-T\-\_\-\-E\-N\-T\-R\-Y\-\_\-\-R\-M}}
+\index{D\-L\-I\-S\-T\-\_\-\-E\-N\-T\-R\-Y\-\_\-\-R\-M@{D\-L\-I\-S\-T\-\_\-\-E\-N\-T\-R\-Y\-\_\-\-R\-M}!Implementation@{Implementation}}
+\paragraph[{D\-L\-I\-S\-T\-\_\-\-E\-N\-T\-R\-Y\-\_\-\-R\-M}]{\setlength{\rightskip}{0pt plus 5cm}\#define D\-L\-I\-S\-T\-\_\-\-E\-N\-T\-R\-Y\-\_\-\-R\-M(
+\begin{DoxyParamCaption}
+\item[{}]{list, }
+\item[{}]{entry}
+\end{DoxyParamCaption}
+)}}\label{group__kern__impl_ga4a663d16206e95f1084af0a44e8518a0}
+{\bfseries Value\-:}
+\begin{DoxyCode}
+\textcolor{keywordflow}{do} \{                                                                        \(\backslash\)
+        (entry)->list.next->list.prev = (entry)->list.prev;                     \(\backslash\)
+        (entry)->list.prev->list.next = (entry)->list.next;                     \(\backslash\)
+    \} \textcolor{keywordflow}{while} (0u)
+\end{DoxyCode}
+
+
+D\-List macro\-: remove the {\ttfamily entry} from a list. 
+
+
+
+\subsubsection{Function Documentation}
+\hypertarget{group__kern__impl_gaccc724ae39d88a6fcf21891c390ea845}{\index{Implementation@{Implementation}!pbm\-Init@{pbm\-Init}}
+\index{pbm\-Init@{pbm\-Init}!Implementation@{Implementation}}
+\paragraph[{pbm\-Init}]{\setlength{\rightskip}{0pt plus 5cm}static {\bf P\-O\-R\-T\-\_\-\-C\-\_\-\-I\-N\-L\-I\-N\-E} void pbm\-Init (
+\begin{DoxyParamCaption}
+\item[{struct pbm\-\_\- $\ast$}]{pbm}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [static]}}}\label{group__kern__impl_gaccc724ae39d88a6fcf21891c390ea845}
+
+
+Initialize bitmap. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em pbm} & Pointer to the bit map structure \\
+\hline
+\end{DoxyParams}
+\hypertarget{group__kern__impl_gabd45c91981a68e1b23c765e8eb59b07b}{\index{Implementation@{Implementation}!pbm\-Set@{pbm\-Set}}
+\index{pbm\-Set@{pbm\-Set}!Implementation@{Implementation}}
+\paragraph[{pbm\-Set}]{\setlength{\rightskip}{0pt plus 5cm}static {\bf P\-O\-R\-T\-\_\-\-C\-\_\-\-I\-N\-L\-I\-N\-E} void pbm\-Set (
+\begin{DoxyParamCaption}
+\item[{struct pbm\-\_\- $\ast$}]{pbm, }
+\item[{uint\-\_\-fast8\-\_\-t}]{prio}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [static]}}}\label{group__kern__impl_gabd45c91981a68e1b23c765e8eb59b07b}
+
+
+Set the bit corresponding to the prio argument. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em pbm} & Pointer to the bit map structure \\
+\hline
+{\em prio} & Priority which will be marked as used \\
+\hline
+\end{DoxyParams}
+\hypertarget{group__kern__impl_ga53b46c788cfe6e4cc27ee6a3b6c1dfea}{\index{Implementation@{Implementation}!pbm\-Clear@{pbm\-Clear}}
+\index{pbm\-Clear@{pbm\-Clear}!Implementation@{Implementation}}
+\paragraph[{pbm\-Clear}]{\setlength{\rightskip}{0pt plus 5cm}static {\bf P\-O\-R\-T\-\_\-\-C\-\_\-\-I\-N\-L\-I\-N\-E} void pbm\-Clear (
+\begin{DoxyParamCaption}
+\item[{struct pbm\-\_\- $\ast$}]{pbm, }
+\item[{uint\-\_\-fast8\-\_\-t}]{prio}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [static]}}}\label{group__kern__impl_ga53b46c788cfe6e4cc27ee6a3b6c1dfea}
+
+
+Clear the bit corresponding to the prio argument. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em pbm} & Pointer to the bit map structure \\
+\hline
+{\em prio} & Priority which will be marked as unused \\
+\hline
+\end{DoxyParams}
+\hypertarget{group__kern__impl_ga126e2a40ac85cba9f8ce32b803cb8906}{\index{Implementation@{Implementation}!pbm\-Get\-Highest@{pbm\-Get\-Highest}}
+\index{pbm\-Get\-Highest@{pbm\-Get\-Highest}!Implementation@{Implementation}}
+\paragraph[{pbm\-Get\-Highest}]{\setlength{\rightskip}{0pt plus 5cm}static {\bf P\-O\-R\-T\-\_\-\-C\-\_\-\-I\-N\-L\-I\-N\-E} uint\-\_\-fast8\-\_\-t pbm\-Get\-Highest (
+\begin{DoxyParamCaption}
+\item[{const struct pbm\-\_\- $\ast$}]{pbm}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [static]}}}\label{group__kern__impl_ga126e2a40ac85cba9f8ce32b803cb8906}
+
+
+Get the highest priority set. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em pbm} & Pointer to the bit map structure \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The number of the highest priority marked as used 
+\end{DoxyReturn}
+\hypertarget{group__kern__impl_gae681fb07746d91e97533dfcd9d7b9a9c}{\index{Implementation@{Implementation}!pbm\-Is\-Empty@{pbm\-Is\-Empty}}
+\index{pbm\-Is\-Empty@{pbm\-Is\-Empty}!Implementation@{Implementation}}
+\paragraph[{pbm\-Is\-Empty}]{\setlength{\rightskip}{0pt plus 5cm}static {\bf P\-O\-R\-T\-\_\-\-C\-\_\-\-I\-N\-L\-I\-N\-E} {\bf bool\-\_\-\-T} pbm\-Is\-Empty (
+\begin{DoxyParamCaption}
+\item[{const struct pbm\-\_\- $\ast$}]{pbm}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [static]}}}\label{group__kern__impl_gae681fb07746d91e97533dfcd9d7b9a9c}
+
+
+Is bit map empty? 
+
+
+\begin{DoxyParams}{Parameters}
+{\em pbm} & Pointer to the bit map structure \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The status of the bit map 
+\end{DoxyReturn}
+
+\begin{DoxyRetVals}{Return values}
+{\em T\-R\-U\-E} & -\/ bit map is empty \\
+\hline
+{\em F\-A\-L\-S\-E} & -\/ there is at least one bit set \\
+\hline
+\end{DoxyRetVals}
+\hypertarget{group__kern__impl_ga3a8d1dd61629856ac10022cd044591a3}{\index{Implementation@{Implementation}!sched\-Init@{sched\-Init}}
+\index{sched\-Init@{sched\-Init}!Implementation@{Implementation}}
+\paragraph[{sched\-Init}]{\setlength{\rightskip}{0pt plus 5cm}static {\bf P\-O\-R\-T\-\_\-\-C\-\_\-\-I\-N\-L\-I\-N\-E} void sched\-Init (
+\begin{DoxyParamCaption}
+\item[{void}]{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [static]}}}\label{group__kern__impl_ga3a8d1dd61629856ac10022cd044591a3}
+
+
+Initialize Ready Thread Queue structure \hyperlink{group__kern__impl_gafa3f26429f0f60e0d50eb119de1c8f49}{Rdy\-Queue} and Kernel control structure \hyperlink{structkernCtrl__}{kern\-Ctrl\-\_\-}. 
+
+\hypertarget{group__kern__impl_gaa2fd7336d999c956fa8b74a2405cffc7}{\index{Implementation@{Implementation}!sched\-Start@{sched\-Start}}
+\index{sched\-Start@{sched\-Start}!Implementation@{Implementation}}
+\paragraph[{sched\-Start}]{\setlength{\rightskip}{0pt plus 5cm}static {\bf P\-O\-R\-T\-\_\-\-C\-\_\-\-I\-N\-L\-I\-N\-E} void sched\-Start (
+\begin{DoxyParamCaption}
+\item[{void}]{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [static]}}}\label{group__kern__impl_gaa2fd7336d999c956fa8b74a2405cffc7}
+
+
+Set the scheduler data structures for multi-\/threading. 
+
+This function is called just before multi-\/threading will start. \hypertarget{group__kern__impl_gaaab2c30affeef2604f69bea4d19f32e4}{\index{Implementation@{Implementation}!sched\-Sleep@{sched\-Sleep}}
+\index{sched\-Sleep@{sched\-Sleep}!Implementation@{Implementation}}
+\paragraph[{sched\-Sleep}]{\setlength{\rightskip}{0pt plus 5cm}static {\bf P\-O\-R\-T\-\_\-\-C\-\_\-\-I\-N\-L\-I\-N\-E} void sched\-Sleep (
+\begin{DoxyParamCaption}
+\item[{void}]{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [static]}}}\label{group__kern__impl_gaaab2c30affeef2604f69bea4d19f32e4}
+
+
+Set the scheduler to sleep. 
+
+\begin{DoxyNote}{Note}
+This function is used only when \hyperlink{group__template__kern__cfg_ga4e6ab4994b34501bb71e75717b093376}{C\-F\-G\-\_\-\-S\-C\-H\-E\-D\-\_\-\-P\-O\-W\-E\-R\-\_\-\-S\-A\-V\-E} option is active. 
+\end{DoxyNote}
+\hypertarget{group__kern__impl_ga0ac09697c7f2168695a853598caac057}{\index{Implementation@{Implementation}!sched\-Wake\-Up\-I@{sched\-Wake\-Up\-I}}
+\index{sched\-Wake\-Up\-I@{sched\-Wake\-Up\-I}!Implementation@{Implementation}}
+\paragraph[{sched\-Wake\-Up\-I}]{\setlength{\rightskip}{0pt plus 5cm}static {\bf P\-O\-R\-T\-\_\-\-C\-\_\-\-I\-N\-L\-I\-N\-E} void sched\-Wake\-Up\-I (
+\begin{DoxyParamCaption}
+\item[{void}]{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [static]}}}\label{group__kern__impl_ga0ac09697c7f2168695a853598caac057}
+
+
+Wake up the scheduler. 
+
+\begin{DoxyNote}{Note}
+This function is used only when \hyperlink{group__template__kern__cfg_ga4e6ab4994b34501bb71e75717b093376}{C\-F\-G\-\_\-\-S\-C\-H\-E\-D\-\_\-\-P\-O\-W\-E\-R\-\_\-\-S\-A\-V\-E} option is active. 
+\end{DoxyNote}
+\hypertarget{group__kern__impl_ga1317c12a1355ee8db4f104338f1df88d}{\index{Implementation@{Implementation}!sched\-Rdy\-Add\-Init\-I@{sched\-Rdy\-Add\-Init\-I}}
+\index{sched\-Rdy\-Add\-Init\-I@{sched\-Rdy\-Add\-Init\-I}!Implementation@{Implementation}}
+\paragraph[{sched\-Rdy\-Add\-Init\-I}]{\setlength{\rightskip}{0pt plus 5cm}static {\bf P\-O\-R\-T\-\_\-\-C\-\_\-\-I\-N\-L\-I\-N\-E} void sched\-Rdy\-Add\-Init\-I (
+\begin{DoxyParamCaption}
+\item[{{\bf es\-Thd\-\_\-\-T} $\ast$}]{thd}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [static]}}}\label{group__kern__impl_ga1317c12a1355ee8db4f104338f1df88d}
+
+
+Initialize scheduler ready structure during the thread add operation. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em thd} & Pointer to the thread currently being initialized.\\
+\hline
+\end{DoxyParams}
+Function will initialize scheduler structures during the init phase of the kernel. \hypertarget{group__kern__impl_ga56290a8f51b1d3babec91602292c8d61}{\index{Implementation@{Implementation}!sched\-Qm\-Next\-I@{sched\-Qm\-Next\-I}}
+\index{sched\-Qm\-Next\-I@{sched\-Qm\-Next\-I}!Implementation@{Implementation}}
+\paragraph[{sched\-Qm\-Next\-I}]{\setlength{\rightskip}{0pt plus 5cm}static {\bf P\-O\-R\-T\-\_\-\-C\-\_\-\-I\-N\-L\-I\-N\-E} void sched\-Qm\-Next\-I (
+\begin{DoxyParamCaption}
+\item[{void}]{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [static]}}}\label{group__kern__impl_ga56290a8f51b1d3babec91602292c8d61}
+
+
+Fetch and try to schedule the next thread of the same priority as the current thread. 
+
+\hypertarget{group__kern__impl_gaf57b17dda8d71ce9e7ef57ea0e7ef534}{\index{Implementation@{Implementation}!sched\-Qm\-I@{sched\-Qm\-I}}
+\index{sched\-Qm\-I@{sched\-Qm\-I}!Implementation@{Implementation}}
+\paragraph[{sched\-Qm\-I}]{\setlength{\rightskip}{0pt plus 5cm}static {\bf P\-O\-R\-T\-\_\-\-C\-\_\-\-I\-N\-L\-I\-N\-E} void sched\-Qm\-I (
+\begin{DoxyParamCaption}
+\item[{void}]{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [static]}}}\label{group__kern__impl_gaf57b17dda8d71ce9e7ef57ea0e7ef534}
+
+
+Do the Quantum (Round-\/\-Robin) scheduling. 
+
+\hypertarget{group__kern__impl_gaa284b6ec458b79a49c54eedc738259fb}{\index{Implementation@{Implementation}!sys\-Tmr\-Init@{sys\-Tmr\-Init}}
+\index{sys\-Tmr\-Init@{sys\-Tmr\-Init}!Implementation@{Implementation}}
+\paragraph[{sys\-Tmr\-Init}]{\setlength{\rightskip}{0pt plus 5cm}static {\bf P\-O\-R\-T\-\_\-\-C\-\_\-\-I\-N\-L\-I\-N\-E} void sys\-Tmr\-Init (
+\begin{DoxyParamCaption}
+\item[{void}]{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [static]}}}\label{group__kern__impl_gaa284b6ec458b79a49c54eedc738259fb}
+
+
+Initialize system timer hardware. 
+
+\hypertarget{group__kern__impl_gaac3698a7627e9d0b7b1f0d5f741d2816}{\index{Implementation@{Implementation}!sys\-Tmr\-Activate@{sys\-Tmr\-Activate}}
+\index{sys\-Tmr\-Activate@{sys\-Tmr\-Activate}!Implementation@{Implementation}}
+\paragraph[{sys\-Tmr\-Activate}]{\setlength{\rightskip}{0pt plus 5cm}static {\bf P\-O\-R\-T\-\_\-\-C\-\_\-\-I\-N\-L\-I\-N\-E} void sys\-Tmr\-Activate (
+\begin{DoxyParamCaption}
+\item[{void}]{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [static]}}}\label{group__kern__impl_gaac3698a7627e9d0b7b1f0d5f741d2816}
+
+
+Try to activate system timer. 
+
+\begin{DoxyNote}{Note}
+This function is used only when \hyperlink{group__template__kern__cfg_ga5f07eea2a4be92cf0358f52eba6800c9}{C\-F\-G\-\_\-\-S\-Y\-S\-T\-M\-R\-\_\-\-A\-D\-A\-P\-T\-I\-V\-E\-\_\-\-M\-O\-D\-E} option is active. 
+\end{DoxyNote}
+\hypertarget{group__kern__impl_gab564a700462dce0be7ba31f2d3022f7b}{\index{Implementation@{Implementation}!sys\-Tmr\-Deactivate\-I@{sys\-Tmr\-Deactivate\-I}}
+\index{sys\-Tmr\-Deactivate\-I@{sys\-Tmr\-Deactivate\-I}!Implementation@{Implementation}}
+\paragraph[{sys\-Tmr\-Deactivate\-I}]{\setlength{\rightskip}{0pt plus 5cm}static {\bf P\-O\-R\-T\-\_\-\-C\-\_\-\-I\-N\-L\-I\-N\-E} void sys\-Tmr\-Deactivate\-I (
+\begin{DoxyParamCaption}
+\item[{void}]{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [static]}}}\label{group__kern__impl_gab564a700462dce0be7ba31f2d3022f7b}
+
+
+Try to deactivate system timer. 
+
+\begin{DoxyNote}{Note}
+This function is used only when \hyperlink{group__template__kern__cfg_ga5f07eea2a4be92cf0358f52eba6800c9}{C\-F\-G\-\_\-\-S\-Y\-S\-T\-M\-R\-\_\-\-A\-D\-A\-P\-T\-I\-V\-E\-\_\-\-M\-O\-D\-E} option is active. 
+\end{DoxyNote}
+\hypertarget{group__kern__impl_ga6ebc5795dbcc15e76f768133ba99ab17}{\index{Implementation@{Implementation}!v\-Tmr\-Sleep@{v\-Tmr\-Sleep}}
+\index{v\-Tmr\-Sleep@{v\-Tmr\-Sleep}!Implementation@{Implementation}}
+\paragraph[{v\-Tmr\-Sleep}]{\setlength{\rightskip}{0pt plus 5cm}static {\bf P\-O\-R\-T\-\_\-\-C\-\_\-\-I\-N\-L\-I\-N\-E} void v\-Tmr\-Sleep (
+\begin{DoxyParamCaption}
+\item[{{\bf es\-Tick\-\_\-\-T}}]{ticks}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [static]}}}\label{group__kern__impl_ga6ebc5795dbcc15e76f768133ba99ab17}
+
+
+Set up system timer for different tick period during sleeping. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em ticks} & Number of ticks to sleep \\
+\hline
+\end{DoxyParams}
+\begin{DoxyNote}{Note}
+This function is used only when \hyperlink{group__template__kern__cfg_ga5f07eea2a4be92cf0358f52eba6800c9}{C\-F\-G\-\_\-\-S\-Y\-S\-T\-M\-R\-\_\-\-A\-D\-A\-P\-T\-I\-V\-E\-\_\-\-M\-O\-D\-E} option is active. 
+\end{DoxyNote}
+\hypertarget{group__kern__impl_gab4f2cc4d4d36c36efb272306595a4474}{\index{Implementation@{Implementation}!v\-Tmr\-Evaluate\-I@{v\-Tmr\-Evaluate\-I}}
+\index{v\-Tmr\-Evaluate\-I@{v\-Tmr\-Evaluate\-I}!Implementation@{Implementation}}
+\paragraph[{v\-Tmr\-Evaluate\-I}]{\setlength{\rightskip}{0pt plus 5cm}static {\bf P\-O\-R\-T\-\_\-\-C\-\_\-\-I\-N\-L\-I\-N\-E} void v\-Tmr\-Evaluate\-I (
+\begin{DoxyParamCaption}
+\item[{void}]{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [static]}}}\label{group__kern__impl_gab4f2cc4d4d36c36efb272306595a4474}
+
+
+Evaluate armed virtual timers. 
+
+\hypertarget{group__kern__impl_ga653b749536e91933ea9b651dbb8d5962}{\index{Implementation@{Implementation}!v\-Tmr\-Add\-Armed\-S@{v\-Tmr\-Add\-Armed\-S}}
+\index{v\-Tmr\-Add\-Armed\-S@{v\-Tmr\-Add\-Armed\-S}!Implementation@{Implementation}}
+\paragraph[{v\-Tmr\-Add\-Armed\-S}]{\setlength{\rightskip}{0pt plus 5cm}static void v\-Tmr\-Add\-Armed\-S (
+\begin{DoxyParamCaption}
+\item[{{\bf es\-V\-Tmr\-\_\-\-T} $\ast$}]{v\-Tmr}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [static]}}}\label{group__kern__impl_ga653b749536e91933ea9b651dbb8d5962}
+
+
+Add a virtual timer into sorted list. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em v\-Tmr} & Virtual timer\-: pointer to virtual timer to add \\
+\hline
+\end{DoxyParams}
+\hypertarget{group__kern__impl_ga0ac5061b01fd5124dc99cba3a10b6025}{\index{Implementation@{Implementation}!v\-Tmr\-Import\-Pend\-Sleep\-I@{v\-Tmr\-Import\-Pend\-Sleep\-I}}
+\index{v\-Tmr\-Import\-Pend\-Sleep\-I@{v\-Tmr\-Import\-Pend\-Sleep\-I}!Implementation@{Implementation}}
+\paragraph[{v\-Tmr\-Import\-Pend\-Sleep\-I}]{\setlength{\rightskip}{0pt plus 5cm}static {\bf P\-O\-R\-T\-\_\-\-C\-\_\-\-I\-N\-L\-I\-N\-E} void v\-Tmr\-Import\-Pend\-Sleep\-I (
+\begin{DoxyParamCaption}
+\item[{void}]{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [static]}}}\label{group__kern__impl_ga0ac5061b01fd5124dc99cba3a10b6025}
+
+
+Import timers from pending list to armed list. 
+
+\begin{DoxyNote}{Note}
+This function is used only when \hyperlink{group__template__kern__cfg_ga5f07eea2a4be92cf0358f52eba6800c9}{C\-F\-G\-\_\-\-S\-Y\-S\-T\-M\-R\-\_\-\-A\-D\-A\-P\-T\-I\-V\-E\-\_\-\-M\-O\-D\-E} option is active. 
+\end{DoxyNote}
+\hypertarget{group__kern__impl_ga9ae79f667b0f7420b31e8a609c3150a0}{\index{Implementation@{Implementation}!v\-Tmr\-Import\-Pend@{v\-Tmr\-Import\-Pend}}
+\index{v\-Tmr\-Import\-Pend@{v\-Tmr\-Import\-Pend}!Implementation@{Implementation}}
+\paragraph[{v\-Tmr\-Import\-Pend}]{\setlength{\rightskip}{0pt plus 5cm}static void v\-Tmr\-Import\-Pend (
+\begin{DoxyParamCaption}
+\item[{void}]{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [static]}}}\label{group__kern__impl_ga9ae79f667b0f7420b31e8a609c3150a0}
+
+
+Import timers from pending list to armed list. 
+
+\hypertarget{group__kern__impl_gaa03a91aeb99719724bc64c292f1a5959}{\index{Implementation@{Implementation}!k\-V\-Tmr\-Init@{k\-V\-Tmr\-Init}}
+\index{k\-V\-Tmr\-Init@{k\-V\-Tmr\-Init}!Implementation@{Implementation}}
+\paragraph[{k\-V\-Tmr\-Init}]{\setlength{\rightskip}{0pt plus 5cm}static void k\-V\-Tmr\-Init (
+\begin{DoxyParamCaption}
+\item[{void}]{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [static]}}}\label{group__kern__impl_gaa03a91aeb99719724bc64c292f1a5959}
+
+
+Initialization of Virtual Timer kernel thread. 
+
+\hypertarget{group__kern__impl_gadef1fcf2218955344b2e1d5027f80bee}{\index{Implementation@{Implementation}!k\-V\-Tmr@{k\-V\-Tmr}}
+\index{k\-V\-Tmr@{k\-V\-Tmr}!Implementation@{Implementation}}
+\paragraph[{k\-V\-Tmr}]{\setlength{\rightskip}{0pt plus 5cm}static void k\-V\-Tmr (
+\begin{DoxyParamCaption}
+\item[{void $\ast$}]{arg}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [static]}}}\label{group__kern__impl_gadef1fcf2218955344b2e1d5027f80bee}
+
+
+Virtual Timer thread code. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em arg} & Argument\-: thread does not use argument\\
+\hline
+\end{DoxyParams}
+This thread is responsible for virtual timer callback invocation and to import pending timers into armed linked list. \hypertarget{group__kern__impl_ga39cf986cee12aa37a066532e80a5f72a}{\index{Implementation@{Implementation}!k\-Idle\-Init@{k\-Idle\-Init}}
+\index{k\-Idle\-Init@{k\-Idle\-Init}!Implementation@{Implementation}}
+\paragraph[{k\-Idle\-Init}]{\setlength{\rightskip}{0pt plus 5cm}static void k\-Idle\-Init (
+\begin{DoxyParamCaption}
+\item[{void}]{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [static]}}}\label{group__kern__impl_ga39cf986cee12aa37a066532e80a5f72a}
+
+
+Initialization of Idle thread. 
+
+\hypertarget{group__kern__impl_ga4e968162935156b6617ff0d5cbccbe1c}{\index{Implementation@{Implementation}!k\-Idle@{k\-Idle}}
+\index{k\-Idle@{k\-Idle}!Implementation@{Implementation}}
+\paragraph[{k\-Idle}]{\setlength{\rightskip}{0pt plus 5cm}static void k\-Idle (
+\begin{DoxyParamCaption}
+\item[{void $\ast$}]{arg}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [static]}}}\label{group__kern__impl_ga4e968162935156b6617ff0d5cbccbe1c}
+
+
+Idle thread code. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em arg} & Argument\-: thread does not use argument \\
+\hline
+\end{DoxyParams}
+\hypertarget{group__kern__impl_gaae0a028e9f472994def9358f16cc40d3}{\index{Implementation@{Implementation}!thd\-Post@{thd\-Post}}
+\index{thd\-Post@{thd\-Post}!Implementation@{Implementation}}
+\paragraph[{thd\-Post}]{\setlength{\rightskip}{0pt plus 5cm}void thd\-Post (
+\begin{DoxyParamCaption}
+\item[{{\bf es\-Thd\-\_\-\-T} $\ast$}]{thd}
+\end{DoxyParamCaption}
+)}}\label{group__kern__impl_gaae0a028e9f472994def9358f16cc40d3}
+
+
+Post a signal to a thread which is waiting. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em thd} & Pointer to thread which needs to be signaled \\
+\hline
+\end{DoxyParams}
+\hypertarget{group__kern__impl_ga59935809f83133fb909c513fb72576b7}{\index{Implementation@{Implementation}!thd\-Wait@{thd\-Wait}}
+\index{thd\-Wait@{thd\-Wait}!Implementation@{Implementation}}
+\paragraph[{thd\-Wait}]{\setlength{\rightskip}{0pt plus 5cm}void thd\-Wait (
+\begin{DoxyParamCaption}
+\item[{void}]{}
+\end{DoxyParamCaption}
+)}}\label{group__kern__impl_ga59935809f83133fb909c513fb72576b7}
+
+
+Wait for a signal. 
+
+\hypertarget{group__kern__impl_ga52b5266d709bc1ce3ca9b1838f389023}{\index{Implementation@{Implementation}!D\-E\-C\-L\-\_\-\-M\-O\-D\-U\-L\-E\-\_\-\-I\-N\-F\-O@{D\-E\-C\-L\-\_\-\-M\-O\-D\-U\-L\-E\-\_\-\-I\-N\-F\-O}}
+\index{D\-E\-C\-L\-\_\-\-M\-O\-D\-U\-L\-E\-\_\-\-I\-N\-F\-O@{D\-E\-C\-L\-\_\-\-M\-O\-D\-U\-L\-E\-\_\-\-I\-N\-F\-O}!Implementation@{Implementation}}
+\paragraph[{D\-E\-C\-L\-\_\-\-M\-O\-D\-U\-L\-E\-\_\-\-I\-N\-F\-O}]{\setlength{\rightskip}{0pt plus 5cm}D\-E\-C\-L\-\_\-\-M\-O\-D\-U\-L\-E\-\_\-\-I\-N\-F\-O (
+\begin{DoxyParamCaption}
+\item[{\char`\"{}Kernel\char`\"{}}]{, }
+\item[{{\bf E\-S\-\_\-\-K\-E\-R\-N\-\_\-\-I\-D}}]{, }
+\item[{\char`\"{}Nenad Radulovic\char`\"{}}]{}
+\end{DoxyParamCaption}
+)}}\label{group__kern__impl_ga52b5266d709bc1ce3ca9b1838f389023}
+
+
+Module identification info. 
+
+\hypertarget{group__kern__impl_ga9e9ff699d62d6035cd51121bb3140704}{\index{Implementation@{Implementation}!es\-Kern\-Init@{es\-Kern\-Init}}
+\index{es\-Kern\-Init@{es\-Kern\-Init}!Implementation@{Implementation}}
+\paragraph[{es\-Kern\-Init}]{\setlength{\rightskip}{0pt plus 5cm}void es\-Kern\-Init (
+\begin{DoxyParamCaption}
+\item[{void}]{}
+\end{DoxyParamCaption}
+)}}\label{group__kern__impl_ga9e9ff699d62d6035cd51121bb3140704}
+
+
+Initialize kernel internal data structures. 
+
+\begin{DoxyPrecond}{Precondition}
+1) {\ttfamily The kernel state == E\-S\-\_\-\-K\-E\-R\-N\-\_\-\-I\-N\-A\-C\-T\-I\-V\-E}, see \hyperlink{states}{Kernel states}. 
+\end{DoxyPrecond}
+\begin{DoxyPostcond}{Postcondition}
+1) {\ttfamily The kernel state == E\-S\-\_\-\-K\-E\-R\-N\-\_\-\-I\-N\-I\-T}. 
+\end{DoxyPostcond}
+\begin{DoxyNote}{Note}
+1) This function may be invoked only once.
+\end{DoxyNote}
+This function must be called first before any other kernel A\-P\-I. It initializes internal data structures that are used by other A\-P\-I functions. \begin{DoxyParagraph}{This service can be called from\-:}
+
+\begin{DoxyItemize}
+\item Application initialization code 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Rescheduling\-:}
+
+\begin{DoxyItemize}
+\item never 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Object class\-:}
+Regular {\bfseries A\-P\-I} object, this object is part of the application programming interface. 
+\end{DoxyParagraph}
+\hypertarget{group__kern__impl_ga0e7a0a6b9c02df58de0f98de0229a09d}{\index{Implementation@{Implementation}!es\-Kern\-Start@{es\-Kern\-Start}}
+\index{es\-Kern\-Start@{es\-Kern\-Start}!Implementation@{Implementation}}
+\paragraph[{es\-Kern\-Start}]{\setlength{\rightskip}{0pt plus 5cm}P\-O\-R\-T\-\_\-\-C\-\_\-\-N\-O\-R\-E\-T\-U\-R\-N void es\-Kern\-Start (
+\begin{DoxyParamCaption}
+\item[{void}]{}
+\end{DoxyParamCaption}
+)}}\label{group__kern__impl_ga0e7a0a6b9c02df58de0f98de0229a09d}
+
+
+Start the multi-\/threading. 
+
+\begin{DoxyPrecond}{Precondition}
+1) {\ttfamily The kernel state == E\-S\-\_\-\-K\-E\-R\-N\-\_\-\-I\-N\-I\-T}, see \hyperlink{states}{Kernel states}. 
+\end{DoxyPrecond}
+\begin{DoxyPostcond}{Postcondition}
+1) {\ttfamily The kernel state == E\-S\-\_\-\-K\-E\-R\-N\-\_\-\-R\-U\-N} 
+
+2) The multi-\/threading execution will commence. 
+\end{DoxyPostcond}
+\begin{DoxyNote}{Note}
+1) Once this function is called the execution of threads will start and this function will never return.
+\end{DoxyNote}
+This function will start multi-\/threading. Once the multi-\/threading has started the execution will never return to this function again (this function never returns). \begin{DoxyParagraph}{This service can be called from\-:}
+
+\begin{DoxyItemize}
+\item Application initialization code 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Rescheduling\-:}
+
+\begin{DoxyItemize}
+\item always 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Object class\-:}
+Regular {\bfseries A\-P\-I} object, this object is part of the application programming interface. 
+\end{DoxyParagraph}
+\hypertarget{group__kern__impl_ga3182e4c1a47897109d0a429b10a2483e}{\index{Implementation@{Implementation}!es\-Kern\-Sys\-Tmr@{es\-Kern\-Sys\-Tmr}}
+\index{es\-Kern\-Sys\-Tmr@{es\-Kern\-Sys\-Tmr}!Implementation@{Implementation}}
+\paragraph[{es\-Kern\-Sys\-Tmr}]{\setlength{\rightskip}{0pt plus 5cm}void es\-Kern\-Sys\-Tmr (
+\begin{DoxyParamCaption}
+\item[{void}]{}
+\end{DoxyParamCaption}
+)}}\label{group__kern__impl_ga3182e4c1a47897109d0a429b10a2483e}
+
+
+Process the system timer event. 
+
+\begin{DoxyPrecond}{Precondition}
+1) {\ttfamily The kernel state $<$ E\-S\-\_\-\-K\-E\-R\-N\-\_\-\-I\-N\-I\-T}, see \hyperlink{states}{Kernel states}.
+\end{DoxyPrecond}
+This function will be called only by port system timer interrupt. \begin{DoxyParagraph}{Object class\-:}
+{\bfseries Not A\-P\-I} object, this object is not part of the application programming interface and it is intended for internal use only. 
+\end{DoxyParagraph}
+\hypertarget{group__kern__impl_gac0d578bcd4a10b2c8e5fc90f0b86ccec}{\index{Implementation@{Implementation}!es\-Kern\-Isr\-Enter\-I@{es\-Kern\-Isr\-Enter\-I}}
+\index{es\-Kern\-Isr\-Enter\-I@{es\-Kern\-Isr\-Enter\-I}!Implementation@{Implementation}}
+\paragraph[{es\-Kern\-Isr\-Enter\-I}]{\setlength{\rightskip}{0pt plus 5cm}void es\-Kern\-Isr\-Enter\-I (
+\begin{DoxyParamCaption}
+\item[{void}]{}
+\end{DoxyParamCaption}
+)}}\label{group__kern__impl_gac0d578bcd4a10b2c8e5fc90f0b86ccec}
+
+
+Enter Interrupt Service Routine. 
+
+\begin{DoxyPrecond}{Precondition}
+1) {\ttfamily The kernel state $<$ E\-S\-\_\-\-K\-E\-R\-N\-\_\-\-I\-N\-I\-T}, see \hyperlink{states}{Kernel states}. 
+\end{DoxyPrecond}
+\begin{DoxyNote}{Note}
+1) You must call \hyperlink{group__kern__general_gaa6347925fff1684b5425dd2857c27129}{es\-Kern\-Isr\-Exit\-I()} at the exit of I\-S\-R. 
+
+2) You must invoke \hyperlink{group__kern__general_gac0d578bcd4a10b2c8e5fc90f0b86ccec}{es\-Kern\-Isr\-Enter\-I()} and \hyperlink{group__kern__general_gaa6347925fff1684b5425dd2857c27129}{es\-Kern\-Isr\-Exit\-I()} in pair. In other words, for every call to \hyperlink{group__kern__general_gac0d578bcd4a10b2c8e5fc90f0b86ccec}{es\-Kern\-Isr\-Enter\-I()} at the beginning of the I\-S\-R you must have a call to \hyperlink{group__kern__general_gaa6347925fff1684b5425dd2857c27129}{es\-Kern\-Isr\-Exit\-I()} at the end of the I\-S\-R.
+\end{DoxyNote}
+Function will notify kernel that you are about to enter interrupt service routine (I\-S\-R). This allows kernel to keep track of interrupt nesting and then only perform rescheduling at the last nested I\-S\-R. \begin{DoxyParagraph}{This service can be called from\-:}
+
+\begin{DoxyItemize}
+\item Interrupt service routine 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Rescheduling\-:}
+
+\begin{DoxyItemize}
+\item never 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Function class\-:}
+{\bfseries I class}, Interrupt-\/lock A\-P\-I function, this function can be called only from interrupts locked code sections. 
+\end{DoxyParagraph}
+\hypertarget{group__kern__impl_gaa6347925fff1684b5425dd2857c27129}{\index{Implementation@{Implementation}!es\-Kern\-Isr\-Exit\-I@{es\-Kern\-Isr\-Exit\-I}}
+\index{es\-Kern\-Isr\-Exit\-I@{es\-Kern\-Isr\-Exit\-I}!Implementation@{Implementation}}
+\paragraph[{es\-Kern\-Isr\-Exit\-I}]{\setlength{\rightskip}{0pt plus 5cm}void es\-Kern\-Isr\-Exit\-I (
+\begin{DoxyParamCaption}
+\item[{void}]{}
+\end{DoxyParamCaption}
+)}}\label{group__kern__impl_gaa6347925fff1684b5425dd2857c27129}
+
+
+Exit Interrupt Service Routine. 
+
+\begin{DoxyPrecond}{Precondition}
+1) {\ttfamily The kernel state $<$ E\-S\-\_\-\-K\-E\-R\-N\-\_\-\-I\-N\-I\-T}, see \hyperlink{states}{Kernel states}. 
+\end{DoxyPrecond}
+\begin{DoxyNote}{Note}
+1) You must invoke \hyperlink{group__kern__general_gac0d578bcd4a10b2c8e5fc90f0b86ccec}{es\-Kern\-Isr\-Enter\-I()} and \hyperlink{group__kern__general_gaa6347925fff1684b5425dd2857c27129}{es\-Kern\-Isr\-Exit\-I()} in pair. In other words, for every call to \hyperlink{group__kern__general_gac0d578bcd4a10b2c8e5fc90f0b86ccec}{es\-Kern\-Isr\-Enter\-I()} at the beginning of the I\-S\-R you must have a call to \hyperlink{group__kern__general_gaa6347925fff1684b5425dd2857c27129}{es\-Kern\-Isr\-Exit\-I()} at the end of the I\-S\-R. 
+
+2) Rescheduling is prevented when the scheduler is locked (see \hyperlink{group__kern__lock_ga6dd45355c20a10f7272bd39670353428}{es\-Kern\-Lock\-Enter\-I()})
+\end{DoxyNote}
+This function is used to notify kernel that you have completed servicing an interrupt. When the last nested I\-S\-R has completed, the function will call the scheduler to determine whether a new, high-\/priority task, is ready to run. \begin{DoxyParagraph}{This service can be called from\-:}
+
+\begin{DoxyItemize}
+\item Interrupt service routine 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Rescheduling\-:}
+
+\begin{DoxyItemize}
+\item possible 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Function class\-:}
+{\bfseries I class}, Interrupt-\/lock A\-P\-I function, this function can be called only from interrupts locked code sections. 
+\end{DoxyParagraph}
+\hypertarget{group__kern__impl_gaa3ca4a02fafcfb840442506f42175a13}{\index{Implementation@{Implementation}!es\-Kern\-Lock\-Int\-Enter@{es\-Kern\-Lock\-Int\-Enter}}
+\index{es\-Kern\-Lock\-Int\-Enter@{es\-Kern\-Lock\-Int\-Enter}!Implementation@{Implementation}}
+\paragraph[{es\-Kern\-Lock\-Int\-Enter}]{\setlength{\rightskip}{0pt plus 5cm}void es\-Kern\-Lock\-Int\-Enter (
+\begin{DoxyParamCaption}
+\item[{{\bf es\-Lock\-Ctx\-\_\-\-T} $\ast$}]{lock\-Ctx}
+\end{DoxyParamCaption}
+)}}\label{group__kern__impl_gaa3ca4a02fafcfb840442506f42175a13}
+
+
+Enter a critical code lock. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em lock\-Ctx} & Pointer to context variable where to store the current lock context. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyParagraph}{This service can be called from\-:}
+
+\begin{DoxyItemize}
+\item Application initialization code
+\item Application thread code 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Rescheduling\-:}
+
+\begin{DoxyItemize}
+\item never 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Object class\-:}
+Regular {\bfseries A\-P\-I} object, this object is part of the application programming interface. 
+\end{DoxyParagraph}
+\hypertarget{group__kern__impl_gad8cb192a48802804cc12162edd18668d}{\index{Implementation@{Implementation}!es\-Kern\-Lock\-Int\-Exit@{es\-Kern\-Lock\-Int\-Exit}}
+\index{es\-Kern\-Lock\-Int\-Exit@{es\-Kern\-Lock\-Int\-Exit}!Implementation@{Implementation}}
+\paragraph[{es\-Kern\-Lock\-Int\-Exit}]{\setlength{\rightskip}{0pt plus 5cm}void es\-Kern\-Lock\-Int\-Exit (
+\begin{DoxyParamCaption}
+\item[{{\bf es\-Lock\-Ctx\-\_\-\-T}}]{lock\-Ctx}
+\end{DoxyParamCaption}
+)}}\label{group__kern__impl_gad8cb192a48802804cc12162edd18668d}
+
+
+Exit a critical code lock. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em lock\-Ctx} & Context variable value\\
+\hline
+\end{DoxyParams}
+Restores the lock context to state before the \hyperlink{group__kern__lock_gaa3ca4a02fafcfb840442506f42175a13}{es\-Kern\-Lock\-Int\-Enter()} was called. \begin{DoxyParagraph}{This service can be called from\-:}
+
+\begin{DoxyItemize}
+\item Application initialization code
+\item Application thread code 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Rescheduling\-:}
+
+\begin{DoxyItemize}
+\item possible 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Object class\-:}
+Regular {\bfseries A\-P\-I} object, this object is part of the application programming interface. 
+\end{DoxyParagraph}
+\hypertarget{group__kern__impl_ga6dd45355c20a10f7272bd39670353428}{\index{Implementation@{Implementation}!es\-Kern\-Lock\-Enter\-I@{es\-Kern\-Lock\-Enter\-I}}
+\index{es\-Kern\-Lock\-Enter\-I@{es\-Kern\-Lock\-Enter\-I}!Implementation@{Implementation}}
+\paragraph[{es\-Kern\-Lock\-Enter\-I}]{\setlength{\rightskip}{0pt plus 5cm}void es\-Kern\-Lock\-Enter\-I (
+\begin{DoxyParamCaption}
+\item[{void}]{}
+\end{DoxyParamCaption}
+)}}\label{group__kern__impl_ga6dd45355c20a10f7272bd39670353428}
+
+
+Lock the scheduler. 
+
+\begin{DoxyPrecond}{Precondition}
+1) {\ttfamily The kernel state $<$ E\-S\-\_\-\-K\-E\-R\-N\-\_\-\-I\-N\-I\-T}, see \hyperlink{states}{Kernel states}. 
+\end{DoxyPrecond}
+\begin{DoxyParagraph}{This service can be called from\-:}
+
+\begin{DoxyItemize}
+\item Application thread code 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Rescheduling\-:}
+
+\begin{DoxyItemize}
+\item never 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Function class\-:}
+{\bfseries I class}, Interrupt-\/lock A\-P\-I function, this function can be called only from interrupts locked code sections. 
+\end{DoxyParagraph}
+\hypertarget{group__kern__impl_ga3287aefb2c7dd24672c716d86a008ad3}{\index{Implementation@{Implementation}!es\-Kern\-Lock\-Exit\-I@{es\-Kern\-Lock\-Exit\-I}}
+\index{es\-Kern\-Lock\-Exit\-I@{es\-Kern\-Lock\-Exit\-I}!Implementation@{Implementation}}
+\paragraph[{es\-Kern\-Lock\-Exit\-I}]{\setlength{\rightskip}{0pt plus 5cm}void es\-Kern\-Lock\-Exit\-I (
+\begin{DoxyParamCaption}
+\item[{void}]{}
+\end{DoxyParamCaption}
+)}}\label{group__kern__impl_ga3287aefb2c7dd24672c716d86a008ad3}
+
+
+Unlock the scheduler. 
+
+\begin{DoxyPrecond}{Precondition}
+1) {\ttfamily The kernel state $<$ E\-S\-\_\-\-K\-E\-R\-N\-\_\-\-I\-N\-I\-T}, see \hyperlink{states}{Kernel states}. 
+
+2) {\ttfamily g\-Kern\-Lock\-Cnt $>$ 0u}, current number of locks must be greater than zero, in other words\-: each call to kernel lock function must have its matching call to kernel unlock function. 
+\end{DoxyPrecond}
+\begin{DoxyParagraph}{This service can be called from\-:}
+
+\begin{DoxyItemize}
+\item Application thread code 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Rescheduling\-:}
+
+\begin{DoxyItemize}
+\item possible 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Function class\-:}
+{\bfseries I class}, Interrupt-\/lock A\-P\-I function, this function can be called only from interrupts locked code sections. 
+\end{DoxyParagraph}
+\hypertarget{group__kern__impl_ga86ec4f4cbaa889b0f23c7e2ebdcbbb97}{\index{Implementation@{Implementation}!es\-Kern\-Lock\-Enter@{es\-Kern\-Lock\-Enter}}
+\index{es\-Kern\-Lock\-Enter@{es\-Kern\-Lock\-Enter}!Implementation@{Implementation}}
+\paragraph[{es\-Kern\-Lock\-Enter}]{\setlength{\rightskip}{0pt plus 5cm}void es\-Kern\-Lock\-Enter (
+\begin{DoxyParamCaption}
+\item[{void}]{}
+\end{DoxyParamCaption}
+)}}\label{group__kern__impl_ga86ec4f4cbaa889b0f23c7e2ebdcbbb97}
+
+
+Lock the scheduler. 
+
+\begin{DoxyPrecond}{Precondition}
+1) {\ttfamily The kernel state $<$ E\-S\-\_\-\-K\-E\-R\-N\-\_\-\-I\-N\-I\-T}, see \hyperlink{states}{Kernel states}. 
+\end{DoxyPrecond}
+\begin{DoxyParagraph}{This service can be called from\-:}
+
+\begin{DoxyItemize}
+\item Application thread code 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Rescheduling\-:}
+
+\begin{DoxyItemize}
+\item never 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Object class\-:}
+Regular {\bfseries A\-P\-I} object, this object is part of the application programming interface. 
+\end{DoxyParagraph}
+\hypertarget{group__kern__impl_gaf1eec663f7cc5c414b113901382ccd82}{\index{Implementation@{Implementation}!es\-Kern\-Lock\-Exit@{es\-Kern\-Lock\-Exit}}
+\index{es\-Kern\-Lock\-Exit@{es\-Kern\-Lock\-Exit}!Implementation@{Implementation}}
+\paragraph[{es\-Kern\-Lock\-Exit}]{\setlength{\rightskip}{0pt plus 5cm}void es\-Kern\-Lock\-Exit (
+\begin{DoxyParamCaption}
+\item[{void}]{}
+\end{DoxyParamCaption}
+)}}\label{group__kern__impl_gaf1eec663f7cc5c414b113901382ccd82}
+
+
+Unlock the scheduler. 
+
+\begin{DoxyPrecond}{Precondition}
+1) {\ttfamily The kernel state $<$ E\-S\-\_\-\-K\-E\-R\-N\-\_\-\-I\-N\-I\-T}, see \hyperlink{states}{Kernel states}. 
+
+2) {\ttfamily g\-Kern\-Lock\-Cnt $>$ 0u}, current number of locks must be greater than zero, in other words\-: each call to kernel lock function must have its matching call to kernel unlock function. 
+\end{DoxyPrecond}
+\begin{DoxyParagraph}{This service can be called from\-:}
+
+\begin{DoxyItemize}
+\item Application thread code 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Rescheduling\-:}
+
+\begin{DoxyItemize}
+\item possible 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Object class\-:}
+Regular {\bfseries A\-P\-I} object, this object is part of the application programming interface. 
+\end{DoxyParagraph}
+\hypertarget{group__kern__impl_gac91734f3ee867b519f59bf81cc7fde88}{\index{Implementation@{Implementation}!es\-Thd\-Init@{es\-Thd\-Init}}
+\index{es\-Thd\-Init@{es\-Thd\-Init}!Implementation@{Implementation}}
+\paragraph[{es\-Thd\-Init}]{\setlength{\rightskip}{0pt plus 5cm}void es\-Thd\-Init (
+\begin{DoxyParamCaption}
+\item[{{\bf es\-Thd\-\_\-\-T} $\ast$}]{thd, }
+\item[{void($\ast$)(void $\ast$)}]{fn, }
+\item[{void $\ast$}]{arg, }
+\item[{{\bf port\-Stck\-\_\-\-T} $\ast$}]{stck, }
+\item[{size\-\_\-t}]{stck\-Size, }
+\item[{uint8\-\_\-t}]{prio}
+\end{DoxyParamCaption}
+)}}\label{group__kern__impl_gac91734f3ee867b519f59bf81cc7fde88}
+
+
+Initialize the specified thread. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em thd} & Thread\-: is a pointer to the thread structure, \hyperlink{structesThd}{es\-Thd}. The structure will be used as information container for the thread. It is assumed that storage for the {\ttfamily \hyperlink{structesThd}{es\-Thd}} structure is allocated by the user code. \\
+\hline
+{\em fn} & Function\-: is a pointer to thread function. Thread function must have the following signature\-: {\ttfamily void thread (void $\ast$ arg)}. \\
+\hline
+{\em arg} & Argument\-: is a void pointer to an optional data area. It's usage is application defined and it is intended to pass arguments to thread when it is started for the first time. \\
+\hline
+{\em stck} & Stack\-: is a pointer to a allocated memory for thread stack. The pointer always points to the first element in the array, regardless of what type of stack the C\-P\-U is using. The thread's stack is used to store local variables, function parameters, return addresses. Each thread has its own stack and different sized stack. The stack type must be an array of \hyperlink{structportStck}{port\-Stck}. \\
+\hline
+{\em stck\-Size} & Stack Size\-: specifies the size of allocated stack memory. Size is expressed in bytes. Please see port documentation about minimal stack size. Usage of C unary operator {\ttfamily sizeof} is the recommended way of specifying stack size. Another way of specifying required stack size is through the usage of \hyperlink{group__kern__thd_gaa707debebe3f98439911212b0cc8b3d1}{E\-S\-\_\-\-S\-T\-C\-K\-\_\-\-S\-I\-Z\-E} macro. \\
+\hline
+{\em prio} & Priority\-: is the priority of the thread. The higher the number, the higher the priority (the importance) of the thread. Several threads can have the same priority. Note that lowest (0) and highest (C\-F\-G\-\_\-\-S\-C\-H\-E\-D\-\_\-\-P\-R\-I\-O\-\_\-\-L\-V\-L -\/ 1) levels are reserved for kernel threads only. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyPrecond}{Precondition}
+1) {\ttfamily The kernel state E\-S\-\_\-\-K\-E\-R\-N\-\_\-\-I\-N\-A\-C\-T\-I\-V\-E}, see \hyperlink{states}{Kernel states}. 
+
+2) {\ttfamily thd != N\-U\-L\-L} 
+
+3) {\ttfamily thd-\/$>$signature != D\-E\-F\-\_\-\-T\-H\-D\-\_\-\-C\-O\-N\-T\-R\-A\-C\-T\-\_\-\-S\-I\-G\-N\-A\-T\-U\-R\-E}, the thread structure can't be initialized more than once. 
+
+4) {\ttfamily fn != N\-U\-L\-L} 
+
+5) {\ttfamily stck\-Size $>$= P\-O\-R\-T\-\_\-\-D\-E\-F\-\_\-\-S\-T\-C\-K\-\_\-\-M\-I\-N\-S\-I\-Z\-E}, see \hyperlink{group__template__cpu__intf_ga5a629fee11006b5b0b97f7cb7176efd4}{P\-O\-R\-T\-\_\-\-D\-E\-F\-\_\-\-S\-T\-C\-K\-\_\-\-M\-I\-N\-S\-I\-Z\-E}. 
+
+6) {\ttfamily 0 $<$ prio $<$ C\-F\-G\-\_\-\-S\-C\-H\-E\-D\-\_\-\-P\-R\-I\-O\-\_\-\-L\-V\-L -\/ 1}, see \hyperlink{group__template__kern__cfg_ga56bd89fe76f7fe22f3d8805bc3c68892}{C\-F\-G\-\_\-\-S\-C\-H\-E\-D\-\_\-\-P\-R\-I\-O\-\_\-\-L\-V\-L}. 
+\end{DoxyPrecond}
+\begin{DoxyPostcond}{Postcondition}
+1) {\ttfamily thd-\/$>$signature == D\-E\-F\-\_\-\-T\-H\-D\-\_\-\-C\-O\-N\-T\-R\-A\-C\-T\-\_\-\-S\-I\-G\-N\-A\-T\-U\-R\-E}, each \hyperlink{structesThd}{es\-Thd} structure will have valid signature after initialization.
+\end{DoxyPostcond}
+Threads must be created in order for kernel to recognize them as threads. Initialize a thread by calling \hyperlink{group__kern__thd_gac91734f3ee867b519f59bf81cc7fde88}{es\-Thd\-Init()} and provide arguments specifying to kernel how the thread will be managed. Threads are always created in the {\ttfamily ready-\/to-\/run} state. Threads can be created either prior to the start of multi-\/threading (before calling \hyperlink{group__kern__general_ga0e7a0a6b9c02df58de0f98de0229a09d}{es\-Kern\-Start()}), or by a running thread. \begin{DoxyParagraph}{This service can be called from\-:}
+
+\begin{DoxyItemize}
+\item Application initialization code
+\item Application thread code 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Rescheduling\-:}
+
+\begin{DoxyItemize}
+\item possible 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Object class\-:}
+Regular {\bfseries A\-P\-I} object, this object is part of the application programming interface. 
+\end{DoxyParagraph}
+\hypertarget{group__kern__impl_gac9d1eac76f26096614e8196bcfd8b905}{\index{Implementation@{Implementation}!es\-Thd\-Term@{es\-Thd\-Term}}
+\index{es\-Thd\-Term@{es\-Thd\-Term}!Implementation@{Implementation}}
+\paragraph[{es\-Thd\-Term}]{\setlength{\rightskip}{0pt plus 5cm}void es\-Thd\-Term (
+\begin{DoxyParamCaption}
+\item[{{\bf es\-Thd\-\_\-\-T} $\ast$}]{thd}
+\end{DoxyParamCaption}
+)}}\label{group__kern__impl_gac9d1eac76f26096614e8196bcfd8b905}
+
+
+Terminate the specified thread. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em thd} & Thread\-: is a pointer to the thread structure, \hyperlink{structesThd}{es\-Thd}. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyPrecond}{Precondition}
+1) {\ttfamily The kernel state E\-S\-\_\-\-K\-E\-R\-N\-\_\-\-I\-N\-A\-C\-T\-I\-V\-E}, see \hyperlink{states}{Kernel states}. 
+
+2) {\ttfamily thd != N\-U\-L\-L} 
+
+3) {\ttfamily thd-\/$>$signature == D\-E\-F\-\_\-\-T\-H\-D\-\_\-\-C\-O\-N\-T\-R\-A\-C\-T\-\_\-\-S\-I\-G\-N\-A\-T\-U\-R\-E}, the pointer must point to a valid \hyperlink{structesThd}{es\-Thd} structure. 
+
+4) {\ttfamily (thd-\/$>$thd\-L\-\_\-.\-q == N\-U\-L\-L) O\-R (thd-\/$>$thd\-L\-\_\-.\-q == g\-Rdy\-Queue)}, thread must be either in Ready Threads Queue or not be in any queue (e.\-g. not waiting for a synchronization mechanism). 
+\end{DoxyPrecond}
+\begin{DoxyPostcond}{Postcondition}
+1) {\ttfamily thd-\/$>$signature == $\sim$\-D\-E\-F\-\_\-\-T\-H\-D\-\_\-\-C\-O\-N\-T\-R\-A\-C\-T\-\_\-\-S\-I\-G\-N\-A\-T\-U\-R\-E}, each \hyperlink{structesThd}{es\-Thd} structure will have invalid signature after termination. 
+\end{DoxyPostcond}
+\begin{DoxyParagraph}{This service can be called from\-:}
+
+\begin{DoxyItemize}
+\item Application initialization code
+\item Application thread code 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Rescheduling\-:}
+
+\begin{DoxyItemize}
+\item possible 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Object class\-:}
+Regular {\bfseries A\-P\-I} object, this object is part of the application programming interface. 
+\end{DoxyParagraph}
+\hypertarget{group__kern__impl_ga8eaa731d0026a8a1667d4422d5031df6}{\index{Implementation@{Implementation}!es\-Thd\-Set\-Prio\-I@{es\-Thd\-Set\-Prio\-I}}
+\index{es\-Thd\-Set\-Prio\-I@{es\-Thd\-Set\-Prio\-I}!Implementation@{Implementation}}
+\paragraph[{es\-Thd\-Set\-Prio\-I}]{\setlength{\rightskip}{0pt plus 5cm}void es\-Thd\-Set\-Prio\-I (
+\begin{DoxyParamCaption}
+\item[{{\bf es\-Thd\-\_\-\-T} $\ast$}]{thd, }
+\item[{uint8\-\_\-t}]{prio}
+\end{DoxyParamCaption}
+)}}\label{group__kern__impl_ga8eaa731d0026a8a1667d4422d5031df6}
+
+
+Set the priority of a thread. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em thd} & Thread\-: is pointer to the thread structure, \hyperlink{structesThd}{es\-Thd}. \\
+\hline
+{\em prio} & Priority\-: is new priority of the thread pointed by {\ttfamily thd}. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyPrecond}{Precondition}
+1) {\ttfamily The kernel state $<$ E\-S\-\_\-\-K\-E\-R\-N\-\_\-\-I\-N\-A\-C\-T\-I\-V\-E}, see \hyperlink{states}{Kernel states}. 
+
+2) {\ttfamily thd != N\-U\-L\-L} 
+
+3) {\ttfamily thd-\/$>$signature == D\-E\-F\-\_\-\-T\-H\-D\-\_\-\-C\-O\-N\-T\-R\-A\-C\-T\-\_\-\-S\-I\-G\-N\-A\-T\-U\-R\-E}, the pointer must point to a valid \hyperlink{structesThd}{es\-Thd} structure. 
+
+4) {\ttfamily 0 $<$ prio $<$ C\-F\-G\-\_\-\-S\-C\-H\-E\-D\-\_\-\-P\-R\-I\-O\-\_\-\-L\-V\-L -\/ 1}, see \hyperlink{group__template__kern__cfg_ga56bd89fe76f7fe22f3d8805bc3c68892}{C\-F\-G\-\_\-\-S\-C\-H\-E\-D\-\_\-\-P\-R\-I\-O\-\_\-\-L\-V\-L}. 
+\end{DoxyPrecond}
+\begin{DoxyParagraph}{This service can be called from\-:}
+
+\begin{DoxyItemize}
+\item Application initialization code
+\item Application thread code
+\item Interrupt service routine 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Rescheduling\-:}
+
+\begin{DoxyItemize}
+\item possible 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Function class\-:}
+{\bfseries I class}, Interrupt-\/lock A\-P\-I function, this function can be called only from interrupts locked code sections. 
+\end{DoxyParagraph}
+\hypertarget{group__kern__impl_gaddd5fe0557c91559b9452beb0fc236fd}{\index{Implementation@{Implementation}!es\-Thd\-Q\-Init@{es\-Thd\-Q\-Init}}
+\index{es\-Thd\-Q\-Init@{es\-Thd\-Q\-Init}!Implementation@{Implementation}}
+\paragraph[{es\-Thd\-Q\-Init}]{\setlength{\rightskip}{0pt plus 5cm}void es\-Thd\-Q\-Init (
+\begin{DoxyParamCaption}
+\item[{{\bf es\-Thd\-Q\-\_\-\-T} $\ast$}]{thd\-Q}
+\end{DoxyParamCaption}
+)}}\label{group__kern__impl_gaddd5fe0557c91559b9452beb0fc236fd}
+
+
+Initialize Thread Queue. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em thd\-Q} & Thread Queue\-: is a pointer to thread queue structure, \hyperlink{structesThdQ}{es\-Thd\-Q}. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyPrecond}{Precondition}
+1) {\ttfamily thd\-Q != N\-U\-L\-L} 
+
+2) {\ttfamily thd\-Q-\/$>$signature != D\-E\-F\-\_\-\-T\-H\-D\-Q\-\_\-\-C\-O\-N\-T\-R\-A\-C\-T\-\_\-\-S\-I\-G\-N\-A\-T\-U\-R\-E}, the thread queue structure can't be initialized more than once. 
+\end{DoxyPrecond}
+\begin{DoxyPostcond}{Postcondition}
+1) {\ttfamily thd\-Q-\/$>$signature == D\-E\-F\-\_\-\-T\-H\-D\-Q\-\_\-\-C\-O\-N\-T\-R\-A\-C\-T\-\_\-\-S\-I\-G\-N\-A\-T\-U\-R\-E}, each \hyperlink{structesThdQ}{es\-Thd\-Q} structure will have valid signature after initialization. 
+\end{DoxyPostcond}
+\begin{DoxyParagraph}{This service can be called from\-:}
+
+\begin{DoxyItemize}
+\item Application initialization code
+\item Application thread code
+\item Interrupt service routine 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Rescheduling\-:}
+
+\begin{DoxyItemize}
+\item never 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Object class\-:}
+Regular {\bfseries A\-P\-I} object, this object is part of the application programming interface. 
+\end{DoxyParagraph}
+\hypertarget{group__kern__impl_gaa5f19b32a7f0c42616b5270dcbd73a3e}{\index{Implementation@{Implementation}!es\-Thd\-Q\-Term@{es\-Thd\-Q\-Term}}
+\index{es\-Thd\-Q\-Term@{es\-Thd\-Q\-Term}!Implementation@{Implementation}}
+\paragraph[{es\-Thd\-Q\-Term}]{\setlength{\rightskip}{0pt plus 5cm}void es\-Thd\-Q\-Term (
+\begin{DoxyParamCaption}
+\item[{{\bf es\-Thd\-Q\-\_\-\-T} $\ast$}]{thd\-Q}
+\end{DoxyParamCaption}
+)}}\label{group__kern__impl_gaa5f19b32a7f0c42616b5270dcbd73a3e}
+
+
+Terminate Thread Queue. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em thd\-Q} & Thread Queue\-: is a pointer to thread queue structure, \hyperlink{structesThdQ}{es\-Thd\-Q}. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyPrecond}{Precondition}
+1) {\ttfamily thd\-Q != N\-U\-L\-L} 
+
+2) {\ttfamily thd\-Q-\/$>$signature == D\-E\-F\-\_\-\-T\-H\-D\-Q\-\_\-\-C\-O\-N\-T\-R\-A\-C\-T\-\_\-\-S\-I\-G\-N\-A\-T\-U\-R\-E}, the thread queue structure must be already initialized. 
+\end{DoxyPrecond}
+\begin{DoxyPostcond}{Postcondition}
+1) {\ttfamily thd\-Q-\/$>$signature == $\sim$\-D\-E\-F\-\_\-\-T\-H\-D\-Q\-\_\-\-C\-O\-N\-T\-R\-A\-C\-T\-\_\-\-S\-I\-G\-N\-A\-T\-U\-R\-E}, each \hyperlink{structesThdQ}{es\-Thd\-Q} structure will have invalid signature after termination. 
+\end{DoxyPostcond}
+\begin{DoxyParagraph}{This service can be called from\-:}
+
+\begin{DoxyItemize}
+\item Application initialization code
+\item Application thread code
+\item Interrupt service routine 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Rescheduling\-:}
+
+\begin{DoxyItemize}
+\item never 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Object class\-:}
+Regular {\bfseries A\-P\-I} object, this object is part of the application programming interface. 
+\end{DoxyParagraph}
+\hypertarget{group__kern__impl_ga9da1e71c137d8adb8c9bdead7052b5fa}{\index{Implementation@{Implementation}!es\-Thd\-Q\-Add\-I@{es\-Thd\-Q\-Add\-I}}
+\index{es\-Thd\-Q\-Add\-I@{es\-Thd\-Q\-Add\-I}!Implementation@{Implementation}}
+\paragraph[{es\-Thd\-Q\-Add\-I}]{\setlength{\rightskip}{0pt plus 5cm}void es\-Thd\-Q\-Add\-I (
+\begin{DoxyParamCaption}
+\item[{{\bf es\-Thd\-Q\-\_\-\-T} $\ast$}]{thd\-Q, }
+\item[{{\bf es\-Thd\-\_\-\-T} $\ast$}]{thd}
+\end{DoxyParamCaption}
+)}}\label{group__kern__impl_ga9da1e71c137d8adb8c9bdead7052b5fa}
+
+
+Add a thread to the Thread Queue. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em thd\-Q} & Thread Queue\-: is a pointer to thread queue structure, \hyperlink{structesThdQ}{es\-Thd\-Q}. \\
+\hline
+{\em thd} & Thread\-: is a pointer to the thread I\-D structure, \hyperlink{structesThd}{es\-Thd}. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyPrecond}{Precondition}
+1) {\ttfamily thd\-Q != N\-U\-L\-L} 
+
+2) {\ttfamily thd\-Q-\/$>$signature == D\-E\-F\-\_\-\-T\-H\-D\-Q\-\_\-\-C\-O\-N\-T\-R\-A\-C\-T\-\_\-\-S\-I\-G\-N\-A\-T\-U\-R\-E}, the pointer must point to a valid \hyperlink{structesThdQ}{es\-Thd\-Q} structure. 
+
+3) {\ttfamily thd != N\-U\-L\-L} 
+
+4) {\ttfamily thd-\/$>$signature == D\-E\-F\-\_\-\-T\-H\-D\-\_\-\-C\-O\-N\-T\-R\-A\-C\-T\-\_\-\-S\-I\-G\-N\-A\-T\-U\-R\-E}, the pointer must point to a valid \hyperlink{structesThd}{es\-Thd} structure. 
+
+5) {\ttfamily thd-\/$>$thd\-L\-\_\-.\-q == N\-U\-L\-L}, thread must not be in any queue.
+\end{DoxyPrecond}
+This function adds a thread at the specified Thread Queue. \begin{DoxyParagraph}{This service can be called from\-:}
+
+\begin{DoxyItemize}
+\item Application initialization code
+\item Application thread code
+\item Interrupt service routine 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Rescheduling\-:}
+
+\begin{DoxyItemize}
+\item never 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Function class\-:}
+{\bfseries I class}, Interrupt-\/lock A\-P\-I function, this function can be called only from interrupts locked code sections. 
+\end{DoxyParagraph}
+\hypertarget{group__kern__impl_gaa18afa95e34035da03c5cb7ea3a96320}{\index{Implementation@{Implementation}!es\-Thd\-Q\-Rm\-I@{es\-Thd\-Q\-Rm\-I}}
+\index{es\-Thd\-Q\-Rm\-I@{es\-Thd\-Q\-Rm\-I}!Implementation@{Implementation}}
+\paragraph[{es\-Thd\-Q\-Rm\-I}]{\setlength{\rightskip}{0pt plus 5cm}void es\-Thd\-Q\-Rm\-I (
+\begin{DoxyParamCaption}
+\item[{{\bf es\-Thd\-Q\-\_\-\-T} $\ast$}]{thd\-Q, }
+\item[{{\bf es\-Thd\-\_\-\-T} $\ast$}]{thd}
+\end{DoxyParamCaption}
+)}}\label{group__kern__impl_gaa18afa95e34035da03c5cb7ea3a96320}
+
+
+Removes the thread from the Thread Queue. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em thd\-Q} & Thread Queue\-: is a pointer to thread queue structure, \hyperlink{structesThdQ}{es\-Thd\-Q}. \\
+\hline
+{\em thd} & Thread\-: is a pointer to the thread I\-D structure, \hyperlink{structesThd}{es\-Thd}. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyPrecond}{Precondition}
+1) {\ttfamily thd != N\-U\-L\-L} 
+
+2) {\ttfamily thd-\/$>$signature == D\-E\-F\-\_\-\-T\-H\-D\-\_\-\-C\-O\-N\-T\-R\-A\-C\-T\-\_\-\-S\-I\-G\-N\-A\-T\-U\-R\-E}, the pointer must point to a valid \hyperlink{structesThd}{es\-Thd} structure. 
+
+3) {\ttfamily thd\-Q != N\-U\-L\-L} 
+
+4) {\ttfamily thd\-Q-\/$>$signature == D\-E\-F\-\_\-\-T\-H\-D\-Q\-\_\-\-C\-O\-N\-T\-R\-A\-C\-T\-\_\-\-S\-I\-G\-N\-A\-T\-U\-R\-E}, the pointer must point to a valid \hyperlink{structesThdQ}{es\-Thd\-Q} structure. 
+
+5) {\ttfamily thd-\/$>$thd\-L\-\_\-.\-q == thd\-Q}, thread must be in the {\ttfamily thd\-Q} queue. 
+\end{DoxyPrecond}
+\begin{DoxyParagraph}{This service can be called from\-:}
+
+\begin{DoxyItemize}
+\item Application initialization code
+\item Application thread code
+\item Interrupt service routine 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Rescheduling\-:}
+
+\begin{DoxyItemize}
+\item never 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Function class\-:}
+{\bfseries I class}, Interrupt-\/lock A\-P\-I function, this function can be called only from interrupts locked code sections. 
+\end{DoxyParagraph}
+\hypertarget{group__kern__impl_ga1670c123f31c346b24ec9d2b7ae35f88}{\index{Implementation@{Implementation}!es\-Thd\-Q\-Fetch\-I@{es\-Thd\-Q\-Fetch\-I}}
+\index{es\-Thd\-Q\-Fetch\-I@{es\-Thd\-Q\-Fetch\-I}!Implementation@{Implementation}}
+\paragraph[{es\-Thd\-Q\-Fetch\-I}]{\setlength{\rightskip}{0pt plus 5cm}{\bf es\-Thd\-\_\-\-T}$\ast$ es\-Thd\-Q\-Fetch\-I (
+\begin{DoxyParamCaption}
+\item[{const {\bf es\-Thd\-Q\-\_\-\-T} $\ast$}]{thd\-Q}
+\end{DoxyParamCaption}
+)}}\label{group__kern__impl_ga1670c123f31c346b24ec9d2b7ae35f88}
+
+
+Fetch the first high priority thread from the Thread Queue. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em thd\-Q} & Thread Queue\-: is a pointer to thread queue structure, \hyperlink{structesThdQ}{es\-Thd\-Q}. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+A pointer to the thread I\-D structure with the highest priority. 
+\end{DoxyReturn}
+\begin{DoxyPrecond}{Precondition}
+1) {\ttfamily thd\-Q != N\-U\-L\-L} 
+
+2) {\ttfamily thd\-Q-\/$>$signature == D\-E\-F\-\_\-\-T\-H\-D\-Q\-\_\-\-C\-O\-N\-T\-R\-A\-C\-T\-\_\-\-S\-I\-G\-N\-A\-T\-U\-R\-E}, the pointer must point to a valid \hyperlink{structesThdQ}{es\-Thd\-Q} structure. 
+
+3) {\ttfamily pbm\-\_\- != 0}, priority bit map must not be empty 
+\end{DoxyPrecond}
+\begin{DoxyParagraph}{This service can be called from\-:}
+
+\begin{DoxyItemize}
+\item Application initialization code
+\item Application thread code
+\item Interrupt service routine 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Rescheduling\-:}
+
+\begin{DoxyItemize}
+\item never 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Function class\-:}
+{\bfseries I class}, Interrupt-\/lock A\-P\-I function, this function can be called only from interrupts locked code sections. 
+\end{DoxyParagraph}
+\hypertarget{group__kern__impl_gae365b14292f1496a90d876baec84fb4e}{\index{Implementation@{Implementation}!es\-Thd\-Q\-Fetch\-Rotate\-I@{es\-Thd\-Q\-Fetch\-Rotate\-I}}
+\index{es\-Thd\-Q\-Fetch\-Rotate\-I@{es\-Thd\-Q\-Fetch\-Rotate\-I}!Implementation@{Implementation}}
+\paragraph[{es\-Thd\-Q\-Fetch\-Rotate\-I}]{\setlength{\rightskip}{0pt plus 5cm}{\bf es\-Thd\-\_\-\-T}$\ast$ es\-Thd\-Q\-Fetch\-Rotate\-I (
+\begin{DoxyParamCaption}
+\item[{{\bf es\-Thd\-Q\-\_\-\-T} $\ast$}]{thd\-Q, }
+\item[{uint\-\_\-fast8\-\_\-t}]{prio}
+\end{DoxyParamCaption}
+)}}\label{group__kern__impl_gae365b14292f1496a90d876baec84fb4e}
+
+
+Fetch the next thread and rotate thread linked list. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em thd\-Q} & Thread Queue\-: is a pointer to thread queue structure, \hyperlink{structesThdQ}{es\-Thd\-Q}. This is the thread queue to fetch from. \\
+\hline
+{\em prio} & Priority\-: is the priority level to fetch and rotate. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Pointer to the next thread in queue. 
+\end{DoxyReturn}
+\begin{DoxyPrecond}{Precondition}
+1) {\ttfamily thd\-Q != N\-U\-L\-L} 
+
+2) {\ttfamily thd\-Q-\/$>$signature == D\-E\-F\-\_\-\-T\-H\-D\-Q\-\_\-\-C\-O\-N\-T\-R\-A\-C\-T\-\_\-\-S\-I\-G\-N\-A\-T\-U\-R\-E}, the pointer must point to a valid \hyperlink{structesThdQ}{es\-Thd\-Q} structure. 
+
+3) {\ttfamily 0 $<$= prio $<$= C\-F\-G\-\_\-\-S\-C\-H\-E\-D\-\_\-\-P\-R\-I\-O\-\_\-\-L\-V\-L}, see \hyperlink{group__template__kern__cfg_ga56bd89fe76f7fe22f3d8805bc3c68892}{C\-F\-G\-\_\-\-S\-C\-H\-E\-D\-\_\-\-P\-R\-I\-O\-\_\-\-L\-V\-L}. 
+
+4) {\ttfamily sentinel != N\-U\-L\-L}, at least one thread must be in the selected priority level 
+\end{DoxyPrecond}
+\begin{DoxyParagraph}{This service can be called from\-:}
+
+\begin{DoxyItemize}
+\item Application initialization code
+\item Application thread code
+\item Interrupt service routine 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Rescheduling\-:}
+
+\begin{DoxyItemize}
+\item never 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Function class\-:}
+{\bfseries I class}, Interrupt-\/lock A\-P\-I function, this function can be called only from interrupts locked code sections. 
+\end{DoxyParagraph}
+\hypertarget{group__kern__impl_gacf2687b82ce64e2154d97fd3b69a4ab5}{\index{Implementation@{Implementation}!es\-Thd\-Q\-Is\-Empty@{es\-Thd\-Q\-Is\-Empty}}
+\index{es\-Thd\-Q\-Is\-Empty@{es\-Thd\-Q\-Is\-Empty}!Implementation@{Implementation}}
+\paragraph[{es\-Thd\-Q\-Is\-Empty}]{\setlength{\rightskip}{0pt plus 5cm}{\bf bool\-\_\-\-T} es\-Thd\-Q\-Is\-Empty (
+\begin{DoxyParamCaption}
+\item[{const {\bf es\-Thd\-Q\-\_\-\-T} $\ast$}]{thd\-Q}
+\end{DoxyParamCaption}
+)}}\label{group__kern__impl_gacf2687b82ce64e2154d97fd3b69a4ab5}
+
+
+Is thread queue empty. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em thd\-Q} & Thread Queue\-: is a pointer to thread queue structure, \hyperlink{structesThdQ}{es\-Thd\-Q}. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The state of thread queue 
+\end{DoxyReturn}
+
+\begin{DoxyRetVals}{Return values}
+{\em T\-R\-U\-E} & -\/ thread queue is empty \\
+\hline
+{\em F\-A\-L\-S\-E} & -\/ thread queue is not empty \\
+\hline
+\end{DoxyRetVals}
+\begin{DoxyPrecond}{Precondition}
+1) {\ttfamily thd\-Q != N\-U\-L\-L} 
+
+2) {\ttfamily thd\-Q-\/$>$signature == D\-E\-F\-\_\-\-T\-H\-D\-Q\-\_\-\-C\-O\-N\-T\-R\-A\-C\-T\-\_\-\-S\-I\-G\-N\-A\-T\-U\-R\-E}, the pointer must point to a valid \hyperlink{structesThdQ}{es\-Thd\-Q} structure. 
+\end{DoxyPrecond}
+\begin{DoxyParagraph}{This service can be called from\-:}
+
+\begin{DoxyItemize}
+\item Application initialization code
+\item Application thread code
+\item Interrupt service routine 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Rescheduling\-:}
+
+\begin{DoxyItemize}
+\item never 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Object class\-:}
+Regular {\bfseries A\-P\-I} object, this object is part of the application programming interface. 
+\end{DoxyParagraph}
+\hypertarget{group__kern__impl_ga73e14b1860ce824c822adc407aee0977}{\index{Implementation@{Implementation}!es\-Sched\-Rdy\-Add\-I@{es\-Sched\-Rdy\-Add\-I}}
+\index{es\-Sched\-Rdy\-Add\-I@{es\-Sched\-Rdy\-Add\-I}!Implementation@{Implementation}}
+\paragraph[{es\-Sched\-Rdy\-Add\-I}]{\setlength{\rightskip}{0pt plus 5cm}void es\-Sched\-Rdy\-Add\-I (
+\begin{DoxyParamCaption}
+\item[{{\bf es\-Thd\-\_\-\-T} $\ast$}]{thd}
+\end{DoxyParamCaption}
+)}}\label{group__kern__impl_ga73e14b1860ce824c822adc407aee0977}
+
+
+Add thread {\ttfamily thd} to the ready thread list and notify the scheduler. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em thd} & Pointer to the initialized thread I\-D structure, \hyperlink{structesThd}{es\-Thd}. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyPrecond}{Precondition}
+1) {\ttfamily The kernel state $<$ E\-S\-\_\-\-K\-E\-R\-N\-\_\-\-I\-N\-A\-C\-T\-I\-V\-E}, see \hyperlink{states}{Kernel states}. 
+
+2) {\ttfamily thd != N\-U\-L\-L} 
+
+3) {\ttfamily thd-\/$>$signature == D\-E\-F\-\_\-\-T\-H\-D\-\_\-\-C\-O\-N\-T\-R\-A\-C\-T\-\_\-\-S\-I\-G\-N\-A\-T\-U\-R\-E}, the pointer must point to a valid \hyperlink{structesThd}{es\-Thd} structure. 
+
+4) {\ttfamily thd-\/$>$thd\-L\-\_\-.\-q == N\-U\-L\-L}, thread must not be in a queue. 
+\end{DoxyPrecond}
+\begin{DoxyParagraph}{This service can be called from\-:}
+
+\begin{DoxyItemize}
+\item Application initialization code
+\item Application thread code
+\item Interrupt service routine 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Rescheduling\-:}
+
+\begin{DoxyItemize}
+\item never 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Function class\-:}
+{\bfseries I class}, Interrupt-\/lock A\-P\-I function, this function can be called only from interrupts locked code sections. 
+\end{DoxyParagraph}
+\hypertarget{group__kern__impl_ga0b8263c5024ebb59cd9b95cc9253b44d}{\index{Implementation@{Implementation}!es\-Sched\-Rdy\-Rm\-I@{es\-Sched\-Rdy\-Rm\-I}}
+\index{es\-Sched\-Rdy\-Rm\-I@{es\-Sched\-Rdy\-Rm\-I}!Implementation@{Implementation}}
+\paragraph[{es\-Sched\-Rdy\-Rm\-I}]{\setlength{\rightskip}{0pt plus 5cm}void es\-Sched\-Rdy\-Rm\-I (
+\begin{DoxyParamCaption}
+\item[{{\bf es\-Thd\-\_\-\-T} $\ast$}]{thd}
+\end{DoxyParamCaption}
+)}}\label{group__kern__impl_ga0b8263c5024ebb59cd9b95cc9253b44d}
+
+
+Remove thread {\ttfamily thd} from the ready thread list and notify the scheduler. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em thd} & Pointer to the initialized thread I\-D structure, \hyperlink{structesThd}{es\-Thd}. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyPrecond}{Precondition}
+1) {\ttfamily The kernel state $<$ E\-S\-\_\-\-K\-E\-R\-N\-\_\-\-I\-N\-A\-C\-T\-I\-V\-E}, see \hyperlink{states}{Kernel states}. 
+
+2) {\ttfamily thd != N\-U\-L\-L} 
+
+3) {\ttfamily thd-\/$>$signature == D\-E\-F\-\_\-\-T\-H\-D\-\_\-\-C\-O\-N\-T\-R\-A\-C\-T\-\_\-\-S\-I\-G\-N\-A\-T\-U\-R\-E}, the pointer must point to a valid \hyperlink{structesThd}{es\-Thd} structure. 
+
+4) {\ttfamily thd-\/$>$thd\-L\-\_\-.\-q == \&g\-Rdy\-Queue}, thread must be in Ready Threads queue. 
+\end{DoxyPrecond}
+\begin{DoxyParagraph}{This service can be called from\-:}
+
+\begin{DoxyItemize}
+\item Application initialization code
+\item Application thread code
+\item Interrupt service routine 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Rescheduling\-:}
+
+\begin{DoxyItemize}
+\item never 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Function class\-:}
+{\bfseries I class}, Interrupt-\/lock A\-P\-I function, this function can be called only from interrupts locked code sections. 
+\end{DoxyParagraph}
+\hypertarget{group__kern__impl_gaf90e487bfce974dafaeed5009e189810}{\index{Implementation@{Implementation}!es\-Sched\-Yield\-I@{es\-Sched\-Yield\-I}}
+\index{es\-Sched\-Yield\-I@{es\-Sched\-Yield\-I}!Implementation@{Implementation}}
+\paragraph[{es\-Sched\-Yield\-I}]{\setlength{\rightskip}{0pt plus 5cm}void es\-Sched\-Yield\-I (
+\begin{DoxyParamCaption}
+\item[{void}]{}
+\end{DoxyParamCaption}
+)}}\label{group__kern__impl_gaf90e487bfce974dafaeed5009e189810}
+
+
+Force the scheduler invocation which will evaluate all ready threads and switch to ready thread with the highest priority. 
+
+\begin{DoxyPrecond}{Precondition}
+1) {\ttfamily The kernel state $<$ E\-S\-\_\-\-K\-E\-R\-N\-\_\-\-I\-N\-A\-C\-T\-I\-V\-E}, see \hyperlink{states}{Kernel states}. 
+\end{DoxyPrecond}
+\begin{DoxyParagraph}{This service can be called from\-:}
+
+\begin{DoxyItemize}
+\item Application thread code 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Rescheduling\-:}
+
+\begin{DoxyItemize}
+\item possible 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Function class\-:}
+{\bfseries I class}, Interrupt-\/lock A\-P\-I function, this function can be called only from interrupts locked code sections. 
+\end{DoxyParagraph}
+\hypertarget{group__kern__impl_gafbea29b376b29f11bbfc48a0f5144e9a}{\index{Implementation@{Implementation}!es\-Sched\-Yield\-Isr\-I@{es\-Sched\-Yield\-Isr\-I}}
+\index{es\-Sched\-Yield\-Isr\-I@{es\-Sched\-Yield\-Isr\-I}!Implementation@{Implementation}}
+\paragraph[{es\-Sched\-Yield\-Isr\-I}]{\setlength{\rightskip}{0pt plus 5cm}void es\-Sched\-Yield\-Isr\-I (
+\begin{DoxyParamCaption}
+\item[{void}]{}
+\end{DoxyParamCaption}
+)}}\label{group__kern__impl_gafbea29b376b29f11bbfc48a0f5144e9a}
+
+
+Force the scheduler invocation which will evaluate all ready threads and switch to ready thread with the highest priority. 
+
+\begin{DoxyPrecond}{Precondition}
+1) {\ttfamily The kernel state $<$ E\-S\-\_\-\-K\-E\-R\-N\-\_\-\-I\-N\-A\-C\-T\-I\-V\-E}, see \hyperlink{states}{Kernel states}. 
+\end{DoxyPrecond}
+\begin{DoxyParagraph}{This service can be called from\-:}
+
+\begin{DoxyItemize}
+\item Interrupt service routine 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Rescheduling\-:}
+
+\begin{DoxyItemize}
+\item possible 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Function class\-:}
+{\bfseries I class}, Interrupt-\/lock A\-P\-I function, this function can be called only from interrupts locked code sections. 
+\end{DoxyParagraph}
+\hypertarget{group__kern__impl_ga45fe650eac73e7fe203cc81565401555}{\index{Implementation@{Implementation}!es\-V\-Tmr\-Init\-I@{es\-V\-Tmr\-Init\-I}}
+\index{es\-V\-Tmr\-Init\-I@{es\-V\-Tmr\-Init\-I}!Implementation@{Implementation}}
+\paragraph[{es\-V\-Tmr\-Init\-I}]{\setlength{\rightskip}{0pt plus 5cm}void es\-V\-Tmr\-Init\-I (
+\begin{DoxyParamCaption}
+\item[{{\bf es\-V\-Tmr\-\_\-\-T} $\ast$}]{v\-Tmr, }
+\item[{{\bf es\-Tick\-\_\-\-T}}]{tick, }
+\item[{void($\ast$)(void $\ast$)}]{fn, }
+\item[{void $\ast$}]{arg}
+\end{DoxyParamCaption}
+)}}\label{group__kern__impl_ga45fe650eac73e7fe203cc81565401555}
+
+
+Add and start a new virtual timer. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em v\-Tmr} & Virtual Timer\-: is pointer to the timer I\-D structure, \hyperlink{structesVTmr}{es\-V\-Tmr}. \\
+\hline
+{\em tick} & Tick\-: the timer delay expressed in system ticks \\
+\hline
+{\em fn} & Function\-: is pointer to the callback function \\
+\hline
+{\em arg} & Argument\-: is pointer to the arguments of callback function \\
+\hline
+\end{DoxyParams}
+\begin{DoxyPrecond}{Precondition}
+1) {\ttfamily The kernel state $<$ E\-S\-\_\-\-K\-E\-R\-N\-\_\-\-I\-N\-A\-C\-T\-I\-V\-E}, see \hyperlink{states}{Kernel states}. 
+
+2) {\ttfamily v\-Tmr != N\-U\-L\-L} 
+
+3) {\ttfamily v\-Tmr-\/$>$signature != D\-E\-F\-\_\-\-V\-T\-M\-R\-\_\-\-C\-O\-N\-T\-R\-A\-C\-T\-\_\-\-S\-I\-G\-N\-A\-T\-U\-R\-E}, the timer structure can't be initialized more than once. 
+
+4) {\ttfamily tick $>$ 1\-U} 
+
+5) {\ttfamily fn != N\-U\-L\-L} 
+\end{DoxyPrecond}
+\begin{DoxyPostcond}{Postcondition}
+1) {\ttfamily v\-Tmr-\/$>$signature == D\-E\-F\-\_\-\-V\-T\-M\-R\-\_\-\-C\-O\-N\-T\-R\-A\-C\-T\-\_\-\-S\-I\-G\-N\-A\-T\-U\-R\-E}, each \hyperlink{structesVTmr}{es\-V\-Tmr} structure will have valid signature after initialization. 
+\end{DoxyPostcond}
+\begin{DoxyNote}{Note}
+The callback function is invoked from interrupt context. 
+\end{DoxyNote}
+\begin{DoxyParagraph}{This service can be called from\-:}
+
+\begin{DoxyItemize}
+\item Application initialization code
+\item Application thread code
+\item Interrupt service routine 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Rescheduling\-:}
+
+\begin{DoxyItemize}
+\item never 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Function class\-:}
+{\bfseries I class}, Interrupt-\/lock A\-P\-I function, this function can be called only from interrupts locked code sections. 
+\end{DoxyParagraph}
+\hypertarget{group__kern__impl_gad932cf00aec4ba03a0df02ccc493c4c2}{\index{Implementation@{Implementation}!es\-V\-Tmr\-Init@{es\-V\-Tmr\-Init}}
+\index{es\-V\-Tmr\-Init@{es\-V\-Tmr\-Init}!Implementation@{Implementation}}
+\paragraph[{es\-V\-Tmr\-Init}]{\setlength{\rightskip}{0pt plus 5cm}void es\-V\-Tmr\-Init (
+\begin{DoxyParamCaption}
+\item[{{\bf es\-V\-Tmr\-\_\-\-T} $\ast$}]{v\-Tmr, }
+\item[{{\bf es\-Tick\-\_\-\-T}}]{tick, }
+\item[{void($\ast$)(void $\ast$)}]{fn, }
+\item[{void $\ast$}]{arg}
+\end{DoxyParamCaption}
+)}}\label{group__kern__impl_gad932cf00aec4ba03a0df02ccc493c4c2}
+
+
+Add and start a new virtual timer. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em v\-Tmr} & Virtual Timer\-: is pointer to the timer I\-D structure, \hyperlink{structesVTmr}{es\-V\-Tmr}. \\
+\hline
+{\em tick} & Tick\-: the timer delay expressed in system ticks \\
+\hline
+{\em fn} & Function\-: is pointer to the callback function \\
+\hline
+{\em arg} & Argument\-: is pointer to the arguments of callback function \\
+\hline
+\end{DoxyParams}
+\begin{DoxyPrecond}{Precondition}
+1) {\ttfamily The kernel state $<$ E\-S\-\_\-\-K\-E\-R\-N\-\_\-\-I\-N\-A\-C\-T\-I\-V\-E}, see \hyperlink{states}{Kernel states}. 
+
+2) {\ttfamily v\-Tmr != N\-U\-L\-L} 
+
+3) {\ttfamily v\-Tmr-\/$>$signature != D\-E\-F\-\_\-\-V\-T\-M\-R\-\_\-\-C\-O\-N\-T\-R\-A\-C\-T\-\_\-\-S\-I\-G\-N\-A\-T\-U\-R\-E}, the timer structure can't be initialized more than once. 
+
+4) {\ttfamily tick $>$ 1\-U} 
+
+5) {\ttfamily fn != N\-U\-L\-L} 
+\end{DoxyPrecond}
+\begin{DoxyPostcond}{Postcondition}
+1) {\ttfamily v\-Tmr-\/$>$signature == D\-E\-F\-\_\-\-V\-T\-M\-R\-\_\-\-C\-O\-N\-T\-R\-A\-C\-T\-\_\-\-S\-I\-G\-N\-A\-T\-U\-R\-E}, each \hyperlink{structesVTmr}{es\-V\-Tmr} structure will have valid signature after initialization. 
+\end{DoxyPostcond}
+\begin{DoxyNote}{Note}
+The callback function is invoked from interrupt context. 
+\end{DoxyNote}
+\begin{DoxyParagraph}{This service can be called from\-:}
+
+\begin{DoxyItemize}
+\item Application initialization code
+\item Application thread code
+\item Interrupt service routine 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Rescheduling\-:}
+
+\begin{DoxyItemize}
+\item never 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Object class\-:}
+Regular {\bfseries A\-P\-I} object, this object is part of the application programming interface. 
+\end{DoxyParagraph}
+\hypertarget{group__kern__impl_ga96bb2c81f649c0305dfd08d1c79b2e37}{\index{Implementation@{Implementation}!es\-V\-Tmr\-Term\-I@{es\-V\-Tmr\-Term\-I}}
+\index{es\-V\-Tmr\-Term\-I@{es\-V\-Tmr\-Term\-I}!Implementation@{Implementation}}
+\paragraph[{es\-V\-Tmr\-Term\-I}]{\setlength{\rightskip}{0pt plus 5cm}void es\-V\-Tmr\-Term\-I (
+\begin{DoxyParamCaption}
+\item[{{\bf es\-V\-Tmr\-\_\-\-T} $\ast$}]{v\-Tmr}
+\end{DoxyParamCaption}
+)}}\label{group__kern__impl_ga96bb2c81f649c0305dfd08d1c79b2e37}
+
+
+Cancel and remove a virtual timer. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em v\-Tmr} & Timer\-: is pointer to the timer I\-D structure, \hyperlink{structesVTmr}{es\-V\-Tmr}. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyPrecond}{Precondition}
+1) {\ttfamily The kernel state $<$ E\-S\-\_\-\-K\-E\-R\-N\-\_\-\-I\-N\-A\-C\-T\-I\-V\-E}, see \hyperlink{states}{Kernel states}. 
+
+2) {\ttfamily v\-Tmr != N\-U\-L\-L} 
+
+3) {\ttfamily v\-Tmr-\/$>$signature == D\-E\-F\-\_\-\-V\-T\-M\-R\-\_\-\-C\-O\-N\-T\-R\-A\-C\-T\-\_\-\-S\-I\-G\-N\-A\-T\-U\-R\-E}, the pointer must point to a valid \hyperlink{structesVTmr}{es\-V\-Tmr} structure. 
+\end{DoxyPrecond}
+\begin{DoxyPostcond}{Postcondition}
+1) {\ttfamily v\-Tmr-\/$>$signature = $\sim$\-D\-E\-F\-\_\-\-V\-T\-M\-R\-\_\-\-C\-O\-N\-T\-R\-A\-C\-T\-\_\-\-S\-I\-G\-N\-A\-T\-U\-R\-E}, each \hyperlink{structesVTmr}{es\-V\-Tmr} structure will have invalid signature after termination. 
+\end{DoxyPostcond}
+\begin{DoxyParagraph}{This service can be called from\-:}
+
+\begin{DoxyItemize}
+\item Application initialization code
+\item Application thread code
+\item Interrupt service routine 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Rescheduling\-:}
+
+\begin{DoxyItemize}
+\item never 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Function class\-:}
+{\bfseries I class}, Interrupt-\/lock A\-P\-I function, this function can be called only from interrupts locked code sections. 
+\end{DoxyParagraph}
+\hypertarget{group__kern__impl_gad6ec93a68e3526f18ed926cd441878cd}{\index{Implementation@{Implementation}!es\-V\-Tmr\-Term@{es\-V\-Tmr\-Term}}
+\index{es\-V\-Tmr\-Term@{es\-V\-Tmr\-Term}!Implementation@{Implementation}}
+\paragraph[{es\-V\-Tmr\-Term}]{\setlength{\rightskip}{0pt plus 5cm}void es\-V\-Tmr\-Term (
+\begin{DoxyParamCaption}
+\item[{{\bf es\-V\-Tmr\-\_\-\-T} $\ast$}]{v\-Tmr}
+\end{DoxyParamCaption}
+)}}\label{group__kern__impl_gad6ec93a68e3526f18ed926cd441878cd}
+
+
+Cancel and remove a virtual timer. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em v\-Tmr} & Timer\-: is pointer to the timer I\-D structure, \hyperlink{structesVTmr}{es\-V\-Tmr}. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyPrecond}{Precondition}
+1) {\ttfamily The kernel state $<$ E\-S\-\_\-\-K\-E\-R\-N\-\_\-\-I\-N\-A\-C\-T\-I\-V\-E}, see \hyperlink{states}{Kernel states}. 
+
+2) {\ttfamily v\-Tmr != N\-U\-L\-L} 
+
+3) {\ttfamily v\-Tmr-\/$>$signature == D\-E\-F\-\_\-\-V\-T\-M\-R\-\_\-\-C\-O\-N\-T\-R\-A\-C\-T\-\_\-\-S\-I\-G\-N\-A\-T\-U\-R\-E}, the pointer must point to a valid \hyperlink{structesVTmr}{es\-V\-Tmr} structure. 
+\end{DoxyPrecond}
+\begin{DoxyPostcond}{Postcondition}
+1) {\ttfamily v\-Tmr-\/$>$signature = $\sim$\-D\-E\-F\-\_\-\-V\-T\-M\-R\-\_\-\-C\-O\-N\-T\-R\-A\-C\-T\-\_\-\-S\-I\-G\-N\-A\-T\-U\-R\-E}, each \hyperlink{structesVTmr}{es\-V\-Tmr} structure will have invalid signature after termination. 
+\end{DoxyPostcond}
+\begin{DoxyParagraph}{This service can be called from\-:}
+
+\begin{DoxyItemize}
+\item Application initialization code
+\item Application thread code
+\item Interrupt service routine 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Rescheduling\-:}
+
+\begin{DoxyItemize}
+\item never 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Object class\-:}
+Regular {\bfseries A\-P\-I} object, this object is part of the application programming interface. 
+\end{DoxyParagraph}
+\hypertarget{group__kern__impl_ga26d10c6aaa0cd1d04261d2c9911e890d}{\index{Implementation@{Implementation}!es\-V\-Tmr\-Delay@{es\-V\-Tmr\-Delay}}
+\index{es\-V\-Tmr\-Delay@{es\-V\-Tmr\-Delay}!Implementation@{Implementation}}
+\paragraph[{es\-V\-Tmr\-Delay}]{\setlength{\rightskip}{0pt plus 5cm}void es\-V\-Tmr\-Delay (
+\begin{DoxyParamCaption}
+\item[{{\bf es\-Tick\-\_\-\-T}}]{tick}
+\end{DoxyParamCaption}
+)}}\label{group__kern__impl_ga26d10c6aaa0cd1d04261d2c9911e890d}
+
+
+Delay for specified amount of ticks. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em tick} & Tick\-: number of system ticks to delay.\\
+\hline
+\end{DoxyParams}
+This function will create a virtual timer with count down time specified in argument {\ttfamily tick} and put the calling thread into {\ttfamily sleep} state. When timeout expires the thread will be placed back into {\ttfamily ready} state. \begin{DoxyNote}{Note}
+The sleeping thread can not be safely awaken until the specified time does not expire. 
+\end{DoxyNote}
+\begin{DoxyPrecond}{Precondition}
+1) {\ttfamily tick $>$ 1u} 
+\end{DoxyPrecond}
+\begin{DoxyParagraph}{This service can be called from\-:}
+
+\begin{DoxyItemize}
+\item Application initialization code
+\item Application thread code
+\item Interrupt service routine 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Rescheduling\-:}
+
+\begin{DoxyItemize}
+\item always 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Object class\-:}
+Regular {\bfseries A\-P\-I} object, this object is part of the application programming interface. 
+\end{DoxyParagraph}
+\hypertarget{group__kern__impl_gacb0d88d6a7e467dc37a6a9a85945aaa6}{\index{Implementation@{Implementation}!es\-Sys\-Tmr\-Tick\-Get@{es\-Sys\-Tmr\-Tick\-Get}}
+\index{es\-Sys\-Tmr\-Tick\-Get@{es\-Sys\-Tmr\-Tick\-Get}!Implementation@{Implementation}}
+\paragraph[{es\-Sys\-Tmr\-Tick\-Get}]{\setlength{\rightskip}{0pt plus 5cm}{\bf es\-Tick\-\_\-\-T} es\-Sys\-Tmr\-Tick\-Get (
+\begin{DoxyParamCaption}
+\item[{void}]{}
+\end{DoxyParamCaption}
+)}}\label{group__kern__impl_gacb0d88d6a7e467dc37a6a9a85945aaa6}
+
+
+Get the current tick value. 
+
+\begin{DoxyReturn}{Returns}
+Current tick value 
+\end{DoxyReturn}
+\begin{DoxyPrecond}{Precondition}
+1) {\ttfamily The kernel state $<$ E\-S\-\_\-\-K\-E\-R\-N\-\_\-\-I\-N\-A\-C\-T\-I\-V\-E}, see \hyperlink{states}{Kernel states}. 
+\end{DoxyPrecond}
+\begin{DoxyParagraph}{This service can be called from\-:}
+
+\begin{DoxyItemize}
+\item Application initialization code
+\item Application thread code
+\item Interrupt service routine 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Rescheduling\-:}
+
+\begin{DoxyItemize}
+\item never 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Object class\-:}
+Regular {\bfseries A\-P\-I} object, this object is part of the application programming interface. 
+\end{DoxyParagraph}
+
+
+\subsubsection{Variable Documentation}
+\hypertarget{group__kern__impl_gafa3f26429f0f60e0d50eb119de1c8f49}{\index{Implementation@{Implementation}!Rdy\-Queue@{Rdy\-Queue}}
+\index{Rdy\-Queue@{Rdy\-Queue}!Implementation@{Implementation}}
+\paragraph[{Rdy\-Queue}]{\setlength{\rightskip}{0pt plus 5cm}struct {\bf es\-Thd\-Q} Rdy\-Queue\hspace{0.3cm}{\ttfamily [static]}}}\label{group__kern__impl_gafa3f26429f0f60e0d50eb119de1c8f49}
+
+
+Ready Thread queue. 
+
+\hypertarget{group__kern__impl_gaf4fd8bfc453bbab3d94186c863a180c0}{\index{Implementation@{Implementation}!Sys\-Tmr@{Sys\-Tmr}}
+\index{Sys\-Tmr@{Sys\-Tmr}!Implementation@{Implementation}}
+\paragraph[{Sys\-Tmr}]{\setlength{\rightskip}{0pt plus 5cm}struct {\bf sys\-Tmr} Sys\-Tmr\hspace{0.3cm}{\ttfamily [static]}}}\label{group__kern__impl_gaf4fd8bfc453bbab3d94186c863a180c0}
+{\bfseries Initial value\-:}
+\begin{DoxyCode}
+= \{
+    0u,
+    0u,
+    0u,
+
+
+
+\}
+\end{DoxyCode}
+
+
+Main System Timer structure. 
+
+\hypertarget{group__kern__impl_ga49813e0a9a014d99d076943e96b2408c}{\index{Implementation@{Implementation}!V\-Tmr\-Armed@{V\-Tmr\-Armed}}
+\index{V\-Tmr\-Armed@{V\-Tmr\-Armed}!Implementation@{Implementation}}
+\paragraph[{V\-Tmr\-Armed}]{\setlength{\rightskip}{0pt plus 5cm}struct {\bf es\-V\-Tmr} V\-Tmr\-Armed\hspace{0.3cm}{\ttfamily [static]}}}\label{group__kern__impl_ga49813e0a9a014d99d076943e96b2408c}
+{\bfseries Initial value\-:}
+\begin{DoxyCode}
+= \{
+   \{
+        &\hyperlink{group__kern__impl_ga49813e0a9a014d99d076943e96b2408c}{VTmrArmed},
+        &\hyperlink{group__kern__impl_ga49813e0a9a014d99d076943e96b2408c}{VTmrArmed},
+        &VTmrArmed
+   \},
+
+
+   UINT\_FAST8\_MAX,
+
+
+
+
+
+   NULL,
+   NULL,
+
+
+
+\}
+\end{DoxyCode}
+
+
+List of virtual armed timers waiting to expire. 
+
+\hypertarget{group__kern__impl_gac27c4e18276b392295b973fc00f31765}{\index{Implementation@{Implementation}!V\-Tmr\-Pend@{V\-Tmr\-Pend}}
+\index{V\-Tmr\-Pend@{V\-Tmr\-Pend}!Implementation@{Implementation}}
+\paragraph[{V\-Tmr\-Pend}]{\setlength{\rightskip}{0pt plus 5cm}struct {\bf es\-V\-Tmr} V\-Tmr\-Pend\hspace{0.3cm}{\ttfamily [static]}}}\label{group__kern__impl_gac27c4e18276b392295b973fc00f31765}
+{\bfseries Initial value\-:}
+\begin{DoxyCode}
+= \{
+   \{
+        &\hyperlink{group__kern__impl_gac27c4e18276b392295b973fc00f31765}{VTmrPend},
+        &\hyperlink{group__kern__impl_gac27c4e18276b392295b973fc00f31765}{VTmrPend},
+        &VTmrPend
+   \},
+   0u,
+   NULL,
+   NULL,
+
+
+
+\}
+\end{DoxyCode}
+
+
+Virtual timers pending to be inserted into waiting list. 
+
+\hypertarget{group__kern__impl_gaab82048477ffd940e6eff13d4280eb72}{\index{Implementation@{Implementation}!K\-V\-Tmr@{K\-V\-Tmr}}
+\index{K\-V\-Tmr@{K\-V\-Tmr}!Implementation@{Implementation}}
+\paragraph[{K\-V\-Tmr}]{\setlength{\rightskip}{0pt plus 5cm}struct {\bf es\-Thd} K\-V\-Tmr\hspace{0.3cm}{\ttfamily [static]}}}\label{group__kern__impl_gaab82048477ffd940e6eff13d4280eb72}
+
+
+Virtual timer thread I\-D. 
+
+\hypertarget{group__kern__impl_ga639ded61b40c01f4a1f54814c4b94513}{\index{Implementation@{Implementation}!K\-Idle@{K\-Idle}}
+\index{K\-Idle@{K\-Idle}!Implementation@{Implementation}}
+\paragraph[{K\-Idle}]{\setlength{\rightskip}{0pt plus 5cm}struct {\bf es\-Thd} K\-Idle\hspace{0.3cm}{\ttfamily [static]}}}\label{group__kern__impl_ga639ded61b40c01f4a1f54814c4b94513}
+
+
+Idle thread I\-D. 
+
+\hypertarget{group__kern__impl_gad8535f99414ea3e0e37a91fd6600246e}{\index{Implementation@{Implementation}!Kern\-Lock\-Cnt@{Kern\-Lock\-Cnt}}
+\index{Kern\-Lock\-Cnt@{Kern\-Lock\-Cnt}!Implementation@{Implementation}}
+\paragraph[{Kern\-Lock\-Cnt}]{\setlength{\rightskip}{0pt plus 5cm}uint\-\_\-fast8\-\_\-t Kern\-Lock\-Cnt\hspace{0.3cm}{\ttfamily [static]}}}\label{group__kern__impl_gad8535f99414ea3e0e37a91fd6600246e}
+
+
+Kernel Lock Counter. 
+
+\hypertarget{group__kern__impl_ga93a7ee7768ffd94201bf1795a543194b}{\index{Implementation@{Implementation}!Kern\-Ctrl@{Kern\-Ctrl}}
+\index{Kern\-Ctrl@{Kern\-Ctrl}!Implementation@{Implementation}}
+\paragraph[{Kern\-Ctrl}]{\setlength{\rightskip}{0pt plus 5cm}const struct {\bf kern\-Ctrl\-\_\-} Kern\-Ctrl}}\label{group__kern__impl_ga93a7ee7768ffd94201bf1795a543194b}
+{\bfseries Initial value\-:}
+\begin{DoxyCode}
+= \{
+    NULL,                                                                       
+    NULL,                                                                       
+    \hyperlink{group__kern__ctrl_ggac9be6bfeddbd6af148cdb3867fbc24afa089165cac55f315953335f5ffe41b7c4}{ES\_KERN\_INACTIVE}                                                            
+\}
+\end{DoxyCode}
+
+
+Kernel control initialization. 
+
+Kernel control block. 

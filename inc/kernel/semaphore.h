@@ -36,7 +36,7 @@
 /*===============================================================  MACRO's  ==*/
 
 /*------------------------------------------------------------------------*//**
- * @name        Macro group
+ * @name        Macro list
  * @brief       brief description
  * @{ *//*--------------------------------------------------------------------*/
 
@@ -49,7 +49,7 @@ extern "C" {
 /*============================================================  DATA TYPES  ==*/
 
 /*------------------------------------------------------------------------*//**
- * @name        Data types group
+ * @name        Data types list
  * @brief       brief description
  * @{ *//*--------------------------------------------------------------------*/
 #define CFG_SEMAPHORE_CNT_T             int16_t
@@ -57,7 +57,7 @@ extern "C" {
 typedef CFG_SEMAPHORE_CNT_T esSemCnt_T;
 
 struct esSem {
-    esThdQ_T        thds;
+    esThreadQ        thds;
     esSemCnt_T      cnt;
 };
 
@@ -68,7 +68,7 @@ typedef struct esSem esSem_T;
 /*===================================================  FUNCTION PROTOTYPES  ==*/
 
 /*------------------------------------------------------------------------*//**
- * @name        Function group
+ * @name        Function list
  * @brief       brief description
  * @{ *//*--------------------------------------------------------------------*/
 
@@ -101,7 +101,7 @@ void esSemWait(
  */
 void esSemWaitTimeout(
     esSem_T *       sem,
-    esTick_T      time);
+    esVTmrTick      time);
 
 /**@brief       Increment the value of a semaphore
  * @param       sem

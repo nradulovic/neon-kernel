@@ -35,9 +35,12 @@
 
 /*=========================================================  INCLUDE FILES  ==*/
 
+#include <stdbool.h>
+
 #include "arch/kcore.h"
 #include "base/bitop.h"
-#include "base/dbg.h"
+#include "base/debug.h"
+#include "base/prio_queue.h"
 #include "kernel/kernel_cfg.h"
 
 /*===============================================================  MACRO's  ==*/
@@ -81,15 +84,15 @@
  *              registers.
  * @return      Number of stack elements needed for stack usage.
  */
-#define ES_STCK_SIZE(elem)              PORT_STCK_SIZE(elem)
+#define ES_STACK_SIZE(elem)             PORT_STACK_SIZE(elem)
 
 /**@brief       Maximum level of priority possible for application thread
  */
-#define ES_DEF_THD_PRIO_MAX             (CFG_SCHED_PRIO_LVL - 2u)
+#define ES_THREAD_PRIORITY_MAX          (CFG_SCHED_PRIO_LVL - 2u)
 
 /**@brief       Minimum level of priority possible for application thread
  */
-#define ES_DEF_THD_PRIO_MIN             (1u)
+#define ES_THREAD_PRIORITY_MIN          (1u)
 
 /**@} *//*----------------------------------------------  C++ extern begin  --*/
 #ifdef __cplusplus
@@ -113,33 +116,20 @@ extern "C" {
  *              referenced using this structure.
  * @api
  */
-struct esThd {
-    portStck_T *    stck;                                                       /**< @brief Pointer to thread's Top Of Stack                */
-
-/**@brief       Thread linked List structure
- * @notapi
- */
-    struct thdL_ {
-        struct esThdQ * q;                                                      /**< @brief Points to parent thread queue                   */
-        struct esThd *  next;                                                   /**< @brief Next thread in linked list                      */
-        struct esThd *  prev;                                                   /**< @brief Previous thread in linked list                  */
-    }               thdL;                                                       /**< @brief Thread linked list                              */
-    uint_fast8_t    prio;                                                       /**< @brief Thread priority level                           */
-    uint_fast8_t    iprio;                                                      /**< @brief Initial Thread Priority level                   */
-    uint_fast8_t    qCnt;                                                       /**< @brief Quantum counter                                 */
-    uint_fast8_t    qRld;                                                       /**< @brief Quantum counter reload value                    */
-#if   (1u== CFG_DBG_API_VALIDATION) || defined(__DOXYGEN__)
-    portReg_T		signature;                                                  /**< @brief Thread structure signature                      */
+struct esThread {
+    struct esThreadStack * stack;                                               /**< @brief Pointer to thread's Top Of Stack                */
+    struct esPqElem     pqElem;
+    uint_fast8_t        ipriority;                                                      /**< @brief Initial Thread Priority level                   */
+    uint_fast8_t        quantumCounter;                                                       /**< @brief Quantum counter                                 */
+    uint_fast8_t        quantumReload;                                                       /**< @brief Quantum counter reload value                    */
+#if   (1u== CONFIG_DEBUG_API_VALIDATION) || defined(__DOXYGEN__)
+    esAtomic		signature;                                                  /**< @brief Thread structure signature                      */
 #endif
 };
 
 /**@brief       Thread type
  */
-typedef struct esThd esThd_T;
-
-/**@brief       Stack type
- */
-typedef portStck_T esStck_T;
+typedef struct esThread esThread;
 
 /**@} *//*----------------------------------------------------------------*//**
  * @defgroup    kern_thdq Thread Queue
@@ -149,34 +139,16 @@ typedef portStck_T esStck_T;
 /**@brief       Thread Queue structure
  * @api
  */
-struct esThdQ {
-
-/**@brief       Priority Bit Map structure
- * @notapi
- */
-    struct pbm_ {
-#if   (CFG_SCHED_PRIO_LVL > PORT_DEF_DATA_WIDTH) || defined(__DOXYGEN__)
-        portReg_T       bitGrp;                                                 /**< @brief Bit group indicator                             */
-#endif
-        portReg_T       bit[ES_DIV_ROUNDUP(CFG_SCHED_PRIO_LVL, PORT_DEF_DATA_WIDTH)];
-                                                                                /**< @brief Bit priority indicator                          */
-    }               prioOcc;                                                    /**< @brief Priority Occupancy                              */
-
-/**@brief       Thread linked list sentinel structure
- * @notapi
- */
-    struct thdLSent_ {
-        struct esThd *  head;                                                   /**< @brief Points to the first thread in linked list.      */
-        struct esThd *  next;                                                   /**< @brief Points to the next thread in linked list.       */
-    }               grp[CFG_SCHED_PRIO_LVL];                                    /**< @brief Array of thread linked list sentinel structures.*/
-#if   (1u== CFG_DBG_API_VALIDATION) || defined(__DOXYGEN__)
-    portReg_T       signature;                                                  /**< @brief Thread Queue struct signature                   */
+struct esThreadQ {
+    struct esPq         pq;
+#if   (1u == CONFIG_DEBUG_API_VALIDATION) || defined(__DOXYGEN__)
+    esAtomic       signature;                                                  /**< @brief Thread Queue struct signature                   */
 #endif
 };
 
 /**@brief       Thread queue type
  */
-typedef struct esThdQ esThdQ_T;
+typedef struct esThreadQ esThreadQ;
 
 /**@} *//*----------------------------------------------------------------*//**
  * @defgroup    kern_vtmr Virtual Timer
@@ -186,11 +158,11 @@ typedef struct esThdQ esThdQ_T;
 /**@brief       Timer tick type
  */
 #if   (2u == CFG_SYSTMR_TICK_TYPE) || defined(__DOXYGEN__)
-typedef uint_fast32_t esTick_T;
+typedef uint_fast32_t esVTmrTick;
 #elif (1u== CFG_SYSTMR_TICK_TYPE)
-typedef uint_fast16_t esTick_T;
+typedef uint_fast16_t esVTmrTick;
 #elif (0u == CFG_SYSTMR_TICK_TYPE)
-typedef uint_fast8_t esTick_T;
+typedef uint_fast8_t esVTmrTick;
 #endif
 
 /**@brief       Virtual Timer structure
@@ -206,11 +178,11 @@ struct esVTmr {
         struct esVTmr * next;                                                   /**< @brief Next thread in Virtual Timer linked list.       */
         struct esVTmr * prev;                                                   /**< @brief Previous thread in virtual timer linked list.   */
     }               tmrL;                                                       /**< @brief Virtual Timer linked List.                      */
-    esTick_T        rtick;                                                      /**< @brief Relative tick value                             */
+    esVTmrTick        rtick;                                                      /**< @brief Relative tick value                             */
     void (* fn)(void *);                                                        /**< @brief Callback function pointer                       */
     void *          arg;                                                        /**< @brief Callback function argument                      */
-#if   (1u== CFG_DBG_API_VALIDATION) || defined(__DOXYGEN__)
-    portReg_T       signature;                                                  /**< @brief Timer structure signature                       */
+#if   (1u == CONFIG_DEBUG_API_VALIDATION) || defined(__DOXYGEN__)
+    esAtomic       signature;                                                  /**< @brief Timer structure signature                       */
 #endif
 };
 
@@ -227,7 +199,7 @@ typedef struct esVTmr esVTmr_T;
  * @details     For more details see: @ref states
  * @api
  */
-enum esKernState {
+enum esKernelState {
     ES_KERN_RUN         = 0x00u,                                                /**< Kernel is active                                       */
     ES_KERN_INTSRV_RUN  = 0x01u,                                                /**< Servicing an interrupt, return to ES_KERN_RUN state    */
     ES_KERN_LOCK        = 0x02u,                                                /**< Kernel is locked                                       */
@@ -239,13 +211,13 @@ enum esKernState {
 
 /**@brief       Kernel state type
  */
-typedef enum esKernState esKernState_T;
+typedef enum esKernelState esKernelState;
 
 /**@brief       Kernel control block structure
  * @details     This structure holds important status data about the kernel.
  *              Since all data within the structure is somewhat related and
  *              accessed within the same pieces of code it was decided it is
- *              better to group all kernel data into the structure. This way the
+ *              better to list all kernel data into the structure. This way the
  *              compiler can generate code that gets the address of the
  *              structure and then use relative indirect addressing to access
  *              all members of the structure. This results in more efficient
@@ -254,25 +226,10 @@ typedef enum esKernState esKernState_T;
  * @notapi
  */
 struct kernCtrl_ {
-    struct esThd *      cthd;                                                   /**< @brief Pointer to the Current Thread                   */
-    struct esThd *      pthd;                                                   /**< @brief Pointer to the Pending Thread to be switched    */
-    enum esKernState    state;                                                  /**< @brief State of kernel                                 */
+    struct esThread *      cthd;                                                   /**< @brief Pointer to the Current Thread                   */
+    struct esThread *      pthd;                                                   /**< @brief Pointer to the Pending Thread to be switched    */
+    enum esKernelState    state;                                                  /**< @brief State of kernel                                 */
 };
-
-/**@} *//*----------------------------------------------------------------*//**
- * @defgroup    kern_lock Kernel lock
- * @brief       Kernel lock management
- * @details     These methods provide the most basic mechanism to protect
- *              concurrent access to a shared resource.
- *
- *              For more details see @ref critical_section.
- * @{ *//*--------------------------------------------------------------------*/
-
-/**@brief       Kernel lock context type
- * @details     Variables declared using this type can hold current lock context
- *              which can be restored after a critical code section is exited.
- */
-typedef portReg_T esLockCtx_T;
 
 /** @} *//*-------------------------------------------------------------------*/
 
@@ -393,7 +350,7 @@ void esKernIsrExitI(
  * @api
  */
 void esKernLockIntEnter(
-    esLockCtx_T *       lockCtx);
+    esIntrCtx *       lockCtx);
 
 /**@brief       Exit a critical code lock
  * @param       lockCtx
@@ -407,7 +364,7 @@ void esKernLockIntEnter(
  * @api
  */
 void esKernLockIntExit(
-    esLockCtx_T         lockCtx);
+    esIntrCtx         lockCtx);
 
 /**@brief       Lock the scheduler
  * @pre         1) `The kernel state < ES_KERN_INIT`, see @ref states.
@@ -461,9 +418,9 @@ void esKernLockExit(
 
 /**@brief       Initialize the specified thread
  * @param       thd
- *              Thread: is a pointer to the thread structure, @ref esThd.
+ *              Thread: is a pointer to the thread structure, @ref esThread.
  *              The structure will be used as information container for the
- *              thread. It is assumed that storage for the `esThd` structure is
+ *              thread. It is assumed that storage for the `esThread` structure is
  *              allocated by the user code.
  * @param       fn
  *              Function: is a pointer to thread function. Thread function must
@@ -472,21 +429,21 @@ void esKernLockExit(
  *              Argument: is a void pointer to an optional data area. It's usage
  *              is application defined and it is intended to pass arguments to
  *              thread when it is started for the first time.
- * @param       stck
+ * @param       stack
  *              Stack: is a pointer to a allocated memory for thread stack.
  *              The pointer always points to the first element in the array,
  *              regardless of what type of stack the CPU is using. The thread's
  *              stack is used to store local variables, function parameters,
  *              return addresses. Each thread has its own stack and different
- *              sized stack. The stack type must be an array of @ref portStck.
+ *              sized stack. The stack type must be an array of @ref esThreadStack.
  * @param       stckSize
  *              Stack Size: specifies the size of allocated stack memory. Size
  *              is expressed in bytes. Please see port documentation about
  *              minimal stack size. Usage of C unary operator `sizeof` is the
  *              recommended way of specifying stack size. Another way of
  *              specifying required stack size is through the usage of
- *              @ref ES_STCK_SIZE macro.
- * @param       prio
+ *              @ref ES_STACK_SIZE macro.
+ * @param       priority
  *              Priority: is the priority of the thread. The higher the number,
  *              the higher the priority (the importance) of the thread. Several
  *              threads can have the same priority. Note that lowest (0) and
@@ -497,11 +454,11 @@ void esKernLockExit(
  * @pre         3) `thd->signature != DEF_THD_CONTRACT_SIGNATURE`, the thread
  *                  structure can't be initialized more than once.
  * @pre         4) `fn != NULL`
- * @pre         5) `stckSize >= PORT_DEF_STCK_MINSIZE`, see
- *                  @ref PORT_DEF_STCK_MINSIZE.
- * @pre         6) `0 < prio < CFG_SCHED_PRIO_LVL - 1`, see
+ * @pre         5) `stckSize >= PORT_STACK_MINSIZE`, see
+ *                  @ref PORT_STACK_MINSIZE.
+ * @pre         6) `0 < priority < CFG_SCHED_PRIO_LVL - 1`, see
  *                  @ref CFG_SCHED_PRIO_LVL.
- * @post        1) `thd->signature == DEF_THD_CONTRACT_SIGNATURE`, each @ref esThd
+ * @post        1) `thd->signature == DEF_THD_CONTRACT_SIGNATURE`, each @ref esThread
  *                  structure will have valid signature after initialization.
  * @details     Threads must be created in order for kernel to recognize them as
  *              threads. Initialize a thread by calling esThdInit() and
@@ -517,25 +474,25 @@ void esKernLockExit(
  * @api
  */
 void esThdInit(
-    esThd_T *       thd,
+    esThread *       thd,
     void (* fn)(void *),
     void *          arg,
-    portStck_T *    stck,
+    esThreadStack *    stck,
     size_t          stckSize,
     uint8_t         prio);
 
 /**@brief       Terminate the specified thread
  * @param       thd
- *              Thread: is a pointer to the thread structure, @ref esThd.
+ *              Thread: is a pointer to the thread structure, @ref esThread.
  * @pre         1) `The kernel state ES_KERN_INACTIVE`, see @ref states.
  * @pre         2) `thd != NULL`
  * @pre         3) `thd->signature == DEF_THD_CONTRACT_SIGNATURE`, the pointer must
- *                  point to a valid @ref esThd structure.
- * @pre         4) `(thd->thdL_.q == NULL) OR (thd->thdL_.q == gRdyQueue)`, thread
+ *                  point to a valid @ref esThread structure.
+ * @pre         4) `(thd->esThreadList_.q == NULL) OR (thd->esThreadList_.q == gRdyQueue)`, thread
  *                  must be either in Ready Threads Queue or not be in any queue
  *                  (e.g. not waiting for a synchronization mechanism).
  * @post        1) `thd->signature == ~DEF_THD_CONTRACT_SIGNATURE`,  each
- *                  @ref esThd structure will have invalid signature after
+ *                  @ref esThread structure will have invalid signature after
  *                  termination.
  * @called
  * @fromapp
@@ -544,10 +501,10 @@ void esThdInit(
  * @api
  */
 void esThdTerm(
-    esThd_T *       thd);
+    esThread *       thd);
 
 /**@brief       Get the current thread ID
- * @return      Pointer to current thread ID structure @ref esThd.
+ * @return      Pointer to current thread ID structure @ref esThread.
  * @inline
  * @called
  * @fromapp
@@ -556,7 +513,7 @@ void esThdTerm(
  * @schedno
  * @api
  */
-static PORT_C_INLINE esThd_T * esThdGetId(
+static PORT_C_INLINE esThread * esThdGetId(
     void) {
 
     return (KernCtrl.cthd);
@@ -564,7 +521,7 @@ static PORT_C_INLINE esThd_T * esThdGetId(
 
 /**@brief       Get the priority of a thread
  * @param       thd
- *              Thread: is pointer to the thread structure, @ref esThd.
+ *              Thread: is pointer to the thread structure, @ref esThread.
  * @return      The priority of the thread pointed by @c thd.
  * @inline
  * @called
@@ -575,21 +532,21 @@ static PORT_C_INLINE esThd_T * esThdGetId(
  * @api
  */
 static PORT_C_INLINE uint8_t esThdGetPrio(
-    esThd_T *       thd) {
+    esThread *       thd) {
 
-    return (thd->prio);
+    return (esPqGetPriority(&thd->pqElem));
 }
 
 /**@brief       Set the priority of a thread
  * @param       thd
- *              Thread: is pointer to the thread structure, @ref esThd.
- * @param       prio
+ *              Thread: is pointer to the thread structure, @ref esThread.
+ * @param       priority
  *              Priority: is new priority of the thread pointed by @c thd.
  * @pre         1) `The kernel state < ES_KERN_INACTIVE`, see @ref states.
  * @pre         2) `thd != NULL`
  * @pre         3) `thd->signature == DEF_THD_CONTRACT_SIGNATURE`, the pointer must
- *                  point to a valid @ref esThd structure.
- * @pre         4) `0 < prio < CFG_SCHED_PRIO_LVL - 1`, see
+ *                  point to a valid @ref esThread structure.
+ * @pre         4) `0 < priority < CFG_SCHED_PRIO_LVL - 1`, see
  *                  @ref CFG_SCHED_PRIO_LVL.
  * @called
  * @fromapp
@@ -599,7 +556,7 @@ static PORT_C_INLINE uint8_t esThdGetPrio(
  * @iclass
  */
 void esThdSetPrioI(
-    esThd_T *       thd,
+    esThread *       thd,
     uint8_t         prio);
 
 /**@} *//*----------------------------------------------------------------*//**
@@ -609,12 +566,12 @@ void esThdSetPrioI(
 /**@brief       Initialize Thread Queue
  * @param       thdQ
  *              Thread Queue: is a pointer to thread queue structure,
- *              @ref esThdQ.
+ *              @ref esThreadQ.
  * @pre         1) `thdQ != NULL`
  * @pre         2) `thdQ->signature != DEF_THDQ_CONTRACT_SIGNATURE`, the thread
  *                  queue structure can't be initialized more than once.
  * @post        1) `thdQ->signature == DEF_THDQ_CONTRACT_SIGNATURE`, each
- *                  @ref esThdQ structure will have valid signature after
+ *                  @ref esThreadQ structure will have valid signature after
  *                  initialization.
  * @called
  * @fromapp
@@ -624,17 +581,17 @@ void esThdSetPrioI(
  * @api
  */
 void esThdQInit(
-    esThdQ_T *      thdQ);
+    esThreadQ *      thdQ);
 
 /**@brief       Terminate Thread Queue
  * @param       thdQ
  *              Thread Queue: is a pointer to thread queue structure,
- *              @ref esThdQ.
+ *              @ref esThreadQ.
  * @pre         1) `thdQ != NULL`
  * @pre         2) `thdQ->signature == DEF_THDQ_CONTRACT_SIGNATURE`, the thread
  *                  queue structure must be already initialized.
  * @post        1) `thdQ->signature == ~DEF_THDQ_CONTRACT_SIGNATURE`, each
- *                  @ref esThdQ structure will have invalid signature after
+ *                  @ref esThreadQ structure will have invalid signature after
  *                  termination.
  * @called
  * @fromapp
@@ -644,21 +601,21 @@ void esThdQInit(
  * @api
  */
 void esThdQTerm(
-    esThdQ_T *      thdQ);
+    esThreadQ *      thdQ);
 
 /**@brief       Add a thread to the Thread Queue
  * @param       thdQ
  *              Thread Queue: is a pointer to thread queue structure,
- *              @ref esThdQ.
+ *              @ref esThreadQ.
  * @param       thd
- *              Thread: is a pointer to the thread ID structure, @ref esThd.
+ *              Thread: is a pointer to the thread ID structure, @ref esThread.
  * @pre         1) `thdQ != NULL`
  * @pre         2) `thdQ->signature == DEF_THDQ_CONTRACT_SIGNATURE`, the pointer
- *                  must point to a valid @ref esThdQ structure.
+ *                  must point to a valid @ref esThreadQ structure.
  * @pre         3) `thd != NULL`
  * @pre         4) `thd->signature == DEF_THD_CONTRACT_SIGNATURE`, the pointer must
- *                  point to a valid @ref esThd structure.
- * @pre         5) `thd->thdL_.q == NULL`, thread must not be in any queue.
+ *                  point to a valid @ref esThread structure.
+ * @pre         5) `thd->esThreadList_.q == NULL`, thread must not be in any queue.
  * @details     This function adds a thread at the specified Thread Queue.
  * @called
  * @fromapp
@@ -668,22 +625,22 @@ void esThdQTerm(
  * @iclass
  */
 void esThdQAddI(
-    esThdQ_T *      thdQ,
-    esThd_T *       thd);
+    esThreadQ *      thdQ,
+    esThread *       thd);
 
 /**@brief       Removes the thread from the Thread Queue
  * @param       thdQ
  *              Thread Queue: is a pointer to thread queue structure,
- *              @ref esThdQ.
+ *              @ref esThreadQ.
  * @param       thd
- *              Thread: is a pointer to the thread ID structure, @ref esThd.
+ *              Thread: is a pointer to the thread ID structure, @ref esThread.
  * @pre         1) `thd != NULL`
  * @pre         2) `thd->signature == DEF_THD_CONTRACT_SIGNATURE`, the pointer must
- *                  point to a valid @ref esThd structure.
+ *                  point to a valid @ref esThread structure.
  * @pre         3) `thdQ != NULL`
  * @pre         4) `thdQ->signature == DEF_THDQ_CONTRACT_SIGNATURE`, the pointer
- *                  must point to a valid @ref esThdQ structure.
- * @pre         5) `thd->thdL_.q == thdQ`, thread must be in the `thdQ` queue.
+ *                  must point to a valid @ref esThreadQ structure.
+ * @pre         5) `thd->esThreadList_.q == thdQ`, thread must be in the `thdQ` queue.
  * @called
  * @fromapp
  * @fromthd
@@ -692,17 +649,17 @@ void esThdQAddI(
  * @iclass
  */
 void esThdQRmI(
-    esThdQ_T *      thdQ,
-    esThd_T *       thd);
+    esThreadQ *      thdQ,
+    esThread *       thd);
 
 /**@brief       Fetch the first high priority thread from the Thread Queue
  * @param       thdQ
  *              Thread Queue: is a pointer to thread queue structure,
- *              @ref esThdQ.
+ *              @ref esThreadQ.
  * @return      A pointer to the thread ID structure with the highest priority.
  * @pre         1) `thdQ != NULL`
  * @pre         2) `thdQ->signature == DEF_THDQ_CONTRACT_SIGNATURE`, the pointer
- *                  must point to a valid @ref esThdQ structure.
+ *                  must point to a valid @ref esThreadQ structure.
  * @pre         3) `pbm_ != 0`, priority bit map must not be empty
  * @called
  * @fromapp
@@ -711,20 +668,20 @@ void esThdQRmI(
  * @schedno
  * @iclass
  */
-esThd_T * esThdQFetchI(
-    const esThdQ_T *    thdQ);
+esThread * esThdQFetchI(
+    const esThreadQ *    thdQ);
 
 /**@brief       Fetch the next thread and rotate thread linked list
  * @param       thdQ
  *              Thread Queue: is a pointer to thread queue structure,
- *              @ref esThdQ. This is the thread queue to fetch from.
- * @param       prio
+ *              @ref esThreadQ. This is the thread queue to fetch from.
+ * @param       priority
  *              Priority: is the priority level to fetch and rotate.
  * @return      Pointer to the next thread in queue.
  * @pre         1) `thdQ != NULL`
  * @pre         2) `thdQ->signature == DEF_THDQ_CONTRACT_SIGNATURE`, the pointer
- *                  must point to a valid @ref esThdQ structure.
- * @pre         3) `0 <= prio <= CFG_SCHED_PRIO_LVL`, see
+ *                  must point to a valid @ref esThreadQ structure.
+ * @pre         3) `0 <= priority <= CFG_SCHED_PRIO_LVL`, see
  *                  @ref CFG_SCHED_PRIO_LVL.
  * @pre         4) `sentinel != NULL`, at least one thread must be in the
  *                  selected priority level
@@ -735,20 +692,20 @@ esThd_T * esThdQFetchI(
  * @schedno
  * @iclass
  */
-esThd_T * esThdQFetchRotateI(
-    esThdQ_T *      thdQ,
+esThread * esThdQFetchRotateI(
+    esThreadQ *      thdQ,
     uint_fast8_t    prio);
 
 /**@brief       Is thread queue empty
  * @param       thdQ
  *              Thread Queue: is a pointer to thread queue structure,
- *              @ref esThdQ.
+ *              @ref esThreadQ.
  * @return      The state of thread queue
  *  @retval     TRUE - thread queue is empty
  *  @retval     FALSE - thread queue is not empty
  * @pre         1) `thdQ != NULL`
  * @pre         2) `thdQ->signature == DEF_THDQ_CONTRACT_SIGNATURE`, the pointer
- *                  must point to a valid @ref esThdQ structure.
+ *                  must point to a valid @ref esThreadQ structure.
  * @called
  * @fromapp
  * @fromthd
@@ -756,8 +713,8 @@ esThd_T * esThdQFetchRotateI(
  * @schedno
  * @api
  */
-bool_T esThdQIsEmpty(
-    const esThdQ_T *    thdQ);
+bool esThdQIsEmpty(
+    const esThreadQ *    thdQ);
 
 /**@} *//*----------------------------------------------------------------*//**
  * @defgroup    kern_sched Scheduler notification and invocation
@@ -767,12 +724,12 @@ bool_T esThdQIsEmpty(
 /**@brief       Add thread `thd` to the ready thread list and notify the
  *              scheduler.
  * @param       thd
- *              Pointer to the initialized thread ID structure, @ref esThd.
+ *              Pointer to the initialized thread ID structure, @ref esThread.
  * @pre         1) `The kernel state < ES_KERN_INACTIVE`, see @ref states.
  * @pre         2) `thd != NULL`
  * @pre         3) `thd->signature == DEF_THD_CONTRACT_SIGNATURE`, the pointer must
- *                  point to a valid @ref esThd structure.
- * @pre         4) `thd->thdL_.q == NULL`, thread must not be in a queue.
+ *                  point to a valid @ref esThread structure.
+ * @pre         4) `thd->esThreadList_.q == NULL`, thread must not be in a queue.
  * @called
  * @fromapp
  * @fromthd
@@ -781,17 +738,17 @@ bool_T esThdQIsEmpty(
  * @iclass
  */
 void esSchedRdyAddI(
-    esThd_T *       thd);
+    esThread *       thd);
 
 /**@brief       Remove thread `thd` from the ready thread list and notify the
  *              scheduler.
  * @param       thd
- *              Pointer to the initialized thread ID structure, @ref esThd.
+ *              Pointer to the initialized thread ID structure, @ref esThread.
  * @pre         1) `The kernel state < ES_KERN_INACTIVE`, see @ref states.
  * @pre         2) `thd != NULL`
  * @pre         3) `thd->signature == DEF_THD_CONTRACT_SIGNATURE`, the pointer must
- *                  point to a valid @ref esThd structure.
- * @pre         4) `thd->thdL_.q == &gRdyQueue`, thread must be in Ready Threads
+ *                  point to a valid @ref esThread structure.
+ * @pre         4) `thd->esThreadList_.q == &gRdyQueue`, thread must be in Ready Threads
  *                  queue.
  * @called
  * @fromapp
@@ -801,7 +758,7 @@ void esSchedRdyAddI(
  * @iclass
  */
 void esSchedRdyRmI(
-    esThd_T *       thd);
+    esThread *       thd);
 
 /**@brief       Force the scheduler invocation which will evaluate all ready
  *              threads and switch to ready thread with the highest priority
@@ -855,9 +812,9 @@ void esSchedYieldIsrI(
  * @schedno
  * @iclass
  */
-void esVTmrInitI(
+void esKTmrInitI(
     esVTmr_T *      vTmr,
-    esTick_T        tick,
+    esVTmrTick        tick,
     void (* fn)(void *),
     void *          arg);
 
@@ -889,7 +846,7 @@ void esVTmrInitI(
  */
 void esVTmrInit(
     esVTmr_T *      vTmr,
-    esTick_T        tick,
+    esVTmrTick        tick,
     void (* fn)(void *),
     void *          arg);
 
@@ -951,7 +908,7 @@ void esVTmrTerm(
  * @api
  */
 void esVTmrDelay(
-    esTick_T        tick);
+    esVTmrTick        tick);
 
 /**@} *//*----------------------------------------------------------------*//**
  * @defgroup    kern_time Kernel time
@@ -968,7 +925,7 @@ void esVTmrDelay(
  * @schedno
  * @api
  */
-esTick_T esSysTmrTickGet(
+esVTmrTick esSysTmrTickGet(
     void);
 
 /**@} *//*----------------------------------------------------------------*//**
@@ -1022,7 +979,7 @@ extern void userPreKernStart(
  * @details     This function is called after the thread initialization.
  */
 extern void userPostThdInit(
-    esThd_T *       thd);
+    esThread *       thd);
 
 /**@brief       Thread terminate hook function, called from esThdTerm() or when
  *              a thread terminates itself.
@@ -1061,8 +1018,8 @@ extern void userPostIdle(
  * @details     This function is called at each context switch.
  */
 extern void userPreCtxSw(
-    esThd_T *       oldThd,
-    esThd_T *       newThd);
+    esThread *       oldThd,
+    esThread *       newThd);
 
 /**@} *//*------------------------------------------------  C++ extern end  --*/
 #ifdef __cplusplus

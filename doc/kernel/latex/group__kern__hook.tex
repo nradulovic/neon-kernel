@@ -1,0 +1,189 @@
+\hypertarget{group__kern__hook}{\subsection{Kernel hook functions}
+\label{group__kern__hook}\index{Kernel hook functions@{Kernel hook functions}}
+}
+
+
+User defined hook (callback) function prototypes.  
+
+
+Collaboration diagram for Kernel hook functions\-:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=284pt]{group__kern__hook}
+\end{center}
+\end{figure}
+\subsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \hyperlink{group__kern__hook_ga9a0d562969acef0121136b11be7b4728}{user\-Pre\-Sys\-Tmr} (void)
+\begin{DoxyCompactList}\small\item\em System timer hook function, called from system system timer I\-S\-R function before the kernel functions. \end{DoxyCompactList}\item 
+void \hyperlink{group__kern__hook_gaac77966856c9a299cda4794cbcc87edf}{user\-Pre\-Kern\-Init} (void)
+\begin{DoxyCompactList}\small\item\em Kernel initialization hook function, called from \hyperlink{group__kern__general_ga9e9ff699d62d6035cd51121bb3140704}{es\-Kern\-Init()} function before kernel initialization. \end{DoxyCompactList}\item 
+void \hyperlink{group__kern__hook_ga3579ac6964a314ad03d13da0507f57e8}{user\-Post\-Kern\-Init} (void)
+\begin{DoxyCompactList}\small\item\em Kernel initialization hook function, called from \hyperlink{group__kern__general_ga9e9ff699d62d6035cd51121bb3140704}{es\-Kern\-Init()} function after kernel initialization. \end{DoxyCompactList}\item 
+void \hyperlink{group__kern__hook_gaac505ab4c72e0fb346ca441d6def327d}{user\-Pre\-Kern\-Start} (void)
+\begin{DoxyCompactList}\small\item\em Kernel start hook function, called from \hyperlink{group__kern__general_ga0e7a0a6b9c02df58de0f98de0229a09d}{es\-Kern\-Start()} function. \end{DoxyCompactList}\item 
+void \hyperlink{group__kern__hook_ga64ca864d0ff2aaa532208d7c2b88bdb3}{user\-Post\-Thd\-Init} (\hyperlink{group__kern__thd_ga62e3a3ca0a4597a19c43cb8868810d82}{es\-Thd\-\_\-\-T} $\ast$thd)
+\begin{DoxyCompactList}\small\item\em Thread initialization end hook function, called from \hyperlink{group__kern__thd_gac91734f3ee867b519f59bf81cc7fde88}{es\-Thd\-Init()} function. \end{DoxyCompactList}\item 
+void \hyperlink{group__kern__hook_ga076ad76633999c9d5e245e3b5c6e0c09}{user\-Pre\-Thd\-Term} (void)
+\begin{DoxyCompactList}\small\item\em Thread terminate hook function, called from \hyperlink{group__kern__thd_gac9d1eac76f26096614e8196bcfd8b905}{es\-Thd\-Term()} or when a thread terminates itself. \end{DoxyCompactList}\item 
+void \hyperlink{group__kern__hook_ga2bd40d82f768787c3dab2f4df336685e}{user\-Pre\-Idle} (void)
+\begin{DoxyCompactList}\small\item\em Pre Idle hook function, called from idle thread, just before entering idle period. \end{DoxyCompactList}\item 
+void \hyperlink{group__kern__hook_ga7ca4a96cbe5064d633298d1d172fd4e7}{user\-Post\-Idle} (void)
+\begin{DoxyCompactList}\small\item\em Post idle hook function, called from idle thread, just after exiting idle period. \end{DoxyCompactList}\item 
+void \hyperlink{group__kern__hook_ga74a38c965110d0f2f2e44e13571fe3fc}{user\-Pre\-Ctx\-Sw} (\hyperlink{group__kern__thd_ga62e3a3ca0a4597a19c43cb8868810d82}{es\-Thd\-\_\-\-T} $\ast$old\-Thd, \hyperlink{group__kern__thd_ga62e3a3ca0a4597a19c43cb8868810d82}{es\-Thd\-\_\-\-T} $\ast$new\-Thd)
+\begin{DoxyCompactList}\small\item\em Kernel context switch hook function, called from \hyperlink{group__kern__sched_gaf90e487bfce974dafaeed5009e189810}{es\-Sched\-Yield\-I()} and \hyperlink{group__kern__sched_gafbea29b376b29f11bbfc48a0f5144e9a}{es\-Sched\-Yield\-Isr\-I()} functions just before context switch. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsubsection{Detailed Description}
+User defined hook (callback) function prototypes. \begin{DoxyNote}{Note}
+1) The definition of this functions must be written by the user. 
+\end{DoxyNote}
+
+
+\subsubsection{Function Documentation}
+\hypertarget{group__kern__hook_ga9a0d562969acef0121136b11be7b4728}{\index{Kernel hook functions@{Kernel hook functions}!user\-Pre\-Sys\-Tmr@{user\-Pre\-Sys\-Tmr}}
+\index{user\-Pre\-Sys\-Tmr@{user\-Pre\-Sys\-Tmr}!Kernel hook functions@{Kernel hook functions}}
+\paragraph[{user\-Pre\-Sys\-Tmr}]{\setlength{\rightskip}{0pt plus 5cm}void user\-Pre\-Sys\-Tmr (
+\begin{DoxyParamCaption}
+\item[{void}]{}
+\end{DoxyParamCaption}
+)}}\label{group__kern__hook_ga9a0d562969acef0121136b11be7b4728}
+
+
+System timer hook function, called from system system timer I\-S\-R function before the kernel functions. 
+
+\begin{DoxyNote}{Note}
+1) This function is called only if \hyperlink{group__template__kern__cfg_gaa130bc9f72010b44b4b06618d8f8d0bc}{C\-F\-G\-\_\-\-H\-O\-O\-K\-\_\-\-P\-R\-E\-\_\-\-S\-Y\-S\-T\-M\-R\-\_\-\-E\-V\-E\-N\-T} is active.
+\end{DoxyNote}
+This function is called whenever a system event is generated. \hypertarget{group__kern__hook_gaac77966856c9a299cda4794cbcc87edf}{\index{Kernel hook functions@{Kernel hook functions}!user\-Pre\-Kern\-Init@{user\-Pre\-Kern\-Init}}
+\index{user\-Pre\-Kern\-Init@{user\-Pre\-Kern\-Init}!Kernel hook functions@{Kernel hook functions}}
+\paragraph[{user\-Pre\-Kern\-Init}]{\setlength{\rightskip}{0pt plus 5cm}void user\-Pre\-Kern\-Init (
+\begin{DoxyParamCaption}
+\item[{void}]{}
+\end{DoxyParamCaption}
+)}}\label{group__kern__hook_gaac77966856c9a299cda4794cbcc87edf}
+
+
+Kernel initialization hook function, called from \hyperlink{group__kern__general_ga9e9ff699d62d6035cd51121bb3140704}{es\-Kern\-Init()} function before kernel initialization. 
+
+\begin{DoxyNote}{Note}
+1) This function is called only if \hyperlink{group__template__kern__cfg_ga4093113f2105d2716f86c6509a6e643a}{C\-F\-G\-\_\-\-H\-O\-O\-K\-\_\-\-P\-R\-E\-\_\-\-K\-E\-R\-N\-\_\-\-I\-N\-I\-T} is active.
+\end{DoxyNote}
+This function is called before the kernel initialization. \hypertarget{group__kern__hook_ga3579ac6964a314ad03d13da0507f57e8}{\index{Kernel hook functions@{Kernel hook functions}!user\-Post\-Kern\-Init@{user\-Post\-Kern\-Init}}
+\index{user\-Post\-Kern\-Init@{user\-Post\-Kern\-Init}!Kernel hook functions@{Kernel hook functions}}
+\paragraph[{user\-Post\-Kern\-Init}]{\setlength{\rightskip}{0pt plus 5cm}void user\-Post\-Kern\-Init (
+\begin{DoxyParamCaption}
+\item[{void}]{}
+\end{DoxyParamCaption}
+)}}\label{group__kern__hook_ga3579ac6964a314ad03d13da0507f57e8}
+
+
+Kernel initialization hook function, called from \hyperlink{group__kern__general_ga9e9ff699d62d6035cd51121bb3140704}{es\-Kern\-Init()} function after kernel initialization. 
+
+\begin{DoxyNote}{Note}
+1) This function is called only if \hyperlink{group__template__kern__cfg_ga85dea823714335c2ec9e9f7750996e83}{C\-F\-G\-\_\-\-H\-O\-O\-K\-\_\-\-P\-O\-S\-T\-\_\-\-K\-E\-R\-N\-\_\-\-I\-N\-I\-T} is active.
+\end{DoxyNote}
+This function is called after the kernel initialization. \hypertarget{group__kern__hook_gaac505ab4c72e0fb346ca441d6def327d}{\index{Kernel hook functions@{Kernel hook functions}!user\-Pre\-Kern\-Start@{user\-Pre\-Kern\-Start}}
+\index{user\-Pre\-Kern\-Start@{user\-Pre\-Kern\-Start}!Kernel hook functions@{Kernel hook functions}}
+\paragraph[{user\-Pre\-Kern\-Start}]{\setlength{\rightskip}{0pt plus 5cm}void user\-Pre\-Kern\-Start (
+\begin{DoxyParamCaption}
+\item[{void}]{}
+\end{DoxyParamCaption}
+)}}\label{group__kern__hook_gaac505ab4c72e0fb346ca441d6def327d}
+
+
+Kernel start hook function, called from \hyperlink{group__kern__general_ga0e7a0a6b9c02df58de0f98de0229a09d}{es\-Kern\-Start()} function. 
+
+\begin{DoxyNote}{Note}
+1) This function is called only if \hyperlink{group__template__kern__cfg_gad67d998118375811b0f3e63543311661}{C\-F\-G\-\_\-\-H\-O\-O\-K\-\_\-\-P\-R\-E\-\_\-\-K\-E\-R\-N\-\_\-\-S\-T\-A\-R\-T} is active.
+\end{DoxyNote}
+This function is called before kernel start. \hypertarget{group__kern__hook_ga64ca864d0ff2aaa532208d7c2b88bdb3}{\index{Kernel hook functions@{Kernel hook functions}!user\-Post\-Thd\-Init@{user\-Post\-Thd\-Init}}
+\index{user\-Post\-Thd\-Init@{user\-Post\-Thd\-Init}!Kernel hook functions@{Kernel hook functions}}
+\paragraph[{user\-Post\-Thd\-Init}]{\setlength{\rightskip}{0pt plus 5cm}void user\-Post\-Thd\-Init (
+\begin{DoxyParamCaption}
+\item[{{\bf es\-Thd\-\_\-\-T} $\ast$}]{thd}
+\end{DoxyParamCaption}
+)}}\label{group__kern__hook_ga64ca864d0ff2aaa532208d7c2b88bdb3}
+
+
+Thread initialization end hook function, called from \hyperlink{group__kern__thd_gac91734f3ee867b519f59bf81cc7fde88}{es\-Thd\-Init()} function. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em thd} & Thread\-: pointer to thread Id structure that has just been initialized. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyNote}{Note}
+1) This function is called only if \hyperlink{group__template__kern__cfg_ga23deae306171d1a8dda4d0e33efdb6bb}{C\-F\-G\-\_\-\-H\-O\-O\-K\-\_\-\-P\-O\-S\-T\-\_\-\-T\-H\-D\-\_\-\-I\-N\-I\-T} is active.
+\end{DoxyNote}
+This function is called after the thread initialization. \hypertarget{group__kern__hook_ga076ad76633999c9d5e245e3b5c6e0c09}{\index{Kernel hook functions@{Kernel hook functions}!user\-Pre\-Thd\-Term@{user\-Pre\-Thd\-Term}}
+\index{user\-Pre\-Thd\-Term@{user\-Pre\-Thd\-Term}!Kernel hook functions@{Kernel hook functions}}
+\paragraph[{user\-Pre\-Thd\-Term}]{\setlength{\rightskip}{0pt plus 5cm}void user\-Pre\-Thd\-Term (
+\begin{DoxyParamCaption}
+\item[{void}]{}
+\end{DoxyParamCaption}
+)}}\label{group__kern__hook_ga076ad76633999c9d5e245e3b5c6e0c09}
+
+
+Thread terminate hook function, called from \hyperlink{group__kern__thd_gac9d1eac76f26096614e8196bcfd8b905}{es\-Thd\-Term()} or when a thread terminates itself. 
+
+\begin{DoxyNote}{Note}
+1) This function is called only if \hyperlink{group__template__kern__cfg_ga9c7dd4e009a89e9cffb0f9b404bc6250}{C\-F\-G\-\_\-\-H\-O\-O\-K\-\_\-\-P\-R\-E\-\_\-\-T\-H\-D\-\_\-\-T\-E\-R\-M} is active. 
+\end{DoxyNote}
+\hypertarget{group__kern__hook_ga2bd40d82f768787c3dab2f4df336685e}{\index{Kernel hook functions@{Kernel hook functions}!user\-Pre\-Idle@{user\-Pre\-Idle}}
+\index{user\-Pre\-Idle@{user\-Pre\-Idle}!Kernel hook functions@{Kernel hook functions}}
+\paragraph[{user\-Pre\-Idle}]{\setlength{\rightskip}{0pt plus 5cm}void user\-Pre\-Idle (
+\begin{DoxyParamCaption}
+\item[{void}]{}
+\end{DoxyParamCaption}
+)}}\label{group__kern__hook_ga2bd40d82f768787c3dab2f4df336685e}
+
+
+Pre Idle hook function, called from idle thread, just before entering idle period. 
+
+\begin{DoxyNote}{Note}
+1) This function is called only if \hyperlink{group__template__kern__cfg_ga7c2b0410404256c4804758090401f7e4}{C\-F\-G\-\_\-\-H\-O\-O\-K\-\_\-\-P\-R\-E\-\_\-\-I\-D\-L\-E} and \hyperlink{group__template__kern__cfg_ga4e6ab4994b34501bb71e75717b093376}{C\-F\-G\-\_\-\-S\-C\-H\-E\-D\-\_\-\-P\-O\-W\-E\-R\-\_\-\-S\-A\-V\-E} are active. 
+
+2) This function is called with interrupts and scheduler locked. 
+\end{DoxyNote}
+\hypertarget{group__kern__hook_ga7ca4a96cbe5064d633298d1d172fd4e7}{\index{Kernel hook functions@{Kernel hook functions}!user\-Post\-Idle@{user\-Post\-Idle}}
+\index{user\-Post\-Idle@{user\-Post\-Idle}!Kernel hook functions@{Kernel hook functions}}
+\paragraph[{user\-Post\-Idle}]{\setlength{\rightskip}{0pt plus 5cm}void user\-Post\-Idle (
+\begin{DoxyParamCaption}
+\item[{void}]{}
+\end{DoxyParamCaption}
+)}}\label{group__kern__hook_ga7ca4a96cbe5064d633298d1d172fd4e7}
+
+
+Post idle hook function, called from idle thread, just after exiting idle period. 
+
+\begin{DoxyNote}{Note}
+1) This function is called only if \hyperlink{group__template__kern__cfg_ga8f8751efe94964bef25673deca6b9b26}{C\-F\-G\-\_\-\-H\-O\-O\-K\-\_\-\-P\-O\-S\-T\-\_\-\-I\-D\-L\-E} and \hyperlink{group__template__kern__cfg_ga4e6ab4994b34501bb71e75717b093376}{C\-F\-G\-\_\-\-S\-C\-H\-E\-D\-\_\-\-P\-O\-W\-E\-R\-\_\-\-S\-A\-V\-E} are active. 
+
+2) This function is called with scheduler locked. 
+\end{DoxyNote}
+\hypertarget{group__kern__hook_ga74a38c965110d0f2f2e44e13571fe3fc}{\index{Kernel hook functions@{Kernel hook functions}!user\-Pre\-Ctx\-Sw@{user\-Pre\-Ctx\-Sw}}
+\index{user\-Pre\-Ctx\-Sw@{user\-Pre\-Ctx\-Sw}!Kernel hook functions@{Kernel hook functions}}
+\paragraph[{user\-Pre\-Ctx\-Sw}]{\setlength{\rightskip}{0pt plus 5cm}void user\-Pre\-Ctx\-Sw (
+\begin{DoxyParamCaption}
+\item[{{\bf es\-Thd\-\_\-\-T} $\ast$}]{old\-Thd, }
+\item[{{\bf es\-Thd\-\_\-\-T} $\ast$}]{new\-Thd}
+\end{DoxyParamCaption}
+)}}\label{group__kern__hook_ga74a38c965110d0f2f2e44e13571fe3fc}
+
+
+Kernel context switch hook function, called from \hyperlink{group__kern__sched_gaf90e487bfce974dafaeed5009e189810}{es\-Sched\-Yield\-I()} and \hyperlink{group__kern__sched_gafbea29b376b29f11bbfc48a0f5144e9a}{es\-Sched\-Yield\-Isr\-I()} functions just before context switch. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em old\-Thd} & Pointer to the thread being switched out. \\
+\hline
+{\em new\-Thd} & Pointer to the thread being switched in. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyNote}{Note}
+1) This function is called only if \hyperlink{group__template__kern__cfg_gac84acbf84222018398089920dd429635}{C\-F\-G\-\_\-\-H\-O\-O\-K\-\_\-\-P\-R\-E\-\_\-\-C\-T\-X\-\_\-\-S\-W} is active.
+\end{DoxyNote}
+This function is called at each context switch. 

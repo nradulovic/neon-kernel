@@ -1,0 +1,54 @@
+\hypertarget{group__template__cpu__impl}{\subsection{C\-P\-U port internals}
+\label{group__template__cpu__impl}\index{C\-P\-U port internals@{C\-P\-U port internals}}
+}
+
+
+C\-P\-U port inner work.  
+
+
+Collaboration diagram for C\-P\-U port internals\-:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=290pt]{group__template__cpu__impl}
+\end{center}
+\end{figure}
+\subsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+void $\ast$ \hyperlink{group__template__cpu__impl_gaa097ec2ead487892969bcd2806539822}{port\-Ctx\-Init} (void $\ast$stck, size\-\_\-t stck\-Size, void($\ast$fn)(void $\ast$), void $\ast$arg)
+\begin{DoxyCompactList}\small\item\em Initialize the thread context. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsubsection{Detailed Description}
+C\-P\-U port inner work. 
+
+\subsubsection{Function Documentation}
+\hypertarget{group__template__cpu__impl_gaa097ec2ead487892969bcd2806539822}{\index{C\-P\-U port internals@{C\-P\-U port internals}!port\-Ctx\-Init@{port\-Ctx\-Init}}
+\index{port\-Ctx\-Init@{port\-Ctx\-Init}!CPU port internals@{C\-P\-U port internals}}
+\paragraph[{port\-Ctx\-Init}]{\setlength{\rightskip}{0pt plus 5cm}void$\ast$ port\-Ctx\-Init (
+\begin{DoxyParamCaption}
+\item[{void $\ast$}]{stck, }
+\item[{size\-\_\-t}]{stck\-Size, }
+\item[{void($\ast$)(void $\ast$)}]{fn, }
+\item[{void $\ast$}]{arg}
+\end{DoxyParamCaption}
+)}}\label{group__template__cpu__impl_gaa097ec2ead487892969bcd2806539822}
+
+
+Initialize the thread context. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em stck} & Pointer to the allocated thread stack. The pointer points to the beginning of the memory as defined per C language. It's up to port function to adjust the pointer according to the stack type\-: full descending or full ascending one. \\
+\hline
+{\em stck\-Size} & The size of allocated stack in bytes. \\
+\hline
+{\em fn} & Pointer to the thread function. \\
+\hline
+{\em arg} & Argument that will be passed to thread function at the starting of execution. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The new top of stack after thread context initialization. 
+\end{DoxyReturn}

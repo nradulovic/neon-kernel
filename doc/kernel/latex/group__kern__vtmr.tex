@@ -1,0 +1,306 @@
+\hypertarget{group__kern__vtmr}{\subsection{Virtual Timer}
+\label{group__kern__vtmr}\index{Virtual Timer@{Virtual Timer}}
+}
+
+
+Virtual Timer management services.  
+
+
+Collaboration diagram for Virtual Timer\-:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=244pt]{group__kern__vtmr}
+\end{center}
+\end{figure}
+\subsubsection*{Data Structures}
+\begin{DoxyCompactItemize}
+\item 
+struct \hyperlink{structesVTmr}{es\-V\-Tmr}
+\begin{DoxyCompactList}\small\item\em Virtual Timer structure. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsubsection*{Typedefs}
+\begin{DoxyCompactItemize}
+\item 
+typedef uint\-\_\-fast32\-\_\-t \hyperlink{group__kern__vtmr_ga844873888c186ee81eb66620dadb0451}{es\-Tick\-\_\-\-T}
+\begin{DoxyCompactList}\small\item\em Timer tick type. \end{DoxyCompactList}\item 
+typedef struct \hyperlink{structesVTmr}{es\-V\-Tmr} \hyperlink{group__kern__vtmr_ga3c020f0ca54ff412bc1d1505502d2afc}{es\-V\-Tmr\-\_\-\-T}
+\begin{DoxyCompactList}\small\item\em Virtual Timer type. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \hyperlink{group__kern__vtmr_ga45fe650eac73e7fe203cc81565401555}{es\-V\-Tmr\-Init\-I} (\hyperlink{group__kern__vtmr_ga3c020f0ca54ff412bc1d1505502d2afc}{es\-V\-Tmr\-\_\-\-T} $\ast$v\-Tmr, \hyperlink{group__kern__vtmr_ga844873888c186ee81eb66620dadb0451}{es\-Tick\-\_\-\-T} tick, void($\ast$fn)(void $\ast$), void $\ast$arg)
+\begin{DoxyCompactList}\small\item\em Add and start a new virtual timer. \end{DoxyCompactList}\item 
+void \hyperlink{group__kern__vtmr_gad932cf00aec4ba03a0df02ccc493c4c2}{es\-V\-Tmr\-Init} (\hyperlink{group__kern__vtmr_ga3c020f0ca54ff412bc1d1505502d2afc}{es\-V\-Tmr\-\_\-\-T} $\ast$v\-Tmr, \hyperlink{group__kern__vtmr_ga844873888c186ee81eb66620dadb0451}{es\-Tick\-\_\-\-T} tick, void($\ast$fn)(void $\ast$), void $\ast$arg)
+\begin{DoxyCompactList}\small\item\em Add and start a new virtual timer. \end{DoxyCompactList}\item 
+void \hyperlink{group__kern__vtmr_ga96bb2c81f649c0305dfd08d1c79b2e37}{es\-V\-Tmr\-Term\-I} (\hyperlink{group__kern__vtmr_ga3c020f0ca54ff412bc1d1505502d2afc}{es\-V\-Tmr\-\_\-\-T} $\ast$v\-Tmr)
+\begin{DoxyCompactList}\small\item\em Cancel and remove a virtual timer. \end{DoxyCompactList}\item 
+void \hyperlink{group__kern__vtmr_gad6ec93a68e3526f18ed926cd441878cd}{es\-V\-Tmr\-Term} (\hyperlink{group__kern__vtmr_ga3c020f0ca54ff412bc1d1505502d2afc}{es\-V\-Tmr\-\_\-\-T} $\ast$v\-Tmr)
+\begin{DoxyCompactList}\small\item\em Cancel and remove a virtual timer. \end{DoxyCompactList}\item 
+void \hyperlink{group__kern__vtmr_ga26d10c6aaa0cd1d04261d2c9911e890d}{es\-V\-Tmr\-Delay} (\hyperlink{group__kern__vtmr_ga844873888c186ee81eb66620dadb0451}{es\-Tick\-\_\-\-T} tick)
+\begin{DoxyCompactList}\small\item\em Delay for specified amount of ticks. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsubsection{Detailed Description}
+Virtual Timer management services. 
+
+\subsubsection{Typedef Documentation}
+\hypertarget{group__kern__vtmr_ga844873888c186ee81eb66620dadb0451}{\index{Virtual Timer@{Virtual Timer}!es\-Tick\-\_\-\-T@{es\-Tick\-\_\-\-T}}
+\index{es\-Tick\-\_\-\-T@{es\-Tick\-\_\-\-T}!Virtual Timer@{Virtual Timer}}
+\paragraph[{es\-Tick\-\_\-\-T}]{\setlength{\rightskip}{0pt plus 5cm}typedef uint\-\_\-fast32\-\_\-t {\bf es\-Tick\-\_\-\-T}}}\label{group__kern__vtmr_ga844873888c186ee81eb66620dadb0451}
+
+
+Timer tick type. 
+
+\hypertarget{group__kern__vtmr_ga3c020f0ca54ff412bc1d1505502d2afc}{\index{Virtual Timer@{Virtual Timer}!es\-V\-Tmr\-\_\-\-T@{es\-V\-Tmr\-\_\-\-T}}
+\index{es\-V\-Tmr\-\_\-\-T@{es\-V\-Tmr\-\_\-\-T}!Virtual Timer@{Virtual Timer}}
+\paragraph[{es\-V\-Tmr\-\_\-\-T}]{\setlength{\rightskip}{0pt plus 5cm}typedef struct {\bf es\-V\-Tmr} {\bf es\-V\-Tmr\-\_\-\-T}}}\label{group__kern__vtmr_ga3c020f0ca54ff412bc1d1505502d2afc}
+
+
+Virtual Timer type. 
+
+
+
+\subsubsection{Function Documentation}
+\hypertarget{group__kern__vtmr_ga45fe650eac73e7fe203cc81565401555}{\index{Virtual Timer@{Virtual Timer}!es\-V\-Tmr\-Init\-I@{es\-V\-Tmr\-Init\-I}}
+\index{es\-V\-Tmr\-Init\-I@{es\-V\-Tmr\-Init\-I}!Virtual Timer@{Virtual Timer}}
+\paragraph[{es\-V\-Tmr\-Init\-I}]{\setlength{\rightskip}{0pt plus 5cm}void es\-V\-Tmr\-Init\-I (
+\begin{DoxyParamCaption}
+\item[{{\bf es\-V\-Tmr\-\_\-\-T} $\ast$}]{v\-Tmr, }
+\item[{{\bf es\-Tick\-\_\-\-T}}]{tick, }
+\item[{void($\ast$)(void $\ast$)}]{fn, }
+\item[{void $\ast$}]{arg}
+\end{DoxyParamCaption}
+)}}\label{group__kern__vtmr_ga45fe650eac73e7fe203cc81565401555}
+
+
+Add and start a new virtual timer. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em v\-Tmr} & Virtual Timer\-: is pointer to the timer I\-D structure, \hyperlink{structesVTmr}{es\-V\-Tmr}. \\
+\hline
+{\em tick} & Tick\-: the timer delay expressed in system ticks \\
+\hline
+{\em fn} & Function\-: is pointer to the callback function \\
+\hline
+{\em arg} & Argument\-: is pointer to the arguments of callback function \\
+\hline
+\end{DoxyParams}
+\begin{DoxyPrecond}{Precondition}
+1) {\ttfamily The kernel state $<$ E\-S\-\_\-\-K\-E\-R\-N\-\_\-\-I\-N\-A\-C\-T\-I\-V\-E}, see \hyperlink{states}{Kernel states}. 
+
+2) {\ttfamily v\-Tmr != N\-U\-L\-L} 
+
+3) {\ttfamily v\-Tmr-\/$>$signature != D\-E\-F\-\_\-\-V\-T\-M\-R\-\_\-\-C\-O\-N\-T\-R\-A\-C\-T\-\_\-\-S\-I\-G\-N\-A\-T\-U\-R\-E}, the timer structure can't be initialized more than once. 
+
+4) {\ttfamily tick $>$ 1\-U} 
+
+5) {\ttfamily fn != N\-U\-L\-L} 
+\end{DoxyPrecond}
+\begin{DoxyPostcond}{Postcondition}
+1) {\ttfamily v\-Tmr-\/$>$signature == D\-E\-F\-\_\-\-V\-T\-M\-R\-\_\-\-C\-O\-N\-T\-R\-A\-C\-T\-\_\-\-S\-I\-G\-N\-A\-T\-U\-R\-E}, each \hyperlink{structesVTmr}{es\-V\-Tmr} structure will have valid signature after initialization. 
+\end{DoxyPostcond}
+\begin{DoxyNote}{Note}
+The callback function is invoked from interrupt context. 
+\end{DoxyNote}
+\begin{DoxyParagraph}{This service can be called from\-:}
+
+\begin{DoxyItemize}
+\item Application initialization code
+\item Application thread code
+\item Interrupt service routine 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Rescheduling\-:}
+
+\begin{DoxyItemize}
+\item never 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Function class\-:}
+{\bfseries I class}, Interrupt-\/lock A\-P\-I function, this function can be called only from interrupts locked code sections. 
+\end{DoxyParagraph}
+\hypertarget{group__kern__vtmr_gad932cf00aec4ba03a0df02ccc493c4c2}{\index{Virtual Timer@{Virtual Timer}!es\-V\-Tmr\-Init@{es\-V\-Tmr\-Init}}
+\index{es\-V\-Tmr\-Init@{es\-V\-Tmr\-Init}!Virtual Timer@{Virtual Timer}}
+\paragraph[{es\-V\-Tmr\-Init}]{\setlength{\rightskip}{0pt plus 5cm}void es\-V\-Tmr\-Init (
+\begin{DoxyParamCaption}
+\item[{{\bf es\-V\-Tmr\-\_\-\-T} $\ast$}]{v\-Tmr, }
+\item[{{\bf es\-Tick\-\_\-\-T}}]{tick, }
+\item[{void($\ast$)(void $\ast$)}]{fn, }
+\item[{void $\ast$}]{arg}
+\end{DoxyParamCaption}
+)}}\label{group__kern__vtmr_gad932cf00aec4ba03a0df02ccc493c4c2}
+
+
+Add and start a new virtual timer. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em v\-Tmr} & Virtual Timer\-: is pointer to the timer I\-D structure, \hyperlink{structesVTmr}{es\-V\-Tmr}. \\
+\hline
+{\em tick} & Tick\-: the timer delay expressed in system ticks \\
+\hline
+{\em fn} & Function\-: is pointer to the callback function \\
+\hline
+{\em arg} & Argument\-: is pointer to the arguments of callback function \\
+\hline
+\end{DoxyParams}
+\begin{DoxyPrecond}{Precondition}
+1) {\ttfamily The kernel state $<$ E\-S\-\_\-\-K\-E\-R\-N\-\_\-\-I\-N\-A\-C\-T\-I\-V\-E}, see \hyperlink{states}{Kernel states}. 
+
+2) {\ttfamily v\-Tmr != N\-U\-L\-L} 
+
+3) {\ttfamily v\-Tmr-\/$>$signature != D\-E\-F\-\_\-\-V\-T\-M\-R\-\_\-\-C\-O\-N\-T\-R\-A\-C\-T\-\_\-\-S\-I\-G\-N\-A\-T\-U\-R\-E}, the timer structure can't be initialized more than once. 
+
+4) {\ttfamily tick $>$ 1\-U} 
+
+5) {\ttfamily fn != N\-U\-L\-L} 
+\end{DoxyPrecond}
+\begin{DoxyPostcond}{Postcondition}
+1) {\ttfamily v\-Tmr-\/$>$signature == D\-E\-F\-\_\-\-V\-T\-M\-R\-\_\-\-C\-O\-N\-T\-R\-A\-C\-T\-\_\-\-S\-I\-G\-N\-A\-T\-U\-R\-E}, each \hyperlink{structesVTmr}{es\-V\-Tmr} structure will have valid signature after initialization. 
+\end{DoxyPostcond}
+\begin{DoxyNote}{Note}
+The callback function is invoked from interrupt context. 
+\end{DoxyNote}
+\begin{DoxyParagraph}{This service can be called from\-:}
+
+\begin{DoxyItemize}
+\item Application initialization code
+\item Application thread code
+\item Interrupt service routine 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Rescheduling\-:}
+
+\begin{DoxyItemize}
+\item never 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Object class\-:}
+Regular {\bfseries A\-P\-I} object, this object is part of the application programming interface. 
+\end{DoxyParagraph}
+\hypertarget{group__kern__vtmr_ga96bb2c81f649c0305dfd08d1c79b2e37}{\index{Virtual Timer@{Virtual Timer}!es\-V\-Tmr\-Term\-I@{es\-V\-Tmr\-Term\-I}}
+\index{es\-V\-Tmr\-Term\-I@{es\-V\-Tmr\-Term\-I}!Virtual Timer@{Virtual Timer}}
+\paragraph[{es\-V\-Tmr\-Term\-I}]{\setlength{\rightskip}{0pt plus 5cm}void es\-V\-Tmr\-Term\-I (
+\begin{DoxyParamCaption}
+\item[{{\bf es\-V\-Tmr\-\_\-\-T} $\ast$}]{v\-Tmr}
+\end{DoxyParamCaption}
+)}}\label{group__kern__vtmr_ga96bb2c81f649c0305dfd08d1c79b2e37}
+
+
+Cancel and remove a virtual timer. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em v\-Tmr} & Timer\-: is pointer to the timer I\-D structure, \hyperlink{structesVTmr}{es\-V\-Tmr}. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyPrecond}{Precondition}
+1) {\ttfamily The kernel state $<$ E\-S\-\_\-\-K\-E\-R\-N\-\_\-\-I\-N\-A\-C\-T\-I\-V\-E}, see \hyperlink{states}{Kernel states}. 
+
+2) {\ttfamily v\-Tmr != N\-U\-L\-L} 
+
+3) {\ttfamily v\-Tmr-\/$>$signature == D\-E\-F\-\_\-\-V\-T\-M\-R\-\_\-\-C\-O\-N\-T\-R\-A\-C\-T\-\_\-\-S\-I\-G\-N\-A\-T\-U\-R\-E}, the pointer must point to a valid \hyperlink{structesVTmr}{es\-V\-Tmr} structure. 
+\end{DoxyPrecond}
+\begin{DoxyPostcond}{Postcondition}
+1) {\ttfamily v\-Tmr-\/$>$signature = $\sim$\-D\-E\-F\-\_\-\-V\-T\-M\-R\-\_\-\-C\-O\-N\-T\-R\-A\-C\-T\-\_\-\-S\-I\-G\-N\-A\-T\-U\-R\-E}, each \hyperlink{structesVTmr}{es\-V\-Tmr} structure will have invalid signature after termination. 
+\end{DoxyPostcond}
+\begin{DoxyParagraph}{This service can be called from\-:}
+
+\begin{DoxyItemize}
+\item Application initialization code
+\item Application thread code
+\item Interrupt service routine 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Rescheduling\-:}
+
+\begin{DoxyItemize}
+\item never 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Function class\-:}
+{\bfseries I class}, Interrupt-\/lock A\-P\-I function, this function can be called only from interrupts locked code sections. 
+\end{DoxyParagraph}
+\hypertarget{group__kern__vtmr_gad6ec93a68e3526f18ed926cd441878cd}{\index{Virtual Timer@{Virtual Timer}!es\-V\-Tmr\-Term@{es\-V\-Tmr\-Term}}
+\index{es\-V\-Tmr\-Term@{es\-V\-Tmr\-Term}!Virtual Timer@{Virtual Timer}}
+\paragraph[{es\-V\-Tmr\-Term}]{\setlength{\rightskip}{0pt plus 5cm}void es\-V\-Tmr\-Term (
+\begin{DoxyParamCaption}
+\item[{{\bf es\-V\-Tmr\-\_\-\-T} $\ast$}]{v\-Tmr}
+\end{DoxyParamCaption}
+)}}\label{group__kern__vtmr_gad6ec93a68e3526f18ed926cd441878cd}
+
+
+Cancel and remove a virtual timer. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em v\-Tmr} & Timer\-: is pointer to the timer I\-D structure, \hyperlink{structesVTmr}{es\-V\-Tmr}. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyPrecond}{Precondition}
+1) {\ttfamily The kernel state $<$ E\-S\-\_\-\-K\-E\-R\-N\-\_\-\-I\-N\-A\-C\-T\-I\-V\-E}, see \hyperlink{states}{Kernel states}. 
+
+2) {\ttfamily v\-Tmr != N\-U\-L\-L} 
+
+3) {\ttfamily v\-Tmr-\/$>$signature == D\-E\-F\-\_\-\-V\-T\-M\-R\-\_\-\-C\-O\-N\-T\-R\-A\-C\-T\-\_\-\-S\-I\-G\-N\-A\-T\-U\-R\-E}, the pointer must point to a valid \hyperlink{structesVTmr}{es\-V\-Tmr} structure. 
+\end{DoxyPrecond}
+\begin{DoxyPostcond}{Postcondition}
+1) {\ttfamily v\-Tmr-\/$>$signature = $\sim$\-D\-E\-F\-\_\-\-V\-T\-M\-R\-\_\-\-C\-O\-N\-T\-R\-A\-C\-T\-\_\-\-S\-I\-G\-N\-A\-T\-U\-R\-E}, each \hyperlink{structesVTmr}{es\-V\-Tmr} structure will have invalid signature after termination. 
+\end{DoxyPostcond}
+\begin{DoxyParagraph}{This service can be called from\-:}
+
+\begin{DoxyItemize}
+\item Application initialization code
+\item Application thread code
+\item Interrupt service routine 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Rescheduling\-:}
+
+\begin{DoxyItemize}
+\item never 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Object class\-:}
+Regular {\bfseries A\-P\-I} object, this object is part of the application programming interface. 
+\end{DoxyParagraph}
+\hypertarget{group__kern__vtmr_ga26d10c6aaa0cd1d04261d2c9911e890d}{\index{Virtual Timer@{Virtual Timer}!es\-V\-Tmr\-Delay@{es\-V\-Tmr\-Delay}}
+\index{es\-V\-Tmr\-Delay@{es\-V\-Tmr\-Delay}!Virtual Timer@{Virtual Timer}}
+\paragraph[{es\-V\-Tmr\-Delay}]{\setlength{\rightskip}{0pt plus 5cm}void es\-V\-Tmr\-Delay (
+\begin{DoxyParamCaption}
+\item[{{\bf es\-Tick\-\_\-\-T}}]{tick}
+\end{DoxyParamCaption}
+)}}\label{group__kern__vtmr_ga26d10c6aaa0cd1d04261d2c9911e890d}
+
+
+Delay for specified amount of ticks. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em tick} & Tick\-: number of system ticks to delay.\\
+\hline
+\end{DoxyParams}
+This function will create a virtual timer with count down time specified in argument {\ttfamily tick} and put the calling thread into {\ttfamily sleep} state. When timeout expires the thread will be placed back into {\ttfamily ready} state. \begin{DoxyNote}{Note}
+The sleeping thread can not be safely awaken until the specified time does not expire. 
+\end{DoxyNote}
+\begin{DoxyPrecond}{Precondition}
+1) {\ttfamily tick $>$ 1u} 
+\end{DoxyPrecond}
+\begin{DoxyParagraph}{This service can be called from\-:}
+
+\begin{DoxyItemize}
+\item Application initialization code
+\item Application thread code
+\item Interrupt service routine 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Rescheduling\-:}
+
+\begin{DoxyItemize}
+\item always 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Object class\-:}
+Regular {\bfseries A\-P\-I} object, this object is part of the application programming interface. 
+\end{DoxyParagraph}

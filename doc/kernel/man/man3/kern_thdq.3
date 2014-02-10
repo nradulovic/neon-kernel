@@ -1,0 +1,431 @@
+.TH "Thread Queue" 3 "Sat Nov 30 2013" "Version 1.0BetaR02" "eSolid - Real-Time Kernel" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+Thread Queue \- 
+.PP
+Thread Queue management services\&.  
+
+.SS "Data Structures"
+
+.in +1c
+.ti -1c
+.RI "struct \fBesThdQ\fP"
+.br
+.RI "\fIThread Queue structure\&. \fP"
+.in -1c
+.SS "Typedefs"
+
+.in +1c
+.ti -1c
+.RI "typedef struct \fBesThdQ\fP \fBesThdQ_T\fP"
+.br
+.RI "\fIThread queue type\&. \fP"
+.in -1c
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "void \fBesThdQInit\fP (\fBesThdQ_T\fP *thdQ)"
+.br
+.RI "\fIInitialize Thread Queue\&. \fP"
+.ti -1c
+.RI "void \fBesThdQTerm\fP (\fBesThdQ_T\fP *thdQ)"
+.br
+.RI "\fITerminate Thread Queue\&. \fP"
+.ti -1c
+.RI "void \fBesThdQAddI\fP (\fBesThdQ_T\fP *thdQ, \fBesThd_T\fP *thd)"
+.br
+.RI "\fIAdd a thread to the Thread Queue\&. \fP"
+.ti -1c
+.RI "void \fBesThdQRmI\fP (\fBesThdQ_T\fP *thdQ, \fBesThd_T\fP *thd)"
+.br
+.RI "\fIRemoves the thread from the Thread Queue\&. \fP"
+.ti -1c
+.RI "\fBesThd_T\fP * \fBesThdQFetchI\fP (const \fBesThdQ_T\fP *thdQ)"
+.br
+.RI "\fIFetch the first high priority thread from the Thread Queue\&. \fP"
+.ti -1c
+.RI "\fBesThd_T\fP * \fBesThdQFetchRotateI\fP (\fBesThdQ_T\fP *thdQ, uint_fast8_t prio)"
+.br
+.RI "\fIFetch the next thread and rotate thread linked list\&. \fP"
+.ti -1c
+.RI "\fBbool_T\fP \fBesThdQIsEmpty\fP (const \fBesThdQ_T\fP *thdQ)"
+.br
+.RI "\fIIs thread queue empty\&. \fP"
+.in -1c
+.SH "Detailed Description"
+.PP 
+Thread Queue management services\&. 
+
+
+.SH "Typedef Documentation"
+.PP 
+.SS "typedef struct \fBesThdQ\fP \fBesThdQ_T\fP"
+
+.PP
+Thread queue type\&. 
+.SH "Function Documentation"
+.PP 
+.SS "void esThdQInit (\fBesThdQ_T\fP *thdQ)"
+
+.PP
+Initialize Thread Queue\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIthdQ\fP Thread Queue: is a pointer to thread queue structure, \fBesThdQ\fP\&. 
+.RE
+.PP
+\fBPrecondition:\fP
+.RS 4
+1) \fCthdQ != NULL\fP 
+.PP
+2) \fCthdQ->signature != DEF_THDQ_CONTRACT_SIGNATURE\fP, the thread queue structure can't be initialized more than once\&. 
+.RE
+.PP
+\fBPostcondition:\fP
+.RS 4
+1) \fCthdQ->signature == DEF_THDQ_CONTRACT_SIGNATURE\fP, each \fBesThdQ\fP structure will have valid signature after initialization\&. 
+.RE
+.PP
+\fBThis service can be called from:\fP
+.RS 4
+
+.IP "\(bu" 2
+Application initialization code
+.IP "\(bu" 2
+Application thread code
+.IP "\(bu" 2
+Interrupt service routine 
+.PP
+.RE
+.PP
+\fBRescheduling:\fP
+.RS 4
+
+.IP "\(bu" 2
+never 
+.PP
+.RE
+.PP
+\fBObject class:\fP
+.RS 4
+Regular \fBAPI\fP object, this object is part of the application programming interface\&. 
+.RE
+.PP
+
+.SS "void esThdQTerm (\fBesThdQ_T\fP *thdQ)"
+
+.PP
+Terminate Thread Queue\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIthdQ\fP Thread Queue: is a pointer to thread queue structure, \fBesThdQ\fP\&. 
+.RE
+.PP
+\fBPrecondition:\fP
+.RS 4
+1) \fCthdQ != NULL\fP 
+.PP
+2) \fCthdQ->signature == DEF_THDQ_CONTRACT_SIGNATURE\fP, the thread queue structure must be already initialized\&. 
+.RE
+.PP
+\fBPostcondition:\fP
+.RS 4
+1) \fCthdQ->signature == ~DEF_THDQ_CONTRACT_SIGNATURE\fP, each \fBesThdQ\fP structure will have invalid signature after termination\&. 
+.RE
+.PP
+\fBThis service can be called from:\fP
+.RS 4
+
+.IP "\(bu" 2
+Application initialization code
+.IP "\(bu" 2
+Application thread code
+.IP "\(bu" 2
+Interrupt service routine 
+.PP
+.RE
+.PP
+\fBRescheduling:\fP
+.RS 4
+
+.IP "\(bu" 2
+never 
+.PP
+.RE
+.PP
+\fBObject class:\fP
+.RS 4
+Regular \fBAPI\fP object, this object is part of the application programming interface\&. 
+.RE
+.PP
+
+.SS "void esThdQAddI (\fBesThdQ_T\fP *thdQ, \fBesThd_T\fP *thd)"
+
+.PP
+Add a thread to the Thread Queue\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIthdQ\fP Thread Queue: is a pointer to thread queue structure, \fBesThdQ\fP\&. 
+.br
+\fIthd\fP Thread: is a pointer to the thread ID structure, \fBesThd\fP\&. 
+.RE
+.PP
+\fBPrecondition:\fP
+.RS 4
+1) \fCthdQ != NULL\fP 
+.PP
+2) \fCthdQ->signature == DEF_THDQ_CONTRACT_SIGNATURE\fP, the pointer must point to a valid \fBesThdQ\fP structure\&. 
+.PP
+3) \fCthd != NULL\fP 
+.PP
+4) \fCthd->signature == DEF_THD_CONTRACT_SIGNATURE\fP, the pointer must point to a valid \fBesThd\fP structure\&. 
+.PP
+5) \fCthd->thdL_\&.q == NULL\fP, thread must not be in any queue\&.
+.RE
+.PP
+This function adds a thread at the specified Thread Queue\&. 
+.PP
+\fBThis service can be called from:\fP
+.RS 4
+
+.IP "\(bu" 2
+Application initialization code
+.IP "\(bu" 2
+Application thread code
+.IP "\(bu" 2
+Interrupt service routine 
+.PP
+.RE
+.PP
+\fBRescheduling:\fP
+.RS 4
+
+.IP "\(bu" 2
+never 
+.PP
+.RE
+.PP
+\fBFunction class:\fP
+.RS 4
+\fBI class\fP, Interrupt-lock API function, this function can be called only from interrupts locked code sections\&. 
+.RE
+.PP
+
+.SS "void esThdQRmI (\fBesThdQ_T\fP *thdQ, \fBesThd_T\fP *thd)"
+
+.PP
+Removes the thread from the Thread Queue\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIthdQ\fP Thread Queue: is a pointer to thread queue structure, \fBesThdQ\fP\&. 
+.br
+\fIthd\fP Thread: is a pointer to the thread ID structure, \fBesThd\fP\&. 
+.RE
+.PP
+\fBPrecondition:\fP
+.RS 4
+1) \fCthd != NULL\fP 
+.PP
+2) \fCthd->signature == DEF_THD_CONTRACT_SIGNATURE\fP, the pointer must point to a valid \fBesThd\fP structure\&. 
+.PP
+3) \fCthdQ != NULL\fP 
+.PP
+4) \fCthdQ->signature == DEF_THDQ_CONTRACT_SIGNATURE\fP, the pointer must point to a valid \fBesThdQ\fP structure\&. 
+.PP
+5) \fCthd->thdL_\&.q == thdQ\fP, thread must be in the \fCthdQ\fP queue\&. 
+.RE
+.PP
+\fBThis service can be called from:\fP
+.RS 4
+
+.IP "\(bu" 2
+Application initialization code
+.IP "\(bu" 2
+Application thread code
+.IP "\(bu" 2
+Interrupt service routine 
+.PP
+.RE
+.PP
+\fBRescheduling:\fP
+.RS 4
+
+.IP "\(bu" 2
+never 
+.PP
+.RE
+.PP
+\fBFunction class:\fP
+.RS 4
+\fBI class\fP, Interrupt-lock API function, this function can be called only from interrupts locked code sections\&. 
+.RE
+.PP
+
+.SS "\fBesThd_T\fP* esThdQFetchI (const \fBesThdQ_T\fP *thdQ)"
+
+.PP
+Fetch the first high priority thread from the Thread Queue\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIthdQ\fP Thread Queue: is a pointer to thread queue structure, \fBesThdQ\fP\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+A pointer to the thread ID structure with the highest priority\&. 
+.RE
+.PP
+\fBPrecondition:\fP
+.RS 4
+1) \fCthdQ != NULL\fP 
+.PP
+2) \fCthdQ->signature == DEF_THDQ_CONTRACT_SIGNATURE\fP, the pointer must point to a valid \fBesThdQ\fP structure\&. 
+.PP
+3) \fCpbm_ != 0\fP, priority bit map must not be empty 
+.RE
+.PP
+\fBThis service can be called from:\fP
+.RS 4
+
+.IP "\(bu" 2
+Application initialization code
+.IP "\(bu" 2
+Application thread code
+.IP "\(bu" 2
+Interrupt service routine 
+.PP
+.RE
+.PP
+\fBRescheduling:\fP
+.RS 4
+
+.IP "\(bu" 2
+never 
+.PP
+.RE
+.PP
+\fBFunction class:\fP
+.RS 4
+\fBI class\fP, Interrupt-lock API function, this function can be called only from interrupts locked code sections\&. 
+.RE
+.PP
+
+.SS "\fBesThd_T\fP* esThdQFetchRotateI (\fBesThdQ_T\fP *thdQ, uint_fast8_tprio)"
+
+.PP
+Fetch the next thread and rotate thread linked list\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIthdQ\fP Thread Queue: is a pointer to thread queue structure, \fBesThdQ\fP\&. This is the thread queue to fetch from\&. 
+.br
+\fIprio\fP Priority: is the priority level to fetch and rotate\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Pointer to the next thread in queue\&. 
+.RE
+.PP
+\fBPrecondition:\fP
+.RS 4
+1) \fCthdQ != NULL\fP 
+.PP
+2) \fCthdQ->signature == DEF_THDQ_CONTRACT_SIGNATURE\fP, the pointer must point to a valid \fBesThdQ\fP structure\&. 
+.PP
+3) \fC0 <= prio <= CFG_SCHED_PRIO_LVL\fP, see \fBCFG_SCHED_PRIO_LVL\fP\&. 
+.PP
+4) \fCsentinel != NULL\fP, at least one thread must be in the selected priority level 
+.RE
+.PP
+\fBThis service can be called from:\fP
+.RS 4
+
+.IP "\(bu" 2
+Application initialization code
+.IP "\(bu" 2
+Application thread code
+.IP "\(bu" 2
+Interrupt service routine 
+.PP
+.RE
+.PP
+\fBRescheduling:\fP
+.RS 4
+
+.IP "\(bu" 2
+never 
+.PP
+.RE
+.PP
+\fBFunction class:\fP
+.RS 4
+\fBI class\fP, Interrupt-lock API function, this function can be called only from interrupts locked code sections\&. 
+.RE
+.PP
+
+.SS "\fBbool_T\fP esThdQIsEmpty (const \fBesThdQ_T\fP *thdQ)"
+
+.PP
+Is thread queue empty\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIthdQ\fP Thread Queue: is a pointer to thread queue structure, \fBesThdQ\fP\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The state of thread queue 
+.RE
+.PP
+\fBReturn values:\fP
+.RS 4
+\fITRUE\fP - thread queue is empty 
+.br
+\fIFALSE\fP - thread queue is not empty 
+.RE
+.PP
+\fBPrecondition:\fP
+.RS 4
+1) \fCthdQ != NULL\fP 
+.PP
+2) \fCthdQ->signature == DEF_THDQ_CONTRACT_SIGNATURE\fP, the pointer must point to a valid \fBesThdQ\fP structure\&. 
+.RE
+.PP
+\fBThis service can be called from:\fP
+.RS 4
+
+.IP "\(bu" 2
+Application initialization code
+.IP "\(bu" 2
+Application thread code
+.IP "\(bu" 2
+Interrupt service routine 
+.PP
+.RE
+.PP
+\fBRescheduling:\fP
+.RS 4
+
+.IP "\(bu" 2
+never 
+.PP
+.RE
+.PP
+\fBObject class:\fP
+.RS 4
+Regular \fBAPI\fP object, this object is part of the application programming interface\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for eSolid - Real-Time Kernel from the source code\&.

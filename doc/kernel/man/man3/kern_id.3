@@ -1,0 +1,62 @@
+.TH "Kernel identification" 3 "Sat Nov 30 2013" "Version 1.0BetaR02" "eSolid - Real-Time Kernel" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+Kernel identification \- 
+.PP
+Kernel unique identification and current version number\&.  
+
+.SS "Macros"
+
+.in +1c
+.ti -1c
+.RI "#define \fBES_KERN_VER_MAJOR\fP   1ul"
+.br
+.RI "\fIIdentifies kernel major version number\&. \fP"
+.ti -1c
+.RI "#define \fBES_KERN_VER_MINOR\fP   0ul"
+.br
+.RI "\fIIdentifies kernel minor version number\&. \fP"
+.ti -1c
+.RI "#define \fBES_KERN_VER_PATCH\fP   0ul"
+.br
+.RI "\fIIdentifies kernel patch level\&. \fP"
+.ti -1c
+.RI "#define \fBES_KERN_VER\fP   (((\fBES_KERN_VER_MAJOR\fP) << 24) | (\fBES_KERN_VER_MINOR\fP << 16) | (\fBES_KERN_VER_PATCH\fP))"
+.br
+.RI "\fIIdentifies the underlying kernel version number\&. \fP"
+.ti -1c
+.RI "#define \fBES_KERN_ID\fP   'eSolid - RT Kernel'"
+.br
+.RI "\fIKernel identification string\&. \fP"
+.in -1c
+.SH "Detailed Description"
+.PP 
+Kernel unique identification and current version number\&. 
+
+
+.SH "Macro Definition Documentation"
+.PP 
+.SS "#define ES_KERN_VER_MAJOR   1ul"
+
+.PP
+Identifies kernel major version number\&. 
+.SS "#define ES_KERN_VER_MINOR   0ul"
+
+.PP
+Identifies kernel minor version number\&. 
+.SS "#define ES_KERN_VER_PATCH   0ul"
+
+.PP
+Identifies kernel patch level\&. 
+.SS "#define ES_KERN_VER   (((\fBES_KERN_VER_MAJOR\fP) << 24) | (\fBES_KERN_VER_MINOR\fP << 16) | (\fBES_KERN_VER_PATCH\fP))"
+
+.PP
+Identifies the underlying kernel version number\&. 
+.SS "#define ES_KERN_ID   'eSolid - RT Kernel'"
+
+.PP
+Kernel identification string\&. 
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for eSolid - Real-Time Kernel from the source code\&.

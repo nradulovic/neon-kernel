@@ -1,0 +1,350 @@
+.TH "Virtual Timer" 3 "Sat Nov 30 2013" "Version 1.0BetaR02" "eSolid - Real-Time Kernel" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+Virtual Timer \- 
+.PP
+Virtual Timer management services\&.  
+
+.SS "Data Structures"
+
+.in +1c
+.ti -1c
+.RI "struct \fBesVTmr\fP"
+.br
+.RI "\fIVirtual Timer structure\&. \fP"
+.in -1c
+.SS "Typedefs"
+
+.in +1c
+.ti -1c
+.RI "typedef uint_fast32_t \fBesTick_T\fP"
+.br
+.RI "\fITimer tick type\&. \fP"
+.ti -1c
+.RI "typedef struct \fBesVTmr\fP \fBesVTmr_T\fP"
+.br
+.RI "\fIVirtual Timer type\&. \fP"
+.in -1c
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "void \fBesVTmrInitI\fP (\fBesVTmr_T\fP *vTmr, \fBesTick_T\fP tick, void(*fn)(void *), void *arg)"
+.br
+.RI "\fIAdd and start a new virtual timer\&. \fP"
+.ti -1c
+.RI "void \fBesVTmrInit\fP (\fBesVTmr_T\fP *vTmr, \fBesTick_T\fP tick, void(*fn)(void *), void *arg)"
+.br
+.RI "\fIAdd and start a new virtual timer\&. \fP"
+.ti -1c
+.RI "void \fBesVTmrTermI\fP (\fBesVTmr_T\fP *vTmr)"
+.br
+.RI "\fICancel and remove a virtual timer\&. \fP"
+.ti -1c
+.RI "void \fBesVTmrTerm\fP (\fBesVTmr_T\fP *vTmr)"
+.br
+.RI "\fICancel and remove a virtual timer\&. \fP"
+.ti -1c
+.RI "void \fBesVTmrDelay\fP (\fBesTick_T\fP tick)"
+.br
+.RI "\fIDelay for specified amount of ticks\&. \fP"
+.in -1c
+.SH "Detailed Description"
+.PP 
+Virtual Timer management services\&. 
+
+
+.SH "Typedef Documentation"
+.PP 
+.SS "typedef uint_fast32_t \fBesTick_T\fP"
+
+.PP
+Timer tick type\&. 
+.SS "typedef struct \fBesVTmr\fP \fBesVTmr_T\fP"
+
+.PP
+Virtual Timer type\&. 
+.SH "Function Documentation"
+.PP 
+.SS "void esVTmrInitI (\fBesVTmr_T\fP *vTmr, \fBesTick_T\fPtick, void(*)(void *)fn, void *arg)"
+
+.PP
+Add and start a new virtual timer\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIvTmr\fP Virtual Timer: is pointer to the timer ID structure, \fBesVTmr\fP\&. 
+.br
+\fItick\fP Tick: the timer delay expressed in system ticks 
+.br
+\fIfn\fP Function: is pointer to the callback function 
+.br
+\fIarg\fP Argument: is pointer to the arguments of callback function 
+.RE
+.PP
+\fBPrecondition:\fP
+.RS 4
+1) \fCThe kernel state < ES_KERN_INACTIVE\fP, see \fBKernel states\fP\&. 
+.PP
+2) \fCvTmr != NULL\fP 
+.PP
+3) \fCvTmr->signature != DEF_VTMR_CONTRACT_SIGNATURE\fP, the timer structure can't be initialized more than once\&. 
+.PP
+4) \fCtick > 1U\fP 
+.PP
+5) \fCfn != NULL\fP 
+.RE
+.PP
+\fBPostcondition:\fP
+.RS 4
+1) \fCvTmr->signature == DEF_VTMR_CONTRACT_SIGNATURE\fP, each \fBesVTmr\fP structure will have valid signature after initialization\&. 
+.RE
+.PP
+\fBNote:\fP
+.RS 4
+The callback function is invoked from interrupt context\&. 
+.RE
+.PP
+\fBThis service can be called from:\fP
+.RS 4
+
+.IP "\(bu" 2
+Application initialization code
+.IP "\(bu" 2
+Application thread code
+.IP "\(bu" 2
+Interrupt service routine 
+.PP
+.RE
+.PP
+\fBRescheduling:\fP
+.RS 4
+
+.IP "\(bu" 2
+never 
+.PP
+.RE
+.PP
+\fBFunction class:\fP
+.RS 4
+\fBI class\fP, Interrupt-lock API function, this function can be called only from interrupts locked code sections\&. 
+.RE
+.PP
+
+.SS "void esVTmrInit (\fBesVTmr_T\fP *vTmr, \fBesTick_T\fPtick, void(*)(void *)fn, void *arg)"
+
+.PP
+Add and start a new virtual timer\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIvTmr\fP Virtual Timer: is pointer to the timer ID structure, \fBesVTmr\fP\&. 
+.br
+\fItick\fP Tick: the timer delay expressed in system ticks 
+.br
+\fIfn\fP Function: is pointer to the callback function 
+.br
+\fIarg\fP Argument: is pointer to the arguments of callback function 
+.RE
+.PP
+\fBPrecondition:\fP
+.RS 4
+1) \fCThe kernel state < ES_KERN_INACTIVE\fP, see \fBKernel states\fP\&. 
+.PP
+2) \fCvTmr != NULL\fP 
+.PP
+3) \fCvTmr->signature != DEF_VTMR_CONTRACT_SIGNATURE\fP, the timer structure can't be initialized more than once\&. 
+.PP
+4) \fCtick > 1U\fP 
+.PP
+5) \fCfn != NULL\fP 
+.RE
+.PP
+\fBPostcondition:\fP
+.RS 4
+1) \fCvTmr->signature == DEF_VTMR_CONTRACT_SIGNATURE\fP, each \fBesVTmr\fP structure will have valid signature after initialization\&. 
+.RE
+.PP
+\fBNote:\fP
+.RS 4
+The callback function is invoked from interrupt context\&. 
+.RE
+.PP
+\fBThis service can be called from:\fP
+.RS 4
+
+.IP "\(bu" 2
+Application initialization code
+.IP "\(bu" 2
+Application thread code
+.IP "\(bu" 2
+Interrupt service routine 
+.PP
+.RE
+.PP
+\fBRescheduling:\fP
+.RS 4
+
+.IP "\(bu" 2
+never 
+.PP
+.RE
+.PP
+\fBObject class:\fP
+.RS 4
+Regular \fBAPI\fP object, this object is part of the application programming interface\&. 
+.RE
+.PP
+
+.SS "void esVTmrTermI (\fBesVTmr_T\fP *vTmr)"
+
+.PP
+Cancel and remove a virtual timer\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIvTmr\fP Timer: is pointer to the timer ID structure, \fBesVTmr\fP\&. 
+.RE
+.PP
+\fBPrecondition:\fP
+.RS 4
+1) \fCThe kernel state < ES_KERN_INACTIVE\fP, see \fBKernel states\fP\&. 
+.PP
+2) \fCvTmr != NULL\fP 
+.PP
+3) \fCvTmr->signature == DEF_VTMR_CONTRACT_SIGNATURE\fP, the pointer must point to a valid \fBesVTmr\fP structure\&. 
+.RE
+.PP
+\fBPostcondition:\fP
+.RS 4
+1) \fCvTmr->signature = ~DEF_VTMR_CONTRACT_SIGNATURE\fP, each \fBesVTmr\fP structure will have invalid signature after termination\&. 
+.RE
+.PP
+\fBThis service can be called from:\fP
+.RS 4
+
+.IP "\(bu" 2
+Application initialization code
+.IP "\(bu" 2
+Application thread code
+.IP "\(bu" 2
+Interrupt service routine 
+.PP
+.RE
+.PP
+\fBRescheduling:\fP
+.RS 4
+
+.IP "\(bu" 2
+never 
+.PP
+.RE
+.PP
+\fBFunction class:\fP
+.RS 4
+\fBI class\fP, Interrupt-lock API function, this function can be called only from interrupts locked code sections\&. 
+.RE
+.PP
+
+.SS "void esVTmrTerm (\fBesVTmr_T\fP *vTmr)"
+
+.PP
+Cancel and remove a virtual timer\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIvTmr\fP Timer: is pointer to the timer ID structure, \fBesVTmr\fP\&. 
+.RE
+.PP
+\fBPrecondition:\fP
+.RS 4
+1) \fCThe kernel state < ES_KERN_INACTIVE\fP, see \fBKernel states\fP\&. 
+.PP
+2) \fCvTmr != NULL\fP 
+.PP
+3) \fCvTmr->signature == DEF_VTMR_CONTRACT_SIGNATURE\fP, the pointer must point to a valid \fBesVTmr\fP structure\&. 
+.RE
+.PP
+\fBPostcondition:\fP
+.RS 4
+1) \fCvTmr->signature = ~DEF_VTMR_CONTRACT_SIGNATURE\fP, each \fBesVTmr\fP structure will have invalid signature after termination\&. 
+.RE
+.PP
+\fBThis service can be called from:\fP
+.RS 4
+
+.IP "\(bu" 2
+Application initialization code
+.IP "\(bu" 2
+Application thread code
+.IP "\(bu" 2
+Interrupt service routine 
+.PP
+.RE
+.PP
+\fBRescheduling:\fP
+.RS 4
+
+.IP "\(bu" 2
+never 
+.PP
+.RE
+.PP
+\fBObject class:\fP
+.RS 4
+Regular \fBAPI\fP object, this object is part of the application programming interface\&. 
+.RE
+.PP
+
+.SS "void esVTmrDelay (\fBesTick_T\fPtick)"
+
+.PP
+Delay for specified amount of ticks\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fItick\fP Tick: number of system ticks to delay\&.
+.RE
+.PP
+This function will create a virtual timer with count down time specified in argument \fCtick\fP and put the calling thread into \fCsleep\fP state\&. When timeout expires the thread will be placed back into \fCready\fP state\&. 
+.PP
+\fBNote:\fP
+.RS 4
+The sleeping thread can not be safely awaken until the specified time does not expire\&. 
+.RE
+.PP
+\fBPrecondition:\fP
+.RS 4
+1) \fCtick > 1u\fP 
+.RE
+.PP
+\fBThis service can be called from:\fP
+.RS 4
+
+.IP "\(bu" 2
+Application initialization code
+.IP "\(bu" 2
+Application thread code
+.IP "\(bu" 2
+Interrupt service routine 
+.PP
+.RE
+.PP
+\fBRescheduling:\fP
+.RS 4
+
+.IP "\(bu" 2
+always 
+.PP
+.RE
+.PP
+\fBObject class:\fP
+.RS 4
+Regular \fBAPI\fP object, this object is part of the application programming interface\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for eSolid - Real-Time Kernel from the source code\&.

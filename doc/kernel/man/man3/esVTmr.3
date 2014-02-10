@@ -1,0 +1,83 @@
+.TH "esVTmr" 3 "Sat Nov 30 2013" "Version 1.0BetaR02" "eSolid - Real-Time Kernel" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+esVTmr \- 
+.PP
+Virtual Timer structure\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <kernel\&.h>\fP
+.SS "Data Structures"
+
+.in +1c
+.ti -1c
+.RI "struct \fBtmrL_\fP"
+.br
+.RI "\fIVirtual Timer linked list structure\&. \fP"
+.in -1c
+.SS "Data Fields"
+
+.in +1c
+.ti -1c
+.RI "struct \fBesVTmr::tmrL_\fP \fBtmrL\fP"
+.br
+.RI "\fIVirtual Timer linked List\&. \fP"
+.ti -1c
+.RI "\fBesTick_T\fP \fBrtick\fP"
+.br
+.RI "\fIRelative tick value\&. \fP"
+.ti -1c
+.RI "void(* \fBfn\fP )(void *)"
+.br
+.RI "\fICallback function pointer\&. \fP"
+.ti -1c
+.RI "void * \fBarg\fP"
+.br
+.RI "\fICallback function argument\&. \fP"
+.ti -1c
+.RI "portReg_T \fBsignature\fP"
+.br
+.RI "\fITimer structure signature\&. \fP"
+.in -1c
+.SH "Detailed Description"
+.PP 
+Virtual Timer structure\&. 
+
+
+.PP
+\fBObject class:\fP
+.RS 4
+Regular \fBAPI\fP object, this object is part of the application programming interface\&. 
+.RE
+.PP
+
+.SH "Field Documentation"
+.PP 
+.SS "struct \fBesVTmr::tmrL_\fP                esVTmr::tmrL"
+
+.PP
+Virtual Timer linked List\&. 
+.SS "\fBesTick_T\fP esVTmr::rtick"
+
+.PP
+Relative tick value\&. 
+.SS "void(*  esVTmr::fn)(void *)"
+
+.PP
+Callback function pointer\&. 
+.SS "void* esVTmr::arg"
+
+.PP
+Callback function argument\&. 
+.SS "portReg_T esVTmr::signature"
+
+.PP
+Timer structure signature\&. 
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for eSolid - Real-Time Kernel from the source code\&.

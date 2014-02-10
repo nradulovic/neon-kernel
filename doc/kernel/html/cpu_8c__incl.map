@@ -1,0 +1,9 @@
+<map id="cpu.c" name="cpu.c">
+<area shape="rect" id="node2" href="$kernel_8h.html" title="Main kernel interface. " alt="" coords="203,80,271,107"/>
+<area shape="rect" id="node3" href="$compiler_8h.html" title="Interface of Compiler port &#45; Template. " alt="" coords="27,304,137,331"/>
+<area shape="rect" id="node6" href="$cpu_8h.html" title="Interface of CPU port &#45; Template. " alt="" coords="263,229,344,256"/>
+<area shape="rect" id="node9" href="$dbg_8h.html" title="Debug basic functionality. " alt="" coords="69,155,163,181"/>
+<area shape="rect" id="node11" href="$bitop_8h.html" title="General purpose bit operations. " alt="" coords="187,155,287,181"/>
+<area shape="rect" id="node7" href="$cpu__cfg_8h.html" title="Configuration of CPU port &#45; Template. " alt="" coords="206,304,313,331"/>
+<area shape="rect" id="node8" href="$kernel__cfg_8h.html" title="Configuration of Kernel &#45; Template. " alt="" coords="339,304,432,331"/>
+</map>

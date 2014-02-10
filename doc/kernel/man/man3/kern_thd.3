@@ -1,0 +1,366 @@
+.TH "Thread" 3 "Sat Nov 30 2013" "Version 1.0BetaR02" "eSolid - Real-Time Kernel" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+Thread \- 
+.PP
+Thread management services\&.  
+
+.SS "Data Structures"
+
+.in +1c
+.ti -1c
+.RI "struct \fBesThd\fP"
+.br
+.RI "\fIThread structure\&. \fP"
+.in -1c
+.SS "Macros"
+
+.in +1c
+.ti -1c
+.RI "#define \fBES_STCK_SIZE\fP(elem)   \fBPORT_STCK_SIZE\fP(elem)"
+.br
+.RI "\fIConverts the required stack elements into the stack array index\&. \fP"
+.ti -1c
+.RI "#define \fBES_DEF_THD_PRIO_MAX\fP   (\fBCFG_SCHED_PRIO_LVL\fP - 2u)"
+.br
+.RI "\fIMaximum level of priority possible for application thread\&. \fP"
+.ti -1c
+.RI "#define \fBES_DEF_THD_PRIO_MIN\fP   (1u)"
+.br
+.RI "\fIMinimum level of priority possible for application thread\&. \fP"
+.in -1c
+.SS "Typedefs"
+
+.in +1c
+.ti -1c
+.RI "typedef struct \fBesThd\fP \fBesThd_T\fP"
+.br
+.RI "\fIThread type\&. \fP"
+.ti -1c
+.RI "typedef \fBportStck_T\fP \fBesStck_T\fP"
+.br
+.RI "\fIStack type\&. \fP"
+.in -1c
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "void \fBesThdInit\fP (\fBesThd_T\fP *thd, void(*fn)(void *), void *arg, \fBportStck_T\fP *stck, size_t stckSize, uint8_t prio)"
+.br
+.RI "\fIInitialize the specified thread\&. \fP"
+.ti -1c
+.RI "void \fBesThdTerm\fP (\fBesThd_T\fP *thd)"
+.br
+.RI "\fITerminate the specified thread\&. \fP"
+.ti -1c
+.RI "static \fBPORT_C_INLINE\fP \fBesThd_T\fP * \fBesThdGetId\fP (void)"
+.br
+.RI "\fIGet the current thread ID\&. \fP"
+.ti -1c
+.RI "static \fBPORT_C_INLINE\fP uint8_t \fBesThdGetPrio\fP (\fBesThd_T\fP *thd)"
+.br
+.RI "\fIGet the priority of a thread\&. \fP"
+.ti -1c
+.RI "void \fBesThdSetPrioI\fP (\fBesThd_T\fP *thd, uint8_t prio)"
+.br
+.RI "\fISet the priority of a thread\&. \fP"
+.in -1c
+.SH "Detailed Description"
+.PP 
+Thread management services\&. 
+
+For more details see \fBThread Management\fP\&. 
+.SH "Macro Definition Documentation"
+.PP 
+.SS "#define ES_STCK_SIZE(elem)   \fBPORT_STCK_SIZE\fP(elem)"
+
+.PP
+Converts the required stack elements into the stack array index\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIelem\fP Number of stack elements: the stack size is expressed in number of elements regardless of the size of port general purpose registers\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Number of stack elements needed for stack usage\&. 
+.RE
+.PP
+
+.SS "#define ES_DEF_THD_PRIO_MAX   (\fBCFG_SCHED_PRIO_LVL\fP - 2u)"
+
+.PP
+Maximum level of priority possible for application thread\&. 
+.SS "#define ES_DEF_THD_PRIO_MIN   (1u)"
+
+.PP
+Minimum level of priority possible for application thread\&. 
+.SH "Typedef Documentation"
+.PP 
+.SS "typedef struct \fBesThd\fP \fBesThd_T\fP"
+
+.PP
+Thread type\&. 
+.SS "typedef \fBportStck_T\fP \fBesStck_T\fP"
+
+.PP
+Stack type\&. 
+.SH "Function Documentation"
+.PP 
+.SS "void esThdInit (\fBesThd_T\fP *thd, void(*)(void *)fn, void *arg, \fBportStck_T\fP *stck, size_tstckSize, uint8_tprio)"
+
+.PP
+Initialize the specified thread\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIthd\fP Thread: is a pointer to the thread structure, \fBesThd\fP\&. The structure will be used as information container for the thread\&. It is assumed that storage for the \fC\fBesThd\fP\fP structure is allocated by the user code\&. 
+.br
+\fIfn\fP Function: is a pointer to thread function\&. Thread function must have the following signature: \fCvoid thread (void * arg)\fP\&. 
+.br
+\fIarg\fP Argument: is a void pointer to an optional data area\&. It's usage is application defined and it is intended to pass arguments to thread when it is started for the first time\&. 
+.br
+\fIstck\fP Stack: is a pointer to a allocated memory for thread stack\&. The pointer always points to the first element in the array, regardless of what type of stack the CPU is using\&. The thread's stack is used to store local variables, function parameters, return addresses\&. Each thread has its own stack and different sized stack\&. The stack type must be an array of \fBportStck\fP\&. 
+.br
+\fIstckSize\fP Stack Size: specifies the size of allocated stack memory\&. Size is expressed in bytes\&. Please see port documentation about minimal stack size\&. Usage of C unary operator \fCsizeof\fP is the recommended way of specifying stack size\&. Another way of specifying required stack size is through the usage of \fBES_STCK_SIZE\fP macro\&. 
+.br
+\fIprio\fP Priority: is the priority of the thread\&. The higher the number, the higher the priority (the importance) of the thread\&. Several threads can have the same priority\&. Note that lowest (0) and highest (CFG_SCHED_PRIO_LVL - 1) levels are reserved for kernel threads only\&. 
+.RE
+.PP
+\fBPrecondition:\fP
+.RS 4
+1) \fCThe kernel state ES_KERN_INACTIVE\fP, see \fBKernel states\fP\&. 
+.PP
+2) \fCthd != NULL\fP 
+.PP
+3) \fCthd->signature != DEF_THD_CONTRACT_SIGNATURE\fP, the thread structure can't be initialized more than once\&. 
+.PP
+4) \fCfn != NULL\fP 
+.PP
+5) \fCstckSize >= PORT_DEF_STCK_MINSIZE\fP, see \fBPORT_DEF_STCK_MINSIZE\fP\&. 
+.PP
+6) \fC0 < prio < CFG_SCHED_PRIO_LVL - 1\fP, see \fBCFG_SCHED_PRIO_LVL\fP\&. 
+.RE
+.PP
+\fBPostcondition:\fP
+.RS 4
+1) \fCthd->signature == DEF_THD_CONTRACT_SIGNATURE\fP, each \fBesThd\fP structure will have valid signature after initialization\&.
+.RE
+.PP
+Threads must be created in order for kernel to recognize them as threads\&. Initialize a thread by calling \fBesThdInit()\fP and provide arguments specifying to kernel how the thread will be managed\&. Threads are always created in the \fCready-to-run\fP state\&. Threads can be created either prior to the start of multi-threading (before calling \fBesKernStart()\fP), or by a running thread\&. 
+.PP
+\fBThis service can be called from:\fP
+.RS 4
+
+.IP "\(bu" 2
+Application initialization code
+.IP "\(bu" 2
+Application thread code 
+.PP
+.RE
+.PP
+\fBRescheduling:\fP
+.RS 4
+
+.IP "\(bu" 2
+possible 
+.PP
+.RE
+.PP
+\fBObject class:\fP
+.RS 4
+Regular \fBAPI\fP object, this object is part of the application programming interface\&. 
+.RE
+.PP
+
+.SS "void esThdTerm (\fBesThd_T\fP *thd)"
+
+.PP
+Terminate the specified thread\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIthd\fP Thread: is a pointer to the thread structure, \fBesThd\fP\&. 
+.RE
+.PP
+\fBPrecondition:\fP
+.RS 4
+1) \fCThe kernel state ES_KERN_INACTIVE\fP, see \fBKernel states\fP\&. 
+.PP
+2) \fCthd != NULL\fP 
+.PP
+3) \fCthd->signature == DEF_THD_CONTRACT_SIGNATURE\fP, the pointer must point to a valid \fBesThd\fP structure\&. 
+.PP
+4) \fC(thd->thdL_\&.q == NULL) OR (thd->thdL_\&.q == gRdyQueue)\fP, thread must be either in Ready Threads Queue or not be in any queue (e\&.g\&. not waiting for a synchronization mechanism)\&. 
+.RE
+.PP
+\fBPostcondition:\fP
+.RS 4
+1) \fCthd->signature == ~DEF_THD_CONTRACT_SIGNATURE\fP, each \fBesThd\fP structure will have invalid signature after termination\&. 
+.RE
+.PP
+\fBThis service can be called from:\fP
+.RS 4
+
+.IP "\(bu" 2
+Application initialization code
+.IP "\(bu" 2
+Application thread code 
+.PP
+.RE
+.PP
+\fBRescheduling:\fP
+.RS 4
+
+.IP "\(bu" 2
+possible 
+.PP
+.RE
+.PP
+\fBObject class:\fP
+.RS 4
+Regular \fBAPI\fP object, this object is part of the application programming interface\&. 
+.RE
+.PP
+
+.SS "static \fBPORT_C_INLINE\fP \fBesThd_T\fP* esThdGetId (void)\fC [static]\fP"
+
+.PP
+Get the current thread ID\&. 
+.PP
+\fBReturns:\fP
+.RS 4
+Pointer to current thread ID structure \fBesThd\fP\&. 
+.RE
+.PP
+\fBNote:\fP
+.RS 4
+This is \fCinline\fP function\&. 
+.RE
+.PP
+\fBThis service can be called from:\fP
+.RS 4
+
+.IP "\(bu" 2
+Application initialization code
+.IP "\(bu" 2
+Application thread code
+.IP "\(bu" 2
+Interrupt service routine 
+.PP
+.RE
+.PP
+\fBRescheduling:\fP
+.RS 4
+
+.IP "\(bu" 2
+never 
+.PP
+.RE
+.PP
+\fBObject class:\fP
+.RS 4
+Regular \fBAPI\fP object, this object is part of the application programming interface\&. 
+.RE
+.PP
+
+.SS "static \fBPORT_C_INLINE\fP uint8_t esThdGetPrio (\fBesThd_T\fP *thd)\fC [static]\fP"
+
+.PP
+Get the priority of a thread\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIthd\fP Thread: is pointer to the thread structure, \fBesThd\fP\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The priority of the thread pointed by \fCthd\fP\&. 
+.RE
+.PP
+\fBNote:\fP
+.RS 4
+This is \fCinline\fP function\&. 
+.RE
+.PP
+\fBThis service can be called from:\fP
+.RS 4
+
+.IP "\(bu" 2
+Application initialization code
+.IP "\(bu" 2
+Application thread code
+.IP "\(bu" 2
+Interrupt service routine 
+.PP
+.RE
+.PP
+\fBRescheduling:\fP
+.RS 4
+
+.IP "\(bu" 2
+never 
+.PP
+.RE
+.PP
+\fBObject class:\fP
+.RS 4
+Regular \fBAPI\fP object, this object is part of the application programming interface\&. 
+.RE
+.PP
+
+.SS "void esThdSetPrioI (\fBesThd_T\fP *thd, uint8_tprio)"
+
+.PP
+Set the priority of a thread\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIthd\fP Thread: is pointer to the thread structure, \fBesThd\fP\&. 
+.br
+\fIprio\fP Priority: is new priority of the thread pointed by \fCthd\fP\&. 
+.RE
+.PP
+\fBPrecondition:\fP
+.RS 4
+1) \fCThe kernel state < ES_KERN_INACTIVE\fP, see \fBKernel states\fP\&. 
+.PP
+2) \fCthd != NULL\fP 
+.PP
+3) \fCthd->signature == DEF_THD_CONTRACT_SIGNATURE\fP, the pointer must point to a valid \fBesThd\fP structure\&. 
+.PP
+4) \fC0 < prio < CFG_SCHED_PRIO_LVL - 1\fP, see \fBCFG_SCHED_PRIO_LVL\fP\&. 
+.RE
+.PP
+\fBThis service can be called from:\fP
+.RS 4
+
+.IP "\(bu" 2
+Application initialization code
+.IP "\(bu" 2
+Application thread code
+.IP "\(bu" 2
+Interrupt service routine 
+.PP
+.RE
+.PP
+\fBRescheduling:\fP
+.RS 4
+
+.IP "\(bu" 2
+possible 
+.PP
+.RE
+.PP
+\fBFunction class:\fP
+.RS 4
+\fBI class\fP, Interrupt-lock API function, this function can be called only from interrupts locked code sections\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for eSolid - Real-Time Kernel from the source code\&.

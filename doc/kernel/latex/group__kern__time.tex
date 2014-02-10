@@ -1,0 +1,60 @@
+\hypertarget{group__kern__time}{\subsection{Kernel time}
+\label{group__kern__time}\index{Kernel time@{Kernel time}}
+}
+
+
+Kernel time management.  
+
+
+Collaboration diagram for Kernel time\-:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=238pt]{group__kern__time}
+\end{center}
+\end{figure}
+\subsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{group__kern__vtmr_ga844873888c186ee81eb66620dadb0451}{es\-Tick\-\_\-\-T} \hyperlink{group__kern__time_gacb0d88d6a7e467dc37a6a9a85945aaa6}{es\-Sys\-Tmr\-Tick\-Get} (void)
+\begin{DoxyCompactList}\small\item\em Get the current tick value. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsubsection{Detailed Description}
+Kernel time management. 
+
+\subsubsection{Function Documentation}
+\hypertarget{group__kern__time_gacb0d88d6a7e467dc37a6a9a85945aaa6}{\index{Kernel time@{Kernel time}!es\-Sys\-Tmr\-Tick\-Get@{es\-Sys\-Tmr\-Tick\-Get}}
+\index{es\-Sys\-Tmr\-Tick\-Get@{es\-Sys\-Tmr\-Tick\-Get}!Kernel time@{Kernel time}}
+\paragraph[{es\-Sys\-Tmr\-Tick\-Get}]{\setlength{\rightskip}{0pt plus 5cm}{\bf es\-Tick\-\_\-\-T} es\-Sys\-Tmr\-Tick\-Get (
+\begin{DoxyParamCaption}
+\item[{void}]{}
+\end{DoxyParamCaption}
+)}}\label{group__kern__time_gacb0d88d6a7e467dc37a6a9a85945aaa6}
+
+
+Get the current tick value. 
+
+\begin{DoxyReturn}{Returns}
+Current tick value 
+\end{DoxyReturn}
+\begin{DoxyPrecond}{Precondition}
+1) {\ttfamily The kernel state $<$ E\-S\-\_\-\-K\-E\-R\-N\-\_\-\-I\-N\-A\-C\-T\-I\-V\-E}, see \hyperlink{states}{Kernel states}. 
+\end{DoxyPrecond}
+\begin{DoxyParagraph}{This service can be called from\-:}
+
+\begin{DoxyItemize}
+\item Application initialization code
+\item Application thread code
+\item Interrupt service routine 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Rescheduling\-:}
+
+\begin{DoxyItemize}
+\item never 
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Object class\-:}
+Regular {\bfseries A\-P\-I} object, this object is part of the application programming interface. 
+\end{DoxyParagraph}

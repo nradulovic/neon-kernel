@@ -57,7 +57,7 @@ static void threadExit(
     esThdTerm(
         esThdGetId());
 
-    while (TRUE);
+    while (true);
 }
 
 /*===================================  GLOBAL PRIVATE FUNCTION DEFINITIONS  ==*/
@@ -82,10 +82,10 @@ PORT_C_NORETURN void portCtxSwStart(
         "   cpsie   i                                       \n"               /* (7)                                                      */
         "   svc     0                                       \n"               /* (8)                                                      */
         :
-        : "i"(&SYS_SCB->vtor)
+        : "i"(&PORT_SCB->VTOR)
         : "sp", "r0", "memory");
 
-    while (TRUE);
+    while (true);
 }
 
 void * portCtxInit(
@@ -94,14 +94,14 @@ void * portCtxInit(
     void (* fn)(void *),
     void *              arg) {
 
-    struct portCtx *    sp;
+    struct esThreadCtx *    sp;
 
-    sp       = (struct portCtx *)((uint8_t *)stck + stckSize);
+    sp       = (struct esThreadCtx *)((uint8_t *)stck + stckSize);
     sp--;
-    sp->xpsr = (portReg_T)(CPU_PSR_THUMB_STATE_Msk | KCORE_CFG_PSR_DATA);
-    sp->pc   = (portReg_T)fn;
-    sp->lr   = (portReg_T)threadExit;
-    sp->r0   = (portReg_T)arg;
+    sp->xpsr = (esIntrCtx)(PORT_PSR_THUMB_STATE_Msk | PORT_CONFIG_KCORE_PSR_DATA);
+    sp->pc   = (esIntrCtx)fn;
+    sp->lr   = (esIntrCtx)threadExit;
+    sp->r0   = (esIntrCtx)arg;
 
     return (sp);
 }
@@ -109,15 +109,15 @@ void * portCtxInit(
 void portKCoreInit(
     void) {
 
-    intrPrioSet_(
+    ES_INTR_PRIO_SET(
         PENDSV_IRQN,
-        PORT_DEF_MAX_ISR_PRIO);
-    intrPrioSet_(
+        ES_INTR_PRIO_TO_CODE(CONFIG_INTR_MAX_ISR_PRIO));
+    ES_INTR_PRIO_SET(
         SVCALL_IRQN,
-        PORT_DEF_MAX_ISR_PRIO);
-    intrPrioSet_(
-        SYST_IRQN,
-        PORT_DEF_MAX_ISR_PRIO);
+        ES_INTR_PRIO_TO_CODE(CONFIG_INTR_MAX_ISR_PRIO));
+    ES_INTR_PRIO_SET(
+        ES_SYSTEM_IRQN,
+        ES_INTR_PRIO_TO_CODE(CONFIG_INTR_MAX_ISR_PRIO));
 }
 
 void portKCoreTerm(
@@ -141,7 +141,7 @@ void portKCoreTerm(
 PORT_C_NAKED void kcoreSVC(
     void) {
 
-#if (0 != PORT_CFG_MAX_ISR_PRIO)
+#if (0 != CONFIG_INTR_MAX_ISR_PRIO)
     __asm__ __volatile__ (
         "   ldr     r0, =%0                                 \n"               /* (1) Load KernCtrl.cthd address                          */
         "   mov     r1, %2                                  \n"               /* (2)                                                      */
@@ -157,7 +157,7 @@ PORT_C_NAKED void kcoreSVC(
         :
         :   "i"(&KernCtrl.cthd),
             "i"(DEF_EXC_RETURN),
-            "i"(PORT_DEF_MAX_ISR_PRIO));
+            "i"(ES_INTR_PRIO_TO_CODE(CONFIG_INTR_MAX_ISR_PRIO)));
 #else
     __asm__ __volatile__ (
         "   ldr     r0, =%0                                 \n"               /* (1) Load KernCtrl.cthd address                          */
@@ -182,13 +182,13 @@ PORT_C_NAKED void kcoreSVC(
  *          structure
  * - 9-10   Make KernCtrl.cthd == KernCtrl.pthd
  * - 11-13  restore new context
- * - 14     restore previous interrupt priority from main stck
+ * - 14     restore previous interrupt priority from main stack
  * Note:    LR was already loaded with valid DEF_EXC_RETURN value
  */
 PORT_C_NAKED void kcorePendSV(
     void) {
 
-#if (0 != PORT_CFG_MAX_ISR_PRIO)
+#if (0 != CONFIG_INTR_MAX_ISR_PRIO)
     __asm__ __volatile__ (
         "   ldr     r0, =%0                                 \n"               /* (1) Get the address of KernCtrl                         */
         "   mov     r1, %3                                  \n"               /* (2)                                                      */
@@ -209,7 +209,7 @@ PORT_C_NAKED void kcorePendSV(
         :   "i"(&KernCtrl),
             "J"(offsetof(struct kernCtrl_, cthd)),
             "J"(offsetof(struct kernCtrl_, pthd)),
-            "i"(PORT_DEF_MAX_ISR_PRIO));
+            "i"(ES_INTR_PRIO_TO_CODE(CONFIG_INTR_MAX_ISR_PRIO)));
 #else
     __asm__ __volatile__ (
         "   ldr     r0, =%0                                 \n"               /* (1) Get the address of gCurrentThd                       */

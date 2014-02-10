@@ -1,0 +1,4 @@
+<map id="Synchronization services" name="Synchronization services">
+<area shape="rect" id="node2" href="$group__sem__intf.html" title="Counting semaphore. " alt="" coords="221,5,309,32"/>
+<area shape="rect" id="node3" href="$group__lock__intf.html" title="Kernel locking. " alt="" coords="222,56,309,83"/>
+</map>

@@ -1,0 +1,48 @@
+.TH "CPU port internals" 3 "Sat Nov 30 2013" "Version 1.0BetaR02" "eSolid - Real-Time Kernel" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+CPU port internals \- 
+.PP
+CPU port inner work\&.  
+
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "void * \fBportCtxInit\fP (void *stck, size_t stckSize, void(*fn)(void *), void *arg)"
+.br
+.RI "\fIInitialize the thread context\&. \fP"
+.in -1c
+.SH "Detailed Description"
+.PP 
+CPU port inner work\&. 
+
+
+.SH "Function Documentation"
+.PP 
+.SS "void* portCtxInit (void *stck, size_tstckSize, void(*)(void *)fn, void *arg)"
+
+.PP
+Initialize the thread context\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIstck\fP Pointer to the allocated thread stack\&. The pointer points to the beginning of the memory as defined per C language\&. It's up to port function to adjust the pointer according to the stack type: full descending or full ascending one\&. 
+.br
+\fIstckSize\fP The size of allocated stack in bytes\&. 
+.br
+\fIfn\fP Pointer to the thread function\&. 
+.br
+\fIarg\fP Argument that will be passed to thread function at the starting of execution\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The new top of stack after thread context initialization\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for eSolid - Real-Time Kernel from the source code\&.

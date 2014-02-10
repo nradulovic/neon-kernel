@@ -1,0 +1,8 @@
+<map id="cpu.h" name="cpu.h">
+<area shape="rect" id="node2" href="$kernel_8h.html" title="Main kernel interface. " alt="" coords="126,155,193,181"/>
+<area shape="rect" id="node6" href="$bitop_8h.html" title="General purpose bit operations. " alt="" coords="164,80,225,107"/>
+<area shape="rect" id="node7" href="$dbg_8c.html" title="Implementation of Debug module. " alt="" coords="250,80,304,107"/>
+<area shape="rect" id="node3" href="$semaphore_8h.html" title="Interface of semaphore. " alt="" coords="5,229,101,256"/>
+<area shape="rect" id="node4" href="$kernel_8c.html" title="Implementation of kernel port independent code. " alt="" coords="126,229,193,256"/>
+<area shape="rect" id="node5" href="$cpu_8c.html" title="Implementation of CPU port &#45; Template. " alt="" coords="218,229,272,256"/>
+</map>

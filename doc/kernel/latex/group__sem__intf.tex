@@ -1,0 +1,119 @@
+\hypertarget{group__sem__intf}{\subsection{Semaphore}
+\label{group__sem__intf}\index{Semaphore@{Semaphore}}
+}
+
+
+Counting semaphore.  
+
+
+Collaboration diagram for Semaphore\-:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=308pt]{group__sem__intf}
+\end{center}
+\end{figure}
+\subsubsection*{Data types group}
+\label{_amgrpca30459c90d6b7a12b3df0a1317e654e}%
+brief description \begin{DoxyCompactItemize}
+\item 
+\hypertarget{group__sem__intf_gaa080a10f59ad14ffb1e27d577b10e870}{typedef C\-F\-G\-\_\-\-S\-E\-M\-A\-P\-H\-O\-R\-E\-\_\-\-C\-N\-T\-\_\-\-T {\bfseries es\-Sem\-Cnt\-\_\-\-T}}\label{group__sem__intf_gaa080a10f59ad14ffb1e27d577b10e870}
+
+\item 
+\hypertarget{group__sem__intf_ga076de09738f0febcd417f15a9ac15a7e}{typedef struct es\-Sem {\bfseries es\-Sem\-\_\-\-T}}\label{group__sem__intf_ga076de09738f0febcd417f15a9ac15a7e}
+
+\item 
+\hypertarget{group__sem__intf_gaf38e40d531c3eb3d03ab29c0a116b235}{\#define {\bfseries C\-F\-G\-\_\-\-S\-E\-M\-A\-P\-H\-O\-R\-E\-\_\-\-C\-N\-T\-\_\-\-T}~int16\-\_\-t}\label{group__sem__intf_gaf38e40d531c3eb3d03ab29c0a116b235}
+
+\end{DoxyCompactItemize}
+\subsubsection*{Function group}
+\label{_amgrpec1f4104dc63801ceee35db9d6f5502d}%
+brief description \begin{DoxyCompactItemize}
+\item 
+void \hyperlink{group__sem__intf_gae4481945af3c671b99e87b151de98085}{es\-Sem\-Init} (es\-Sem\-\_\-\-T $\ast$sem, es\-Sem\-Cnt\-\_\-\-T cnt)
+\begin{DoxyCompactList}\small\item\em Initialize a semaphore. \end{DoxyCompactList}\item 
+\hypertarget{group__sem__intf_ga897ad9e48bcf3fea3fa68897cbcf33d9}{void {\bfseries es\-Sem\-Term} (es\-Sem\-\_\-\-T $\ast$sem)}\label{group__sem__intf_ga897ad9e48bcf3fea3fa68897cbcf33d9}
+
+\item 
+void \hyperlink{group__sem__intf_gaf742af1a3888b602a45e4cd394f28550}{es\-Sem\-Wait} (es\-Sem\-\_\-\-T $\ast$sem)
+\begin{DoxyCompactList}\small\item\em Wait on a semaphore. \end{DoxyCompactList}\item 
+void \hyperlink{group__sem__intf_ga4f11d79edca489a754f9385ca7c89b36}{es\-Sem\-Wait\-Timeout} (es\-Sem\-\_\-\-T $\ast$sem, \hyperlink{group__kern__vtmr_ga844873888c186ee81eb66620dadb0451}{es\-Tick\-\_\-\-T} time)
+\begin{DoxyCompactList}\small\item\em Wait on a semaphore. \end{DoxyCompactList}\item 
+void \hyperlink{group__sem__intf_ga372df852afd413b4fe2e65591da2fe79}{es\-Sem\-Post} (es\-Sem\-\_\-\-T $\ast$sem)
+\begin{DoxyCompactList}\small\item\em Increment the value of a semaphore. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsubsection{Detailed Description}
+Counting semaphore. 
+
+\subsubsection{Function Documentation}
+\hypertarget{group__sem__intf_gae4481945af3c671b99e87b151de98085}{\index{Semaphore@{Semaphore}!es\-Sem\-Init@{es\-Sem\-Init}}
+\index{es\-Sem\-Init@{es\-Sem\-Init}!Semaphore@{Semaphore}}
+\paragraph[{es\-Sem\-Init}]{\setlength{\rightskip}{0pt plus 5cm}void es\-Sem\-Init (
+\begin{DoxyParamCaption}
+\item[{es\-Sem\-\_\-\-T $\ast$}]{sem, }
+\item[{es\-Sem\-Cnt\-\_\-\-T}]{cnt}
+\end{DoxyParamCaption}
+)}}\label{group__sem__intf_gae4481945af3c671b99e87b151de98085}
+
+
+Initialize a semaphore. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em sem} & Semaphore\-: points to a semaphore object to initialize. \\
+\hline
+{\em cnt} & Count\-: is an initial value to set the semaphore to. \\
+\hline
+\end{DoxyParams}
+\hypertarget{group__sem__intf_gaf742af1a3888b602a45e4cd394f28550}{\index{Semaphore@{Semaphore}!es\-Sem\-Wait@{es\-Sem\-Wait}}
+\index{es\-Sem\-Wait@{es\-Sem\-Wait}!Semaphore@{Semaphore}}
+\paragraph[{es\-Sem\-Wait}]{\setlength{\rightskip}{0pt plus 5cm}void es\-Sem\-Wait (
+\begin{DoxyParamCaption}
+\item[{es\-Sem\-\_\-\-T $\ast$}]{sem}
+\end{DoxyParamCaption}
+)}}\label{group__sem__intf_gaf742af1a3888b602a45e4cd394f28550}
+
+
+Wait on a semaphore. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em sem} & Semaphore\-: points to a semaphore object to initialize. \\
+\hline
+\end{DoxyParams}
+\hypertarget{group__sem__intf_ga4f11d79edca489a754f9385ca7c89b36}{\index{Semaphore@{Semaphore}!es\-Sem\-Wait\-Timeout@{es\-Sem\-Wait\-Timeout}}
+\index{es\-Sem\-Wait\-Timeout@{es\-Sem\-Wait\-Timeout}!Semaphore@{Semaphore}}
+\paragraph[{es\-Sem\-Wait\-Timeout}]{\setlength{\rightskip}{0pt plus 5cm}void es\-Sem\-Wait\-Timeout (
+\begin{DoxyParamCaption}
+\item[{es\-Sem\-\_\-\-T $\ast$}]{sem, }
+\item[{{\bf es\-Tick\-\_\-\-T}}]{time}
+\end{DoxyParamCaption}
+)}}\label{group__sem__intf_ga4f11d79edca489a754f9385ca7c89b36}
+
+
+Wait on a semaphore. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em sem} & Semaphore\-: points to a semaphore object to initialize. \\
+\hline
+{\em time} & Time\-: the timeout time specified in system ticks. \\
+\hline
+\end{DoxyParams}
+\hypertarget{group__sem__intf_ga372df852afd413b4fe2e65591da2fe79}{\index{Semaphore@{Semaphore}!es\-Sem\-Post@{es\-Sem\-Post}}
+\index{es\-Sem\-Post@{es\-Sem\-Post}!Semaphore@{Semaphore}}
+\paragraph[{es\-Sem\-Post}]{\setlength{\rightskip}{0pt plus 5cm}void es\-Sem\-Post (
+\begin{DoxyParamCaption}
+\item[{es\-Sem\-\_\-\-T $\ast$}]{sem}
+\end{DoxyParamCaption}
+)}}\label{group__sem__intf_ga372df852afd413b4fe2e65591da2fe79}
+
+
+Increment the value of a semaphore. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em sem} & Semaphore\-: points to a semaphore object to initialize. \\
+\hline
+\end{DoxyParams}

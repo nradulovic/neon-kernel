@@ -39,7 +39,7 @@
  *              for Interruptible-continuable instructions. The setting is done
  *              in PSR register.
  */
-#define KCORE_CFG_PSR_DATA              0u
+#define PORT_CONFIG_KCORE_PSR_DATA      0u
 
 /** @} *//*-------------------------------------------------------------------*/
 

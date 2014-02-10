@@ -1,0 +1,362 @@
+\hypertarget{group__kern__bit__intf}{\subsection{Kernel bit operations}
+\label{group__kern__bit__intf}\index{Kernel bit operations@{Kernel bit operations}}
+}
+
+
+Common bit operations macros used by kernel.  
+
+
+\subsubsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\#define \hyperlink{group__kern__bit__intf_ga95779da300307c85fa5ad038eb895ec6}{E\-S\-\_\-\-B\-I\-T\-\_\-\-D\-I\-M\-E\-N\-S\-I\-O\-N}(array)~(sizeof(array) / sizeof(array\mbox{[}0\mbox{]}))
+\begin{DoxyCompactList}\small\item\em Determines the first dimension of an array. \end{DoxyCompactList}\item 
+\#define \hyperlink{group__kern__bit__intf_ga06ba2162e0ba1383ed447236b2a3a090}{E\-S\-\_\-\-B\-I\-T\-\_\-\-D\-I\-V\-\_\-\-R\-O\-U\-N\-D}(numerator, denominator)~(((numerator) + ((denominator) / 2\-U)) / (denominator))
+\begin{DoxyCompactList}\small\item\em Round a division. \end{DoxyCompactList}\item 
+\#define \hyperlink{group__kern__bit__intf_ga647803e90a134609489c6f3b7aed7821}{E\-S\-\_\-\-B\-I\-T\-\_\-\-D\-I\-V\-\_\-\-R\-O\-U\-N\-D\-U\-P}(numerator, denominator)~(((numerator) + (denominator) -\/ 1u) / (denominator))
+\begin{DoxyCompactList}\small\item\em Round up a division. \end{DoxyCompactList}\item 
+\#define \hyperlink{group__kern__bit__intf_gaa380d5980cb2ffe4f931019a89426da6}{E\-S\-\_\-\-B\-I\-T\-\_\-\-M\-A\-X}(expr1, expr2)~((expr1 $>$ expr2) ? expr1 \-: expr2))
+\begin{DoxyCompactList}\small\item\em Vraca vecu vrednost od ponudjenih vrednosti {\itshape expr1} i {\itshape expr2}. \end{DoxyCompactList}\item 
+\#define \hyperlink{group__kern__bit__intf_gabe39387086f6e3e5e890e3db62107c76}{E\-S\-\_\-\-B\-I\-T\-\_\-\-M\-I\-N}(expr1, expr2)~((expr1 $<$ expr2) ? expr1 \-: expr2))
+\begin{DoxyCompactList}\small\item\em Vraca manju vrednost od ponudjenih vrednosti {\itshape expr1} i {\itshape expr2}. \end{DoxyCompactList}\item 
+\#define \hyperlink{group__kern__bit__intf_ga55a29735acc8e36b91a83f45c2676c3b}{E\-S\-\_\-\-B\-I\-T\-\_\-\-A\-L\-I\-G\-N}(num, align)~((num) \& $\sim$((align) -\/ 1u))
+\begin{DoxyCompactList}\small\item\em Vrsi poravnjanje {\itshape num} promenjive sa granicama specificarane u {\itshape align}. \end{DoxyCompactList}\item 
+\#define \hyperlink{group__kern__bit__intf_ga652db2c31a8b995b76b153fd9b7e0474}{E\-S\-\_\-\-B\-I\-T\-\_\-\-A\-L\-I\-G\-N\-\_\-\-U\-P}(num, align)~(((num) + (align) -\/ 1u) \& $\sim$((align) -\/ 1u))
+\begin{DoxyCompactList}\small\item\em Vrsi poravnjanje {\itshape num} promenjive sa granicama specificarane u {\itshape align}. \end{DoxyCompactList}\item 
+\#define \hyperlink{group__kern__bit__intf_ga73cfbd6aa5af684706a3058f4913b849}{E\-S\-\_\-\-B\-I\-T\-\_\-\-F\-I\-N\-D\-\_\-\-L\-A\-S\-T\-\_\-\-S\-E\-T}(val)~\hyperlink{group__template__cpu__intf_gad77a6570361843fdf0aafde890682a9a}{P\-O\-R\-T\-\_\-\-B\-I\-T\-\_\-\-F\-I\-N\-D\-\_\-\-L\-A\-S\-T\-\_\-\-S\-E\-T}(val)
+\begin{DoxyCompactList}\small\item\em Find last set bit in a word. \end{DoxyCompactList}\item 
+\#define \hyperlink{group__kern__bit__intf_gab287f6b5ae57be4391c98c9989a17742}{E\-S\-\_\-\-B\-I\-T\-\_\-\-B\-I\-T\-\_\-\-P\-W\-R2}(pwr)~\hyperlink{group__template__cpu__intf_gac2e9e677828a5a45989ba97e7f5b68ea}{P\-O\-R\-T\-\_\-\-B\-I\-T\-\_\-\-P\-W\-R2}(pwr)
+\begin{DoxyCompactList}\small\item\em Helper macro\-: calculate 2$^\wedge$pwr expression. \end{DoxyCompactList}\item 
+\#define \hyperlink{group__kern__bit__intf_gaeaeee96fdb6cca0a96da0b7da8f4fc14}{E\-S\-\_\-\-B\-I\-T\-\_\-\-I\-S\-\_\-\-P\-O\-W2}(num)~(!((num) \& ((num) -\/ 1)))
+\begin{DoxyCompactList}\small\item\em Da li je {\ttfamily expr} jednak nekom stepenu dvojke? \end{DoxyCompactList}\item 
+\#define \hyperlink{group__kern__bit__intf_gaac7d6ae35c69a48b51dcf41bfef4448e}{E\-S\-\_\-\-B\-I\-T\-\_\-\-U\-I\-N\-T8\-\_\-\-L\-O\-G2}(x)
+\begin{DoxyCompactList}\small\item\em Calculate log2 for value {\ttfamily x} during the compilation. \end{DoxyCompactList}\item 
+\#define \hyperlink{group__kern__bit__intf_ga99c10e53689b8faa16cf6e8e5d5d4627}{E\-S\-\_\-\-B\-I\-T\-\_\-\-M\-A\-S\-K\-\_\-\-M\-S\-B}(type)~(1u\-L $<$$<$ ((sizeof(type) $\ast$ 8u) -\/ 1u))
+\begin{DoxyCompactList}\small\item\em Kreira masku za M\-S\-B bit koji odgovara tipu {\ttfamily type}. \end{DoxyCompactList}\item 
+\#define \hyperlink{group__kern__bit__intf_ga6ba80e88a8a093ef86a50be3c527c525}{E\-S\-\_\-\-B\-I\-T\-\_\-\-S\-E\-T\-\_\-\-M\-S\-B}(var)
+\begin{DoxyCompactList}\small\item\em Postavlja M\-S\-B bit na jedan, \char`\"{}1\char`\"{}. \end{DoxyCompactList}\item 
+\#define \hyperlink{group__kern__bit__intf_ga1d3b2fa3215704398adf58917cf1667d}{E\-S\-\_\-\-B\-I\-T\-\_\-\-C\-L\-R\-\_\-\-M\-S\-B}(var)
+\begin{DoxyCompactList}\small\item\em Postavlja M\-S\-B bit na nulu, \char`\"{}0\char`\"{}. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsubsection{Detailed Description}
+Common bit operations macros used by kernel. 
+
+\subsubsection{Macro Definition Documentation}
+\hypertarget{group__kern__bit__intf_ga95779da300307c85fa5ad038eb895ec6}{\index{Kernel bit operations@{Kernel bit operations}!E\-S\-\_\-\-B\-I\-T\-\_\-\-D\-I\-M\-E\-N\-S\-I\-O\-N@{E\-S\-\_\-\-B\-I\-T\-\_\-\-D\-I\-M\-E\-N\-S\-I\-O\-N}}
+\index{E\-S\-\_\-\-B\-I\-T\-\_\-\-D\-I\-M\-E\-N\-S\-I\-O\-N@{E\-S\-\_\-\-B\-I\-T\-\_\-\-D\-I\-M\-E\-N\-S\-I\-O\-N}!Kernel bit operations@{Kernel bit operations}}
+\paragraph[{E\-S\-\_\-\-B\-I\-T\-\_\-\-D\-I\-M\-E\-N\-S\-I\-O\-N}]{\setlength{\rightskip}{0pt plus 5cm}\#define E\-S\-\_\-\-B\-I\-T\-\_\-\-D\-I\-M\-E\-N\-S\-I\-O\-N(
+\begin{DoxyParamCaption}
+\item[{}]{array}
+\end{DoxyParamCaption}
+)~(sizeof(array) / sizeof(array\mbox{[}0\mbox{]}))}}\label{group__kern__bit__intf_ga95779da300307c85fa5ad038eb895ec6}
+
+
+Determines the first dimension of an array. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em array} & An array \-: type unspecified \\
+\hline
+\end{DoxyParams}
+\begin{DoxyAttention}{Attention}
+Macro does have side effects. 
+\end{DoxyAttention}
+\hypertarget{group__kern__bit__intf_ga06ba2162e0ba1383ed447236b2a3a090}{\index{Kernel bit operations@{Kernel bit operations}!E\-S\-\_\-\-B\-I\-T\-\_\-\-D\-I\-V\-\_\-\-R\-O\-U\-N\-D@{E\-S\-\_\-\-B\-I\-T\-\_\-\-D\-I\-V\-\_\-\-R\-O\-U\-N\-D}}
+\index{E\-S\-\_\-\-B\-I\-T\-\_\-\-D\-I\-V\-\_\-\-R\-O\-U\-N\-D@{E\-S\-\_\-\-B\-I\-T\-\_\-\-D\-I\-V\-\_\-\-R\-O\-U\-N\-D}!Kernel bit operations@{Kernel bit operations}}
+\paragraph[{E\-S\-\_\-\-B\-I\-T\-\_\-\-D\-I\-V\-\_\-\-R\-O\-U\-N\-D}]{\setlength{\rightskip}{0pt plus 5cm}\#define E\-S\-\_\-\-B\-I\-T\-\_\-\-D\-I\-V\-\_\-\-R\-O\-U\-N\-D(
+\begin{DoxyParamCaption}
+\item[{}]{numerator, }
+\item[{}]{denominator}
+\end{DoxyParamCaption}
+)~(((numerator) + ((denominator) / 2\-U)) / (denominator))}}\label{group__kern__bit__intf_ga06ba2162e0ba1383ed447236b2a3a090}
+
+
+Round a division. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em numerator} & \\
+\hline
+{\em denominator} & \\
+\hline
+\end{DoxyParams}
+\begin{DoxyNote}{Note}
+It is desirable that denominator is a constant expression, otherwise the compiler will generate two division operations. 
+\end{DoxyNote}
+\begin{DoxyAttention}{Attention}
+Macro does have side effects. 
+\end{DoxyAttention}
+\begin{DoxyParagraph}{Example 1\-:}
+\begin{DoxyVerb}         numerator   = 28
+         denominator = 5
+
+         Integer division: 28 / 5 = 5
+         Float division  : 28 / 5 = 5.6
+         Rounded division: 28 / 5 = 6
+\end{DoxyVerb}
+
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Example 2\-:}
+\begin{DoxyVerb}         numerator   = 27
+         denominator = 5
+
+         Integer division: 27 / 5 = 5
+         Float division  : 27 / 5 = 5.4
+         Rounded division: 27 / 5 = 5\end{DoxyVerb}
+ 
+\end{DoxyParagraph}
+\hypertarget{group__kern__bit__intf_ga647803e90a134609489c6f3b7aed7821}{\index{Kernel bit operations@{Kernel bit operations}!E\-S\-\_\-\-B\-I\-T\-\_\-\-D\-I\-V\-\_\-\-R\-O\-U\-N\-D\-U\-P@{E\-S\-\_\-\-B\-I\-T\-\_\-\-D\-I\-V\-\_\-\-R\-O\-U\-N\-D\-U\-P}}
+\index{E\-S\-\_\-\-B\-I\-T\-\_\-\-D\-I\-V\-\_\-\-R\-O\-U\-N\-D\-U\-P@{E\-S\-\_\-\-B\-I\-T\-\_\-\-D\-I\-V\-\_\-\-R\-O\-U\-N\-D\-U\-P}!Kernel bit operations@{Kernel bit operations}}
+\paragraph[{E\-S\-\_\-\-B\-I\-T\-\_\-\-D\-I\-V\-\_\-\-R\-O\-U\-N\-D\-U\-P}]{\setlength{\rightskip}{0pt plus 5cm}\#define E\-S\-\_\-\-B\-I\-T\-\_\-\-D\-I\-V\-\_\-\-R\-O\-U\-N\-D\-U\-P(
+\begin{DoxyParamCaption}
+\item[{}]{numerator, }
+\item[{}]{denominator}
+\end{DoxyParamCaption}
+)~(((numerator) + (denominator) -\/ 1u) / (denominator))}}\label{group__kern__bit__intf_ga647803e90a134609489c6f3b7aed7821}
+
+
+Round up a division. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em numerator} & \\
+\hline
+{\em denominator} & \\
+\hline
+\end{DoxyParams}
+\begin{DoxyNote}{Note}
+It is desirable that denominator is a constant expression, otherwise the compiler will generate one subtraction and one division operation. 
+\end{DoxyNote}
+\begin{DoxyAttention}{Attention}
+Macro does have side effects. 
+\end{DoxyAttention}
+\begin{DoxyParagraph}{Example 1\-:}
+\begin{DoxyVerb}         numerator   = 28
+         denominator = 5
+
+         Integer division   : 28 / 5 = 5
+         Float division     : 28 / 5 = 5.6
+         Rounded up division: 28 / 5 = 6
+\end{DoxyVerb}
+
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Example 2\-:}
+\begin{DoxyVerb}         numerator   = 27
+         denominator = 5
+
+         Integer division   : 27 / 5 = 5
+         Float division     : 27 / 5 = 5.4
+         Rounded up division: 27 / 5 = 6\end{DoxyVerb}
+ 
+\end{DoxyParagraph}
+\hypertarget{group__kern__bit__intf_gaa380d5980cb2ffe4f931019a89426da6}{\index{Kernel bit operations@{Kernel bit operations}!E\-S\-\_\-\-B\-I\-T\-\_\-\-M\-A\-X@{E\-S\-\_\-\-B\-I\-T\-\_\-\-M\-A\-X}}
+\index{E\-S\-\_\-\-B\-I\-T\-\_\-\-M\-A\-X@{E\-S\-\_\-\-B\-I\-T\-\_\-\-M\-A\-X}!Kernel bit operations@{Kernel bit operations}}
+\paragraph[{E\-S\-\_\-\-B\-I\-T\-\_\-\-M\-A\-X}]{\setlength{\rightskip}{0pt plus 5cm}\#define E\-S\-\_\-\-B\-I\-T\-\_\-\-M\-A\-X(
+\begin{DoxyParamCaption}
+\item[{}]{expr1, }
+\item[{}]{expr2}
+\end{DoxyParamCaption}
+)~((expr1 $>$ expr2) ? expr1 \-: expr2))}}\label{group__kern__bit__intf_gaa380d5980cb2ffe4f931019a89426da6}
+
+
+Vraca vecu vrednost od ponudjenih vrednosti {\itshape expr1} i {\itshape expr2}. 
+
+\hypertarget{group__kern__bit__intf_gabe39387086f6e3e5e890e3db62107c76}{\index{Kernel bit operations@{Kernel bit operations}!E\-S\-\_\-\-B\-I\-T\-\_\-\-M\-I\-N@{E\-S\-\_\-\-B\-I\-T\-\_\-\-M\-I\-N}}
+\index{E\-S\-\_\-\-B\-I\-T\-\_\-\-M\-I\-N@{E\-S\-\_\-\-B\-I\-T\-\_\-\-M\-I\-N}!Kernel bit operations@{Kernel bit operations}}
+\paragraph[{E\-S\-\_\-\-B\-I\-T\-\_\-\-M\-I\-N}]{\setlength{\rightskip}{0pt plus 5cm}\#define E\-S\-\_\-\-B\-I\-T\-\_\-\-M\-I\-N(
+\begin{DoxyParamCaption}
+\item[{}]{expr1, }
+\item[{}]{expr2}
+\end{DoxyParamCaption}
+)~((expr1 $<$ expr2) ? expr1 \-: expr2))}}\label{group__kern__bit__intf_gabe39387086f6e3e5e890e3db62107c76}
+
+
+Vraca manju vrednost od ponudjenih vrednosti {\itshape expr1} i {\itshape expr2}. 
+
+\hypertarget{group__kern__bit__intf_ga55a29735acc8e36b91a83f45c2676c3b}{\index{Kernel bit operations@{Kernel bit operations}!E\-S\-\_\-\-B\-I\-T\-\_\-\-A\-L\-I\-G\-N@{E\-S\-\_\-\-B\-I\-T\-\_\-\-A\-L\-I\-G\-N}}
+\index{E\-S\-\_\-\-B\-I\-T\-\_\-\-A\-L\-I\-G\-N@{E\-S\-\_\-\-B\-I\-T\-\_\-\-A\-L\-I\-G\-N}!Kernel bit operations@{Kernel bit operations}}
+\paragraph[{E\-S\-\_\-\-B\-I\-T\-\_\-\-A\-L\-I\-G\-N}]{\setlength{\rightskip}{0pt plus 5cm}\#define E\-S\-\_\-\-B\-I\-T\-\_\-\-A\-L\-I\-G\-N(
+\begin{DoxyParamCaption}
+\item[{}]{num, }
+\item[{}]{align}
+\end{DoxyParamCaption}
+)~((num) \& $\sim$((align) -\/ 1u))}}\label{group__kern__bit__intf_ga55a29735acc8e36b91a83f45c2676c3b}
+
+
+Vrsi poravnjanje {\itshape num} promenjive sa granicama specificarane u {\itshape align}. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em num} & Promenjiva koju treba poravnati, \\
+\hline
+{\em align} & granica poravnanja.\\
+\hline
+\end{DoxyParams}
+Primer\-: {\itshape expr1} ima binarnu vrednost\-: 10010101 = 149 {\itshape expr2} ima binarnu vrednost\-: 00000100 = 4 Dobija se 152. \begin{DoxyAttention}{Attention}
+Macro does have side effects. 
+\end{DoxyAttention}
+\hypertarget{group__kern__bit__intf_ga652db2c31a8b995b76b153fd9b7e0474}{\index{Kernel bit operations@{Kernel bit operations}!E\-S\-\_\-\-B\-I\-T\-\_\-\-A\-L\-I\-G\-N\-\_\-\-U\-P@{E\-S\-\_\-\-B\-I\-T\-\_\-\-A\-L\-I\-G\-N\-\_\-\-U\-P}}
+\index{E\-S\-\_\-\-B\-I\-T\-\_\-\-A\-L\-I\-G\-N\-\_\-\-U\-P@{E\-S\-\_\-\-B\-I\-T\-\_\-\-A\-L\-I\-G\-N\-\_\-\-U\-P}!Kernel bit operations@{Kernel bit operations}}
+\paragraph[{E\-S\-\_\-\-B\-I\-T\-\_\-\-A\-L\-I\-G\-N\-\_\-\-U\-P}]{\setlength{\rightskip}{0pt plus 5cm}\#define E\-S\-\_\-\-B\-I\-T\-\_\-\-A\-L\-I\-G\-N\-\_\-\-U\-P(
+\begin{DoxyParamCaption}
+\item[{}]{num, }
+\item[{}]{align}
+\end{DoxyParamCaption}
+)~(((num) + (align) -\/ 1u) \& $\sim$((align) -\/ 1u))}}\label{group__kern__bit__intf_ga652db2c31a8b995b76b153fd9b7e0474}
+
+
+Vrsi poravnjanje {\itshape num} promenjive sa granicama specificarane u {\itshape align}. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em num} & Promenjiva koju treba poravnati, \\
+\hline
+{\em align} & granica poravnanja.\\
+\hline
+\end{DoxyParams}
+Primer\-: {\itshape expr1} ima binarnu vrednost\-: 10010101 = 149 {\itshape expr2} ima binarnu vrednost\-: 00000100 = 4 Dobija se 152. \begin{DoxyAttention}{Attention}
+Macro does have side effects. 
+\end{DoxyAttention}
+\hypertarget{group__kern__bit__intf_ga73cfbd6aa5af684706a3058f4913b849}{\index{Kernel bit operations@{Kernel bit operations}!E\-S\-\_\-\-B\-I\-T\-\_\-\-F\-I\-N\-D\-\_\-\-L\-A\-S\-T\-\_\-\-S\-E\-T@{E\-S\-\_\-\-B\-I\-T\-\_\-\-F\-I\-N\-D\-\_\-\-L\-A\-S\-T\-\_\-\-S\-E\-T}}
+\index{E\-S\-\_\-\-B\-I\-T\-\_\-\-F\-I\-N\-D\-\_\-\-L\-A\-S\-T\-\_\-\-S\-E\-T@{E\-S\-\_\-\-B\-I\-T\-\_\-\-F\-I\-N\-D\-\_\-\-L\-A\-S\-T\-\_\-\-S\-E\-T}!Kernel bit operations@{Kernel bit operations}}
+\paragraph[{E\-S\-\_\-\-B\-I\-T\-\_\-\-F\-I\-N\-D\-\_\-\-L\-A\-S\-T\-\_\-\-S\-E\-T}]{\setlength{\rightskip}{0pt plus 5cm}\#define E\-S\-\_\-\-B\-I\-T\-\_\-\-F\-I\-N\-D\-\_\-\-L\-A\-S\-T\-\_\-\-S\-E\-T(
+\begin{DoxyParamCaption}
+\item[{}]{val}
+\end{DoxyParamCaption}
+)~{\bf P\-O\-R\-T\-\_\-\-B\-I\-T\-\_\-\-F\-I\-N\-D\-\_\-\-L\-A\-S\-T\-\_\-\-S\-E\-T}(val)}}\label{group__kern__bit__intf_ga73cfbd6aa5af684706a3058f4913b849}
+
+
+Find last set bit in a word. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em val} & Value \-: port\-Reg\-\_\-\-T, value which needs to be evaluated \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The position of the last set bit in a value
+\end{DoxyReturn}
+This function is used by the scheduler to efficiently determine the highest priority of thread ready for execution. For similar algorithm details see\-: \href{http://en.wikipedia.org/wiki/Find_first_set}{\tt http\-://en.\-wikipedia.\-org/wiki/\-Find\-\_\-first\-\_\-set}. \hypertarget{group__kern__bit__intf_gab287f6b5ae57be4391c98c9989a17742}{\index{Kernel bit operations@{Kernel bit operations}!E\-S\-\_\-\-B\-I\-T\-\_\-\-B\-I\-T\-\_\-\-P\-W\-R2@{E\-S\-\_\-\-B\-I\-T\-\_\-\-B\-I\-T\-\_\-\-P\-W\-R2}}
+\index{E\-S\-\_\-\-B\-I\-T\-\_\-\-B\-I\-T\-\_\-\-P\-W\-R2@{E\-S\-\_\-\-B\-I\-T\-\_\-\-B\-I\-T\-\_\-\-P\-W\-R2}!Kernel bit operations@{Kernel bit operations}}
+\paragraph[{E\-S\-\_\-\-B\-I\-T\-\_\-\-B\-I\-T\-\_\-\-P\-W\-R2}]{\setlength{\rightskip}{0pt plus 5cm}\#define E\-S\-\_\-\-B\-I\-T\-\_\-\-B\-I\-T\-\_\-\-P\-W\-R2(
+\begin{DoxyParamCaption}
+\item[{}]{pwr}
+\end{DoxyParamCaption}
+)~{\bf P\-O\-R\-T\-\_\-\-B\-I\-T\-\_\-\-P\-W\-R2}(pwr)}}\label{group__kern__bit__intf_gab287f6b5ae57be4391c98c9989a17742}
+
+
+Helper macro\-: calculate 2$^\wedge$pwr expression. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em pwr} & Power \-: port\-Reg\-\_\-\-T, value which will be used in calculation\\
+\hline
+\end{DoxyParams}
+Some ports may want to use look up tables instead of shifting operation \hypertarget{group__kern__bit__intf_gaeaeee96fdb6cca0a96da0b7da8f4fc14}{\index{Kernel bit operations@{Kernel bit operations}!E\-S\-\_\-\-B\-I\-T\-\_\-\-I\-S\-\_\-\-P\-O\-W2@{E\-S\-\_\-\-B\-I\-T\-\_\-\-I\-S\-\_\-\-P\-O\-W2}}
+\index{E\-S\-\_\-\-B\-I\-T\-\_\-\-I\-S\-\_\-\-P\-O\-W2@{E\-S\-\_\-\-B\-I\-T\-\_\-\-I\-S\-\_\-\-P\-O\-W2}!Kernel bit operations@{Kernel bit operations}}
+\paragraph[{E\-S\-\_\-\-B\-I\-T\-\_\-\-I\-S\-\_\-\-P\-O\-W2}]{\setlength{\rightskip}{0pt plus 5cm}\#define E\-S\-\_\-\-B\-I\-T\-\_\-\-I\-S\-\_\-\-P\-O\-W2(
+\begin{DoxyParamCaption}
+\item[{}]{num}
+\end{DoxyParamCaption}
+)~(!((num) \& ((num) -\/ 1)))}}\label{group__kern__bit__intf_gaeaeee96fdb6cca0a96da0b7da8f4fc14}
+
+
+Da li je {\ttfamily expr} jednak nekom stepenu dvojke? 
+
+Makro vraca T\-R\-U\-E kada je vrednost {\ttfamily expr} izraza jednaka nekom stepenu dvojke, inace, vraca F\-A\-L\-S\-E. \begin{DoxyAttention}{Attention}
+Macro does have side effects. 
+\end{DoxyAttention}
+\hypertarget{group__kern__bit__intf_gaac7d6ae35c69a48b51dcf41bfef4448e}{\index{Kernel bit operations@{Kernel bit operations}!E\-S\-\_\-\-B\-I\-T\-\_\-\-U\-I\-N\-T8\-\_\-\-L\-O\-G2@{E\-S\-\_\-\-B\-I\-T\-\_\-\-U\-I\-N\-T8\-\_\-\-L\-O\-G2}}
+\index{E\-S\-\_\-\-B\-I\-T\-\_\-\-U\-I\-N\-T8\-\_\-\-L\-O\-G2@{E\-S\-\_\-\-B\-I\-T\-\_\-\-U\-I\-N\-T8\-\_\-\-L\-O\-G2}!Kernel bit operations@{Kernel bit operations}}
+\paragraph[{E\-S\-\_\-\-B\-I\-T\-\_\-\-U\-I\-N\-T8\-\_\-\-L\-O\-G2}]{\setlength{\rightskip}{0pt plus 5cm}\#define E\-S\-\_\-\-B\-I\-T\-\_\-\-U\-I\-N\-T8\-\_\-\-L\-O\-G2(
+\begin{DoxyParamCaption}
+\item[{}]{x}
+\end{DoxyParamCaption}
+)}}\label{group__kern__bit__intf_gaac7d6ae35c69a48b51dcf41bfef4448e}
+{\bfseries Value\-:}
+\begin{DoxyCode}
+((x) <   2u ? 0u :                                                          \(\backslash\)
+     ((x) <   4u ? 1u :                                                         \(\backslash\)
+      ((x) <   8u ? 2u :                                                        \(\backslash\)
+       ((x) <  16u ? 3u :                                                       \(\backslash\)
+        ((x) <  32u ? 4u :                                                      \(\backslash\)
+         ((x) <  64u ? 5u :                                                     \(\backslash\)
+          ((x) < 128u ? 6u : 7u)))))))
+\end{DoxyCode}
+
+
+Calculate log2 for value {\ttfamily x} during the compilation. 
+
+\begin{DoxyAttention}{Attention}
+Macro does have side effects. 
+\end{DoxyAttention}
+\hypertarget{group__kern__bit__intf_ga99c10e53689b8faa16cf6e8e5d5d4627}{\index{Kernel bit operations@{Kernel bit operations}!E\-S\-\_\-\-B\-I\-T\-\_\-\-M\-A\-S\-K\-\_\-\-M\-S\-B@{E\-S\-\_\-\-B\-I\-T\-\_\-\-M\-A\-S\-K\-\_\-\-M\-S\-B}}
+\index{E\-S\-\_\-\-B\-I\-T\-\_\-\-M\-A\-S\-K\-\_\-\-M\-S\-B@{E\-S\-\_\-\-B\-I\-T\-\_\-\-M\-A\-S\-K\-\_\-\-M\-S\-B}!Kernel bit operations@{Kernel bit operations}}
+\paragraph[{E\-S\-\_\-\-B\-I\-T\-\_\-\-M\-A\-S\-K\-\_\-\-M\-S\-B}]{\setlength{\rightskip}{0pt plus 5cm}\#define E\-S\-\_\-\-B\-I\-T\-\_\-\-M\-A\-S\-K\-\_\-\-M\-S\-B(
+\begin{DoxyParamCaption}
+\item[{}]{type}
+\end{DoxyParamCaption}
+)~(1u\-L $<$$<$ ((sizeof(type) $\ast$ 8u) -\/ 1u))}}\label{group__kern__bit__intf_ga99c10e53689b8faa16cf6e8e5d5d4627}
+
+
+Kreira masku za M\-S\-B bit koji odgovara tipu {\ttfamily type}. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em type} & Tip podataka za koji se trazi M\-S\-B. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Odgovarajuca binarna maska za M\-S\-B. 
+\end{DoxyReturn}
+\hypertarget{group__kern__bit__intf_ga6ba80e88a8a093ef86a50be3c527c525}{\index{Kernel bit operations@{Kernel bit operations}!E\-S\-\_\-\-B\-I\-T\-\_\-\-S\-E\-T\-\_\-\-M\-S\-B@{E\-S\-\_\-\-B\-I\-T\-\_\-\-S\-E\-T\-\_\-\-M\-S\-B}}
+\index{E\-S\-\_\-\-B\-I\-T\-\_\-\-S\-E\-T\-\_\-\-M\-S\-B@{E\-S\-\_\-\-B\-I\-T\-\_\-\-S\-E\-T\-\_\-\-M\-S\-B}!Kernel bit operations@{Kernel bit operations}}
+\paragraph[{E\-S\-\_\-\-B\-I\-T\-\_\-\-S\-E\-T\-\_\-\-M\-S\-B}]{\setlength{\rightskip}{0pt plus 5cm}\#define E\-S\-\_\-\-B\-I\-T\-\_\-\-S\-E\-T\-\_\-\-M\-S\-B(
+\begin{DoxyParamCaption}
+\item[{}]{var}
+\end{DoxyParamCaption}
+)}}\label{group__kern__bit__intf_ga6ba80e88a8a093ef86a50be3c527c525}
+{\bfseries Value\-:}
+\begin{DoxyCode}
+\textcolor{keywordflow}{do} \{                                                                        \(\backslash\)
+        var |= \hyperlink{group__kern__bit__intf_ga99c10e53689b8faa16cf6e8e5d5d4627}{ES\_BIT\_MASK\_MSB}(var);                                            \(\backslash\)
+    \} \textcolor{keywordflow}{while} (0)
+\end{DoxyCode}
+
+
+Postavlja M\-S\-B bit na jedan, \char`\"{}1\char`\"{}. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em var} & Promenljiva kojoj se postavlja M\-S\-B bit na jedan. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyAttention}{Attention}
+Macro does have side effects. 
+\end{DoxyAttention}
+\hypertarget{group__kern__bit__intf_ga1d3b2fa3215704398adf58917cf1667d}{\index{Kernel bit operations@{Kernel bit operations}!E\-S\-\_\-\-B\-I\-T\-\_\-\-C\-L\-R\-\_\-\-M\-S\-B@{E\-S\-\_\-\-B\-I\-T\-\_\-\-C\-L\-R\-\_\-\-M\-S\-B}}
+\index{E\-S\-\_\-\-B\-I\-T\-\_\-\-C\-L\-R\-\_\-\-M\-S\-B@{E\-S\-\_\-\-B\-I\-T\-\_\-\-C\-L\-R\-\_\-\-M\-S\-B}!Kernel bit operations@{Kernel bit operations}}
+\paragraph[{E\-S\-\_\-\-B\-I\-T\-\_\-\-C\-L\-R\-\_\-\-M\-S\-B}]{\setlength{\rightskip}{0pt plus 5cm}\#define E\-S\-\_\-\-B\-I\-T\-\_\-\-C\-L\-R\-\_\-\-M\-S\-B(
+\begin{DoxyParamCaption}
+\item[{}]{var}
+\end{DoxyParamCaption}
+)}}\label{group__kern__bit__intf_ga1d3b2fa3215704398adf58917cf1667d}
+{\bfseries Value\-:}
+\begin{DoxyCode}
+\textcolor{keywordflow}{do} \{                                                                        \(\backslash\)
+        var &= ~\hyperlink{group__kern__bit__intf_ga99c10e53689b8faa16cf6e8e5d5d4627}{ES\_BIT\_MASK\_MSB}(var);                                           \(\backslash\)
+    \} \textcolor{keywordflow}{while} (0)
+\end{DoxyCode}
+
+
+Postavlja M\-S\-B bit na nulu, \char`\"{}0\char`\"{}. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em var} & Promenljiva kojoj se postavlja M\-S\-B bit na nulu. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyAttention}{Attention}
+Macro does have side effects. 
+\end{DoxyAttention}

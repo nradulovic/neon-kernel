@@ -1,0 +1,20 @@
+/** 
+@file 
+*/
+/** 
+@page           changelog Change Log
+@brief          Brief change log
+
+2013-07-03 Nenad Radulovic
+
+- `NEW:` Initial implementation of system timer
+- `NEW:` Initial implementation of power savings features
+- `UPDATE:` Many functions have full API contract restrictions
+    
+2013-05-28 Nenad Radulovic 
+
+- `NEW:` Initial project import
+- `NEW:` Initial commit
+- `UPDATE:` Eclipse project files are added to gitignore
+ */
+

@@ -1,0 +1,6 @@
+<map id="lock.h" name="lock.h">
+<area shape="rect" id="node2" href="$cpu_8h.html" title="Interface of CPU port &#45; Template. " alt="" coords="175,80,256,107"/>
+<area shape="rect" id="node3" href="$compiler_8h.html" title="Interface of Compiler port &#45; Template. " alt="" coords="27,155,137,181"/>
+<area shape="rect" id="node6" href="$cpu__cfg_8h.html" title="Configuration of CPU port &#45; Template. " alt="" coords="162,155,269,181"/>
+<area shape="rect" id="node7" href="$kernel__cfg_8h.html" title="Configuration of Kernel &#45; Template. " alt="" coords="295,155,388,181"/>
+</map>

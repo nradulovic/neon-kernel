@@ -1,0 +1,71 @@
+.TH "dbgCobj_" 3 "Sat Nov 23 2013" "Version 1.0BetaR02" "eSolid - Real-Time Kernel" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+dbgCobj_ \- 
+.PP
+Debug C object information structure\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <dbg\&.h>\fP
+.SS "Data Structures"
+
+.in +1c
+.ti -1c
+.RI "struct \fBdbgModInfo_\fP"
+.br
+.RI "\fIDebug module information structure\&. \fP"
+.in -1c
+.SS "Data Fields"
+
+.in +1c
+.ti -1c
+.RI "const PORT_C_ROM struct 
+.br
+\fBdbgCobj_::dbgModInfo_\fP \fBmod\fP"
+.br
+.RI "\fIModule information\&. \fP"
+.ti -1c
+.RI "const PORT_C_ROM char *const 
+.br
+PORT_C_ROM_VAR \fBfn\fP"
+.br
+.RI "\fIFunction name\&. \fP"
+.ti -1c
+.RI "uint16_t \fBline\fP"
+.br
+.RI "\fICode line reference\&. \fP"
+.in -1c
+.SH "Detailed Description"
+.PP 
+Debug C object information structure\&. 
+
+
+.PP
+\fBObject class:\fP
+.RS 4
+\fBNot API\fP object, this object is not part of the application programming interface and it is intended for internal use only\&. 
+.RE
+.PP
+
+.SH "Field Documentation"
+.PP 
+.SS "const PORT_C_ROM struct \fBdbgCobj_::dbgModInfo_\fP dbgCobj_::mod"
+
+.PP
+Module information\&. 
+.SS "const PORT_C_ROM char* const PORT_C_ROM_VAR dbgCobj_::fn"
+
+.PP
+Function name\&. 
+.SS "uint16_t dbgCobj_::line"
+
+.PP
+Code line reference\&. 
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for eSolid - Real-Time Kernel from the source code\&.

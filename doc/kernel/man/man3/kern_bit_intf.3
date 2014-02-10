@@ -1,0 +1,371 @@
+.TH "Kernel bit operations" 3 "Sat Nov 23 2013" "Version 1.0BetaR02" "eSolid - Real-Time Kernel" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+Kernel bit operations \- 
+.PP
+Common bit operations macros used by kernel\&.  
+
+.SS "Macros"
+
+.in +1c
+.ti -1c
+.RI "#define \fBES_BIT_DIMENSION\fP(array)   (sizeof(array) / sizeof(array[0]))"
+.br
+.RI "\fIDetermines the first dimension of an array\&. \fP"
+.ti -1c
+.RI "#define \fBES_BIT_DIV_ROUND\fP(numerator, denominator)   (((numerator) + ((denominator) / 2U)) / (denominator))"
+.br
+.RI "\fIRound a division\&. \fP"
+.ti -1c
+.RI "#define \fBES_BIT_DIV_ROUNDUP\fP(numerator, denominator)   (((numerator) + (denominator) - 1u) / (denominator))"
+.br
+.RI "\fIRound up a division\&. \fP"
+.ti -1c
+.RI "#define \fBES_BIT_MAX\fP(expr1, expr2)   ((expr1 > expr2) ? expr1 : expr2))"
+.br
+.RI "\fIVraca vecu vrednost od ponudjenih vrednosti \fIexpr1\fP i \fIexpr2\fP\&. \fP"
+.ti -1c
+.RI "#define \fBES_BIT_MIN\fP(expr1, expr2)   ((expr1 < expr2) ? expr1 : expr2))"
+.br
+.RI "\fIVraca manju vrednost od ponudjenih vrednosti \fIexpr1\fP i \fIexpr2\fP\&. \fP"
+.ti -1c
+.RI "#define \fBES_BIT_ALIGN\fP(num, align)   ((num) & ~((align) - 1u))"
+.br
+.RI "\fIVrsi poravnjanje \fInum\fP promenjive sa granicama specificarane u \fIalign\fP\&. \fP"
+.ti -1c
+.RI "#define \fBES_BIT_ALIGN_UP\fP(num, align)   (((num) + (align) - 1u) & ~((align) - 1u))"
+.br
+.RI "\fIVrsi poravnjanje \fInum\fP promenjive sa granicama specificarane u \fIalign\fP\&. \fP"
+.ti -1c
+.RI "#define \fBES_BIT_FIND_LAST_SET\fP(val)   \fBPORT_BIT_FIND_LAST_SET\fP(val)"
+.br
+.RI "\fIFind last set bit in a word\&. \fP"
+.ti -1c
+.RI "#define \fBES_BIT_BIT_PWR2\fP(pwr)   \fBPORT_BIT_PWR2\fP(pwr)"
+.br
+.RI "\fIHelper macro: calculate 2^pwr expression\&. \fP"
+.ti -1c
+.RI "#define \fBES_BIT_IS_POW2\fP(num)   (!((num) & ((num) - 1)))"
+.br
+.RI "\fIDa li je \fCexpr\fP jednak nekom stepenu dvojke? \fP"
+.ti -1c
+.RI "#define \fBES_BIT_UINT8_LOG2\fP(x)"
+.br
+.RI "\fICalculate log2 for value \fCx\fP during the compilation\&. \fP"
+.ti -1c
+.RI "#define \fBES_BIT_MASK_MSB\fP(type)   (1uL << ((sizeof(type) * 8u) - 1u))"
+.br
+.RI "\fIKreira masku za MSB bit koji odgovara tipu \fCtype\fP\&. \fP"
+.ti -1c
+.RI "#define \fBES_BIT_SET_MSB\fP(var)"
+.br
+.RI "\fIPostavlja MSB bit na jedan, '1'\&. \fP"
+.ti -1c
+.RI "#define \fBES_BIT_CLR_MSB\fP(var)"
+.br
+.RI "\fIPostavlja MSB bit na nulu, '0'\&. \fP"
+.in -1c
+.SH "Detailed Description"
+.PP 
+Common bit operations macros used by kernel\&. 
+
+
+.SH "Macro Definition Documentation"
+.PP 
+.SS "#define ES_BIT_DIMENSION(array)   (sizeof(array) / sizeof(array[0]))"
+
+.PP
+Determines the first dimension of an array\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIarray\fP An array : type unspecified 
+.RE
+.PP
+\fBAttention:\fP
+.RS 4
+Macro does have side effects\&. 
+.RE
+.PP
+
+.SS "#define ES_BIT_DIV_ROUND(numerator, denominator)   (((numerator) + ((denominator) / 2U)) / (denominator))"
+
+.PP
+Round a division\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fInumerator\fP 
+.br
+\fIdenominator\fP 
+.RE
+.PP
+\fBNote:\fP
+.RS 4
+It is desirable that denominator is a constant expression, otherwise the compiler will generate two division operations\&. 
+.RE
+.PP
+\fBAttention:\fP
+.RS 4
+Macro does have side effects\&. 
+.RE
+.PP
+\fBExample 1:\fP
+.RS 4
+
+.PP
+.nf
+         numerator   = 28
+         denominator = 5
+
+         Integer division: 28 / 5 = 5
+         Float division  : 28 / 5 = 5.6
+         Rounded division: 28 / 5 = 6
+
+.fi
+.PP
+.RE
+.PP
+\fBExample 2:\fP
+.RS 4
+
+.PP
+.nf
+         numerator   = 27
+         denominator = 5
+
+         Integer division: 27 / 5 = 5
+         Float division  : 27 / 5 = 5.4
+         Rounded division: 27 / 5 = 5
+.fi
+.PP
+ 
+.RE
+.PP
+
+.SS "#define ES_BIT_DIV_ROUNDUP(numerator, denominator)   (((numerator) + (denominator) - 1u) / (denominator))"
+
+.PP
+Round up a division\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fInumerator\fP 
+.br
+\fIdenominator\fP 
+.RE
+.PP
+\fBNote:\fP
+.RS 4
+It is desirable that denominator is a constant expression, otherwise the compiler will generate one subtraction and one division operation\&. 
+.RE
+.PP
+\fBAttention:\fP
+.RS 4
+Macro does have side effects\&. 
+.RE
+.PP
+\fBExample 1:\fP
+.RS 4
+
+.PP
+.nf
+         numerator   = 28
+         denominator = 5
+
+         Integer division   : 28 / 5 = 5
+         Float division     : 28 / 5 = 5.6
+         Rounded up division: 28 / 5 = 6
+
+.fi
+.PP
+.RE
+.PP
+\fBExample 2:\fP
+.RS 4
+
+.PP
+.nf
+         numerator   = 27
+         denominator = 5
+
+         Integer division   : 27 / 5 = 5
+         Float division     : 27 / 5 = 5.4
+         Rounded up division: 27 / 5 = 6
+.fi
+.PP
+ 
+.RE
+.PP
+
+.SS "#define ES_BIT_MAX(expr1, expr2)   ((expr1 > expr2) ? expr1 : expr2))"
+
+.PP
+Vraca vecu vrednost od ponudjenih vrednosti \fIexpr1\fP i \fIexpr2\fP\&. 
+.SS "#define ES_BIT_MIN(expr1, expr2)   ((expr1 < expr2) ? expr1 : expr2))"
+
+.PP
+Vraca manju vrednost od ponudjenih vrednosti \fIexpr1\fP i \fIexpr2\fP\&. 
+.SS "#define ES_BIT_ALIGN(num, align)   ((num) & ~((align) - 1u))"
+
+.PP
+Vrsi poravnjanje \fInum\fP promenjive sa granicama specificarane u \fIalign\fP\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fInum\fP Promenjiva koju treba poravnati, 
+.br
+\fIalign\fP granica poravnanja\&.
+.RE
+.PP
+Primer: \fIexpr1\fP ima binarnu vrednost: 10010101 = 149 \fIexpr2\fP ima binarnu vrednost: 00000100 = 4 Dobija se 152\&. 
+.PP
+\fBAttention:\fP
+.RS 4
+Macro does have side effects\&. 
+.RE
+.PP
+
+.SS "#define ES_BIT_ALIGN_UP(num, align)   (((num) + (align) - 1u) & ~((align) - 1u))"
+
+.PP
+Vrsi poravnjanje \fInum\fP promenjive sa granicama specificarane u \fIalign\fP\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fInum\fP Promenjiva koju treba poravnati, 
+.br
+\fIalign\fP granica poravnanja\&.
+.RE
+.PP
+Primer: \fIexpr1\fP ima binarnu vrednost: 10010101 = 149 \fIexpr2\fP ima binarnu vrednost: 00000100 = 4 Dobija se 152\&. 
+.PP
+\fBAttention:\fP
+.RS 4
+Macro does have side effects\&. 
+.RE
+.PP
+
+.SS "#define ES_BIT_FIND_LAST_SET(val)   \fBPORT_BIT_FIND_LAST_SET\fP(val)"
+
+.PP
+Find last set bit in a word\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIval\fP Value : portReg_T, value which needs to be evaluated 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The position of the last set bit in a value
+.RE
+.PP
+This function is used by the scheduler to efficiently determine the highest priority of thread ready for execution\&. For similar algorithm details see: http://en.wikipedia.org/wiki/Find_first_set\&. 
+.SS "#define ES_BIT_BIT_PWR2(pwr)   \fBPORT_BIT_PWR2\fP(pwr)"
+
+.PP
+Helper macro: calculate 2^pwr expression\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIpwr\fP Power : portReg_T, value which will be used in calculation
+.RE
+.PP
+Some ports may want to use look up tables instead of shifting operation 
+.SS "#define ES_BIT_IS_POW2(num)   (!((num) & ((num) - 1)))"
+
+.PP
+Da li je \fCexpr\fP jednak nekom stepenu dvojke? Makro vraca TRUE kada je vrednost \fCexpr\fP izraza jednaka nekom stepenu dvojke, inace, vraca FALSE\&. 
+.PP
+\fBAttention:\fP
+.RS 4
+Macro does have side effects\&. 
+.RE
+.PP
+
+.SS "#define ES_BIT_UINT8_LOG2(x)"
+\fBValue:\fP
+.PP
+.nf
+((x) <   2u ? 0u :                                                          \
+     ((x) <   4u ? 1u :                                                         \
+      ((x) <   8u ? 2u :                                                        \
+       ((x) <  16u ? 3u :                                                       \
+        ((x) <  32u ? 4u :                                                      \
+         ((x) <  64u ? 5u :                                                     \
+          ((x) < 128u ? 6u : 7u)))))))
+.fi
+.PP
+Calculate log2 for value \fCx\fP during the compilation\&. 
+.PP
+\fBAttention:\fP
+.RS 4
+Macro does have side effects\&. 
+.RE
+.PP
+
+.SS "#define ES_BIT_MASK_MSB(type)   (1uL << ((sizeof(type) * 8u) - 1u))"
+
+.PP
+Kreira masku za MSB bit koji odgovara tipu \fCtype\fP\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fItype\fP Tip podataka za koji se trazi MSB\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Odgovarajuca binarna maska za MSB\&. 
+.RE
+.PP
+
+.SS "#define ES_BIT_SET_MSB(var)"
+\fBValue:\fP
+.PP
+.nf
+do {                                                                        \
+        var |= ES_BIT_MASK_MSB(var);                                            \
+    } while (0)
+.fi
+.PP
+Postavlja MSB bit na jedan, '1'\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIvar\fP Promenljiva kojoj se postavlja MSB bit na jedan\&. 
+.RE
+.PP
+\fBAttention:\fP
+.RS 4
+Macro does have side effects\&. 
+.RE
+.PP
+
+.SS "#define ES_BIT_CLR_MSB(var)"
+\fBValue:\fP
+.PP
+.nf
+do {                                                                        \
+        var &= ~ES_BIT_MASK_MSB(var);                                           \
+    } while (0)
+.fi
+.PP
+Postavlja MSB bit na nulu, '0'\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIvar\fP Promenljiva kojoj se postavlja MSB bit na nulu\&. 
+.RE
+.PP
+\fBAttention:\fP
+.RS 4
+Macro does have side effects\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for eSolid - Real-Time Kernel from the source code\&.

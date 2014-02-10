@@ -1,0 +1,51 @@
+.TH "esThdQ::pbm_" 3 "Sat Nov 30 2013" "Version 1.0BetaR02" "eSolid - Real-Time Kernel" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+esThdQ::pbm_ \- 
+.PP
+Priority Bit Map structure\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <kernel\&.h>\fP
+.SS "Data Fields"
+
+.in +1c
+.ti -1c
+.RI "portReg_T \fBbitGrp\fP"
+.br
+.RI "\fIBit group indicator\&. \fP"
+.ti -1c
+.RI "portReg_T \fBbit\fP [ES_DIV_ROUNDUP(\fBCFG_SCHED_PRIO_LVL\fP, PORT_DEF_DATA_WIDTH)]"
+.br
+.RI "\fIBit priority indicator\&. \fP"
+.in -1c
+.SH "Detailed Description"
+.PP 
+Priority Bit Map structure\&. 
+
+
+.PP
+\fBObject class:\fP
+.RS 4
+\fBNot API\fP object, this object is not part of the application programming interface and it is intended for internal use only\&. 
+.RE
+.PP
+
+.SH "Field Documentation"
+.PP 
+.SS "portReg_T esThdQ::pbm_::bitGrp"
+
+.PP
+Bit group indicator\&. 
+.SS "portReg_T esThdQ::pbm_::bit[ES_DIV_ROUNDUP(\fBCFG_SCHED_PRIO_LVL\fP, PORT_DEF_DATA_WIDTH)]"
+
+.PP
+Bit priority indicator\&. 
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for eSolid - Real-Time Kernel from the source code\&.

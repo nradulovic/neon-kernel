@@ -1,0 +1,30 @@
+.TH "errors" 3 "Sat Nov 30 2013" "Version 1.0BetaR02" "eSolid - Real-Time Kernel" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+errors \- Debug: Error checking 
+How errors are detected
+.SH "Intro"
+.PP
+An assertion is a statement in programming language that enables programmer to test the assumptions about the program\&.
+.PP
+During the development cycle, the programmer will run the program with assertions enabled\&. When an assertion failure occurs, the programmer is immediately notified about the problem\&. Failed assertion will also halt the CPU's execution: this is useful, since if the application continued to run after an assertion violation has occurred, it might corrupt its state and make the cause of the problem more difficult to locate\&. Using the information provided by the assertion failure function (dbdAssert()), the programmer can usually fix the problem\&. Thus assertions provide a very powerful tool in debugging\&.
+.PP
+\fBAssertions in design by contract\fP
+.RS 4
+
+.RE
+.PP
+Assertions can function as a form of function documentation: they describe the state the code expects to find before it runs (its preconditions), and the state the code expects to result in when it is finished running (postconditions)\&.
+.SH "Usage"
+.PP
+\fBConfiguration\fP
+.RS 4
+
+.RE
+.PP
+In order to use Debug macros configuration option \fBCFG_DBG_ENABLE\fP must be active\&. This option will enable generic assert macros which are used by other macros of Debug module\&.
+.PP
+To activate API contract validation macros configuration option \fBCFG_DBG_API_VALIDATION\fP must be also activated\&.
+.PP
+Internal checking macros are activated with option \fBCFG_DBG_INTERNAL_CHECK\fP\&. 

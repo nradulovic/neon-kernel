@@ -1,0 +1,104 @@
+.TH "Kernel control block" 3 "Sat Nov 30 2013" "Version 1.0BetaR02" "eSolid - Real-Time Kernel" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+Kernel control block \- 
+.PP
+Low-level kernel information and status access\&.  
+
+.SS "Data Structures"
+
+.in +1c
+.ti -1c
+.RI "struct \fBkernCtrl_\fP"
+.br
+.RI "\fIKernel control block structure\&. \fP"
+.in -1c
+.SS "Typedefs"
+
+.in +1c
+.ti -1c
+.RI "typedef enum \fBesKernState\fP \fBesKernState_T\fP"
+.br
+.RI "\fIKernel state type\&. \fP"
+.in -1c
+.SS "Enumerations"
+
+.in +1c
+.ti -1c
+.RI "enum \fBesKernState\fP { \fBES_KERN_RUN\fP = 0x00u, \fBES_KERN_INTSRV_RUN\fP = 0x01u, \fBES_KERN_LOCK\fP = 0x02u, \fBES_KERN_INTSRV_LOCK\fP = 0x03u, \fBES_KERN_SLEEP\fP = 0x06u, \fBES_KERN_INIT\fP = 0x08u, \fBES_KERN_INACTIVE\fP = 0x10u }"
+.br
+.RI "\fIKernel state enumeration\&. \fP"
+.in -1c
+.SS "Variables"
+
+.in +1c
+.ti -1c
+.RI "const struct \fBkernCtrl_\fP \fBKernCtrl\fP"
+.br
+.RI "\fIKernel control block\&. \fP"
+.in -1c
+.SH "Detailed Description"
+.PP 
+Low-level kernel information and status access\&. 
+
+
+.SH "Typedef Documentation"
+.PP 
+.SS "typedef enum \fBesKernState\fP \fBesKernState_T\fP"
+
+.PP
+Kernel state type\&. 
+.SH "Enumeration Type Documentation"
+.PP 
+.SS "enum \fBesKernState\fP"
+
+.PP
+Kernel state enumeration\&. For more details see: \fBKernel states\fP 
+.PP
+\fBObject class:\fP
+.RS 4
+Regular \fBAPI\fP object, this object is part of the application programming interface\&. 
+.RE
+.PP
+
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIES_KERN_RUN \fP\fP
+Kernel is active 
+.TP
+\fB\fIES_KERN_INTSRV_RUN \fP\fP
+Servicing an interrupt, return to ES_KERN_RUN state 
+.TP
+\fB\fIES_KERN_LOCK \fP\fP
+Kernel is locked 
+.TP
+\fB\fIES_KERN_INTSRV_LOCK \fP\fP
+Servicing an interrupt, return to ES_KERN_LOCK state 
+.TP
+\fB\fIES_KERN_SLEEP \fP\fP
+Kernel is sleeping 
+.TP
+\fB\fIES_KERN_INIT \fP\fP
+Kernel is in initialization state 
+.TP
+\fB\fIES_KERN_INACTIVE \fP\fP
+Kernel data structures are not initialized 
+.SH "Variable Documentation"
+.PP 
+.SS "const struct \fBkernCtrl_\fP KernCtrl"
+
+.PP
+Kernel control block\&. 
+.PP
+\fBNote:\fP
+.RS 4
+This variable has Read-Only access rights for application\&.
+.RE
+.PP
+Kernel control block\&. 
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for eSolid - Real-Time Kernel from the source code\&.

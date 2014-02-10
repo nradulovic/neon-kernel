@@ -1,0 +1,64 @@
+.TH "md__home_nenad_git_nradulovic_esolid-kernel_README" 3 "Sat Nov 30 2013" "Version 1.0BetaR02" "eSolid - Real-Time Kernel" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+md__home_nenad_git_nradulovic_esolid-kernel_README \- Quick-start guide 
+This is a bare-kernel, the result of two weeks of work\&. It is intended for a bigger project which already includes some synchronization mechanisms\&. The initial idea was that this kernel would only provide minimal functionality for context switching, but the kernel implementation went so nicely that I think that it would be great to share it\&.
+.PP
+eSolid is a collection of resources for embedded system design and this Real-Time kernel is only a piece of that collection\&. Because of that fact remember: \fIthere are (still) no synchronization or IPC mechanisms in this kernel\fP, and it can be viewed as a preemptive Round-Robin scheduler, only\&.
+.PP
+.SS "TODO list"
+.PP
+.IP "\(bu" 2
+Integrate a profiling system (memory/stack usage, cpu usage\&.\&.\&.)
+.IP "\(bu" 2
+test, test, test\&.\&.\&.
+.PP
+.PP
+.SH "Using eSolid - Real-Time Kernel"
+.PP
+.PP
+.SS "Configuration and ports"
+.PP
+Configuration is done in two files: \fC\fBkernel_cfg\&.h\fP\fP (port independent settings) and in \fCcpu_cfg\&.h\fP (port depended settings, located in port structure)\&. Currently, kernel is ported only to ARMv7-M architecture range of microcontrollers\&. It was tested on STM32F100 series of microcontrollers, but it should work, with minimal modifications, on any ARMv7-M CPU\&. Some other ports like AVR-GCC are planned, too\&.
+.PP
+.SS "Building"
+.PP
+The kernel was built using arm-none-eabi GCC v4\&.7\&.3 compiler toolchain (from https://launchpad.net/gcc-arm-embedded/+download) and binary was downloaded to the MCU using \fItexane\fP gdb-server\&. There are no makefiles, it is assumed that IDE will generate them for you\&.
+.PP
+.SS "Example for STM32F10x family port"
+.PP
+There are two groups of source files which need to be compiled for ARMv7-M architecture:
+.IP "\(bu" 2
+\fBkernel\&.c\fP, semaphore\&.c, dbg\&.c in \fC\&./src\fP source directory and
+.IP "\(bu" 2
+cpu\&.c in \fC\&./port/arm-none-eabi-gcc/v7-m\fP port directory\&.
+.PP
+.PP
+The following include paths are needed:
+.IP "\(bu" 2
+\fC\&./inc\fP
+.IP "\(bu" 2
+\fC\&./port/arm-none-eabi-gcc/common\fP
+.IP "\(bu" 2
+\fC\&./port/arm-none-eabi-gcc/v7-m\fP
+.IP "\(bu" 2
+\fC\&./port/arm-none-eabi-gcc/stm32f10x\fP
+.PP
+.PP
+.SS "Documentation"
+.PP
+Some documentation is available under Wiki https://github.com/nradulovic/esolid-kernel/wiki\&. Doxygen configuration and full documentation source files are available in \fC/doc\fP directory\&. Go to the directory \fCdoc\fP create a directory named \fCkernel\fP and than run doxygen: 
+.PP
+.nf
+# doxygen doxyfile-kernel
+# doxygen doxyfile-kernel-port
+
+.fi
+.PP
+.PP
+This will generate HTML, LaTex and man documentation in \fC\&./doc/kernel\fP and \fC\&./doc/kernel-port\fP directories, respectively\&.
+.PP
+.SS "Running"
+.PP
+To successfully use and run kernel you will need to study the kernel documentation\&. The documentation is still being written and some examples will be added later\&. 

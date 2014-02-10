@@ -77,7 +77,7 @@
 
 /**@brief       The frequency of system timer tick event
  * @note        This setting is valid only if configuration option
- *              @ref PORT_CFG_SYSTMR_CLOCK_FREQ is properly set in port
+ *              @ref CONFIG_SYSTIMER_CLOCK_FREQ is properly set in port
  *              configuration file cpu_cfg.h
  */
 #if !defined(CFG_SYSTMR_EVENT_FREQUENCY)

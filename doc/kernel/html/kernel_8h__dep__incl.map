@@ -1,0 +1,5 @@
+<map id="kernel.h" name="kernel.h">
+<area shape="rect" id="node2" href="$semaphore_8h.html" title="Interface of semaphore. " alt="" coords="5,80,101,107"/>
+<area shape="rect" id="node3" href="$kernel_8c.html" title="Implementation of kernel port independent code. " alt="" coords="126,80,193,107"/>
+<area shape="rect" id="node4" href="$kcore_8c.html" title="Implementation of CPU port &#45; Template. " alt="" coords="218,80,283,107"/>
+</map>

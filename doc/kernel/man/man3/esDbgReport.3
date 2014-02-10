@@ -1,0 +1,107 @@
+.TH "esDbgReport" 3 "Sat Nov 23 2013" "Version 1.0BetaR02" "eSolid - Real-Time Kernel" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+esDbgReport \- 
+.PP
+Debug report structure\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <dbg\&.h>\fP
+.SS "Data Fields"
+
+.in +1c
+.ti -1c
+.RI "const PORT_C_ROM char * \fBmodName\fP"
+.br
+.RI "\fIModule name\&. \fP"
+.ti -1c
+.RI "const PORT_C_ROM char * \fBmodDesc\fP"
+.br
+.RI "\fIModule description\&. \fP"
+.ti -1c
+.RI "const PORT_C_ROM char * \fBmodAuthor\fP"
+.br
+.RI "\fIModule author\&. \fP"
+.ti -1c
+.RI "const PORT_C_ROM char * \fBmodFile\fP"
+.br
+.RI "\fIModule source file\&. \fP"
+.ti -1c
+.RI "const PORT_C_ROM char * \fBfnName\fP"
+.br
+.RI "\fIFunction name\&. \fP"
+.ti -1c
+.RI "const PORT_C_ROM char * \fBexpr\fP"
+.br
+.RI "\fIC expression\&. \fP"
+.ti -1c
+.RI "const PORT_C_ROM char * \fBmsgText\fP"
+.br
+.RI "\fIAdditional text\&. \fP"
+.ti -1c
+.RI "uint16_t \fBline\fP"
+.br
+.RI "\fISource code line where exception occurred\&. \fP"
+.ti -1c
+.RI "enum \fBesDbgMsgNum\fP \fBmsgNum\fP"
+.br
+.RI "\fINumber associated with additional text\&. \fP"
+.in -1c
+.SH "Detailed Description"
+.PP 
+Debug report structure\&. 
+
+This detailed debug report prepared by \fBdbgAssert()\fP function\&. Use this structure to present the report to the user\&. 
+.PP
+\fBObject class:\fP
+.RS 4
+Regular \fBAPI\fP object, this object is part of the application programming interface\&. 
+.RE
+.PP
+
+.SH "Field Documentation"
+.PP 
+.SS "const PORT_C_ROM char* esDbgReport::modName"
+
+.PP
+Module name\&. 
+.SS "const PORT_C_ROM char* esDbgReport::modDesc"
+
+.PP
+Module description\&. 
+.SS "const PORT_C_ROM char* esDbgReport::modAuthor"
+
+.PP
+Module author\&. 
+.SS "const PORT_C_ROM char* esDbgReport::modFile"
+
+.PP
+Module source file\&. 
+.SS "const PORT_C_ROM char* esDbgReport::fnName"
+
+.PP
+Function name\&. 
+.SS "const PORT_C_ROM char* esDbgReport::expr"
+
+.PP
+C expression\&. 
+.SS "const PORT_C_ROM char* esDbgReport::msgText"
+
+.PP
+Additional text\&. 
+.SS "uint16_t esDbgReport::line"
+
+.PP
+Source code line where exception occurred\&. 
+.SS "enum \fBesDbgMsgNum\fP esDbgReport::msgNum"
+
+.PP
+Number associated with additional text\&. 
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for eSolid - Real-Time Kernel from the source code\&.

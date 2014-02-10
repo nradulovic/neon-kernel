@@ -1,0 +1,78 @@
+How to deal with critical sections in an application\hypertarget{critical_section_cs_intro}{}\subsection{Intro}\label{critical_section_cs_intro}
+In concurrent programming, a critical section is a piece of code that accesses a shared resource (data structure or device) that must not be concurrently accessed by more than one thread of execution. A critical section will usually terminate in fixed time, and a thread will have to wait for a fixed time to enter it (aka bounded waiting). Some synchronization mechanism is required at the entry and exit of the critical section to ensure exclusive use, for example a semaphore.\hypertarget{critical_section_kern_critical_sections}{}\subsubsection{e\-Solid -\/ R\-T Kernel internal critical sections}\label{critical_section_kern_critical_sections}
+In contrast to application code in kernel code there is no other mechanism to protect critical code except disabling interrupts. Fortunately, some ports have ability to mask certain interrupts with low priority and allow interrupts with higher priority. By masking low priority interrupts the kernel can protect its critical sections. However for this scheme to work its forbidden to call any O\-S service function from a high priority interrupt. If this rule is not followed then the high priority interrupt with an O\-S service function call can preempt the kernel low priority interrupt which will in that case corrupt the kernel internal data structures.
+
+\begin{DoxyNote}{Note}
+1) It is forbidden to call any O\-S service function from an interrupt with the priority higher than the kernel interrupt priority. 
+
+2) On some ports the kernel never completely disables interrupts.
+\end{DoxyNote}
+\hypertarget{critical_section_cs_implementation}{}\subsection{Implementation}\label{critical_section_cs_implementation}
+There are multiple ways how are critical sections implemented\-:
+\begin{DoxyItemize}
+\item The simplest method is to prevent interrupts on entry into the critical section, and restoring interrupts to their previous state on exit from critical section. Any thread of execution entering any critical section anywhere in the system, with this implementation, will prevent any other thread, including an interrupt, from being executed on the C\-P\-U.
+\item This approach can be improved upon by using semaphores. To enter a critical section, a thread must obtain a semaphore, which it releases on leaving the section. Other threads are prevented from entering the critical section at the same time as the original thread, but are free to gain control of the C\-P\-U and execute other code, including other critical sections that are protected by different semaphores.
+\end{DoxyItemize}\hypertarget{critical_section_cs_interrupt_lock}{}\subsubsection{Disabling interrupts}\label{critical_section_cs_interrupt_lock}
+In order to properly disable interrupts the application must follow these steps\-:
+\begin{DoxyItemize}
+\item declare an {\ttfamily auto} variable which will hold interrupt state
+\item save interrupt status into {\ttfamily auto} variable and disable interrupts
+\item access the shared resource
+\item restore previously saved interrupt state
+\end{DoxyItemize}
+
+The {\ttfamily auto} variable must be of portable type {\ttfamily port\-Reg\-\_\-\-T}. This variable will hold temporary interrupt status. Then by using the macro {\ttfamily E\-S\-\_\-\-C\-R\-I\-T\-I\-C\-A\-L\-\_\-\-L\-O\-C\-K\-\_\-\-E\-N\-T\-E\-R()} the state of enabled interrupts will be saved in interrupt context variable declared earlier. Immediately after saving the interrupt state the macro will lock interrupts. Now the code can safely access and use the shared resource. When code finishes using the resource it will call {\ttfamily E\-S\-\_\-\-C\-R\-I\-T\-I\-C\-A\-L\-\_\-\-L\-O\-C\-K\-\_\-\-E\-X\-I\-T()} macro. This macro will restore interrupts from the previously saved interrupt state.
+
+
+\begin{DoxyCode}
+portReg\_T intCtx;                   \textcolor{comment}{/* Declare an interrupt context status variable */}
+    :
+    :
+    :
+ES\_CRITICAL\_LOCK\_ENTER(&intCtx);    \textcolor{comment}{/* Save state and lock interrupts */}
+\textcolor{comment}{/*}
+\textcolor{comment}{ * Access the shared resource}
+\textcolor{comment}{ */}
+ES\_CRITICAL\_LOCK\_EXIT(intCtx);      \textcolor{comment}{/* Restore previous state unlocking the interrupts */}
+\end{DoxyCode}
+ \begin{DoxyParagraph}{When to use this scheme}
+
+\begin{DoxyItemize}
+\item If interrupt service routine {\itshape changes} the shared resource state.
+\item If the processing time of critical section is very small.
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{When not to use this scheme}
+
+\begin{DoxyItemize}
+\item If interrupt service routine takes a lot of C\-P\-U time to process critical section do not use this method. If a critical section is long, then the system clock will drift every time a critical section is executed because the system timer interrupt can not be serviced. Also, if a program execution halts during its critical section, control will never be returned to another thread, effectively halting the entire system.
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyNote}{Note}
+Context switching is disabled during critical code section execution.
+\end{DoxyNote}
+\hypertarget{critical_section_cs_kernel_lock}{}\subsubsection{Disabling Kernel scheduler}\label{critical_section_cs_kernel_lock}
+Another way to deal with a critical section and protect your shared resource is by locking the kernel scheduler. The kernel locking can be used only if you know that protected data will be modified only by other threads. This protection scheme can not be used when data is modified by interrupt service routines.
+
+
+\begin{DoxyCode}
+\hyperlink{group__kern__lock_ga86ec4f4cbaa889b0f23c7e2ebdcbbb97}{esKernLockEnter}();                  \textcolor{comment}{/* Temporarily disable kernel scheduler  */}
+\textcolor{comment}{/*}
+\textcolor{comment}{ * Access the shared resource}
+\textcolor{comment}{ */}
+\hyperlink{group__kern__lock_gaf1eec663f7cc5c414b113901382ccd82}{esKernLockExit}();                   \textcolor{comment}{/* Enable kernel scheduler */}
+\end{DoxyCode}
+ \begin{DoxyParagraph}{When to use this scheme}
+
+\begin{DoxyItemize}
+\item If interrupt service routine {\itshape never changes} the shared resource state.
+\item If the processing time of critical section is very small.
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{When not to use this scheme}
+
+\begin{DoxyItemize}
+\item If interrupt service routine takes a lot of C\-P\-U time to process critical section do not use this method. If a critical section is long, then the system will be {\itshape partially} unresponsive to other events since interrupt service routines can be invoked, but note that any further processing by other threads is still disabled.
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\hypertarget{critical_section_cs_sem_lock}{}\subsubsection{Using semaphores}\label{critical_section_cs_sem_lock}
