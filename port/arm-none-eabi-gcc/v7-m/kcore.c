@@ -27,7 +27,7 @@
 
 /*=========================================================  INCLUDE FILES  ==*/
 
-#include "kernel/kernel.h"
+#include "kernel/nsys.h"
 
 /*=========================================================  LOCAL MACRO's  ==*/
 
@@ -54,8 +54,7 @@ static void threadExit(
 static void threadExit(
     void) {
 
-    esThdTerm(
-        esThdGetId());
+    nthread_term(nsched_get_current());
 
     while (true);
 }
@@ -98,10 +97,10 @@ void * portCtxInit(
 
     sp       = (struct esThreadCtx *)((uint8_t *)stck + stckSize);
     sp--;
-    sp->xpsr = (esIntrCtx)(PORT_PSR_THUMB_STATE_Msk | PORT_CONFIG_KCORE_PSR_DATA);
-    sp->pc   = (esIntrCtx)fn;
-    sp->lr   = (esIntrCtx)threadExit;
-    sp->r0   = (esIntrCtx)arg;
+    sp->xpsr = (nintr_ctx)(PORT_PSR_THUMB_STATE_Msk | PORT_CONFIG_KCORE_PSR_DATA);
+    sp->pc   = (nintr_ctx)fn;
+    sp->lr   = (nintr_ctx)threadExit;
+    sp->r0   = (nintr_ctx)arg;
 
     return (sp);
 }
@@ -155,7 +154,7 @@ PORT_C_NAKED void kcoreSVC(
         "   mov     lr, %1                                  \n"               /* (10)                                                     */
         "   bx      lr                                      \n"               /* Return to first thread                                   */
         :
-        :   "i"(&KernCtrl.cthd),
+        :   "i"(&global_sched_ctx.cthread),
             "i"(DEF_EXC_RETURN),
             "i"(ES_INTR_PRIO_TO_CODE(CONFIG_INTR_MAX_ISR_PRIO)));
 #else
@@ -170,7 +169,7 @@ PORT_C_NAKED void kcoreSVC(
         "   mov     lr, %1                                  \n"               /* (10)                                                     */
         "   bx      lr                                      \n"               /* Return to first thread                                   */
         :
-        :   "i"(&KernCtrl.cthd),
+        :   "i"(&global_sched_ctx.cthread),
             "i"(DEF_EXC_RETURN));
 #endif
 }
@@ -206,9 +205,9 @@ PORT_C_NAKED void kcorePendSV(
         "   msr     basepri, r3                             \n"               /* (14)                                                     */
         "   bx      lr                                      \n"               /* Return to new thread                                     */
         :
-        :   "i"(&KernCtrl),
-            "J"(offsetof(struct kernCtrl_, cthd)),
-            "J"(offsetof(struct kernCtrl_, pthd)),
+        :   "i"(&global_sched_ctx),
+            "J"(offsetof(struct nsched_ctx, cthread)),
+            "J"(offsetof(struct nsched_ctx, pthread)),
             "i"(ES_INTR_PRIO_TO_CODE(CONFIG_INTR_MAX_ISR_PRIO)));
 #else
     __asm__ __volatile__ (
@@ -226,18 +225,18 @@ PORT_C_NAKED void kcorePendSV(
         "   cpsie   i                                       \n"               /* (14)                                                     */
         "   bx      lr                                      \n"               /* Return to new thread                                     */
         :
-        :   "i"(&KernCtrl),
-            "J"(offsetof(esKernCtrl_T, cthd)),
-            "J"(offsetof(esKernCtrl_T, pthd)));
+        :   "i"(&global_sched_ctx),
+            "J"(offsetof(esKernCtrl_T, cthread)),
+            "J"(offsetof(esKernCtrl_T, pthread)));
 #endif
 }
 
 void portSysTmr(
     void) {
 
-    esKernIsrEnterI();
+    nsys_isr_enter_i();
     esKernSysTmr();
-    esKernIsrExitI();
+    nsys_isr_exit_i();
 }
 
 /*================================*//** @cond *//*==  CONFIGURATION ERRORS  ==*/

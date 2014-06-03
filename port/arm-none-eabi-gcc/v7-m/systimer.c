@@ -21,38 +21,83 @@
  *//***********************************************************************//**
  * @file
  * @author      Nenad Radulovic
- * @brief       Implementation of CPU port - Template
- * @addtogroup  template_cpu_impl
+ * @brief       Implementation of ARM Cortex-M3 System Timer port.
+ * @addtogroup  arm-none-eabi-systimer
  *********************************************************************//** @{ */
+/**@defgroup    arm-none-eabi-systimer_impl System Timer module Implementation
+ * @brief       System Timer module Implementation
+ * @{ *//*--------------------------------------------------------------------*/
 
 /*=========================================================  INCLUDE FILES  ==*/
 
-#include "kernel/nsys.h"
+#include <stddef.h>
+
+#include "arch/systimer.h"
+#include "arch/intr.h"
+#include "kernel/nbitop.h"
+#include "kernel/ndebug.h"
 
 /*=========================================================  LOCAL MACRO's  ==*/
 /*======================================================  LOCAL DATA TYPES  ==*/
 /*=============================================  LOCAL FUNCTION PROTOTYPES  ==*/
 /*=======================================================  LOCAL VARIABLES  ==*/
+
+static const NMODULE_INFO_CREATE("systimer", "System Timer (port)", "Nenad Radulovic");
+
+static void (* GlobalSysTimerHandler[4])(void);
+
 /*======================================================  GLOBAL VARIABLES  ==*/
 /*============================================  LOCAL FUNCTION DEFINITIONS  ==*/
 /*===================================  GLOBAL PRIVATE FUNCTION DEFINITIONS  ==*/
 /*====================================  GLOBAL PUBLIC FUNCTION DEFINITIONS  ==*/
 
-void * portCtxInit(
-    void *              stck,
-    size_t              stckSize,
-    void (* fn)(void *),
-    void *              arg) {
+void portModuleSysTimerInit(
+    void) {
 
-    (void)stck;
-    (void)stckSize;
-    (void)fn;
-    (void)arg;
+    ES_SYSTIMER_DISABLE();
+    /*
+     * TODO: Clear interrupt flag and interrupt enable bits
+     * TODO: Set up ISR priority
+     */
+}
 
-    return (NULL);
+void portModuleSysTimerTerm(
+    void) {
+
+    ES_SYSTIMER_DISABLE();
+    /*
+     * TODO: Clear interrupt flag and interrupt enable bits
+     */
+}
+
+void portSysTimerSetHandler(
+    void             (* handler)(void),
+    uint_fast8_t        level) {
+
+    NREQUIRE(ES_API_RANGE, level < NARRAY_DIMENSION(GlobalSysTimerHandler));
+
+    GlobalSysTimerHandler[level] = handler;
+}
+
+
+
+void portSysTimerHandler(
+    void) {
+
+    uint_fast8_t        count;
+
+    for (count = 0; count < NARRAY_DIMENSION(GlobalSysTimerHandler); count++) {
+        if (GlobalSysTimerHandler[count] != NULL) {
+            GlobalSysTimerHandler[count]();
+        }
+    }
+    /*
+     * TODO: Clear interrupt flag
+     */
 }
 
 /*================================*//** @cond *//*==  CONFIGURATION ERRORS  ==*/
-/** @endcond *//** @} *//******************************************************
+/** @endcond *//** @} *//** @} *//*********************************************
  * END of cpu.c
  ******************************************************************************/
+

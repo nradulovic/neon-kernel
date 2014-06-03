@@ -18,16 +18,26 @@
  *
  * web site:    http://github.com/nradulovic
  * e-mail  :    nenad.b.radulovic@gmail.com
- *//***********************************************************************//**
+ *//***************************************************************************************************************//**
  * @file
  * @author      Nenad Radulovic
- * @brief       Implementation of CPU port - Template
- * @addtogroup  template_cpu_impl
+ * @brief       Debug support Implementation
+ * @addtogroup  nano_dbg
  *********************************************************************//** @{ */
+/**@defgroup    nano_dbg_impl Debug support Implementation
+ * @brief       Debug support Implementation
+ * @{ *//*--------------------------------------------------------------------*/
 
 /*=========================================================  INCLUDE FILES  ==*/
 
-#include "kernel/nsys.h"
+#include <stdbool.h>
+#include <stddef.h>
+
+#include "plat/compiler.h"
+#include "arch/cpu.h"
+#include "arch/intr.h"
+
+#include "kernel/ndebug.h"
 
 /*=========================================================  LOCAL MACRO's  ==*/
 /*======================================================  LOCAL DATA TYPES  ==*/
@@ -38,21 +48,44 @@
 /*===================================  GLOBAL PRIVATE FUNCTION DEFINITIONS  ==*/
 /*====================================  GLOBAL PUBLIC FUNCTION DEFINITIONS  ==*/
 
-void * portCtxInit(
-    void *              stck,
-    size_t              stckSize,
-    void (* fn)(void *),
-    void *              arg) {
+/* 1)       This function will disable all interrupts to prevent any new
+ *          interrupts to execute which can trigger another assert causing a
+ *          very confusing situation of why it failed.
+ */
+PORT_C_NORETURN void ndebug_assert(
+    const PORT_C_ROM struct ndebug_object * object,
+    const PORT_C_ROM char *                 expression,
+    const PORT_C_ROM char *                 message)
+{
+    struct ndebug_report report;
 
-    (void)stck;
-    (void)stckSize;
-    (void)fn;
-    (void)arg;
+    ES_INTR_DISABLE();
 
-    return (NULL);
+    if (object->mod != NULL)
+    {
+        report.mod_name   = object->mod->name;
+        report.mod_desc   = object->mod->desc;
+        report.mod_author = object->mod->auth;
+        report.mod_file   = object->mod->file;
+    }
+    else
+    {
+        report.mod_name   = "Unnamed";
+        report.mod_desc   = "not specified";
+        report.mod_author = "not specified";
+        report.mod_file   = "not specified";
+    }
+    report.fn_name = object->fn;
+    report.expr    = expression;
+    report.msg     = message;
+    report.line    = object->line;
+    userAssert(&report);
+    ES_CPU_TERM();
+
+    while (true);
 }
 
 /*================================*//** @cond *//*==  CONFIGURATION ERRORS  ==*/
-/** @endcond *//** @} *//******************************************************
- * END of cpu.c
+/** @endcond *//** @} *//** @} *//*********************************************
+ * END of dbg.c
  ******************************************************************************/

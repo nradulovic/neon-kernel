@@ -1,20 +1,20 @@
 /*
- * This file is part of eSolid.
+ * This file is part of nKernel.
  *
  * Copyright (C) 2010 - 2013 Nenad Radulovic
  *
- * eSolid is free software: you can redistribute it and/or modify
+ * nKernel is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * eSolid is distributed in the hope that it will be useful,
+ * nKernel is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with eSolid.  If not, see <http://www.gnu.org/licenses/>.
+ * along with nKernel.  If not, see <http://www.gnu.org/licenses/>.
  *
  * web site:    http://github.com/nradulovic
  * e-mail  :    nenad.b.radulovic@gmail.com
@@ -38,6 +38,37 @@
 /** @endcond */
 /*==============================================================  SETTINGS  ==*/
 
+/**@brief       Enable/disable Debug module
+ * @details     Possible values:
+ *              - 0 - All debug options are disabled
+ *              - 1 - Debug options can be enabled individually
+ */
+#if !defined(CONFIG_DEBUG)
+# define CONFIG_DEBUG                  0
+#endif
+
+/**@brief       Enable/disable API arguments validation
+ * @details     Possible values:
+ *              - 0 - API validation is disabled
+ *              - 1 - API validation is enabled
+ *
+ * @note        This option is enabled only if @ref CONFIG_DEBUG is enabled, too.
+ */
+#if !defined(CONFIG_API_VALIDATION)
+# define CONFIG_API_VALIDATION          1
+#endif
+
+/**@brief       Enable/disable internal checks
+ * @details     Possible values:
+ *              - 0 - API validation is disabled
+ *              - 1 - API validation is enabled
+ *
+ * @note        This option is enabled only if @ref CONFIG_DEBUG is enabled, too.
+ */
+#if !defined(CONFIG_ASSERT_INTERNAL)
+# define CONFIG_ASSERT_INTERNAL         1
+#endif
+
 /*------------------------------------------------------------------------*//**
  * @name        Kernel configuration options and settings
  * @{ *//*--------------------------------------------------------------------*/
@@ -47,8 +78,8 @@
  *              - Min: 3 (three priority levels)
  *              - Max: 256
  */
-#if !defined(CFG_SCHED_PRIO_LVL)
-# define CFG_SCHED_PRIO_LVL             8u
+#if !defined(CONFIG_PRIORITY_LEVELS)
+# define CONFIG_PRIORITY_LEVELS             8u
 #endif
 
 /**@brief       Scheduler Round-Robin time quantum
@@ -155,60 +186,81 @@
 /** @} *//*-------------------------------------------------------------------*/
 /*================================*//** @cond *//*==  CONFIGURATION ERRORS  ==*/
 
-#if ((3u > CFG_SCHED_PRIO_LVL) || (256u < CFG_SCHED_PRIO_LVL))
-# error "eSolid RT Kernel: Configuration option CFG_SCHED_PRIO_LVL is out of range."
+#if ((CONFIG_DEBUG != 1) && (CONFIG_DEBUG != 0))
+# error "nKernel RT Kernel: Configuration option CONFIG_DEBUG is out of range."
+#endif
+
+#if ((CONFIG_API_VALIDATION != 1) && (CONFIG_API_VALIDATION != 0))
+# error "nKernel RT Kernel: Configuration option CONFIG_DEBUG_API_VALIDATION is out of range."
+#endif
+
+#if ((CONFIG_ASSERT_INTERNAL != 1) && (CONFIG_ASSERT_INTERNAL != 0))
+# error "nKernel RT Kernel: Configuration option CONFIG_DEBUG_INTERNAL_CHECK is out of range."
+#endif
+
+#if (CONFIG_DEBUG == 0) || defined(NDEBUG)
+# undef  CONFIG_DEBUG
+# define CONFIG_DEBUG                   0
+# undef  CONFIG_API_VALIDATION
+# define CONFIG_API_VALIDATION          0
+# undef  CONFIG_ASSERT_INTERNAL
+# define CONFIG_ASSERT_INTERNAL         0
+#endif
+
+#if ((3u > CONFIG_PRIORITY_LEVELS) || (256u < CONFIG_PRIORITY_LEVELS))
+# error "nKernel RT Kernel: Configuration option CFG_SCHED_PRIO_LVL is out of range."
 #endif
 
 #if ((1u != CFG_SCHED_POWER_SAVE) && (0u != CFG_SCHED_POWER_SAVE))
-# error "eSolid RT Kernel: Configuration option CFG_SCHED_POWER_SAVE is out of range."
+# error "nKernel RT Kernel: Configuration option CFG_SCHED_POWER_SAVE is out of range."
 #endif
 
 #if ((1u != CFG_SYSTMR_ADAPTIVE_MODE) && (0u != CFG_SYSTMR_ADAPTIVE_MODE))
-# error "eSolid RT Kernel: Configuration option CFG_SYSTMR_ADAPTIVE_MODE is out of range."
+# error "nKernel RT Kernel: Configuration option CFG_SYSTMR_ADAPTIVE_MODE is out of range."
 #endif
 
 #if ((0u == CFG_SCHED_POWER_SAVE) && (1u == CFG_SYSTMR_ADAPTIVE_MODE))
-# error "eSolid RT Kernel: Configuration option CFG_SCHED_PRIO_LVL must be enabled when CFG_SYSTMR_ADAPTIVE_MODE is enabled, too."
+# error "nKernel RT Kernel: Configuration option CFG_SCHED_PRIO_LVL must be enabled when CFG_SYSTMR_ADAPTIVE_MODE is enabled, too."
 #endif
 
 #if ((1u != CFG_HOOK_PRE_SYSTMR_EVENT) && (0u != CFG_HOOK_PRE_SYSTMR_EVENT))
-# error "eSolid RT Kernel: Configuration option CFG_HOOK_PRE_SYSTMR_EVENT is out of range."
+# error "nKernel RT Kernel: Configuration option CFG_HOOK_PRE_SYSTMR_EVENT is out of range."
 #endif
 
 #if ((1u != CFG_HOOK_PRE_KERN_INIT) && (0u != CFG_HOOK_PRE_KERN_INIT))
-# error "eSolid RT Kernel: Configuration option CFG_HOOK_PRE_KERN_INIT is out of range."
+# error "nKernel RT Kernel: Configuration option CFG_HOOK_PRE_KERN_INIT is out of range."
 #endif
 
 #if ((1u != CFG_HOOK_POST_KERN_INIT) && (0u != CFG_HOOK_POST_KERN_INIT))
-# error "eSolid RT Kernel: Configuration option CFG_HOOK_POST_KERN_INIT is out of range."
+# error "nKernel RT Kernel: Configuration option CFG_HOOK_POST_KERN_INIT is out of range."
 #endif
 
 #if ((1u != CFG_HOOK_PRE_KERN_START) && (0u != CFG_HOOK_PRE_KERN_START))
-# error "eSolid RT Kernel: Configuration option CFG_HOOK_PRE_KERN_START is out of range."
+# error "nKernel RT Kernel: Configuration option CFG_HOOK_PRE_KERN_START is out of range."
 #endif
 
 #if ((1u != CFG_HOOK_POST_THD_INIT) && (0u != CFG_HOOK_POST_THD_INIT))
-# error "eSolid RT Kernel: Configuration option CFG_HOOK_POST_THD_INIT is out of range."
+# error "nKernel RT Kernel: Configuration option CFG_HOOK_POST_THD_INIT is out of range."
 #endif
 
 #if ((1u != CFG_HOOK_PRE_THD_TERM) && (0u != CFG_HOOK_PRE_THD_TERM))
-# error "eSolid RT Kernel: Configuration option CFG_HOOK_PRE_THD_TERM is out of range."
+# error "nKernel RT Kernel: Configuration option CFG_HOOK_PRE_THD_TERM is out of range."
 #endif
 
 #if ((1u != CFG_HOOK_PRE_THD_TERM) && (0u != CFG_HOOK_PRE_THD_TERM))
-# error "eSolid RT Kernel: Configuration option CFG_HOOK_PRE_THD_TERM is out of range."
+# error "nKernel RT Kernel: Configuration option CFG_HOOK_PRE_THD_TERM is out of range."
 #endif
 
 #if ((1u != CFG_HOOK_PRE_IDLE) && (0u != CFG_HOOK_PRE_IDLE))
-# error "eSolid RT Kernel: Configuration option CFG_HOOK_PRE_IDLE is out of range."
+# error "nKernel RT Kernel: Configuration option CFG_HOOK_PRE_IDLE is out of range."
 #endif
 
 #if ((1u != CFG_HOOK_PRE_CTX_SW) && (0u != CFG_HOOK_PRE_CTX_SW))
-# error "eSolid RT Kernel: Configuration option CFG_HOOK_PRE_CTX_SW is out of range."
+# error "nKernel RT Kernel: Configuration option CFG_HOOK_PRE_CTX_SW is out of range."
 #endif
 
 #if (0u > CFG_SYSTMR_TICK_TYPE) || (2u < CFG_SYSTMR_TICK_TYPE)
-# error "eSolid RT Kernel: Configuration option CFG_SYSTMR_TICK_TYPE is out of range."
+# error "nKernel RT Kernel: Configuration option CFG_SYSTMR_TICK_TYPE is out of range."
 #endif
 
 /** @endcond *//** @} *//******************************************************

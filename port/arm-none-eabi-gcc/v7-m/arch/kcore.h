@@ -1,20 +1,20 @@
 /*
- * This file is part of eSolid.
+ * This file is part of nKernel.
  *
  * Copyright (C) 2010 - 2013 Nenad Radulovic
  *
- * eSolid is free software: you can redistribute it and/or modify
+ * nKernel is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * eSolid is distributed in the hope that it will be useful,
+ * nKernel is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with eSolid.  If not, see <http://www.gnu.org/licenses/>.
+ * along with nKernel.  If not, see <http://www.gnu.org/licenses/>.
  *
  * web site:    http://github.com/nradulovic
  * e-mail  :    nenad.b.radulovic@gmail.com
@@ -40,7 +40,7 @@
 #include "arch/systimer.h"
 #include "arch/kcore_cfg.h"
 #include "family/profile.h"
-#include "kernel/kernel_cfg.h"
+#include "kernel/nkernel_config.h"
 
 /*===============================================================  MACRO's  ==*/
 
@@ -52,7 +52,7 @@
  *              @ref esThreadCtx
  */
 #define PORT_STACK_MINSIZE                                                   \
-    (sizeof(struct esThreadCtx) / sizeof(esCpuReg))
+    (sizeof(struct esThreadCtx))
 
 /**@} *//*----------------------------------------------------------------*//**
  * @name        System timer constants
@@ -99,7 +99,7 @@
 
 #define PORT_CTX_SW_ISR()               portCtxSw_()
 
-#define PORT_CTX_SW_START()             portCtxSwStart()
+#define NPORT_CTX_SW_START()             portCtxSwStart()
 
 /** @} *//*---------------------------------------------------------------*//**
  * @name        Generic port macros
@@ -125,13 +125,13 @@ extern "C" {
 
 /**@brief       Stack structure used for stack in order to force the alignment
  */
-struct esThreadStack {
+struct nthread_stack {
     esCpuReg            reg;
 } __attribute__ ((aligned (8)));
 
 /**@brief       Stack type
  */
-typedef struct esThreadStack esThreadStack;
+typedef struct nthread_stack nthread_stack;
 
 /**@brief       Structure of the context switch
  * @details     There are 16, 32-bit wide core (integer) registers visible to
@@ -289,7 +289,7 @@ void portSysTmr(
 /*================================*//** @cond *//*==  CONFIGURATION ERRORS  ==*/
 
 #if (ES_PROFILE_MAX_SYSTIMER_VAL < ES_SYSTIMER_ONE_TICK)
-# error "eSolid RT Kernel port: System Timer overflow, please check CFG_SYSTMR_CLOCK_FREQUENCY and CFG_SYSTMR_EVENT_FREQUENCY options."
+# error "nKernel RT Kernel port: System Timer overflow, please check CFG_SYSTMR_CLOCK_FREQUENCY and CFG_SYSTMR_EVENT_FREQUENCY options."
 #endif
 
 /** @endcond *//** @} *//******************************************************

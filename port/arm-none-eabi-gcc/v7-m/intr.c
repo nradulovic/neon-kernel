@@ -21,38 +21,66 @@
  *//***********************************************************************//**
  * @file
  * @author      Nenad Radulovic
- * @brief       Implementation of CPU port - Template
- * @addtogroup  template_cpu_impl
+ * @brief       Implementation of ARM Cortex-M3 interrupt port.
+ * @addtogroup  arm-none-eabi-gcc-v7-m_impl
  *********************************************************************//** @{ */
 
 /*=========================================================  INCLUDE FILES  ==*/
 
-#include "kernel/nsys.h"
+#include "plat/compiler.h"
+#include "arch/intr.h"
 
 /*=========================================================  LOCAL MACRO's  ==*/
 /*======================================================  LOCAL DATA TYPES  ==*/
 /*=============================================  LOCAL FUNCTION PROTOTYPES  ==*/
+
+static PORT_C_INLINE void intrSetPriorityGrouping(
+    uint32_t            grouping);
+
 /*=======================================================  LOCAL VARIABLES  ==*/
 /*======================================================  GLOBAL VARIABLES  ==*/
 /*============================================  LOCAL FUNCTION DEFINITIONS  ==*/
+
+/**@brief       Set Priority Grouping
+ * @param       grouping
+ *              Priority grouping field.
+ * @details     The function sets the priority grouping field using the required
+ *              unlock sequence. The parameter grouping is assigned to the field
+ *              SCB->AIRCR [10:8] PRIGROUP field. Only values from 0..7 are used.
+ *              In case of a conflict between priority grouping and available
+ *              priority bits (PORT_ISR_PRIO_BITS), the smallest possible
+ *              priority group is set.
+ */
+static PORT_C_INLINE void intrSetPriorityGrouping(
+    uint32_t            grouping) {
+
+    grouping &= 0x07u;
+
+    PORT_HWREG_SET(
+        PORT_SCB->AIRCR,
+        PORT_SCB_AIRCR_VECTKEY_Msk | PORT_SCB_AIRCR_PRIGROUP_Msk,
+        (PORT_SCB_AIRCR_VECTKEY_VALUE << PORT_SCB_AIRCR_VECTKEY_Pos) |
+           (grouping << PORT_SCB_AIRCR_PRIGROUP_Pos));
+}
+
 /*===================================  GLOBAL PRIVATE FUNCTION DEFINITIONS  ==*/
 /*====================================  GLOBAL PUBLIC FUNCTION DEFINITIONS  ==*/
 
-void * portCtxInit(
-    void *              stck,
-    size_t              stckSize,
-    void (* fn)(void *),
-    void *              arg) {
+void portModuleIntrInit(
+    void) {
 
-    (void)stck;
-    (void)stckSize;
-    (void)fn;
-    (void)arg;
+    portIntrDisable_();
+    intrSetPriorityGrouping(
+        PORT_CONFIG_ISR_SUBPRIORITY);                                           /* Setup priority subgroup to zero bits                     */
+}
 
-    return (NULL);
+void portModuleIntrTerm(
+    void) {
+
+    portIntrDisable_();
 }
 
 /*================================*//** @cond *//*==  CONFIGURATION ERRORS  ==*/
 /** @endcond *//** @} *//******************************************************
- * END of cpu.c
+ * END of intr.c
  ******************************************************************************/

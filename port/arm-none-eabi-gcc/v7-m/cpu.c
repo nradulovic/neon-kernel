@@ -21,13 +21,14 @@
  *//***********************************************************************//**
  * @file
  * @author      Nenad Radulovic
- * @brief       Implementation of CPU port - Template
- * @addtogroup  template_cpu_impl
+ * @brief       Implementation of ARM Cortex-M3 CPU port.
+ * @addtogroup  arm-none-eabi-gcc-v7-m_impl
  *********************************************************************//** @{ */
 
 /*=========================================================  INCLUDE FILES  ==*/
 
-#include "kernel/nsys.h"
+#include "plat/compiler.h"
+#include "arch/cpu.h"
 
 /*=========================================================  LOCAL MACRO's  ==*/
 /*======================================================  LOCAL DATA TYPES  ==*/
@@ -38,18 +39,17 @@
 /*===================================  GLOBAL PRIVATE FUNCTION DEFINITIONS  ==*/
 /*====================================  GLOBAL PUBLIC FUNCTION DEFINITIONS  ==*/
 
-void * portCtxInit(
-    void *              stck,
-    size_t              stckSize,
-    void (* fn)(void *),
-    void *              arg) {
+void portModuleCpuInit(
+    void) {
 
-    (void)stck;
-    (void)stckSize;
-    (void)fn;
-    (void)arg;
+}
 
-    return (NULL);
+void portModuleCpuTerm(
+    void) {
+
+    /*
+     * TODO: Put the CPU to sleep
+     */
 }
 
 /*================================*//** @cond *//*==  CONFIGURATION ERRORS  ==*/
