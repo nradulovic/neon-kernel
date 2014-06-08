@@ -52,7 +52,7 @@
  *              @ref esThreadCtx
  */
 #define PORT_STACK_MINSIZE                                                   \
-    (sizeof(struct esThreadCtx))
+    (sizeof(struct nthread_ctx))
 
 /**@} *//*----------------------------------------------------------------*//**
  * @name        System timer constants
@@ -86,20 +86,20 @@
 
 #define PORT_ISR_EXIT()                 (void)0                                 /**< @brief This port does not need this function call      */
 
-#define PORT_ISR_IS_LAST()              portIsrIsLast_()
+#define NPORT_IS_ISR_LAST()              portIsrIsLast_()
 
 /**@} *//*----------------------------------------------------------------*//**
  * @name        Dispatcher context switching support
  * @{ *//*--------------------------------------------------------------------*/
 
 #define PORT_CTX_INIT(stck, stckSize, thd, arg)                                 \
-    portCtxInit(stck, stckSize, thd, arg)
+    nport_thread_init_ctx(stck, stckSize, thd, arg)
 
-#define PORT_CTX_SW()                   portCtxSw_()
+#define PORT_DISPATCH()                 portCtxSw_()
 
-#define PORT_CTX_SW_ISR()               portCtxSw_()
+#define PORT_DISPATCH_ISR()             portCtxSw_()
 
-#define NPORT_CTX_SW_START()             portCtxSwStart()
+#define NPORT_DISPATCH_START()            nport_thread_start()
 
 /** @} *//*---------------------------------------------------------------*//**
  * @name        Generic port macros
@@ -126,7 +126,7 @@ extern "C" {
 /**@brief       Stack structure used for stack in order to force the alignment
  */
 struct nthread_stack {
-    esCpuReg            reg;
+    ncpu_reg            reg;
 } __attribute__ ((aligned (8)));
 
 /**@brief       Stack type
@@ -137,26 +137,26 @@ typedef struct nthread_stack nthread_stack;
  * @details     There are 16, 32-bit wide core (integer) registers visible to
  *              the ARM and Thumb instruction sets.
  */
-struct esThreadCtx {
+struct nthread_ctx {
 /* Registers saved by the context switcher                                    */
-    esCpuReg            r4;                                                     /**< @brief R4, Variable register 1                         */
-    esCpuReg            r5;                                                     /**< @brief R5, Variable register 2                         */
-    esCpuReg            r6;                                                     /**< @brief R6, Variable register 3                         */
-    esCpuReg            r7;                                                     /**< @brief R7, Variable register 4                         */
-    esCpuReg            r8;                                                     /**< @brief R8, Variable register 5                         */
-    esCpuReg            r9;                                                     /**< @brief R9, Platform register/variable register 6       */
-    esCpuReg            r10;                                                    /**< @brief R10, Variable register 7                        */
-    esCpuReg            r11;                                                    /**< @brief R11, Variable register 8                        */
+    ncpu_reg            r4;                                                     /**< @brief R4, Variable register 1                         */
+    ncpu_reg            r5;                                                     /**< @brief R5, Variable register 2                         */
+    ncpu_reg            r6;                                                     /**< @brief R6, Variable register 3                         */
+    ncpu_reg            r7;                                                     /**< @brief R7, Variable register 4                         */
+    ncpu_reg            r8;                                                     /**< @brief R8, Variable register 5                         */
+    ncpu_reg            r9;                                                     /**< @brief R9, Platform register/variable register 6       */
+    ncpu_reg            r10;                                                    /**< @brief R10, Variable register 7                        */
+    ncpu_reg            r11;                                                    /**< @brief R11, Variable register 8                        */
 
 /* Registers saved by the hardware                                            */
-    esCpuReg            r0;                                                     /**< @brief R0, Argument/result/scratch register 1          */
-    esCpuReg            r1;                                                     /**< @brief R1, Argument/result/scratch register 2          */
-    esCpuReg            r2;                                                     /**< @brief R2, Argument/scratch register 3                 */
-    esCpuReg            r3;                                                     /**< @brief R3, Argument/scratch register 3                 */
-    esCpuReg            r12;                                                    /**< @brief R12, IP, The Intra-Procedure-call scratch reg.  */
-    esCpuReg            lr;                                                     /**< @brief R14, LR, The Link Register                      */
-    esCpuReg            pc;                                                     /**< @brief R15, PC, The Program Counter                    */
-    esCpuReg            xpsr;                                                   /**< @brief Special, Program Status Register                */
+    ncpu_reg            r0;                                                     /**< @brief R0, Argument/result/scratch register 1          */
+    ncpu_reg            r1;                                                     /**< @brief R1, Argument/result/scratch register 2          */
+    ncpu_reg            r2;                                                     /**< @brief R2, Argument/scratch register 3                 */
+    ncpu_reg            r3;                                                     /**< @brief R3, Argument/scratch register 3                 */
+    ncpu_reg            r12;                                                    /**< @brief R12, IP, The Intra-Procedure-call scratch reg.  */
+    ncpu_reg            lr;                                                     /**< @brief R14, LR, The Link Register                      */
+    ncpu_reg            pc;                                                     /**< @brief R15, PC, The Program Counter                    */
+    ncpu_reg            xpsr;                                                   /**< @brief Special, Program Status Register                */
 };
 
 /*======================================================  GLOBAL VARIABLES  ==*/
@@ -203,7 +203,7 @@ static PORT_C_INLINE_ALWAYS bool portIsrIsLast_(
  * @note        2) All tasks run in Thread mode, using process stack.
  * @note        3) ARM Cortex M3 requires 8B aligned stack.
  */
-void * portCtxInit(
+void * nport_thread_init_ctx(
     void *          stck,
     size_t          stckSize,
     void         (* fn)(void *),
@@ -229,7 +229,7 @@ static PORT_C_INLINE_ALWAYS void portCtxSw_(
  *              System control block. Vector Table Offset Register is used to
  *              extract the beginning of main stack.
  */
-PORT_C_NORETURN void portCtxSwStart(
+PORT_C_NORETURN void nport_thread_start(
     void);
 
 /** @} *//*---------------------------------------------------------------*//**

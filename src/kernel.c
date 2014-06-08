@@ -34,16 +34,6 @@
 
 /*=========================================================  LOCAL MACRO's  ==*/
 
-/**@brief       Kernel state variable bit position which defines if the kernel
- *              is in interrupt servicing state.
- */
-#define DEF_SCHED_STATE_INTSRV_MSK      (0x01u << 0)
-
-/**@brief       Kernel state variable bit position which defines if the kernel
- *              is locked or not.
- */
-#define DEF_SCHED_STATE_LOCK_Msk        (0x01u << 1)
-
 /**@brief       Thread structure signature.
  * @details     The signature is used to confirm that a structure passed to a
  *              kernel function is indeed a esThread thread structure.
@@ -406,7 +396,7 @@ static PORT_C_INLINE void vTmrEvaluateI(
 
     if (0u != SysTmr.vTmrPend) {                                                /* There is a timer pending, start kVTmr thread.            */
 
-        if (nthread_queue_get_container(&KVTmr) == NULL) {
+        if (nprio_array_get_container(&KVTmr) == NULL) {
             nsched_add_thread_i(&KVTmr);
         }
     }
@@ -575,7 +565,7 @@ void thdPost(
     nintr_ctx           intrCtx;
 
     NCRITICAL_LOCK_ENTER(&intrCtx);
-    if (nthread_queue_get_container(thd) == NULL)
+    if (nprio_array_get_container(thd) == NULL)
     {
         nsched_add_thread_i(thd);
         nsched_yield_i();
@@ -637,20 +627,20 @@ PORT_C_NORETURN void nsys_start(
     while (true);                                                               /* Prevent compiler `function does return` warnings.        */
 }
 
-void esKernSysTmr(
+void nsys_timer_isr(
     void) {
 
-    nintr_ctx           intrCtx;
+    nintr_ctx           intr_ctx;
 
     NREQUIRE(NAPI_USAGE, global_sched_ctx.cthread != &KVTmr);
 
 #if   (1u == CFG_HOOK_PRE_SYSTMR_EVENT)
     userPreSysTmr();
 #endif
-    NCRITICAL_LOCK_ENTER(&intrCtx);
+    NCRITICAL_LOCK_ENTER(&intr_ctx);
     vTmrEvaluateI();
     sched_quantum_i();
-    NCRITICAL_LOCK_EXIT(intrCtx);
+    NCRITICAL_LOCK_EXIT(intr_ctx);
 }
 
 void nsys_isr_enter_i(
@@ -659,7 +649,7 @@ void nsys_isr_enter_i(
     NREQUIRE(NAPI_USAGE, NSCHED_INIT > global_sched_ctx.state);
 
     PORT_ISR_ENTER();
-    ((struct nsched_ctx *)&global_sched_ctx)->state |= DEF_SCHED_STATE_INTSRV_MSK;
+    nsched_isr_enter_i();
 }
 
 void nsys_isr_exit_i(
@@ -669,9 +659,9 @@ void nsys_isr_exit_i(
 
     PORT_ISR_EXIT();
 
-    if (true == PORT_ISR_IS_LAST()) {
-        ((struct nsched_ctx *)&global_sched_ctx)->state &= ~DEF_SCHED_STATE_INTSRV_MSK;
-        nsched_yield_isr_i();
+    if (NPORT_IS_ISR_LAST())
+    {
+        nsched_isr_exit_i();
     }
 }
 
@@ -689,7 +679,7 @@ void nthread_init(
 
     NREQUIRE(NAPI_USAGE,   global_sched_ctx.state > NSCHED_INACTIVE);
     NREQUIRE(NAPI_POINTER, thread != NULL);
-    NREQUIRE(ES_API_OBJECT,  thread->signature != DEF_THD_CONTRACT_SIGNATURE);
+    NREQUIRE(NAPI_OBJECT,  thread->signature != DEF_THD_CONTRACT_SIGNATURE);
     NREQUIRE(NAPI_POINTER, fn     != NULL);
     NREQUIRE(NAPI_POINTER, stack  != NULL);
     NREQUIRE(ES_API_RANGE,   stack_size >= PORT_STACK_MINSIZE);
@@ -702,7 +692,7 @@ void nthread_init(
     thread->priority        = priority;
     thread->quantum_counter = CFG_SCHED_TIME_QUANTUM;
     thread->quantum_reload  = CFG_SCHED_TIME_QUANTUM;
-    nthread_queue_init_entry(thread);
+    nprio_array_init_entry(thread);
     NCRITICAL_LOCK_ENTER(&intr_ctx);
     nsched_init_thread_i(thread);                                                                   /* Initialize thread before adding it to Ready Thread queue.*/
     nsched_add_thread_i(thread);                                                                   /* Add the thread to Ready Thread queue.                    */
@@ -721,14 +711,14 @@ void nthread_term(
 
     NREQUIRE(NAPI_USAGE, NSCHED_INACTIVE > global_sched_ctx.state);
     NREQUIRE(NAPI_POINTER, NULL != thd);
-    NREQUIRE(ES_API_OBJECT, DEF_THD_CONTRACT_SIGNATURE == thd->signature);
+    NREQUIRE(NAPI_OBJECT, DEF_THD_CONTRACT_SIGNATURE == thd->signature);
 
 #if   (1u == CFG_HOOK_PRE_THD_TERM)
     userPreThdTerm();
 #endif
     NCRITICAL_LOCK_ENTER(&intCtx);
 
-    nthread_queue_remove(thd);
+    nprio_array_remove(thd);
 
     NOBLIGATION(thd->signature = ~DEF_THD_CONTRACT_SIGNATURE);            /* Mark the thread ID structure as invalid.                 */
 
@@ -742,19 +732,19 @@ void nthread_set_priority_i(
 
     NREQUIRE(NAPI_USAGE, NSCHED_INACTIVE > global_sched_ctx.state);
     NREQUIRE(NAPI_POINTER, NULL != thd);
-    NREQUIRE(ES_API_OBJECT, DEF_THD_CONTRACT_SIGNATURE == thd->signature);
+    NREQUIRE(NAPI_OBJECT, DEF_THD_CONTRACT_SIGNATURE == thd->signature);
     NREQUIRE(ES_API_RANGE, CONFIG_PRIORITY_LEVELS >= prio);
 
-    struct nthread_queue * queue;
+    struct nprio_array * queue;
 
-    queue = nthread_queue_get_container(thd);
+    queue = nprio_array_get_container(thd);
 
     if (queue == NULL) {                             /* Is thread inserted in any queue?                         */
         thd->priority = prio;                                                       /* Just change it's priority value.                             */
     } else {
-        nthread_queue_remove(thd);
+        nprio_array_remove(thd);
         thd->priority = prio;
-        nthread_queue_insert(queue, thd);
+        nprio_array_insert(queue, thd);
         nsched_evaluate_i();
     }
 }
@@ -769,7 +759,7 @@ void esKTmrInitI(
 
     NREQUIRE(NAPI_USAGE, NSCHED_INACTIVE > global_sched_ctx.state);
     NREQUIRE(NAPI_POINTER, NULL != vTmr);
-    NREQUIRE(ES_API_OBJECT, DEF_VTMR_CONTRACT_SIGNATURE != vTmr->signature);
+    NREQUIRE(NAPI_OBJECT, DEF_VTMR_CONTRACT_SIGNATURE != vTmr->signature);
     NREQUIRE(ES_API_RANGE, 1u < tick);
     NREQUIRE(NAPI_POINTER, NULL != fn);
 
@@ -811,7 +801,7 @@ void esVTmrTermI(
 
     NREQUIRE(NAPI_USAGE, NSCHED_INACTIVE > global_sched_ctx.state);
     NREQUIRE(NAPI_POINTER, NULL != vTmr);
-    NREQUIRE(ES_API_OBJECT, DEF_VTMR_CONTRACT_SIGNATURE == vTmr->signature);
+    NREQUIRE(NAPI_OBJECT, DEF_VTMR_CONTRACT_SIGNATURE == vTmr->signature);
 
     NOBLIGATION(vTmr->signature = ~DEF_VTMR_CONTRACT_SIGNATURE);
 

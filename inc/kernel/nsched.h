@@ -1,71 +1,64 @@
 /*
- * This file is part of esolid-kernel
+ * This file is part of nKernel.
  *
- * Template version: 1.1.18 (24.12.2013)
+ * Copyright (C) 2010 - 2013 Nenad Radulovic
  *
- * Copyright (C) 2011, 2012 - Nenad Radulovic
- *
- * esolid-kernel is free software; you can redistribute it and/or modify
+ * nKernel is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
+ * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * esolid-kernel is distributed in the hope that it will be useful,
+ * nKernel is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with eSolid.  If not, see <http://www.gnu.org/licenses/>.
+ * along with nKernel.  If not, see <http://www.gnu.org/licenses/>.
  *
- * web site:    http://blueskynet.dyndns-server.com
- * e-mail  :    blueskyniss@gmail.com
+ * web site:    http://github.com/nradulovic
+ * e-mail  :    nenad.b.radulovic@gmail.com
  *//***********************************************************************//**
  * @file
- * @author  	nenad
- * @brief       Interface of nsched.
- * @defgroup    def_group Group name
- * @brief       Group brief
+ * @author  	Nenad Radulovic
+ * @brief       Scheduler header
+ * @defgroup    scheduler Scheduler
+ * @brief       Scheduler
  *********************************************************************//** @{ */
 
 #ifndef NSCHED_H_
 #define NSCHED_H_
 
-/*=========================================================  INCLUDE FILES  ==*/
+/*=================================================================================================  INCLUDE FILES  ==*/
 
 #include "plat/compiler.h"
 #include "arch/intr.h"
 
-/*===============================================================  MACRO's  ==*/
-
-/*------------------------------------------------------------------------*//**
- * @name        Macro group
- * @brief       brief description
- * @{ *//*--------------------------------------------------------------------*/
-
-/** @} *//*-------------------------------------------------------------------*/
-/*------------------------------------------------------  C++ extern begin  --*/
+/*=======================================================================================================  MACRO's  ==*/
+/*----------------------------------------------------------------------------------------------  C++ extern begin  --*/
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/*============================================================  DATA TYPES  ==*/
+/*====================================================================================================  DATA TYPES  ==*/
 
-/**@brief       Kernel state enumeration
+/**@brief       Scheduler state enumeration
  * @details     For more details see: @ref states
  * @api
  */
-enum nsched_state {
-    NSCHED_RUN                  = 0x00u,                                                /**< Kernel is active                                       */
-    ES_KERN_INTSRV_RUN          = 0x01u,                                                /**< Servicing an interrupt, return to ES_KERN_RUN state    */
-    NSCHED_LOCK                 = 0x02u,                                                /**< Kernel is locked                                       */
-    ES_KERN_INTSRV_LOCK         = 0x03u,                                                /**< Servicing an interrupt, return to ES_KERN_LOCK state   */
-    NSCHED_SLEEP                = 0x06u,                                                /**< Kernel is sleeping                                     */
-    NSCHED_INIT                 = 0x08u,                                                /**< Kernel is in initialization state                      */
-    NSCHED_INACTIVE             = 0x10u                                                 /**< Kernel data structures are not initialized             */
+enum nsched_state
+{
+    NSCHED_RUN                  = (0x0u << 0),                                  /**<@brief Executing threads          */
+    NSCHED_ISR                  = (0x1u << 0),                                  /**<@brief Servicing an interrupt     */
+    NSCHED_LOCK                 = (0x1u << 1),                                  /**<@brief Locked state               */
+    NSCHED_ISR_LOCK             = (NSCHED_LOCK | NSCHED_ISR),                   /**<@brief Locked while in interrupt  */
+    NSCHED_SLEEP                = (0x1u << 2),                                  /**<@brief Sleeping                   */
+    NSCHED_INIT                 = (0x1u << 3),                                  /**<@brief Initialization state       */
+    NSCHED_INACTIVE             = (0x1u << 4)                                   /**<@brief Scheduler is not active    */
 };
 
-/**@brief       Kernel state type
+/**@brief       Scheduler state type
+ * @api
  */
 typedef enum nsched_state nsched_state;
 
@@ -73,7 +66,8 @@ typedef enum nsched_state nsched_state;
  * @details     This structure holds important status data for the scheduler.
  * @notapi
  */
-struct nsched_ctx {
+struct nsched_ctx
+{
     struct nthread *            cthread;                                                   /**< @brief Pointer to the Current Thread                   */
     struct nthread *            pthread;                                                   /**< @brief Pointer to the Pending Thread to be switched    */
     enum nsched_state           state;                                                  /**< @brief State of kernel                                 */
@@ -83,13 +77,14 @@ struct nsched_ctx {
 
 /**@brief       Kernel control block
  * @note        This variable has Read-Only access rights for application.
+ * @notapi
  */
 extern const volatile struct nsched_ctx global_sched_ctx;
 
 /*===================================================  FUNCTION PROTOTYPES  ==*/
 
-/**@brief       Initialize Ready Thread Queue structure @ref RdyQueue and
- *              Kernel control structure @ref kernCtrl_.
+/**@brief       Initialize Ready Thread Queue structure @ref RdyQueue and Scheduler context structure
+ *              @ref global_sched_ctx.
  */
 void nsched_init(
     void);
@@ -170,6 +165,12 @@ void nsched_yield_i(
 void nsched_yield_isr_i(
     void);
 
+void nsched_isr_enter_i(
+    void);
+
+void nsched_isr_exit_i(
+    void);
+
 /**@brief       Lock the scheduler
  * @pre         1) `The kernel state < ES_KERN_INIT`, see @ref states.
  * @called
@@ -229,8 +230,8 @@ void nsched_lock_int_exit(
  * @api
  */
 static PORT_C_INLINE struct nthread * nsched_get_current(
-    void) {
-
+    void)
+{
     return (global_sched_ctx.cthread);
 }
 
@@ -251,12 +252,6 @@ void sched_sleep(
 void sched_wake_up_i(
     void);
 #endif
-
-/**@brief       Fetch and try to schedule the next thread of the same priority
- *              as the current thread
- */
-void sched_next_i(
-    void);
 
 /**@brief       Do the Quantum (Round-Robin) scheduling
  */

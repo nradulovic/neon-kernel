@@ -97,7 +97,7 @@ extern "C" {
 
 /**@brief       General purpose registers are 32bit wide.
  */
-typedef unsigned int esCpuReg;
+typedef unsigned int ncpu_reg;
 
 /*======================================================  GLOBAL VARIABLES  ==*/
 /*===================================================  FUNCTION PROTOTYPES  ==*/

@@ -188,7 +188,7 @@ PORT_C_NORETURN void nsys_start(
  * @details     This function will be called only by port system timer interrupt.
  * @notapi
  */
-void esKernSysTmr(
+void nsys_timer_isr(
     void);
 
 /**@brief       Enter Interrupt Service Routine

@@ -55,7 +55,7 @@
  *              section.
  */
 #define NCRITICAL_LOCK_ENTER(lockCtx)                                         \
-    ES_INTR_MASK_REPLACE(lockCtx, ES_INTR_PRIO_TO_CODE(CONFIG_INTR_MAX_ISR_PRIO))
+    ES_INTR_MASK_REPLACE(lockCtx, NINTR_PRIO_TO_CODE(CONFIG_INTR_MAX_ISR_PRIO))
 
 /**@brief       Exit critical code section
  * @param       lockCtx

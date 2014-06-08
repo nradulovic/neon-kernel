@@ -55,13 +55,13 @@
 #define ES_INTR_MASK_REPLACE(oldPrio, newPrio)                                  \
     portIntrMaskReplace_(oldPrio, newPrio)
 
-#define ES_INTR_PRIO_TO_CODE(prio)                                              \
+#define NINTR_PRIO_TO_CODE(prio)                                              \
     (((prio) << (8u - PORT_ISR_PRIO_BITS)) & 0xfful)
 
 #define ES_INTR_CODE_TO_PRIO(code)                                              \
     (((code) & 0xfful) >> (8u - PORT_ISR_PRIO_BITS))
 
-#define ES_INTR_PRIO_SET(intrNum, prio) intrPrioSet_(intrNum, prio)
+#define NINTR_PRIO_SET(intrNum, prio) intrPrioSet_(intrNum, prio)
 
 #define ES_INTR_PRIO_GET(intrNum, prio) intrPrioGet_(intrNum, prio)
 

@@ -44,23 +44,21 @@ static PORT_C_INLINE void intrSetPriorityGrouping(
 /**@brief       Set Priority Grouping
  * @param       grouping
  *              Priority grouping field.
- * @details     The function sets the priority grouping field using the required
- *              unlock sequence. The parameter grouping is assigned to the field
- *              SCB->AIRCR [10:8] PRIGROUP field. Only values from 0..7 are used.
- *              In case of a conflict between priority grouping and available
- *              priority bits (PORT_ISR_PRIO_BITS), the smallest possible
- *              priority group is set.
+ * @details     The function sets the priority grouping field using the required unlock sequence. The parameter grouping
+ *              is assigned to the field SCB->AIRCR [10:8] PRIGROUP field. Only values from 0..7 are used. In case of a
+ *              conflict between priority grouping and available priority bits (PORT_ISR_PRIO_BITS), the smallest
+ *              possible priority group is set.
  */
 static PORT_C_INLINE void intrSetPriorityGrouping(
     uint32_t            grouping) {
 
-    grouping &= 0x07u;
+    natomic             reg;
 
-    PORT_HWREG_SET(
-        PORT_SCB->AIRCR,
-        PORT_SCB_AIRCR_VECTKEY_Msk | PORT_SCB_AIRCR_PRIGROUP_Msk,
-        (PORT_SCB_AIRCR_VECTKEY_VALUE << PORT_SCB_AIRCR_VECTKEY_Pos) |
-           (grouping << PORT_SCB_AIRCR_PRIGROUP_Pos));
+    grouping &= 0x07u;
+    reg  = PORT_SCB->AIRCR;
+    reg &= ~(PORT_SCB_AIRCR_VECTKEY_Msk | PORT_SCB_AIRCR_PRIGROUP_Msk);
+    reg |= (PORT_SCB_AIRCR_VECTKEY_VALUE << PORT_SCB_AIRCR_VECTKEY_Pos) | (grouping << PORT_SCB_AIRCR_PRIGROUP_Pos);
+    PORT_SCB->AIRCR = reg;
 }
 
 /*===================================  GLOBAL PRIVATE FUNCTION DEFINITIONS  ==*/

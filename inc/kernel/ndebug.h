@@ -285,7 +285,7 @@
 #endif
 
 #define ES_API_RANGE                    "Value is out of valid range."
-#define ES_API_OBJECT                   "Object is not valid."
+#define NAPI_OBJECT                   "Object is not valid."
 #define NAPI_POINTER                  "Pointer has null value."
 #define NAPI_USAGE                    "Object/method usage failure."
 #define ES_API_CALL                     "An API method call has failed."

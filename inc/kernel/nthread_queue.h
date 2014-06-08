@@ -21,16 +21,16 @@
  *//***************************************************************************************************************//**
  * @file
  * @author  	Nenad Radulovic
- * @brief       Priority queue header
- * @defgroup    priority_queue Priority queue
- * @brief       Priority queue
+ * @brief       Priority array header
+ * @defgroup    priority_array Priority array
+ * @brief       Priority array
  *************************************************************************************************************//** @{ */
-/**@defgroup    priority_queue_intf Interface
+/**@defgroup    priority_array_intf Interface
  * @brief       Public interface
  * @{ *//*------------------------------------------------------------------------------------------------------------*/
 
-#ifndef NTHREAD_QUEUE_H_
-#define NTHREAD_QUEUE_H_
+#ifndef NPRIO_ARRAY_H_
+#define NPRIO_ARRAY_H_
 
 /*=================================================================================================  INCLUDE FILES  ==*/
 
@@ -54,7 +54,7 @@ extern "C" {
 /**@brief       Priority Bit Map structure
  * @notapi
  */
-struct nthread_bitmap
+struct nprio_bitmap
 {
 #if   (CONFIG_PRIORITY_LEVELS > ES_CPU_DEF_DATA_WIDTH) || defined(__DOXYGEN__)
     natomic                     bitGroup;                                       /**<@brief Bit list indicator         */
@@ -70,52 +70,56 @@ struct nthread_list
     struct nthread *            prev;
 };
 
-struct nthread_queue_entry
+struct nprio_array_entry
 {
-    struct nthread_queue *      container;
+    struct nprio_array *        container;
     struct nthread_list         list;
 };
 
-/**@brief       Priority queue structure
+/**@brief       Priority array structure
+ * @details     An priority array consists of an array of sub-queues. There is one sub-queue per priority level. Each
+ *              sub-queue contains the runnable threads at the corresponding priority level. There is also a bitmap
+ *              corresponding to the array that is used to determine effectively the highest-priority task on the queue.
  * @api
  */
-struct nthread_queue
+struct nprio_array
 {
-    struct nthread_bitmap       bitmap;                                         /**<@brief Priority bitmap            */
+    struct nprio_bitmap         bitmap;                                         /**<@brief Priority bitmap            */
     struct nthread *            sentinel[CONFIG_PRIORITY_LEVELS];
 };
 
 /**@brief       Priority queue type
  * @api
  */
-typedef struct nthread_queue nthread_pqueue;
+typedef struct nprio_array nprio_array;
 
 /*==============================================================================================  GLOBAL VARIABLES  ==*/
 /*===========================================================================================  FUNCTION PROTOTYPES  ==*/
 
-void nthread_queue_init(
-    struct nthread_queue *      queue);
+void nprio_array_init(
+    struct nprio_array *        array);
 
-void nthread_queue_insert(
-    struct nthread_queue *      queue,
+void nprio_array_insert(
+    struct nprio_array *        array,
     struct nthread *            thread);
 
-void nthread_queue_remove(
+void nprio_array_remove(
     struct nthread *            thread);
 
-struct nthread * nthread_queue_peek(
-    const struct nthread_queue * queue);
+struct nthread * nprio_array_peek(
+    const struct nprio_array *  array);
 
-struct nthread * nthread_queue_rotate(
-    struct nthread_queue *      queue);
+struct nthread * nprio_array_rotate_level(
+    struct nprio_array *        array,
+    uint_fast8_t                level);
 
-void nthread_queue_init_entry(
+void nprio_array_init_entry(
     struct nthread *            thread);
 
-uint_fast8_t nthread_queue_get_level(
-    const struct nthread_queue * queue);
+uint_fast8_t nprio_array_get_level(
+    const struct nprio_array * array);
 
-struct nthread_queue * nthread_queue_get_container(
+struct nprio_array * nprio_array_get_container(
     const struct nthread *      thread);
 
 /*------------------------------------------------------------------------------------------------  C++ extern end  --*/
@@ -125,6 +129,6 @@ struct nthread_queue * nthread_queue_get_container(
 
 /*========================================================================*//** @cond *//*==  CONFIGURATION ERRORS  ==*/
 /** @endcond *//** @} *//** @} *//*************************************************************************************
- * END of nthread_queue.h
+ * END of nprio_array.h
  **********************************************************************************************************************/
-#endif /* NTHREAD_QUEUE_H_ */
+#endif /* NPRIO_ARRAY_H_ */

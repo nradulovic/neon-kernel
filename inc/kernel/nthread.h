@@ -79,7 +79,7 @@ extern "C" {
  */
 struct nthread {
     struct nthread_stack *      stack;                                          /**<@brief Pointer to top of stack    */
-    struct nthread_queue_entry  queue_entry;                                    /**<@brief Priority queue entry       */
+    struct nprio_array_entry  queue_entry;                                    /**<@brief Priority queue entry       */
     uint_fast8_t                priority;                                       /**<@brief Current priority level     */
     uint_fast8_t                quantum_counter;                                /**<@brief Quantum counter            */
     uint_fast8_t                quantum_reload;                                 /**<@brief Quantum reload value       */

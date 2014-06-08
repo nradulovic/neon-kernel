@@ -43,7 +43,7 @@
  *              Pointer to the bit map structure
  */
 static PORT_C_INLINE void thread_bitmap_init(
-    struct nthread_bitmap *     bitmap);
+    struct nprio_bitmap *     bitmap);
 
 /**@brief       Set the bit corresponding to the priority argument
  * @param       bitmap
@@ -52,7 +52,7 @@ static PORT_C_INLINE void thread_bitmap_init(
  *              Priority which will be marked as used
  */
 static PORT_C_INLINE void thread_bitmap_set(
-    struct nthread_bitmap *     bitmap,
+    struct nprio_bitmap *     bitmap,
     uint_fast8_t                priority);
 
 /**@brief       Clear the bit corresponding to the priority argument
@@ -62,7 +62,7 @@ static PORT_C_INLINE void thread_bitmap_set(
  *              Priority which will be marked as unused
  */
 static PORT_C_INLINE void thread_bitmap_clear(
-    struct nthread_bitmap *     bitmap,
+    struct nprio_bitmap *     bitmap,
     uint_fast8_t                priority);
 
 /**@brief       Get the highest priority set
@@ -71,7 +71,7 @@ static PORT_C_INLINE void thread_bitmap_clear(
  * @return      The number of the highest priority marked as used
  */
 static PORT_C_INLINE uint_fast8_t thread_bitmap_get_highest(
-    const struct nthread_bitmap * bitmap);
+    const struct nprio_bitmap * bitmap);
 
 /**@brief       Is bit map empty?
  * @param       bitmap
@@ -81,14 +81,14 @@ static PORT_C_INLINE uint_fast8_t thread_bitmap_get_highest(
  *  @retval     false - there is no thread in bitmap
  */
 static PORT_C_INLINE uint_fast8_t thread_bitmap_get_level(
-    const struct nthread_bitmap * bitmap);
+    const struct nprio_bitmap * bitmap);
 
 /*===============================================================================================  LOCAL VARIABLES  ==*/
 /*==============================================================================================  GLOBAL VARIABLES  ==*/
 /*====================================================================================  LOCAL FUNCTION DEFINITIONS  ==*/
 
 static PORT_C_INLINE void thread_bitmap_init(
-    struct nthread_bitmap *     bitmap)
+    struct nprio_bitmap *     bitmap)
 {
 #if   (CONFIG_PRIORITY_LEVELS > ES_CPU_DEF_DATA_WIDTH)
     uint_fast8_t                group;
@@ -106,7 +106,7 @@ static PORT_C_INLINE void thread_bitmap_init(
 }
 
 static PORT_C_INLINE void thread_bitmap_set(
-    struct nthread_bitmap *     bitmap,
+    struct nprio_bitmap *     bitmap,
     uint_fast8_t                priority)
 {
 #if   (CONFIG_PRIORITY_LEVELS > ES_CPU_DEF_DATA_WIDTH)
@@ -123,7 +123,7 @@ static PORT_C_INLINE void thread_bitmap_set(
 }
 
 static PORT_C_INLINE void thread_bitmap_clear(
-    struct nthread_bitmap *     bitmap,
+    struct nprio_bitmap *     bitmap,
     uint_fast8_t                priority)
 {
 #if   (CONFIG_PRIORITY_LEVELS > ES_CPU_DEF_DATA_WIDTH)
@@ -144,7 +144,7 @@ static PORT_C_INLINE void thread_bitmap_clear(
 }
 
 static PORT_C_INLINE uint_fast8_t thread_bitmap_get_highest(
-    const struct nthread_bitmap * bitmap)
+    const struct nprio_bitmap * bitmap)
 {
 #if   (CONFIG_PRIORITY_LEVELS > ES_CPU_DEF_DATA_WIDTH)
     uint_fast8_t                group_index;
@@ -164,7 +164,7 @@ static PORT_C_INLINE uint_fast8_t thread_bitmap_get_highest(
 }
 
 static PORT_C_INLINE uint_fast8_t thread_bitmap_get_level(
-    const struct nthread_bitmap * bitmap)
+    const struct nprio_bitmap * bitmap)
 {
 #if   (CONFIG_PRIORITY_LEVELS > ES_CPU_DEF_DATA_WIDTH)
 
@@ -178,8 +178,8 @@ static PORT_C_INLINE uint_fast8_t thread_bitmap_get_level(
 /*===========================================================================  GLOBAL PRIVATE FUNCTION DEFINITIONS  ==*/
 /*============================================================================  GLOBAL PUBLIC FUNCTION DEFINITIONS  ==*/
 
-void nthread_queue_init(
-    struct nthread_queue *      queue)
+void nprio_array_init(
+    struct nprio_array *      queue)
 {
     uint_fast8_t                count;
 
@@ -192,8 +192,8 @@ void nthread_queue_init(
     }
 }
 
-void nthread_queue_insert(
-    struct nthread_queue *      queue,
+void nprio_array_insert(
+    struct nprio_array *      queue,
     struct nthread *            thread)
 {
     thread->queue_entry.container = queue;
@@ -209,10 +209,10 @@ void nthread_queue_insert(
     }
 }
 
-void nthread_queue_remove(
+void nprio_array_remove(
     struct nthread *            thread)
 {
-    struct nthread_queue *      queue;
+    struct nprio_array *      queue;
 
     queue = thread->queue_entry.container;
 
@@ -232,8 +232,8 @@ void nthread_queue_remove(
     thread->queue_entry.container = NULL;
 }
 
-struct nthread * nthread_queue_peek(
-    const struct nthread_queue * queue)
+struct nthread * nprio_array_peek(
+    const struct nprio_array * queue)
 {
     uint_fast8_t                priority;
 
@@ -242,31 +242,29 @@ struct nthread * nthread_queue_peek(
     return (queue->sentinel[priority]);
 }
 
-struct nthread * nthread_queue_rotate(
-    struct nthread_queue *      queue)
+struct nthread * nprio_array_rotate_level(
+    struct nprio_array *      queue,
+    uint_fast8_t                level)
 {
-    uint_fast8_t                priority;
+    queue->sentinel[level] = NDLIST_NEXT(queue_entry.list, queue->sentinel[level]);
 
-    priority = thread_bitmap_get_highest(&queue->bitmap);
-    queue->sentinel[priority] = NDLIST_NEXT(queue_entry.list, queue->sentinel[priority]);
-
-    return (queue->sentinel[priority]);
+    return (queue->sentinel[level]);
 }
 
-void nthread_queue_init_entry(
+void nprio_array_init_entry(
     struct nthread *            thread)
 {
     thread->queue_entry.container = NULL;
     NDLIST_INIT(queue_entry.list, thread);
 }
 
-uint_fast8_t nthread_queue_get_level(
-    const struct nthread_queue * queue)
+uint_fast8_t nprio_array_get_level(
+    const struct nprio_array * queue)
 {
     return (thread_bitmap_get_level(&queue->bitmap));
 }
 
-struct nthread_queue * nthread_queue_get_container(
+struct nprio_array * nprio_array_get_container(
     const struct nthread *      thread)
 {
     return (thread->queue_entry.container);

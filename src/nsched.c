@@ -20,12 +20,12 @@
  *
  * web site:    http://blueskynet.dyndns-server.com
  * e-mail  :    blueskyniss@gmail.com
- *//***********************************************************************//**
+ *//***************************************************************************************************************//**
  * @file
  * @author      nenad
  * @brief       Short desciption of file
  * @addtogroup  module_impl
- *********************************************************************//** @{ */
+ *************************************************************************************************************//** @{ */
 
 /*=================================================================================================  INCLUDE FILES  ==*/
 
@@ -45,6 +45,12 @@
  */
 #define DEF_SCHED_STATE_LOCK_Msk        (0x01u << 1)
 
+
+/**@brief       Kernel state variable bit position which defines if the kernel
+ *              is in interrupt servicing state.
+ */
+#define DEF_SCHED_STATE_INTSRV_MSK      (0x01u << 0)
+
 /*==============================================================================================  LOCAL DATA TYPES  ==*/
 /*=====================================================================================  LOCAL FUNCTION PROTOTYPES  ==*/
 /*===============================================================================================  LOCAL VARIABLES  ==*/
@@ -53,7 +59,7 @@
  */
 static const NMODULE_INFO_CREATE("Scheduler", "nKernel - RT Kernel", "Nenad Radulovic");
 
-static struct nthread_queue global_ready_queue;
+static struct nprio_array global_run_queue;
 
 /**@brief       Kernel Lock Counter
  */
@@ -65,9 +71,9 @@ static uint_fast8_t global_sched_lock_count;
  */
 const volatile struct nsched_ctx global_sched_ctx =
 {
-    NULL,                                                                       /* No thread is currently executing                         */
-    NULL,                                                                       /* No thread is pending                                     */
-    NSCHED_INACTIVE                                                             /* This is default kernel state before initialization       */
+    NULL,                                                                       /* No thread is currently executing   */
+    NULL,                                                                       /* No thread is pending               */
+    NSCHED_INACTIVE                                                             /* This is default kernel state       */
 };
 
 /*====================================================================================  LOCAL FUNCTION DEFINITIONS  ==*/
@@ -77,7 +83,7 @@ const volatile struct nsched_ctx global_sched_ctx =
 void nsched_init(
     void)
 {
-    nthread_queue_init(&global_ready_queue);                                                             /* Initialize basic thread queue structure                  */
+    nprio_array_init(&global_run_queue);                                                             /* Initialize basic thread queue structure                  */
     ((volatile struct nsched_ctx *)&global_sched_ctx)->state = NSCHED_INIT;
 }
 
@@ -85,15 +91,15 @@ void nsched_start(
     void)
 {
     struct nthread *            new_thread;
-    nintr_ctx                   intrCtx;
+    nintr_ctx                   intr_ctx;
 
-    NCRITICAL_LOCK_ENTER(&intrCtx);
-    new_thread = nthread_queue_peek(&global_ready_queue);                                                        /* Get the highest priority thread                          */
+    NCRITICAL_LOCK_ENTER(&intr_ctx);
+    new_thread = nprio_array_peek(&global_run_queue);                                                        /* Get the highest priority thread                          */
     ((volatile struct nsched_ctx *)&global_sched_ctx)->cthread = new_thread;
     ((volatile struct nsched_ctx *)&global_sched_ctx)->pthread = new_thread;
     ((volatile struct nsched_ctx *)&global_sched_ctx)->state   = NSCHED_RUN;
-    NCRITICAL_LOCK_EXIT(intrCtx);
-    NPORT_CTX_SW_START();                                                        /* Start the first thread                                   */
+    NCRITICAL_LOCK_EXIT(intr_ctx);
+    NPORT_DISPATCH_START();                                                        /* Start the first thread                                   */
 }
 
 void nsched_init_thread_i(
@@ -113,7 +119,7 @@ void nsched_add_thread_i(
     NREQUIRE(NAPI_USAGE,   global_sched_ctx.state < NSCHED_INACTIVE);
     NREQUIRE(NAPI_POINTER, thread != NULL);
 
-    nthread_queue_insert(&global_ready_queue, thread);
+    nprio_array_insert(&global_run_queue, thread);
 
     if (thread->priority > global_sched_ctx.pthread->priority)
     {
@@ -130,18 +136,18 @@ void nsched_remove_thread_i(
     NREQUIRE(NAPI_USAGE,   global_sched_ctx.state < NSCHED_INACTIVE);
     NREQUIRE(NAPI_POINTER, thread != NULL);
 
-    nthread_queue_remove(thread);
+    nprio_array_remove(thread);
 
     if ((global_sched_ctx.cthread == thread) || (global_sched_ctx.pthread == thread))
     {
-        ((volatile struct nsched_ctx *)&global_sched_ctx)->pthread = nthread_queue_peek(&global_ready_queue);                                                         /* Get new highest priority thread.                         */
+        ((volatile struct nsched_ctx *)&global_sched_ctx)->pthread = nprio_array_peek(&global_run_queue);                                                         /* Get new highest priority thread.                         */
     }
 }
 
 void nsched_evaluate_i(
     void)
 {
-    ((volatile struct nsched_ctx *)&global_sched_ctx)->pthread = nthread_queue_peek(&global_ready_queue);                     /* Get new highest priority thread.                         */
+    ((volatile struct nsched_ctx *)&global_sched_ctx)->pthread = nprio_array_peek(&global_run_queue);                     /* Get new highest priority thread.                         */
 }
 
 void nsched_yield_i(
@@ -149,34 +155,40 @@ void nsched_yield_i(
 {
     NREQUIRE(NAPI_USAGE,   global_sched_ctx.state < NSCHED_INACTIVE);
 
-    if (global_sched_ctx.cthread != global_sched_ctx.pthread)                   /* Context switching is needed only   */
+    if (global_sched_ctx.state == NSCHED_RUN)                                   /* Context switching is needed only   */
     {                                                                           /* when cthread and pthread are       */
-        if (global_sched_ctx.state == NSCHED_RUN)                               /* different.                         */
+        if (global_sched_ctx.cthread != global_sched_ctx.pthread)               /* different.                         */
         {
 #if   (1u == CFG_HOOK_PRE_CTX_SW)
             userPreCtxSw(global_sched_ctx.cthread, newThd);
 #endif
-            PORT_CTX_SW();
+            PORT_DISPATCH();
         }
     }
 }
 
-/* 1)       This function is similar to nsched_yield_i() except it calls context switching macro for ISR and can wake up
- *          scheduler after idle sleep.
- */
-void nsched_yield_isr_i(
+void nsched_isr_enter_i(
+    void)
+{
+    ((volatile struct nsched_ctx *)&global_sched_ctx)->state |= DEF_SCHED_STATE_INTSRV_MSK;
+}
+
+void nsched_isr_exit_i(
     void)
 {
     NREQUIRE(NAPI_USAGE, NSCHED_INACTIVE > global_sched_ctx.state);
 
-    if (global_sched_ctx.cthread != global_sched_ctx.pthread)                         /* Context switching is needed only   */
-    {                                                                           /* when cthd and pthd are different.  */
-        if (global_sched_ctx.state == NSCHED_RUN)
-        {
+    ((volatile struct nsched_ctx *)&global_sched_ctx)->state &= ~DEF_SCHED_STATE_INTSRV_MSK;
+
+    if (global_sched_ctx.state == NSCHED_ISR)
+    {
+        if (global_sched_ctx.cthread != global_sched_ctx.pthread)                   /* Context switching is needed only   */
+        {                                                                           /* when cthd and pthd are different.  */
+
 #if   (1u == CFG_HOOK_PRE_CTX_SW)
             userPreCtxSw(global_sched_ctx.cthread, global_sched_ctx.pthread);
 #endif
-            PORT_CTX_SW_ISR();
+            PORT_DISPATCH_ISR();
 #if   (1u == CFG_SCHED_POWER_SAVE)
         }
         else if (NSCHED_SLEEP == global_sched_ctx.state)
@@ -273,19 +285,6 @@ void sched_wake_up_i(
 }
 #endif
 
-void sched_next_i(
-    void) {
-
-    nthread * nthd;
-    nthread * cthd;
-
-    nthd = nthread_queue_rotate(&global_ready_queue);/* Fetch the next thread and rotate this priority list     */
-
-    if (cthd == global_sched_ctx.pthread) {                                                /* If there is no any other thread pending for switching    */
-        ((struct nsched_ctx *)&global_sched_ctx)->pthread = nthd;                           /* Make the new thread pending                              */
-    }
-}
-
 void sched_quantum_i(
     void)
 {
@@ -296,10 +295,15 @@ void sched_quantum_i(
         thread = global_sched_ctx.cthread;                                                   /* Get the current thread                                   */
         thread->quantum_counter--;                                                       /* Decrement current thread time quantum                    */
 
-        if (0u == thread->quantum_counter)
+        if (thread->quantum_counter == 0u)
         {
             thread->quantum_counter = thread->quantum_reload;                                        /* Reload thread time quantum                               */
-            sched_next_i();
+            thread = nprio_array_rotate_level(&global_run_queue, thread->priority);/* Fetch the next thread and rotate this priority list     */
+
+            if (global_sched_ctx.cthread == global_sched_ctx.pthread)
+            {                                                /* If there is no any other thread pending for switching    */
+                ((volatile struct nsched_ctx *)&global_sched_ctx)->pthread = thread;                           /* Make the new thread pending                              */
+            }
         }
     }
 }
