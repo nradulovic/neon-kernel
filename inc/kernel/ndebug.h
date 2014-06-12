@@ -56,7 +56,7 @@
  * @api
  */
 #define NMODULE_INFO_CREATE(name, description, author)                                                                  \
-    const PORT_C_ROM struct PORT_C_UNUSED nmodule_info global_module_info =                                             \
+    PORT_C_ROM struct PORT_C_UNUSED nmodule_info global_module_info =                                             \
     {                                                                                                                   \
         name,                                                                                                           \
         description,                                                                                                    \
