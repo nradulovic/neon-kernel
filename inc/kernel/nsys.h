@@ -51,7 +51,7 @@
 #include "kernel/nbitop.h"
 #include "kernel/ndebug.h"
 #include "kernel/nlist.h"
-#include "kernel/nthread_queue.h"
+#include "kernel/nprio_array.h"
 #include "kernel/nsched.h"
 #include "kernel/nthread.h"
 

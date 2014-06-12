@@ -41,7 +41,7 @@
 
 #include "kernel/nkernel_config.h"
 
-#include "kernel/nthread_queue.h"
+#include "kernel/nprio_array.h"
 
 /*=======================================================================================================  MACRO's  ==*/
 

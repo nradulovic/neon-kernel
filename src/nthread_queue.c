@@ -1,36 +1,36 @@
 /*
- * This file is part of eSolid.
+ * This file is part of nKernel.
  *
  * Copyright (C) 2010 - 2013 Nenad Radulovic
  *
- * eSolid is free software: you can redistribute it and/or modify
+ * nKernel is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * eSolid is distributed in the hope that it will be useful,
+ * nKernel is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with eSolid.  If not, see <http://www.gnu.org/licenses/>.
+ * along with nKernel.  If not, see <http://www.gnu.org/licenses/>.
  *
  * web site:    http://github.com/nradulovic
  * e-mail  :    nenad.b.radulovic@gmail.com
  *//***************************************************************************************************************//**
  * @file
  * @author      Nenad Radulovic
- * @brief       Thread queue implementation
- * @addtogroup  thread_queue
+ * @brief       Priority array implementation
+ * @addtogroup  priority_array
  *************************************************************************************************************//** @{ */
-/**@defgroup    thread_queue_impl Implementation
- * @brief       Thread queue Implementation
+/**@defgroup    priority_array_impl Implementation
+ * @brief       Implementation
  * @{ *//*------------------------------------------------------------------------------------------------------------*/
 
 /*=================================================================================================  INCLUDE FILES  ==*/
 
-#include "kernel/nthread_queue.h"
+#include "kernel/nprio_array.h"
 #include "kernel/nthread.h"
 #include "kernel/nlist.h"
 
@@ -42,8 +42,8 @@
  * @param       bitmap
  *              Pointer to the bit map structure
  */
-static PORT_C_INLINE void thread_bitmap_init(
-    struct nprio_bitmap *     bitmap);
+static PORT_C_INLINE void bitmap_init(
+    struct nprio_bitmap *       bitmap);
 
 /**@brief       Set the bit corresponding to the priority argument
  * @param       bitmap
@@ -51,8 +51,8 @@ static PORT_C_INLINE void thread_bitmap_init(
  * @param       priority
  *              Priority which will be marked as used
  */
-static PORT_C_INLINE void thread_bitmap_set(
-    struct nprio_bitmap *     bitmap,
+static PORT_C_INLINE void bitmap_set(
+    struct nprio_bitmap *       bitmap,
     uint_fast8_t                priority);
 
 /**@brief       Clear the bit corresponding to the priority argument
@@ -61,8 +61,8 @@ static PORT_C_INLINE void thread_bitmap_set(
  * @param       priority
  *              Priority which will be marked as unused
  */
-static PORT_C_INLINE void thread_bitmap_clear(
-    struct nprio_bitmap *     bitmap,
+static PORT_C_INLINE void bitmap_clear(
+    struct nprio_bitmap *       bitmap,
     uint_fast8_t                priority);
 
 /**@brief       Get the highest priority set
@@ -70,7 +70,7 @@ static PORT_C_INLINE void thread_bitmap_clear(
  *              Pointer to the bit map structure
  * @return      The number of the highest priority marked as used
  */
-static PORT_C_INLINE uint_fast8_t thread_bitmap_get_highest(
+static PORT_C_INLINE uint_fast8_t bitmap_get_highest(
     const struct nprio_bitmap * bitmap);
 
 /**@brief       Is bit map empty?
@@ -80,14 +80,14 @@ static PORT_C_INLINE uint_fast8_t thread_bitmap_get_highest(
  *  @retval     true  - there is at least one thread in bitmap
  *  @retval     false - there is no thread in bitmap
  */
-static PORT_C_INLINE uint_fast8_t thread_bitmap_get_level(
+static PORT_C_INLINE uint_fast8_t bitmap_get_level(
     const struct nprio_bitmap * bitmap);
 
 /*===============================================================================================  LOCAL VARIABLES  ==*/
 /*==============================================================================================  GLOBAL VARIABLES  ==*/
 /*====================================================================================  LOCAL FUNCTION DEFINITIONS  ==*/
 
-static PORT_C_INLINE void thread_bitmap_init(
+static PORT_C_INLINE void bitmap_init(
     struct nprio_bitmap *     bitmap)
 {
 #if   (CONFIG_PRIORITY_LEVELS > ES_CPU_DEF_DATA_WIDTH)
@@ -105,7 +105,7 @@ static PORT_C_INLINE void thread_bitmap_init(
 #endif
 }
 
-static PORT_C_INLINE void thread_bitmap_set(
+static PORT_C_INLINE void bitmap_set(
     struct nprio_bitmap *     bitmap,
     uint_fast8_t                priority)
 {
@@ -122,7 +122,7 @@ static PORT_C_INLINE void thread_bitmap_set(
 #endif
 }
 
-static PORT_C_INLINE void thread_bitmap_clear(
+static PORT_C_INLINE void bitmap_clear(
     struct nprio_bitmap *     bitmap,
     uint_fast8_t                priority)
 {
@@ -143,7 +143,7 @@ static PORT_C_INLINE void thread_bitmap_clear(
 #endif
 }
 
-static PORT_C_INLINE uint_fast8_t thread_bitmap_get_highest(
+static PORT_C_INLINE uint_fast8_t bitmap_get_highest(
     const struct nprio_bitmap * bitmap)
 {
 #if   (CONFIG_PRIORITY_LEVELS > ES_CPU_DEF_DATA_WIDTH)
@@ -163,7 +163,7 @@ static PORT_C_INLINE uint_fast8_t thread_bitmap_get_highest(
 #endif
 }
 
-static PORT_C_INLINE uint_fast8_t thread_bitmap_get_level(
+static PORT_C_INLINE uint_fast8_t bitmap_get_level(
     const struct nprio_bitmap * bitmap)
 {
 #if   (CONFIG_PRIORITY_LEVELS > ES_CPU_DEF_DATA_WIDTH)
@@ -183,7 +183,7 @@ void nprio_array_init(
 {
     uint_fast8_t                count;
 
-    thread_bitmap_init(&queue->bitmap);
+    bitmap_init(&queue->bitmap);
     count = NARRAY_DIMENSION(queue->sentinel);
 
     while (count-- != 0u)
@@ -193,7 +193,7 @@ void nprio_array_init(
 }
 
 void nprio_array_insert(
-    struct nprio_array *      queue,
+    struct nprio_array *        queue,
     struct nthread *            thread)
 {
     thread->queue_entry.container = queue;
@@ -201,7 +201,7 @@ void nprio_array_insert(
     if (queue->sentinel[thread->priority] == NULL)
     {
         queue->sentinel[thread->priority] = thread;
-        thread_bitmap_set(&queue->bitmap, thread->priority);                    /* Mark the priority list as used     */
+        bitmap_set(&queue->bitmap, thread->priority);                           /* Mark the priority list as used     */
     }
     else
     {
@@ -212,14 +212,14 @@ void nprio_array_insert(
 void nprio_array_remove(
     struct nthread *            thread)
 {
-    struct nprio_array *      queue;
+    struct nprio_array *        queue;
 
     queue = thread->queue_entry.container;
 
     if (NDLIST_IS_EMPTY(queue_entry.list, thread))
     {
         queue->sentinel[thread->priority] = NULL;                               /* Remove the mark since this list is */
-        thread_bitmap_clear(&queue->bitmap, thread->priority);                  /* used.                              */
+        bitmap_clear(&queue->bitmap, thread->priority);                         /* used.                              */
     }
     else
     {
@@ -237,7 +237,7 @@ struct nthread * nprio_array_peek(
 {
     uint_fast8_t                priority;
 
-    priority = thread_bitmap_get_highest(&queue->bitmap);
+    priority = bitmap_get_highest(&queue->bitmap);
 
     return (queue->sentinel[priority]);
 }
@@ -261,7 +261,7 @@ void nprio_array_init_entry(
 uint_fast8_t nprio_array_get_level(
     const struct nprio_array * queue)
 {
-    return (thread_bitmap_get_level(&queue->bitmap));
+    return (bitmap_get_level(&queue->bitmap));
 }
 
 struct nprio_array * nprio_array_get_container(
