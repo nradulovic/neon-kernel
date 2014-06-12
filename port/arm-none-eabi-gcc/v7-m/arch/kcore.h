@@ -99,7 +99,7 @@
 
 #define PORT_DISPATCH_ISR()             portCtxSw_()
 
-#define NPORT_DISPATCH_START()            nport_thread_start()
+#define NPORT_DISPATCH_TO_FIRST()            nport_thread_start()
 
 /** @} *//*---------------------------------------------------------------*//**
  * @name        Generic port macros
