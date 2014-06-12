@@ -68,41 +68,41 @@ typedef enum nsched_state nsched_state;
  */
 struct nsched_ctx
 {
-    struct nthread *            cthread;                                                   /**< @brief Pointer to the Current Thread                   */
-    struct nthread *            pthread;                                                   /**< @brief Pointer to the Pending Thread to be switched    */
-    enum nsched_state           state;                                                  /**< @brief State of kernel                                 */
+    struct nthread *            cthread;                                        /**<@brief The current thread         */
+    struct nthread *            pthread;                                        /**<@brief The pending thread         */
+    enum nsched_state           state;                                          /**<@brief Current scheduler state    */
 };
 
 /*======================================================  GLOBAL VARIABLES  ==*/
 
 /**@brief       Kernel control block
- * @note        This variable has Read-Only access rights for application.
  * @notapi
  */
-extern const volatile struct nsched_ctx global_sched_ctx;
+extern struct nsched_ctx global_sched_ctx;
 
 /*===================================================  FUNCTION PROTOTYPES  ==*/
 
 /**@brief       Initialize Ready Thread Queue structure @ref RdyQueue and Scheduler context structure
  *              @ref global_sched_ctx.
+ * @api
  */
 void nsched_init(
     void);
 
 /**@brief       Set the scheduler data structures for multi-threading
  * @details     This function is called just before multi-threading will start.
+ * @api
  */
 void nsched_start(
     void);
 
-/**@brief       Initialize scheduler ready structure during the thread add
- *              operation
- * @param       thd
+/**@brief       Initialize scheduler ready structure during the thread add operation
+ * @param       thread
  *              Pointer to the thread currently being initialized.
- * @details     Function will initialize scheduler structures during the init
- *              phase of the kernel.
+ * @details     Function will initialize scheduler structures during the initialization phase of the kernel.
+ * @api
  */
-void nsched_init_thread_i(
+void nsched_register_thread_i(
     struct nthread *            thread);
 
 /**@brief       Add thread `thread` to the ready thread list and notify the scheduler.
