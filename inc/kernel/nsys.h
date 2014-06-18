@@ -41,7 +41,6 @@
 
 #include "plat/compiler.h"
 #include "plat/critical.h"
-#include "arch/kcore.h"
 #include "arch/cpu.h"
 #include "arch/intr.h"
 #include "arch/systimer.h"
@@ -129,7 +128,7 @@ struct esVTmr {
     esVTmrTick        rtick;                                                      /**< @brief Relative tick value                             */
     void (* fn)(void *);                                                        /**< @brief Callback function pointer                       */
     void *          arg;                                                        /**< @brief Callback function argument                      */
-#if   (1u == CONFIG_API_VALIDATION) || defined(__DOXYGEN__)
+#if   (1u == CONFIG_DEBUG_API) || defined(__DOXYGEN__)
     natomic       signature;                                                  /**< @brief Timer structure signature                       */
 #endif
 };

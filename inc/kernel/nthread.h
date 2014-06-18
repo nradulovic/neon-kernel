@@ -27,6 +27,7 @@
  *************************************************************************************************************//** @{ */
 /**@defgroup    thread_intf Interface
  * @brief       Public interface
+ * @details     For more details see @ref threads.
  * @{ *//*------------------------------------------------------------------------------------------------------------*/
 
 #ifndef NTHREAD_H_
@@ -40,7 +41,6 @@
 #include "plat/compiler.h"
 
 #include "kernel/nkernel_config.h"
-
 #include "kernel/nprio_array.h"
 
 /*=======================================================================================================  MACRO's  ==*/
@@ -55,11 +55,11 @@
 
 /**@brief       Maximum level of priority possible for application thread
  */
-#define NTHREAD_PRIORITY_MAX                (CONFIG_PRIORITY_LEVELS - 2u)
+#define NTHREAD_PRIORITY_MAX                (CONFIG_PRIORITY_LEVELS - 1u)
 
 /**@brief       Minimum level of priority possible for application thread
  */
-#define NTHREAD_PRIORITY_MIN                (1u)
+#define NTHREAD_PRIORITY_MIN                (0u)
 
 /*----------------------------------------------------------------------------------------------  C++ extern begin  --*/
 #ifdef __cplusplus
@@ -79,11 +79,14 @@ extern "C" {
  */
 struct nthread {
     struct nthread_stack *      stack;                                          /**<@brief Pointer to top of stack    */
-    struct nprio_array_entry  queue_entry;                                    /**<@brief Priority queue entry       */
+    struct nprio_array_entry    array_entry;                                    /**<@brief Priority array entry       */
     uint_fast8_t                priority;                                       /**<@brief Current priority level     */
     uint_fast8_t                quantum_counter;                                /**<@brief Quantum counter            */
     uint_fast8_t                quantum_reload;                                 /**<@brief Quantum reload value       */
-#if   (1u== CONFIG_API_VALIDATION) || defined(__DOXYGEN__)
+#if   (CONFIG_SEMAPHORE == 1u) || defined(__DOXYGEN__)
+    struct nsem *               owned_sem;
+#endif
+#if   (CONFIG_DEBUG_API == 1u) || defined(__DOXYGEN__)
     natomic                     signature;                                      /**<@brief Debug signature            */
 #endif
 };
@@ -100,7 +103,7 @@ typedef struct nthread nthread;
  *              Thread: is a pointer to the thread structure, @ref esThread. The structure will be used as information
  *              container for the thread. It is assumed that storage for the `esThread` structure is allocated by the
  *              user code.
- * @param       fn
+ * @param       entry
  *              Function: is a pointer to thread function. Thread function must have the following signature:
  *              `void thread (void * arg)`.
  * @param       arg
@@ -126,7 +129,7 @@ typedef struct nthread nthread;
  *                  than once.
  * @pre         4) `fn != NULL`
  * @pre         5) `stack_size >= PORT_STACK_MINSIZE`, see @ref PORT_STACK_MINSIZE.
- * @pre         6) `0 < priority < CFG_SCHED_PRIO_LVL - 1`, see @ref CFG_SCHED_PRIO_LVL.
+ * @pre         6) `0 < priority < CFG_SCHED_PRIO_LVL`, see @ref CFG_SCHED_PRIO_LVL.
  * @post        1) `thread->signature == DEF_THD_CONTRACT_SIGNATURE`, each @ref esThread structure will have valid
  *                  signature after initialization.
  * @details     Threads must be created in order for kernel to recognize them as threads. Initialize a thread by calling
@@ -141,7 +144,7 @@ typedef struct nthread nthread;
  */
 void nthread_init(
     struct nthread *            thread,
-    void                     (* fn)(void *),
+    void                     (* entry)(void *),
     void *                      arg,
     struct nthread_stack *      stack,
     size_t                      stack_size,
@@ -194,7 +197,7 @@ static PORT_C_INLINE uint8_t nthread_get_priority(
  * @pre         2) `thread != NULL`
  * @pre         3) `thread->signature == DEF_THD_CONTRACT_SIGNATURE`, the pointer must point to a valid @ref nthread
  *                  structure.
- * @pre         4) `0 < priority < CFG_SCHED_PRIO_LVL - 1`, see
+ * @pre         4) `0 < priority < CFG_SCHED_PRIO_LVL`, see
  *                  @ref CFG_SCHED_PRIO_LVL.
  * @called
  * @fromapp

@@ -34,12 +34,6 @@
 
 /*=========================================================  LOCAL MACRO's  ==*/
 
-/**@brief       Thread structure signature.
- * @details     The signature is used to confirm that a structure passed to a
- *              kernel function is indeed a esThread thread structure.
- */
-#define DEF_THD_CONTRACT_SIGNATURE      ((natomic)0xfeedbeeful)
-
 /**@brief       Thread Queue structure signature.
  * @details     The signature is used to confirm that a structure passed to a
  *              kernel function is indeed a esThreadQ thread queue structure.
@@ -233,7 +227,7 @@ static struct esVTmr VTmrArmed =
 #endif
    NULL,
    NULL,
-#if   (1u == CONFIG_API_VALIDATION)
+#if   (1u == CONFIG_DEBUG_API)
    DEF_VTMR_CONTRACT_SIGNATURE
 #endif
 };
@@ -250,7 +244,7 @@ static struct esVTmr VTmrPend =
    0u,
    NULL,
    NULL,
-#if   (1u == CONFIG_API_VALIDATION)
+#if   (1u == CONFIG_DEBUG_API)
    DEF_VTMR_CONTRACT_SIGNATURE
 #endif
 };
@@ -665,88 +659,6 @@ void nsys_isr_exit_i(
     }
 }
 
-/*--  Thread management  -----------------------------------------------------*/
-
-void nthread_init(
-    struct nthread *            thread,
-    void                     (* fn)(void *),
-    void *                      arg,
-    struct nthread_stack *      stack,
-    size_t                      stack_size,
-    uint8_t                     priority)
-{
-    nintr_ctx                   intr_ctx;
-
-    NREQUIRE(NAPI_POINTER, thread != NULL);
-    NREQUIRE(NAPI_OBJECT,  thread->signature != DEF_THD_CONTRACT_SIGNATURE);
-    NREQUIRE(NAPI_POINTER, fn     != NULL);
-    NREQUIRE(NAPI_POINTER, stack  != NULL);
-    NREQUIRE(ES_API_RANGE, stack_size >= PORT_STACK_MINSIZE);
-    NREQUIRE(ES_API_RANGE, priority < CONFIG_PRIORITY_LEVELS);
-    NREQUIRE(ES_API_RANGE, ((&KVTmr != thread) && ((CONFIG_PRIORITY_LEVELS - 1u) > priority)) || (&KVTmr == thread));
-    NREQUIRE(ES_API_RANGE, ((&KIdle != thread) && (0u < priority)) || (&KIdle == thread));
-    NOBLIGATION(thread->signature = DEF_THD_CONTRACT_SIGNATURE);                /* Validate thread structure          */
-
-    thread->stack           = PORT_CTX_INIT(stack, stack_size, fn, arg);        /* Make a fake thread stack           */
-    thread->priority        = priority;
-    thread->quantum_counter = CFG_SCHED_TIME_QUANTUM;
-    thread->quantum_reload  = CFG_SCHED_TIME_QUANTUM;
-    nprio_array_init_entry(thread);
-    NCRITICAL_LOCK_ENTER(&intr_ctx);
-    nsched_register_thread_i(thread);                                           /* Register and add to Run Queue      */
-    nsched_yield_i();                                                           /* Invoke the scheduler               */
-    NCRITICAL_LOCK_EXIT(intr_ctx);
-
-#if   (1u == CFG_HOOK_POST_THD_INIT)
-    userPostThdInit();
-#endif
-}
-
-void nthread_term(
-    nthread *           thd) {
-
-    nintr_ctx           intCtx;
-
-    NREQUIRE(NAPI_USAGE, NSCHED_INACTIVE > global_sched_ctx.state);
-    NREQUIRE(NAPI_POINTER, NULL != thd);
-    NREQUIRE(NAPI_OBJECT, DEF_THD_CONTRACT_SIGNATURE == thd->signature);
-
-#if   (1u == CFG_HOOK_PRE_THD_TERM)
-    userPreThdTerm();
-#endif
-    NCRITICAL_LOCK_ENTER(&intCtx);
-
-    nprio_array_remove(thd);
-
-    NOBLIGATION(thd->signature = ~DEF_THD_CONTRACT_SIGNATURE);            /* Mark the thread ID structure as invalid.                 */
-
-    nsched_yield_i();
-    NCRITICAL_LOCK_EXIT(intCtx);
-}
-
-void nthread_set_priority_i(
-    nthread *           thd,
-    uint8_t             prio) {
-
-    NREQUIRE(NAPI_USAGE, NSCHED_INACTIVE > global_sched_ctx.state);
-    NREQUIRE(NAPI_POINTER, NULL != thd);
-    NREQUIRE(NAPI_OBJECT, DEF_THD_CONTRACT_SIGNATURE == thd->signature);
-    NREQUIRE(ES_API_RANGE, CONFIG_PRIORITY_LEVELS >= prio);
-
-    struct nprio_array * queue;
-
-    queue = nprio_array_get_container(thd);
-
-    if (queue == NULL) {                             /* Is thread inserted in any queue?                         */
-        thd->priority = prio;                                                       /* Just change it's priority value.                             */
-    } else {
-        nprio_array_remove(thd);
-        thd->priority = prio;
-        nprio_array_insert(queue, thd);
-        nsched_evaluate_i();
-    }
-}
-
 /*--  Virtual Timer management  ----------------------------------------------*/
 
 void esKTmrInitI(
@@ -758,7 +670,7 @@ void esKTmrInitI(
     NREQUIRE(NAPI_USAGE, NSCHED_INACTIVE > global_sched_ctx.state);
     NREQUIRE(NAPI_POINTER, NULL != vTmr);
     NREQUIRE(NAPI_OBJECT, DEF_VTMR_CONTRACT_SIGNATURE != vTmr->signature);
-    NREQUIRE(ES_API_RANGE, 1u < tick);
+    NREQUIRE(NAPI_RANGE, 1u < tick);
     NREQUIRE(NAPI_POINTER, NULL != fn);
 
     vTmr->rtick     = tick;

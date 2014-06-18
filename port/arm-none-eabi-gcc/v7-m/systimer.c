@@ -74,7 +74,7 @@ void portSysTimerSetHandler(
     void             (* handler)(void),
     uint_fast8_t        level) {
 
-    NREQUIRE(ES_API_RANGE, level < NARRAY_DIMENSION(GlobalSysTimerHandler));
+    NREQUIRE(NAPI_RANGE, level < NARRAY_DIMENSION(GlobalSysTimerHandler));
 
     GlobalSysTimerHandler[level] = handler;
 }

@@ -40,7 +40,6 @@
 #include "arch/cpu.h"
 
 #include "kernel/nkernel_config.h"
-
 #include "kernel/nbitop.h"
 
 /*=======================================================================================================  MACRO's  ==*/
@@ -56,23 +55,29 @@ extern "C" {
  */
 struct nprio_bitmap
 {
-#if   (CONFIG_PRIORITY_LEVELS > ES_CPU_DEF_DATA_WIDTH) || defined(__DOXYGEN__)
+#if   (CONFIG_PRIORITY_LEVELS > NCPU_DATA_WIDTH) || defined(__DOXYGEN__)
     natomic                     bitGroup;                                       /**<@brief Bit list indicator         */
 #endif
     /**@brief       Bit priority indicator
      */
-    natomic                     bit[NDIVISION_ROUNDUP(CONFIG_PRIORITY_LEVELS, ES_CPU_DEF_DATA_WIDTH)];
+    natomic                     bit[NDIVISION_ROUNDUP(CONFIG_PRIORITY_LEVELS, NCPU_DATA_WIDTH)];
 };
 
+/**@brief       Thread doubly linked list
+ * @api
+ */
 struct nthread_list
 {
     struct nthread *            next;
     struct nthread *            prev;
 };
 
+/**@brief       Priority array entry
+ * @notapi
+ */
 struct nprio_array_entry
 {
-    struct nprio_array *        container;
+    struct nprio_array *        container;                                      /**<@brief Container priority array   */
     struct nthread_list         list;
 };
 
@@ -107,7 +112,7 @@ void nprio_array_remove(
     struct nthread *            thread);
 
 struct nthread * nprio_array_peek(
-    const struct nprio_array *  array);
+    const struct nprio_array * array);
 
 struct nthread * nprio_array_rotate_level(
     struct nprio_array *        array,

@@ -29,6 +29,7 @@
 
 #include "plat/compiler.h"
 #include "arch/cpu.h"
+#include "arch/kcore_cfg.h"
 
 #include "kernel/nsys.h"
 
@@ -89,17 +90,17 @@ PORT_C_NORETURN void nport_thread_start(
 }
 
 void * nport_thread_init_ctx(
-    void *              stack,
-    size_t              stack_size,
-    void             (* fn)(void *),
-    void *              arg)
+    void *                      stack,
+    size_t                      stack_size,
+    void                     (* entry)(void *),
+    void *                      arg)
 {
     struct nthread_ctx *    sp;
 
     sp       = (struct nthread_ctx *)((uint8_t *)stack + stack_size);
     sp--;
     sp->xpsr = (ncpu_reg)(PORT_PSR_THUMB_STATE_Msk | PORT_CONFIG_KCORE_PSR_DATA);
-    sp->pc   = (ncpu_reg)fn;
+    sp->pc   = (ncpu_reg)entry;
     sp->lr   = (ncpu_reg)thread_exit;
     sp->r0   = (ncpu_reg)arg;
 

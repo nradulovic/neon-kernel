@@ -30,7 +30,6 @@
 #include <stddef.h>
 
 #include "plat/critical.h"
-#include "arch/kcore.h"
 
 #include "kernel/nsched.h"
 #include "kernel/ndebug.h"

@@ -18,21 +18,22 @@
  *
  * web site:    http://github.com/nradulovic
  * e-mail  :    nenad.b.radulovic@gmail.com
- *//***********************************************************************//**
+ *//***************************************************************************************************************//**
  * @file
  * @author  	Nenad Radulovic
  * @brief       Scheduler header
  * @defgroup    scheduler Scheduler
  * @brief       Scheduler
- *********************************************************************//** @{ */
+ *************************************************************************************************************//** @{ */
 
-#ifndef NSCHED_H_
-#define NSCHED_H_
+#ifndef NSCHED_H
+#define NSCHED_H
 
 /*=================================================================================================  INCLUDE FILES  ==*/
 
 #include "plat/compiler.h"
 #include "arch/intr.h"
+#include "kernel/nkernel_config.h"
 
 /*=======================================================================================================  MACRO's  ==*/
 /*----------------------------------------------------------------------------------------------  C++ extern begin  --*/
@@ -126,10 +127,9 @@ void nsched_add_thread_i(
  *              Pointer to the initialized thread ID structure, @ref esThread.
  * @pre         1) `The kernel state < ES_KERN_INACTIVE`, see @ref states.
  * @pre         2) `thread != NULL`
- * @pre         3) `thread->signature == DEF_THD_CONTRACT_SIGNATURE`, the pointer must
- *                  point to a valid @ref esThread structure.
- * @pre         4) `thread->esThreadList_.q == &gRdyQueue`, thread must be in Ready Threads
- *                  queue.
+ * @pre         3) `thread->signature == DEF_THD_CONTRACT_SIGNATURE`, the pointer must point to a valid
+ *                  @ref nthread structure.
+ * @pre         4) `thread->esThreadList_.q == &gRdyQueue`, thread must be in Ready Threads queue.
  * @called
  * @fromapp
  * @fromthd
@@ -154,6 +154,9 @@ void nsched_evaluate_i(
 void nsched_yield_i(
     void);
 
+void nsched_isr_enter_i(
+    void);
+
 /**@brief       Force the scheduler invocation which will evaluate all ready threads and switch to ready thread with the
  *              highest priority
  * @pre         1) `The kernel state < ES_KERN_INACTIVE`, see @ref states.
@@ -162,12 +165,6 @@ void nsched_yield_i(
  * @schedmaybe
  * @iclass
  */
-void nsched_yield_isr_i(
-    void);
-
-void nsched_isr_enter_i(
-    void);
-
 void nsched_isr_exit_i(
     void);
 
@@ -258,13 +255,13 @@ void sched_wake_up_i(
 void sched_quantum_i(
     void);
 
-/*--------------------------------------------------------  C++ extern end  --*/
+/*------------------------------------------------------------------------------------------------  C++ extern end  --*/
 #ifdef __cplusplus
 }
 #endif
 
-/*================================*//** @cond *//*==  CONFIGURATION ERRORS  ==*/
-/** @endcond *//** @} *//******************************************************
+/*========================================================================*//** @cond *//*==  CONFIGURATION ERRORS  ==*/
+/** @endcond *//** @} *//**********************************************************************************************
  * END of nsched.h
- ******************************************************************************/
-#endif /* NSCHED_H_ */
+ **********************************************************************************************************************/
+#endif /* NSCHED_H */

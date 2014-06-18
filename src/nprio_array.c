@@ -90,7 +90,7 @@ static PORT_C_INLINE uint_fast8_t bitmap_get_level(
 static PORT_C_INLINE void bitmap_init(
     struct nprio_bitmap *     bitmap)
 {
-#if   (CONFIG_PRIORITY_LEVELS > ES_CPU_DEF_DATA_WIDTH)
+#if   (CONFIG_PRIORITY_LEVELS > NCPU_DATA_WIDTH)
     uint_fast8_t                group;
 
     bitmap->bitGroup = 0u;
@@ -109,16 +109,16 @@ static PORT_C_INLINE void bitmap_set(
     struct nprio_bitmap *     bitmap,
     uint_fast8_t                priority)
 {
-#if   (CONFIG_PRIORITY_LEVELS > ES_CPU_DEF_DATA_WIDTH)
+#if   (CONFIG_PRIORITY_LEVELS > NCPU_DATA_WIDTH)
     uint_fast8_t                group_index;
     uint_fast8_t                bit_index;
 
-    bit_index   = priority & (~((uint_fast8_t)0u) >> (sizeof(priority) * 8u - ES_UINT8_LOG2(ES_CPU_DEF_DATA_WIDTH)));
-    group_index = priority >> ES_UINT8_LOG2(ES_CPU_DEF_DATA_WIDTH);
-    bitmap->bitGroup         |= ES_CPU_PWR2(group_index);
-    bitmap->bit[group_index] |= ES_CPU_PWR2(bit_index);
+    bit_index   = priority & (~((uint_fast8_t)0u) >> (sizeof(priority) * 8u - ES_UINT8_LOG2(NCPU_DATA_WIDTH)));
+    group_index = priority >> ES_UINT8_LOG2(NCPU_DATA_WIDTH);
+    bitmap->bitGroup         |= NCPU_POWER2(group_index);
+    bitmap->bit[group_index] |= NCPU_POWER2(bit_index);
 #else
-    bitmap->bit[0] |= ES_CPU_PWR2(priority);
+    bitmap->bit[0] |= NCPU_POWER2(priority);
 #endif
 }
 
@@ -126,38 +126,38 @@ static PORT_C_INLINE void bitmap_clear(
     struct nprio_bitmap *     bitmap,
     uint_fast8_t                priority)
 {
-#if   (CONFIG_PRIORITY_LEVELS > ES_CPU_DEF_DATA_WIDTH)
+#if   (CONFIG_PRIORITY_LEVELS > NCPU_DATA_WIDTH)
     uint_fast8_t                group_index;
     uint_fast8_t                bit_index;
 
-    bit_index   = priority & (~((uint_fast8_t)0u) >> (sizeof(priority) * 8u - ES_UINT8_LOG2(ES_CPU_DEF_DATA_WIDTH)));
-    group_index = priority >> ES_UINT8_LOG2(ES_CPU_DEF_DATA_WIDTH);
-    bitmap->bit[group_index] &= ~ES_CPU_PWR2(bit_index);
+    bit_index   = priority & (~((uint_fast8_t)0u) >> (sizeof(priority) * 8u - ES_UINT8_LOG2(NCPU_DATA_WIDTH)));
+    group_index = priority >> ES_UINT8_LOG2(NCPU_DATA_WIDTH);
+    bitmap->bit[group_index] &= ~NCPU_POWER2(bit_index);
 
     if (bitmap->bit[group_index] == 0u)                                         /* If this is the last bit cleared in */
     {                                                                           /* this list then clear bit group     */
-        bitmap->bitGroup &= ~ES_CPU_PWR2(group_index);                          /* indicator, too.                    */
+        bitmap->bitGroup &= ~NCPU_POWER2(group_index);                          /* indicator, too.                    */
     }
 #else
-    bitmap->bit[0] &= ~ES_CPU_PWR2(priority);
+    bitmap->bit[0] &= ~NCPU_POWER2(priority);
 #endif
 }
 
 static PORT_C_INLINE uint_fast8_t bitmap_get_highest(
     const struct nprio_bitmap * bitmap)
 {
-#if   (CONFIG_PRIORITY_LEVELS > ES_CPU_DEF_DATA_WIDTH)
+#if   (CONFIG_PRIORITY_LEVELS > NCPU_DATA_WIDTH)
     uint_fast8_t                group_index;
     uint_fast8_t                bit_index;
 
-    group_index = ES_CPU_FLS(bitmap->bitGroup);
-    bit_index   = ES_CPU_FLS(bitmap->bit[group_index]);
+    group_index = NCPU_FIND_LAST_SET(bitmap->bitGroup);
+    bit_index   = NCPU_FIND_LAST_SET(bitmap->bit[group_index]);
 
-    return ((group_index << ES_UINT8_LOG2(ES_CPU_DEF_DATA_WIDTH)) | bit_index);
+    return ((group_index << ES_UINT8_LOG2(NCPU_DATA_WIDTH)) | bit_index);
 #else
     uint_fast8_t                bit_index;
 
-    bit_index = ES_CPU_FLS(bitmap->bit[0]);
+    bit_index = NCPU_FIND_LAST_SET(bitmap->bit[0]);
 
     return (bit_index);
 #endif
@@ -166,7 +166,7 @@ static PORT_C_INLINE uint_fast8_t bitmap_get_highest(
 static PORT_C_INLINE uint_fast8_t bitmap_get_level(
     const struct nprio_bitmap * bitmap)
 {
-#if   (CONFIG_PRIORITY_LEVELS > ES_CPU_DEF_DATA_WIDTH)
+#if   (CONFIG_PRIORITY_LEVELS > NCPU_DATA_WIDTH)
 
     return (bitmap->bitGroup);
 #else
@@ -179,95 +179,95 @@ static PORT_C_INLINE uint_fast8_t bitmap_get_level(
 /*============================================================================  GLOBAL PUBLIC FUNCTION DEFINITIONS  ==*/
 
 void nprio_array_init(
-    struct nprio_array *      queue)
+    struct nprio_array *        array)
 {
     uint_fast8_t                count;
 
-    bitmap_init(&queue->bitmap);
-    count = NARRAY_DIMENSION(queue->sentinel);
+    bitmap_init(&array->bitmap);
+    count = NARRAY_DIMENSION(array->sentinel);
 
     while (count-- != 0u)
     {
-        queue->sentinel[count] = NULL;
+        array->sentinel[count] = NULL;
     }
 }
 
 void nprio_array_insert(
-    struct nprio_array *        queue,
+    struct nprio_array *        array,
     struct nthread *            thread)
 {
-    thread->queue_entry.container = queue;
+    thread->array_entry.container = array;
 
-    if (queue->sentinel[thread->priority] == NULL)
+    if (array->sentinel[thread->priority] == NULL)
     {
-        queue->sentinel[thread->priority] = thread;
-        bitmap_set(&queue->bitmap, thread->priority);                           /* Mark the priority list as used     */
+        array->sentinel[thread->priority] = thread;
+        bitmap_set(&array->bitmap, thread->priority);                           /* Mark the priority list as used     */
     }
     else
     {
-        NDLIST_ADD_HEAD(queue_entry.list, queue->sentinel[thread->priority], thread);
+        NDLIST_ADD_HEAD(array_entry.list, array->sentinel[thread->priority], thread);
     }
 }
 
 void nprio_array_remove(
     struct nthread *            thread)
 {
-    struct nprio_array *        queue;
+    struct nprio_array *        array;
 
-    queue = thread->queue_entry.container;
+    array = thread->array_entry.container;
 
-    if (NDLIST_IS_EMPTY(queue_entry.list, thread))
+    if (NDLIST_IS_EMPTY(array_entry.list, thread))
     {
-        queue->sentinel[thread->priority] = NULL;                               /* Remove the mark since this list is */
-        bitmap_clear(&queue->bitmap, thread->priority);                         /* used.                              */
+        array->sentinel[thread->priority] = NULL;                               /* Remove the mark since this list is */
+        bitmap_clear(&array->bitmap, thread->priority);                         /* used.                              */
     }
     else
     {
-        if (queue->sentinel[thread->priority] == thread)
+        if (array->sentinel[thread->priority] == thread)
         {
-            queue->sentinel[thread->priority] = NDLIST_NEXT(queue_entry.list, thread);
+            array->sentinel[thread->priority] = NDLIST_NEXT(array_entry.list, thread);
         }
-        NDLIST_REMOVE(queue_entry.list, thread);
+        NDLIST_REMOVE(array_entry.list, thread);
     }
-    thread->queue_entry.container = NULL;
+    thread->array_entry.container = NULL;
 }
 
 struct nthread * nprio_array_peek(
-    const struct nprio_array * queue)
+    const struct nprio_array *  array)
 {
     uint_fast8_t                priority;
 
-    priority = bitmap_get_highest(&queue->bitmap);
+    priority = bitmap_get_highest(&array->bitmap);
 
-    return (queue->sentinel[priority]);
+    return (array->sentinel[priority]);
 }
 
 struct nthread * nprio_array_rotate_level(
-    struct nprio_array *      queue,
+    struct nprio_array *        array,
     uint_fast8_t                level)
 {
-    queue->sentinel[level] = NDLIST_NEXT(queue_entry.list, queue->sentinel[level]);
+    array->sentinel[level] = NDLIST_NEXT(array_entry.list, array->sentinel[level]);
 
-    return (queue->sentinel[level]);
+    return (array->sentinel[level]);
 }
 
 void nprio_array_init_entry(
     struct nthread *            thread)
 {
-    thread->queue_entry.container = NULL;
-    NDLIST_INIT(queue_entry.list, thread);
+    thread->array_entry.container = NULL;
+    NDLIST_INIT(array_entry.list, thread);
 }
 
 uint_fast8_t nprio_array_get_level(
-    const struct nprio_array * queue)
+    const struct nprio_array *  array)
 {
-    return (bitmap_get_level(&queue->bitmap));
+    return (bitmap_get_level(&array->bitmap));
 }
 
 struct nprio_array * nprio_array_get_container(
     const struct nthread *      thread)
 {
-    return (thread->queue_entry.container);
+    return (thread->array_entry.container);
 }
 
 /*========================================================================*//** @cond *//*==  CONFIGURATION ERRORS  ==*/
