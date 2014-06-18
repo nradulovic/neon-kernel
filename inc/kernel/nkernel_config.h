@@ -54,8 +54,8 @@
  *
  * @note        This option is enabled only if @ref CONFIG_DEBUG is enabled, too.
  */
-#if !defined(CONFIG_API_VALIDATION)
-# define CONFIG_API_VALIDATION          1
+#if !defined(CONFIG_DEBUG_API)
+# define CONFIG_DEBUG_API          1
 #endif
 
 /**@brief       Enable/disable internal checks
@@ -65,8 +65,12 @@
  *
  * @note        This option is enabled only if @ref CONFIG_DEBUG is enabled, too.
  */
-#if !defined(CONFIG_ASSERT_INTERNAL)
-# define CONFIG_ASSERT_INTERNAL         1
+#if !defined(CONFIG_DEBUG_INTERNAL)
+# define CONFIG_DEBUG_INTERNAL         1
+#endif
+
+#if !defined(CONFIG_SEMAPHORE)
+# define CONFIG_SEMAPHORE               1
 #endif
 
 /*------------------------------------------------------------------------*//**
@@ -84,8 +88,8 @@
 
 /**@brief       Scheduler Round-Robin time quantum
  */
-#if !defined(CFG_SCHED_TIME_QUANTUM)
-# define CFG_SCHED_TIME_QUANTUM         10u
+#if !defined(CONFIG_SCHED_TIME_QUANTUM)
+# define CONFIG_SCHED_TIME_QUANTUM          10u
 #endif
 
 /**@brief       Enable/disable scheduler power savings mode
@@ -190,21 +194,21 @@
 # error "nKernel RT Kernel: Configuration option CONFIG_DEBUG is out of range."
 #endif
 
-#if ((CONFIG_API_VALIDATION != 1) && (CONFIG_API_VALIDATION != 0))
+#if ((CONFIG_DEBUG_API != 1) && (CONFIG_DEBUG_API != 0))
 # error "nKernel RT Kernel: Configuration option CONFIG_DEBUG_API_VALIDATION is out of range."
 #endif
 
-#if ((CONFIG_ASSERT_INTERNAL != 1) && (CONFIG_ASSERT_INTERNAL != 0))
+#if ((CONFIG_DEBUG_INTERNAL != 1) && (CONFIG_DEBUG_INTERNAL != 0))
 # error "nKernel RT Kernel: Configuration option CONFIG_DEBUG_INTERNAL_CHECK is out of range."
 #endif
 
 #if (CONFIG_DEBUG == 0) || defined(NDEBUG)
 # undef  CONFIG_DEBUG
-# define CONFIG_DEBUG                   0
-# undef  CONFIG_API_VALIDATION
-# define CONFIG_API_VALIDATION          0
-# undef  CONFIG_ASSERT_INTERNAL
-# define CONFIG_ASSERT_INTERNAL         0
+# define CONFIG_DEBUG                       0
+# undef  CONFIG_DEBUG_API
+# define CONFIG_DEBUG_API                   0
+# undef  CONFIG_DEBUG_INTERNAL
+# define CONFIG_DEBUG_INTERNAL              0
 #endif
 
 #if ((3u > CONFIG_PRIORITY_LEVELS) || (256u < CONFIG_PRIORITY_LEVELS))
