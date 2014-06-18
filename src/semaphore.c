@@ -37,6 +37,55 @@
 /*============================================  LOCAL FUNCTION DEFINITIONS  ==*/
 /*===================================  GLOBAL PRIVATE FUNCTION DEFINITIONS  ==*/
 /*====================================  GLOBAL PUBLIC FUNCTION DEFINITIONS  ==*/
+
+void nsem_init(
+    struct nsem *               sem,
+    uint32_t                    count)
+{
+    NDLIST_INIT(list, sem);
+    nprio_array_init(&sem->prio_array);
+    sem->count = count;
+}
+
+void nsem_term(
+    struct nsem *               sem);
+
+#define PORT_LOAD(val)          *(val)
+#define PORT_SAVE(address, val) *(address) = val
+
+void nsem_wait(
+    struct nsem *               sem)
+{
+    struct nthread *            thread;
+    register uint32_t           count;
+
+
+
+    do
+    {
+        count = PORT_LOAD(&sem->count);
+        count--;
+    } while ((count != 0) && PORT_SAVE(&sem->count, count));
+}
+
+/**@brief       Wait on a semaphore
+ * @param       sem
+ *              Semaphore: points to a semaphore object to initialize.
+ * @param       time
+ *              Time: the timeout time specified in system ticks.
+ */
+void nsem_wait_timeout(
+    struct nsem *               sem,
+    esVTmrTick                  time);
+
+/**@brief       Increment the value of a semaphore
+ * @param       sem
+ *              Semaphore: points to a semaphore object to initialize.
+ */
+void nsem_post(
+    struct nsem *               sem);
+
+
 /*================================*//** @cond *//*==  CONFIGURATION ERRORS  ==*/
 /** @endcond *//** @} *//******************************************************
  * END of semaphore.c

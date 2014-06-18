@@ -31,6 +31,10 @@
 
 /*=========================================================  INCLUDE FILES  ==*/
 
+#include <stdint.h>
+#include "kernel/nlist.h"
+#include "kernel/nprio_array.h"
+
 #include "kernel/nsys.h"
 
 /*===============================================================  MACRO's  ==*/
@@ -48,22 +52,16 @@ extern "C" {
 
 /*============================================================  DATA TYPES  ==*/
 
-/*------------------------------------------------------------------------*//**
- * @name        Data types list
- * @brief       brief description
- * @{ *//*--------------------------------------------------------------------*/
-#define CFG_SEMAPHORE_CNT_T             int16_t
-
-typedef CFG_SEMAPHORE_CNT_T esSemCnt_T;
-
-struct esSem {
-    nthread        thds;
-    esSemCnt_T      cnt;
+struct nsem {
+    struct nsem_list
+    {
+        struct nsem *               next;
+        struct nsem *               prev;
+    }                           list;
+    struct nprio_array          prio_array;
+    uint32_t                    count;
 };
 
-typedef struct esSem esSem_T;
-
-/** @} *//*-------------------------------------------------------------------*/
 /*======================================================  GLOBAL VARIABLES  ==*/
 /*===================================================  FUNCTION PROTOTYPES  ==*/
 
@@ -75,23 +73,23 @@ typedef struct esSem esSem_T;
 /**@brief       Initialize a semaphore
  * @param       sem
  *              Semaphore: points to a semaphore object to initialize.
- * @param       cnt
+ * @param       count
  *              Count: is an initial value to set the semaphore to.
  */
-void esSemInit(
-    esSem_T *       sem,
-    esSemCnt_T      cnt);
+void nsem_init(
+    struct nsem *               sem,
+    uint32_t                    count);
 
 
-void esSemTerm(
-    esSem_T *       sem);
+void nsem_term(
+    struct nsem *               sem);
 
 /**@brief       Wait on a semaphore
  * @param       sem
  *              Semaphore: points to a semaphore object to initialize.
  */
-void esSemWait(
-    esSem_T *       sem);
+void nsem_wait(
+    struct nsem *               sem);
 
 /**@brief       Wait on a semaphore
  * @param       sem
@@ -99,16 +97,16 @@ void esSemWait(
  * @param       time
  *              Time: the timeout time specified in system ticks.
  */
-void esSemWaitTimeout(
-    esSem_T *       sem,
-    esVTmrTick      time);
+void nsem_wait_timeout(
+    struct nsem *               sem,
+    esVTmrTick                  time);
 
 /**@brief       Increment the value of a semaphore
  * @param       sem
  *              Semaphore: points to a semaphore object to initialize.
  */
-void esSemPost(
-    esSem_T *       sem);
+void nsem_post(
+    struct nsem *               sem);
 
 /** @} *//*-------------------------------------------------------------------*/
 /*--------------------------------------------------------  C++ extern end  --*/
