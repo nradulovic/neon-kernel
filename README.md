@@ -1,4 +1,4 @@
-# Quick-start guide
+# Introduction 
 
 This is a bare-kernel for embedded systems. It is intended for a bigger project 
 which already includes some synchronization mechanisms. The initial idea was 
@@ -35,8 +35,6 @@ https://launchpad.net/gcc-arm-embedded/+download) and binary was downloaded
 to the MCU using _texane_ gdb-server. There are no makefiles, it is assumed
 that IDE will generate them for you.
 
-This project depends on eSolid-Base project which provides low-level interface
-to hardware.
 
 #### Example for STM32F10x family port
 
