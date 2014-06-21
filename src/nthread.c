@@ -95,34 +95,23 @@ void nthread_term(
     userPreThdTerm();
 #endif
     NCRITICAL_LOCK_ENTER(&intr_ctx);
-    nprio_array_remove(thread);
+    nprio_array_remove(&global_sched_ctx.run_queue, thread);
     nsched_yield_i();
     NCRITICAL_LOCK_EXIT(intr_ctx);
 }
 
 void nthread_set_priority_i(
-    struct nthread *            thread,
     uint8_t                     priority)
 {
-    NREQUIRE(NAPI_POINTER, thread != NULL);
-    NREQUIRE(NAPI_OBJECT,  thread->signature == THREAD_SIGNATURE );
     NREQUIRE(NAPI_RANGE,   priority <= CONFIG_PRIORITY_LEVELS);
 
-    struct nprio_array *        queue;
+    struct nthread *            thread;
 
-    queue = nprio_array_get_container(thread);
-
-    if (queue == NULL)
-    {                                                                           /* Is thread inserted in any queue?   */
-        thread->priority = priority;                                            /* Just change it's priority value.   */
-    }
-    else
-    {
-        nprio_array_remove(thread);
-        thread->priority = priority;
-        nprio_array_insert(queue, thread);
-        nsched_evaluate_i();
-    }
+    thread = nsched_get_current();
+    nprio_array_remove(&global_sched_ctx.run_queue, thread);
+    thread->priority = priority;
+    NSCHED_INSERT(thread);
+    nsched_evaluate_i();
 }
 
 /*========================================================================*//** @cond *//*==  CONFIGURATION ERRORS  ==*/
