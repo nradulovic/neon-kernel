@@ -60,11 +60,11 @@
 
 /**@brief       Find Last Set bit in a word
  */
-#define NCPU_FIND_LAST_SET(val)                 portCpuFls_(val)
+#define NCPU_FIND_LAST_SET(val)             portCpuFls_(val)
 
-/**@brief       Compute power of 2
+/**@brief       Compute exponential function with the base 2, f(x) = 2 ^ x
  */
-#define NCPU_POWER2(pwr)                    (0x01u << (pwr))
+#define NCPU_EXP2(pwr)                      (0x01u << (pwr))
 
 /**@} *//*----------------------------------------------------------------*//**
  * @name        Generic port macros
