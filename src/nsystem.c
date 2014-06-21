@@ -389,10 +389,11 @@ static PORT_C_INLINE void vTmrEvaluateI(
     }
 
     if (0u != SysTmr.vTmrPend) {                                                /* There is a timer pending, start kVTmr thread.            */
-
+#if 0
         if (nprio_array_get_container(&KVTmr) == NULL) {
             nsched_add_thread_i(&KVTmr);
         }
+#endif
     }
 }
 
@@ -559,11 +560,13 @@ void thdPost(
     nintr_ctx           intrCtx;
 
     NCRITICAL_LOCK_ENTER(&intrCtx);
+#if 0
     if (nprio_array_get_container(thd) == NULL)
     {
         nsched_add_thread_i(thd);
         nsched_yield_i();
     }
+#endif
     NCRITICAL_LOCK_EXIT(intrCtx);
 }
 
