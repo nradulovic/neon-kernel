@@ -56,16 +56,6 @@ void nsem_term(
 void nsem_wait(
     struct nsem *               sem)
 {
-    struct nthread *            thread;
-    register uint32_t           count;
-
-
-
-    do
-    {
-        count = PORT_LOAD(&sem->count);
-        count--;
-    } while ((count != 0) && PORT_SAVE(&sem->count, count));
 }
 
 /**@brief       Wait on a semaphore
