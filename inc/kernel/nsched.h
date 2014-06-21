@@ -34,8 +34,12 @@
 #include "plat/compiler.h"
 #include "arch/intr.h"
 #include "kernel/nkernel_config.h"
+#include "kernel/nprio_array.h"
 
 /*=======================================================================================================  MACRO's  ==*/
+
+#define NSCHED_INSERT(thread)               nprio_array_insert(&global_sched_ctx.run_queue, (thread))
+
 /*----------------------------------------------------------------------------------------------  C++ extern begin  --*/
 #ifdef __cplusplus
 extern "C" {
@@ -69,6 +73,7 @@ typedef enum nsched_state nsched_state;
  */
 struct nsched_ctx
 {
+    struct nprio_array          run_queue;
     struct nthread *            cthread;                                        /**<@brief The current thread         */
     struct nthread *            pthread;                                        /**<@brief The pending thread         */
     enum nsched_state           state;                                          /**<@brief Current scheduler state    */

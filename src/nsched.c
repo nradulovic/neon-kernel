@@ -33,7 +33,6 @@
 
 #include "kernel/nsched.h"
 #include "kernel/ndebug.h"
-#include "kernel/nprio_array.h"
 #include "kernel/nthread.h"
 
 /*=================================================================================================  LOCAL MACRO's  ==*/
@@ -45,8 +44,6 @@
  */
 static const NMODULE_INFO_CREATE("Scheduler", "nKernel - RT Kernel", "Nenad Radulovic");
 
-static struct nprio_array global_run_queue;
-
 /**@brief       Kernel Lock Counter
  */
 static uint_fast8_t global_sched_lock_count;
@@ -57,9 +54,7 @@ static uint_fast8_t global_sched_lock_count;
  */
 struct nsched_ctx global_sched_ctx =
 {
-    NULL,                                                                       /* No thread is currently executing   */
-    NULL,                                                                       /* No thread is pending               */
-    NSCHED_INACTIVE                                                             /* This is default scheduler state    */
+    .state = NSCHED_INACTIVE                                                             /* This is default scheduler state    */
 };
 
 /*====================================================================================  LOCAL FUNCTION DEFINITIONS  ==*/
@@ -69,9 +64,9 @@ struct nsched_ctx global_sched_ctx =
 void nsched_init(
     void)
 {
-    NREQUIRE(NAPI_USAGE,   global_sched_ctx.state == NSCHED_INACTIVE);
+    NREQUIRE(NAPI_USAGE, global_sched_ctx.state == NSCHED_INACTIVE);
 
-    nprio_array_init(&global_run_queue);                                        /* Initialize thread queue structure  */
+    nprio_array_init(&global_sched_ctx.run_queue);                                        /* Initialize thread queue structure  */
     global_sched_ctx.state = NSCHED_INIT;
 }
 
@@ -81,10 +76,10 @@ void nsched_start(
     struct nthread *            new_thread;
     nintr_ctx                   intr_ctx;
 
-    NREQUIRE(NAPI_USAGE,   global_sched_ctx.state == NSCHED_INIT);              /* Can be called only from            */
+    NREQUIRE(NAPI_USAGE, global_sched_ctx.state == NSCHED_INIT);              /* Can be called only from            */
                                                                                 /* initialization code.               */
     NCRITICAL_LOCK_ENTER(&intr_ctx);
-    new_thread = nprio_array_peek(&global_run_queue);                           /* Get the highest priority thread    */
+    new_thread = nprio_array_peek(&global_sched_ctx.run_queue);                           /* Get the highest priority thread    */
     global_sched_ctx.cthread = new_thread;
     global_sched_ctx.pthread = new_thread;
     global_sched_ctx.state   = NSCHED_RUN;
@@ -111,7 +106,7 @@ void nsched_add_thread_i(
     NREQUIRE(NAPI_USAGE,   global_sched_ctx.state < NSCHED_INACTIVE);
     NREQUIRE(NAPI_POINTER, thread != NULL);
 
-    nprio_array_insert(&global_run_queue, thread);
+    nprio_array_insert(&global_sched_ctx.run_queue, thread);
 
     if (global_sched_ctx.pthread->priority < thread->priority)
     {
@@ -128,18 +123,18 @@ void nsched_remove_thread_i(
     NREQUIRE(NAPI_USAGE,   global_sched_ctx.state < NSCHED_INACTIVE);
     NREQUIRE(NAPI_POINTER, thread != NULL);
 
-    nprio_array_remove(thread);
+    nprio_array_remove(&global_sched_ctx.run_queue, thread);
 
-    if ((global_sched_ctx.cthread == thread) || (global_sched_ctx.pthread == thread))
+    if (global_sched_ctx.pthread == thread)
     {
-        global_sched_ctx.pthread = nprio_array_peek(&global_run_queue);         /* Get new highest priority thread.   */
+        global_sched_ctx.pthread = nprio_array_peek(&global_sched_ctx.run_queue);         /* Get new highest priority thread.   */
     }
 }
 
 void nsched_evaluate_i(
     void)
 {
-    global_sched_ctx.pthread = nprio_array_peek(&global_run_queue);             /* Get new highest priority thread.   */
+    global_sched_ctx.pthread = nprio_array_peek(&global_sched_ctx.run_queue);             /* Get new highest priority thread.   */
 }
 
 void nsched_yield_i(
@@ -291,7 +286,7 @@ void sched_quantum_i(
         if (thread->quantum_counter == 0u)
         {
             thread->quantum_counter = thread->quantum_reload;                   /* Reload thread time quantum         */
-            thread = nprio_array_rotate_level(&global_run_queue, thread->priority);     /* Fetch the next thread and  */
+            thread = nprio_array_rotate_thread(&global_sched_ctx.run_queue, thread);     /* Fetch the next thread and  */
                                                                                 /* rotate this priority list          */
             if (global_sched_ctx.pthread == global_sched_ctx.cthread)           /* If there is no thread pending      */
             {
