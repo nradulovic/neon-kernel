@@ -86,6 +86,10 @@
 # define CONFIG_PRIORITY_LEVELS             8u
 #endif
 
+#if !defined(CONFIG_PRIORITY_BUCKETS)
+# define CONFIG_PRIORITY_BUCKETS            CONFIG_PRIORITY_LEVELS
+#endif
+
 /**@brief       Scheduler Round-Robin time quantum
  */
 #if !defined(CONFIG_SCHED_TIME_QUANTUM)
@@ -195,11 +199,11 @@
 #endif
 
 #if ((CONFIG_DEBUG_API != 1) && (CONFIG_DEBUG_API != 0))
-# error "nKernel RT Kernel: Configuration option CONFIG_DEBUG_API_VALIDATION is out of range."
+# error "nKernel RT Kernel: Configuration option CONFIG_DEBUG_API is out of range."
 #endif
 
 #if ((CONFIG_DEBUG_INTERNAL != 1) && (CONFIG_DEBUG_INTERNAL != 0))
-# error "nKernel RT Kernel: Configuration option CONFIG_DEBUG_INTERNAL_CHECK is out of range."
+# error "nKernel RT Kernel: Configuration option CONFIG_DEBUG_INTERNAL is out of range."
 #endif
 
 #if (CONFIG_DEBUG == 0) || defined(NDEBUG)
@@ -211,8 +215,18 @@
 # define CONFIG_DEBUG_INTERNAL              0
 #endif
 
-#if ((3u > CONFIG_PRIORITY_LEVELS) || (256u < CONFIG_PRIORITY_LEVELS))
-# error "nKernel RT Kernel: Configuration option CFG_SCHED_PRIO_LVL is out of range."
+#if ((3u > CONFIG_PRIORITY_LEVELS) || (CONFIG_PRIORITY_LEVELS > 256))
+# error "nKernel RT Kernel: Configuration option CONFIG_PRIORITY_LEVELS is out of range."
+#endif
+
+#if (CONFIG_PRIORITY_BUCKETS > CONFIG_PRIORITY_LEVELS)
+# error "nKernel RT Kernel: Configuration option CONFIG_PRIORITY_BUCKETS is out of range. It must be smaller or equal to CONFIG_PRIORITY_LEVELS."
+#endif
+
+#if ((CONFIG_PRIORITY_BUCKETS !=  1) && (CONFIG_PRIORITY_BUCKETS !=   2) && (CONFIG_PRIORITY_BUCKETS !=   4) &&         \
+     (CONFIG_PRIORITY_BUCKETS !=  8) && (CONFIG_PRIORITY_BUCKETS !=  16) && (CONFIG_PRIORITY_BUCKETS !=  32) &&         \
+     (CONFIG_PRIORITY_BUCKETS != 64) && (CONFIG_PRIORITY_BUCKETS != 128) && (CONFIG_PRIORITY_BUCKETS != 256))
+# error "nKernel RT Kernel: Configuration option CONFIG_PRIORITY_BUCKETS is not valid. It must be a 2^n number."
 #endif
 
 #if ((1u != CFG_SCHED_POWER_SAVE) && (0u != CFG_SCHED_POWER_SAVE))

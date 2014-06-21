@@ -55,12 +55,12 @@ extern "C" {
  */
 struct nprio_bitmap
 {
-#if   (CONFIG_PRIORITY_LEVELS > NCPU_DATA_WIDTH) || defined(__DOXYGEN__)
+#if   (CONFIG_PRIORITY_BUCKETS > NCPU_DATA_WIDTH) || defined(__DOXYGEN__)
     natomic                     bitGroup;                                       /**<@brief Bit list indicator         */
 #endif
     /**@brief       Bit priority indicator
      */
-    natomic                     bit[NDIVISION_ROUNDUP(CONFIG_PRIORITY_LEVELS, NCPU_DATA_WIDTH)];
+    natomic                     bit[NDIVISION_ROUNDUP(CONFIG_PRIORITY_BUCKETS, NCPU_DATA_WIDTH)];
 };
 
 /**@brief       Thread doubly linked list
@@ -77,7 +77,6 @@ struct nthread_list
  */
 struct nprio_array_entry
 {
-    struct nprio_array *        container;                                      /**<@brief Container priority array   */
     struct nthread_list         list;
 };
 
@@ -89,8 +88,10 @@ struct nprio_array_entry
  */
 struct nprio_array
 {
+#if (CONFIG_PRIORITY_BUCKETS != 1)
     struct nprio_bitmap         bitmap;                                         /**<@brief Priority bitmap            */
-    struct nthread *            sentinel[CONFIG_PRIORITY_LEVELS];
+#endif
+    struct nthread *            sentinel[CONFIG_PRIORITY_BUCKETS];
 };
 
 /**@brief       Priority queue type
@@ -109,23 +110,18 @@ void nprio_array_insert(
     struct nthread *            thread);
 
 void nprio_array_remove(
+    struct nprio_array *        array,
     struct nthread *            thread);
 
 struct nthread * nprio_array_peek(
     const struct nprio_array * array);
 
-struct nthread * nprio_array_rotate_level(
+struct nthread * nprio_array_rotate_thread(
     struct nprio_array *        array,
-    uint_fast8_t                level);
+    struct nthread *            thread);
 
 void nprio_array_init_entry(
     struct nthread *            thread);
-
-uint_fast8_t nprio_array_get_level(
-    const struct nprio_array * array);
-
-struct nprio_array * nprio_array_get_container(
-    const struct nthread *      thread);
 
 /*------------------------------------------------------------------------------------------------  C++ extern end  --*/
 #ifdef __cplusplus
