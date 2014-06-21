@@ -193,10 +193,7 @@ static PORT_C_INLINE uint8_t nthread_get_priority(
  *              Thread: is pointer to the thread structure, @ref esThread.
  * @param       priority
  *              Priority: is new priority of the thread pointed by @c thread.
- * @pre         1) `The kernel state < ES_KERN_INACTIVE`, see @ref states.
- * @pre         2) `thread != NULL`
- * @pre         3) `thread->signature == DEF_THD_CONTRACT_SIGNATURE`, the pointer must point to a valid @ref nthread
- *                  structure.
+ * @pre         1) `The kernel state < ES_KERN_INACTIVE`, see @ref states.   *                  structure.
  * @pre         4) `0 < priority < CFG_SCHED_PRIO_LVL`, see
  *                  @ref CFG_SCHED_PRIO_LVL.
  * @called
@@ -207,7 +204,6 @@ static PORT_C_INLINE uint8_t nthread_get_priority(
  * @iclass
  */
 void nthread_set_priority_i(
-    struct nthread *            thread,
     uint8_t                     priority);
 
 /*------------------------------------------------------------------------------------------------  C++ extern end  --*/
