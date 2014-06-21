@@ -97,7 +97,7 @@
 
 /**@brief       Add new @c node before @c current node
  */
-#define NDLIST_ADD_BEFORE(list, current, node)                                                                          \
+#define NDLIST_ADD_AFTER(list, current, node)                                                                          \
     do                                                                                                                  \
     {                                                                                                                   \
         (node)->list.next = (current);                                                                                  \
@@ -109,7 +109,7 @@
 
 /**@brief       Add new @c node after @c current node
  */
-#define NDLIST_ADD_AFTER(list, current, node)                                                                           \
+#define NDLIST_ADD_BEFORE(list, current, node)                                                                           \
     do                                                                                                                  \
     {                                                                                                                   \
         (node)->list.prev = (current);                                                                                  \
@@ -136,7 +136,7 @@
     while (0u)
 
 #define NDLIST_EACH(list, sentinel, pointer)                                                                            \
-    (pointer) = (sentinel)->list.next; (pointer) != (sentinel); (pointer) = (pointer)->list.next
+    (pointer) = (sentinel); (pointer) != (sentinel); (pointer) = (pointer)->list.next
 
 #define NDLIST_EACH_FROM(list, sentinel, pointer, from)                                                                 \
     (pointer) = (from); (pointer) != (sentinel); (pointer) = (pointer)->list.next
