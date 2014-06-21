@@ -153,7 +153,7 @@
 /**@brief       Calculate log2 for value @c x during the compilation
  * @mseffect
  */
-#define ES_UINT8_LOG2(x)                                                        \
+#define N_LOG2_8(x)                                                        \
     ((x) <   2u ? 0u :                                                          \
      ((x) <   4u ? 1u :                                                         \
       ((x) <   8u ? 2u :                                                        \
