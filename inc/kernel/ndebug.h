@@ -38,7 +38,7 @@
 #include <stdint.h>
 
 #include "plat/compiler.h"
-#include "kernel/nkernel_config.h"
+#include "kernel/nub_config.h"
 
 /*=======================================================================================================  MACRO's  ==*/
 
