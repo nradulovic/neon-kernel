@@ -371,7 +371,7 @@
 
 #define PORT_SCB_BASE                   (PORT_SCS_BASE + 0x0d00ul)
 
-#define PORT_SCB                        ((struct portSCB *)PORT_SCB_BASE)
+#define PORT_SCB                        ((struct port_scb *)PORT_SCB_BASE)
 
 /*--  SCB CPUID Register Definitions  ----------------------------------------*/
 #define PORT_SCB_CPUID_IMPLEMENTER_Pos          24
@@ -582,7 +582,7 @@
 
 #define PORT_SYSTICK_BASE               (PORT_SCS_BASE + 0x0010ul)
 
-#define PORT_SYSTICK                    ((struct portSysTick *)PORT_SYSTICK_BASE)
+#define PORT_SYSTICK                    ((struct port_sys_tick *)PORT_SYSTICK_BASE)
 
 /*--  SysTick Control / Status Register Definitions  -------------------------*/
 #define PORT_SYSTICK_CTRL_COUNTFLAG_Pos         16
@@ -617,7 +617,7 @@
 
 #define PORT_TPI_BASE                   (0xe0040000ul)
 
-#define PORT_TPI                        ((struct portTPI *)PORT_TPI_BASE)
+#define PORT_TPI                        ((struct port_tpi *)PORT_TPI_BASE)
 
 /*--  TPI Asynchronous Clock Prescaler Register Definitions  -----------------*/
 #define PORT_TPI_ACPR_PRESCALER_Pos             0
@@ -748,7 +748,7 @@ extern "C" {
 /*============================================================  DATA TYPES  ==*/
 
 /*--  Structure to access the Nested Vectored Interrupt Controller (NVIC)  ---*/
-struct portNVIC {
+struct port_nvic {
     PORT_RW uint32_t    ISER[8];
             uint32_t    reserved0[24];
     PORT_RW uint32_t    ICER[8];
@@ -765,7 +765,7 @@ struct portNVIC {
 };
 
 /*--  Structure to access the System Control Block (SCB)  --------------------*/
-struct portSCB {
+struct port_scb {
     PORT_RO uint32_t    CPUID;
     PORT_RW uint32_t    ICSR;
     PORT_RW uint32_t    VTOR;
@@ -790,7 +790,7 @@ struct portSCB {
 };
 
 /*--  Structure to access the System Control and ID Register not in the SCB  -*/
-struct portSCnSCB {
+struct port_sc_nscb {
             uint32_t    reserved0[1];
     PORT_RO uint32_t    ICTR;
 #if ((defined __CM3_REV) && (__CM3_REV >= 0x200))
@@ -801,7 +801,8 @@ struct portSCnSCB {
 };
 
 /*--  Structure to access the System Timer (SysTick)  ------------------------*/
-struct portSysTick {
+struct port_sys_tick
+{
     PORT_RW uint32_t    CTRL;
     PORT_RW uint32_t    LOAD;
     PORT_RW uint32_t    VAL;
@@ -809,8 +810,10 @@ struct portSysTick {
 };
 
 /*--  Structure to access the Instrumentation Trace Macrocell (ITM)  ---------*/
-struct portITM {
-    PORT_WO union {
+struct port_itm
+{
+    PORT_WO union port
+    {
         PORT_WO uint8_t     u8;
         PORT_WO uint16_t    u16;
         PORT_WO uint32_t    u32;
@@ -844,7 +847,7 @@ struct portITM {
 };
 
 /*--  Structure to access the Data Watchpoint and Trace Register (DWT)  ------*/
-struct portDWT {
+struct port_dwt {
     PORT_RW uint32_t    CTRL;
     PORT_RW uint32_t    CYCCNT;
     PORT_RW uint32_t    CPICNT;
@@ -871,7 +874,7 @@ struct portDWT {
 };
 
 /*--  Structure to access the Trace Port Interface Register (TPI)  -----------*/
-struct portTPI {
+struct port_tpi {
     PORT_RW uint32_t    SSPSR;
     PORT_RW uint32_t    CSPSR;
             uint32_t    reserved0[2];
@@ -901,7 +904,7 @@ struct portTPI {
 #if defined(__MPU_PRESENT) && (__MPU_PRESENT == 1) || defined(__DOXYGEN__)
 
 /*--  Structure to access the Memory Protection Unit (MPU)  ------------------*/
-struct portMPU {
+struct port_mpu {
     PORT_RO uint32_t    TYPE;
     PORT_RW uint32_t    CTRL;
     PORT_RW uint32_t    RNR;
@@ -917,7 +920,7 @@ struct portMPU {
 #endif
 
 /*--  Structure to access the Core Debug Register (CoreDebug)  ---------------*/
-struct portCoreDebug {
+struct port_core_debug {
     PORT_RW uint32_t    DHCSR;
     PORT_WO uint32_t    DCRSR;
     PORT_RW uint32_t    DCRDR;
