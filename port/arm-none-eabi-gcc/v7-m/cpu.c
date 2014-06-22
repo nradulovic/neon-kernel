@@ -29,9 +29,9 @@
 
 #include "plat/compiler.h"
 #include "arch/cpu.h"
+#include "arch/intr.h"
 #include "arch/kcore_cfg.h"
-
-#include "kernel/nsys.h"
+#include "kernel/nub.h"
 
 /*=================================================================================================  LOCAL MACRO's  ==*/
 
@@ -56,7 +56,7 @@ static void thread_exit(
 static void thread_exit(
     void)
 {
-    nthread_term(nsched_get_current());
+    nthread_term();
 
     while (true);
 }
@@ -150,7 +150,7 @@ PORT_C_NAKED void kcoreSVC(
         "   mov     lr, %1                                  \n"               /* (10)                                                     */
         "   bx      lr                                      \n"               /* Return to first thread                                   */
         :
-        :   "i"(&global_sched_ctx.cthread),
+        :   "i"(&global_nub_sys.cthread),
             "i"(DEF_EXC_RETURN),
             "i"(NINTR_PRIO_TO_CODE(CONFIG_INTR_MAX_ISR_PRIO)));
 #else
@@ -165,7 +165,7 @@ PORT_C_NAKED void kcoreSVC(
         "   mov     lr, %1                                  \n"               /* (10)                                                     */
         "   bx      lr                                      \n"               /* Return to first thread                                   */
         :
-        :   "i"(&global_sched_ctx.cthread),
+        :   "i"(&global_nub_sys.cthread),
             "i"(DEF_EXC_RETURN));
 #endif
 }
@@ -201,9 +201,9 @@ PORT_C_NAKED void kcorePendSV(
         "   msr     basepri, r3                             \n"               /* (14)                                                     */
         "   bx      lr                                      \n"               /* Return to new thread                                     */
         :
-        :   "i"(&global_sched_ctx),
-            "J"(offsetof(struct nsched_ctx, cthread)),
-            "J"(offsetof(struct nsched_ctx, pthread)),
+        :   "i"(&global_nub_sys),
+            "J"(offsetof(struct nub_sys_ctx, cthread)),
+            "J"(offsetof(struct nub_sys_ctx, pthread)),
             "i"(NINTR_PRIO_TO_CODE(CONFIG_INTR_MAX_ISR_PRIO)));
 #else
     __asm__ __volatile__ (
@@ -221,7 +221,7 @@ PORT_C_NAKED void kcorePendSV(
         "   cpsie   i                                       \n"               /* (14)                                                     */
         "   bx      lr                                      \n"               /* Return to new thread                                     */
         :
-        :   "i"(&global_sched_ctx),
+        :   "i"(&global_nub_sys),
             "J"(offsetof(esKernCtrl_T, cthread)),
             "J"(offsetof(esKernCtrl_T, pthread)));
 #endif
@@ -231,7 +231,7 @@ void portSysTmr(
     void)
 {
     nsys_isr_enter_i();
-    nsys_timer_isr();
+    nub_sys_timer_isr();
     nsys_isr_exit_i();
 }
 
