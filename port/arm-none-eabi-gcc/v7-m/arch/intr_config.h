@@ -1,20 +1,20 @@
 /*
- * This file is part of nKernel.
+ * This file is part of NUB RT Kernel.
  *
  * Copyright (C) 2010 - 2013 Nenad Radulovic
  *
- * nKernel is free software: you can redistribute it and/or modify
+ * NUB RT Kernel is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * nKernel is distributed in the hope that it will be useful,
+ * NUB RT Kernel is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with nKernel.  If not, see <http://www.gnu.org/licenses/>.
+ * along with NUB RT Kernel.  If not, see <http://www.gnu.org/licenses/>.
  *
  * web site:    http://github.com/nradulovic
  * e-mail  :    nenad.b.radulovic@gmail.com
@@ -54,7 +54,7 @@
 /**@brief       This field determines the split of priority from subpriority.
  * @note        This configuration option is port dependent.
  * @warning     Change this value only if you are familiar with Cortex interrupt
- *              priority system and how nKernel protects its critical code
+ *              priority system and how NUB RT Kernel protects its critical code
  *              sections.
  */
 #if !defined(PORT_CONFIG_ISR_SUBPRIORITY)

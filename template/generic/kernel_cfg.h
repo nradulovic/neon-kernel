@@ -1,20 +1,20 @@
 /*
- * This file is part of nKernel.
+ * This file is part of NUB RT Kernel.
  *
  * Copyright (C) 2010 - 2013 Nenad Radulovic
  *
- * nKernel is free software: you can redistribute it and/or modify
+ * NUB RT Kernel is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * nKernel is distributed in the hope that it will be useful,
+ * NUB RT Kernel is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with nKernel.  If not, see <http://www.gnu.org/licenses/>.
+ * along with NUB RT Kernel.  If not, see <http://www.gnu.org/licenses/>.
  *
  * web site:    http://github.com/nradulovic
  * e-mail  :    nenad.b.radulovic@gmail.com
@@ -184,59 +184,59 @@
 /*================================*//** @cond *//*==  CONFIGURATION ERRORS  ==*/
 
 #if ((3U > CONFIG_PRIORITY_LEVELS) || (256U < CONFIG_PRIORITY_LEVELS))
-# error "nKernel RT Kernel: Configuration option CFG_SCHED_PRIO_LVL is out of range."
+# error "NUB RT Kernel RT Kernel: Configuration option CFG_SCHED_PRIO_LVL is out of range."
 #endif
 
 #if ((1U != CFG_SCHED_POWER_SAVE) && (0U != CFG_SCHED_POWER_SAVE))
-# error "nKernel RT Kernel: Configuration option CFG_SCHED_POWER_SAVE is out of range."
+# error "NUB RT Kernel RT Kernel: Configuration option CFG_SCHED_POWER_SAVE is out of range."
 #endif
 
 #if ((1U != CFG_SYSTMR_ADAPTIVE_MODE) && (0U != CFG_SYSTMR_ADAPTIVE_MODE))
-# error "nKernel RT Kernel: Configuration option CFG_SYSTMR_ADAPTIVE_MODE is out of range."
+# error "NUB RT Kernel RT Kernel: Configuration option CFG_SYSTMR_ADAPTIVE_MODE is out of range."
 #endif
 
 #if ((0U == CFG_SCHED_POWER_SAVE) && (1U == CFG_SYSTMR_ADAPTIVE_MODE))
-# error "nKernel RT Kernel: Configuration option CFG_SCHED_PRIO_LVL must be enabled when CFG_SYSTMR_ADAPTIVE_MODE is enabled, too."
+# error "NUB RT Kernel RT Kernel: Configuration option CFG_SCHED_PRIO_LVL must be enabled when CFG_SYSTMR_ADAPTIVE_MODE is enabled, too."
 #endif
 
 #if ((1U != CFG_HOOK_PRE_SYSTMR_EVENT) && (0U != CFG_HOOK_PRE_SYSTMR_EVENT))
-# error "nKernel RT Kernel: Configuration option CFG_HOOK_PRE_SYSTMR_EVENT is out of range."
+# error "NUB RT Kernel RT Kernel: Configuration option CFG_HOOK_PRE_SYSTMR_EVENT is out of range."
 #endif
 
 #if ((1U != CFG_HOOK_PRE_KERN_INIT) && (0U != CFG_HOOK_PRE_KERN_INIT))
-# error "nKernel RT Kernel: Configuration option CFG_HOOK_PRE_KERN_INIT is out of range."
+# error "NUB RT Kernel RT Kernel: Configuration option CFG_HOOK_PRE_KERN_INIT is out of range."
 #endif
 
 #if ((1U != CFG_HOOK_POST_KERN_INIT) && (0U != CFG_HOOK_POST_KERN_INIT))
-# error "nKernel RT Kernel: Configuration option CFG_HOOK_POST_KERN_INIT is out of range."
+# error "NUB RT Kernel RT Kernel: Configuration option CFG_HOOK_POST_KERN_INIT is out of range."
 #endif
 
 #if ((1U != CFG_HOOK_PRE_KERN_START) && (0U != CFG_HOOK_PRE_KERN_START))
-# error "nKernel RT Kernel: Configuration option CFG_HOOK_PRE_KERN_START is out of range."
+# error "NUB RT Kernel RT Kernel: Configuration option CFG_HOOK_PRE_KERN_START is out of range."
 #endif
 
 #if ((1U != CFG_HOOK_POST_THD_INIT) && (0U != CFG_HOOK_POST_THD_INIT))
-# error "nKernel RT Kernel: Configuration option CFG_HOOK_POST_THD_INIT is out of range."
+# error "NUB RT Kernel RT Kernel: Configuration option CFG_HOOK_POST_THD_INIT is out of range."
 #endif
 
 #if ((1U != CFG_HOOK_PRE_THD_TERM) && (0U != CFG_HOOK_PRE_THD_TERM))
-# error "nKernel RT Kernel: Configuration option CFG_HOOK_PRE_THD_TERM is out of range."
+# error "NUB RT Kernel RT Kernel: Configuration option CFG_HOOK_PRE_THD_TERM is out of range."
 #endif
 
 #if ((1U != CFG_HOOK_PRE_THD_TERM) && (0U != CFG_HOOK_PRE_THD_TERM))
-# error "nKernel RT Kernel: Configuration option CFG_HOOK_PRE_THD_TERM is out of range."
+# error "NUB RT Kernel RT Kernel: Configuration option CFG_HOOK_PRE_THD_TERM is out of range."
 #endif
 
 #if ((1U != CFG_HOOK_PRE_IDLE) && (0U != CFG_HOOK_PRE_IDLE))
-# error "nKernel RT Kernel: Configuration option CFG_HOOK_PRE_IDLE is out of range."
+# error "NUB RT Kernel RT Kernel: Configuration option CFG_HOOK_PRE_IDLE is out of range."
 #endif
 
 #if ((1U != CFG_HOOK_PRE_CTX_SW) && (0U != CFG_HOOK_PRE_CTX_SW))
-# error "nKernel RT Kernel: Configuration option CFG_HOOK_PRE_CTX_SW is out of range."
+# error "NUB RT Kernel RT Kernel: Configuration option CFG_HOOK_PRE_CTX_SW is out of range."
 #endif
 
 #if (0 > CFG_SYSTMR_TICK_TYPE) || (2U < CFG_SYSTMR_TICK_TYPE)
-# error "nKernel RT Kernel: Configuration option CFG_SYSTMR_TICK_TYPE is out of range."
+# error "NUB RT Kernel RT Kernel: Configuration option CFG_SYSTMR_TICK_TYPE is out of range."
 #endif
 
 /** @endcond *//** @} *//******************************************************
