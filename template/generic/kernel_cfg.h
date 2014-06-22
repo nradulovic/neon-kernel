@@ -23,27 +23,25 @@
  * @author  	Nenad Radulovic
  * @brief   	Configuration of Kernel - Template.
  * @addtogroup  template_kern_cfg
- * @details     Each configuration option or setting has its own default value
- *              when not defined by the application. When application needs to
- *              change a setting it just needs to define a configuration macro
- *              with another value and the default configuration macro will be
- *              overridden.
- *********************************************************************//** @{ */
+ * @details     Each configuration option or setting has its own default value when not defined by the application. When
+ *              the application needs to change a setting it just needs to define a configuration macro with another
+ *              value and the default configuration macro will be overridden.
+ *************************************************************************************************************//** @{ */
 
-#if !defined(KERNEL_CONFIG_H_)
-#define KERNEL_CONFIG_H_
+#ifndef NUB_CONFIG_H_
+#define NUB_CONFIG_H_
 
-/*=========================================================  INCLUDE FILES  ==*/
-/*===============================================================  DEFINES  ==*/
+/*=================================================================================================  INCLUDE FILES  ==*/
+/*=======================================================================================================  DEFINES  ==*/
 /** @cond */
 
 /** @endcond */
-/*==============================================================  SETTINGS  ==*/
+/*======================================================================================================  SETTINGS  ==*/
 
-/*------------------------------------------------------------------------*//**
+/*----------------------------------------------------------------------------------------------------------------*//**
  * @name        Kernel configuration options and settings
  * @brief       Kernel default configuration
- * @{ *//*--------------------------------------------------------------------*/
+ * @{ *//*------------------------------------------------------------------------------------------------------------*/
 
 /**@brief       Scheduler priority levels
  * @details     The number of priority levels. Each priority level can have
@@ -106,9 +104,9 @@
 # define CFG_SYSTMR_TICK_TYPE           2U
 #endif
 
-/** @} *//*---------------------------------------------------------------*//**
+/** @} *//*-------------------------------------------------------------------------------------------------------*//**
  * @name        Kernel hooks
- * @{ *//*--------------------------------------------------------------------*/
+ * @{ *//*------------------------------------------------------------------------------------------------------------*/
 
 /**@brief       System timer event hook function
  * @details     This hook is called just a moment before a system timer event is
@@ -180,8 +178,9 @@
 # define CFG_HOOK_PRE_CTX_SW            0U
 #endif
 
-/** @} *//*-------------------------------------------------------------------*/
-/*================================*//** @cond *//*==  CONFIGURATION ERRORS  ==*/
+/** @} *//*-----------------------------------------------------------------------------------------------------------*/
+
+/*========================================================================*//** @cond *//*==  CONFIGURATION ERRORS  ==*/
 
 #if ((3U > CONFIG_PRIORITY_LEVELS) || (256U < CONFIG_PRIORITY_LEVELS))
 # error "NUB RT Kernel RT Kernel: Configuration option CFG_SCHED_PRIO_LVL is out of range."
@@ -239,7 +238,7 @@
 # error "NUB RT Kernel RT Kernel: Configuration option CFG_SYSTMR_TICK_TYPE is out of range."
 #endif
 
-/** @endcond *//** @} *//******************************************************
- * END of kernel_config.h
- ******************************************************************************/
-#endif /* KERNEL_CONFIG_H_ */
+/** @endcond *//** @} *//**********************************************************************************************
+ * END of nub_config.h
+ **********************************************************************************************************************/
+#endif /* NUB_CONFIG_H_ */
