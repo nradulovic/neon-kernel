@@ -55,7 +55,7 @@
  *              section.
  */
 #define NCRITICAL_LOCK_ENTER(lockCtx)                                         \
-    ES_INTR_MASK_REPLACE(lockCtx, NINTR_PRIO_TO_CODE(CONFIG_INTR_MAX_ISR_PRIO))
+    NINTR_REPLACE_MASK(lockCtx, NINTR_PRIO_TO_CODE(CONFIG_INTR_MAX_ISR_PRIO))
 
 /**@brief       Exit critical code section
  * @param       lockCtx
@@ -63,7 +63,7 @@
  *              previously saved interrupt context state.
  */
 #define NCRITICAL_LOCK_EXIT(lockCtx)                                          \
-    ES_INTR_MASK_SET(lockCtx)
+    NINTR_SET_MASK(lockCtx)
 
 /**@} *//*----------------------------------------------  C++ extern begin  --*/
 #ifdef __cplusplus

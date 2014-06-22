@@ -46,7 +46,7 @@
  * @defgroup    prio_array Priority array
  * @{ *//*------------------------------------------------------------------------------------------------------------*/
 
-#define PRIO_ARRAY_BUCKET_BITS              N_LOG2_8(NDIVISION_ROUNDUP(CONFIG_PRIORITY_LEVELS, CONFIG_PRIORITY_BUCKETS))
+#define PRIO_ARRAY_BUCKET_BITS              NLOG2_8(NDIVISION_ROUNDUP(CONFIG_PRIORITY_LEVELS, CONFIG_PRIORITY_BUCKETS))
 
 /**@} *//*--------------------------------------------------------------------------------------------------------*//**
  * @name        Threads
@@ -185,11 +185,6 @@ static struct nthread * prio_array_peek(
 static struct nthread * prio_array_rotate_thread(
     struct nthread *            thread,
     struct nub_prio_array *     array);
-
-
-
-static void prio_array_init_entry(
-    struct nthread *            thread);
 
 
 
@@ -373,8 +368,8 @@ static PORT_C_INLINE void bitmap_set(
     uint_fast8_t                group_index;
     uint_fast8_t                bit_index;
 
-    bit_index   = priority & (~((uint_fast8_t)0u) >> (sizeof(priority) * 8u - N_LOG2_8(NCPU_DATA_WIDTH)));
-    group_index = priority >> N_LOG2_8(NCPU_DATA_WIDTH);
+    bit_index   = priority & (~((uint_fast8_t)0u) >> (sizeof(priority) * 8u - NLOG2_8(NCPU_DATA_WIDTH)));
+    group_index = priority >> NLOG2_8(NCPU_DATA_WIDTH);
     bitmap->bitGroup         |= NCPU_EXP2(group_index);
     bitmap->bit[group_index] |= NCPU_EXP2(bit_index);
 #else   /*  (CONFIG_PRIORITY_BUCKETS > NCPU_DATA_WIDTH) */
@@ -393,8 +388,8 @@ static PORT_C_INLINE void bitmap_clear(
     uint_fast8_t                group_index;
     uint_fast8_t                bit_index;
 
-    bit_index   = priority & (~((uint_fast8_t)0u) >> (sizeof(priority) * 8u - N_LOG2_8(NCPU_DATA_WIDTH)));
-    group_index = priority >> N_LOG2_8(NCPU_DATA_WIDTH);
+    bit_index   = priority & (~((uint_fast8_t)0u) >> (sizeof(priority) * 8u - NLOG2_8(NCPU_DATA_WIDTH)));
+    group_index = priority >> NLOG2_8(NCPU_DATA_WIDTH);
     bitmap->bit[group_index] &= ~NCPU_EXP2(bit_index);
 
     if (bitmap->bit[group_index] == 0u)                                         /* If this is the last bit cleared in */
@@ -418,7 +413,7 @@ static PORT_C_INLINE uint_fast8_t bitmap_get_highest(
     group_index = NCPU_FIND_LAST_SET(bitmap->bitGroup);
     bit_index   = NCPU_FIND_LAST_SET(bitmap->bit[group_index]);
 
-    return ((group_index << N_LOG2_8(NCPU_DATA_WIDTH)) | bit_index);
+    return ((group_index << NLOG2_8(NCPU_DATA_WIDTH)) | bit_index);
 #else   /*  (CONFIG_PRIORITY_BUCKETS > NCPU_DATA_WIDTH) */
     uint_fast8_t                bit_index;
 
@@ -586,14 +581,6 @@ static struct nthread * prio_array_rotate_thread(
 
 
 
-static void prio_array_init_entry(
-    struct nthread *            thread)
-{
-    ndlist_init(&thread->array_entry);
-}
-
-
-
 static bool prio_array_is_empty(
     const struct nub_prio_array * array)
 {
@@ -624,7 +611,7 @@ static void sched_start(
     global_nub_sys.pthread = new_thread;
     global_nub_sys.state   = NSYS_RUN;
     NCRITICAL_LOCK_EXIT(intr_ctx);
-    NPORT_DISPATCH_TO_FIRST();                                                  /* Start the first thread.            */
+    NCPU_DISPATCH_TO_FIRST();                                                  /* Start the first thread.            */
 }
 
 
@@ -681,7 +668,7 @@ static void sched_reschedule_i(
 #if   (1u == CFG_HOOK_PRE_CTX_SW)
             userPreCtxSw(global_nub_sys.cthread, newThd);
 #endif
-            PORT_DISPATCH();
+            NCPU_DISPATCH();
         }
     }
 }
@@ -709,7 +696,7 @@ static void sched_isr_exit_i(
 #if   (1u == CFG_HOOK_PRE_CTX_SW)
             userPreCtxSw(global_nub_sys.cthread, global_nub_sys.pthread);
 #endif
-            PORT_DISPATCH_ISR();
+            NCPU_DISPATCH_ISR();
 #if   (1u == CFG_SCHED_POWER_SAVE)
         }
         else if (NSYS_SLEEP == global_nub_sys.state)
@@ -841,10 +828,12 @@ void nsys_init(
 #if   (1u == CFG_HOOK_PRE_KERN_INIT)
     userPreKernInit();
 #endif
-    ES_INTR_DISABLE();
-    PORT_KCORE_INIT_EARLY();
+    NINTR_DISABLE();
+    NCPU_MODULE_INIT();
+    NCPU_INIT();
+    NINTR_MODULE_INIT();
+    NINTR_INIT();
     sched_init();
-    PORT_KCORE_INIT();
 #if   (1u == CFG_HOOK_POST_KERN_INIT)
     userPostKernInit();
 #endif
@@ -863,7 +852,8 @@ PORT_C_NORETURN void nsys_start(
 #if   (1u == CFG_HOOK_PRE_KERN_START)
     userPreKernStart();
 #endif
-    PORT_KCORE_INIT_LATE();
+    NCPU_INIT_LATE();
+    NINTR_INIT_LATE();
     sched_start();                                                              /* Initialize scheduler.              */
 
     while (true);                                                               /* Prevent compiler warnings.         */
@@ -893,7 +883,7 @@ void nsys_isr_enter_i(
 
     NREQUIRE(NAPI_USAGE, NSYS_INIT > global_nub_sys.state);
 
-    PORT_ISR_ENTER();
+    NCPU_ISR_ENTER();
     sched_isr_enter_i();
 }
 
@@ -904,9 +894,9 @@ void nsys_isr_exit_i(
 
     NREQUIRE(NAPI_USAGE, NSYS_INIT > global_nub_sys.state);
 
-    PORT_ISR_EXIT();
+    NCPU_ISR_EXIT();
 
-    if (NPORT_IS_ISR_LAST())
+    if (NCPU_IS_ISR_LAST())
     {
         sched_isr_exit_i();
     }
@@ -972,11 +962,11 @@ void nthread_init(
     NREQUIRE(NAPI_OBJECT,  thread->signature != THREAD_SIGNATURE);
     NREQUIRE(NAPI_POINTER, entry  != NULL);
     NREQUIRE(NAPI_POINTER, stack  != NULL);
-    NREQUIRE(NAPI_RANGE,   stack_size >= PORT_STACK_MINSIZE);
+    NREQUIRE(NAPI_RANGE,   stack_size >= NCPU_STACK_MINSIZE);
     NREQUIRE(NAPI_RANGE,   priority < CONFIG_PRIORITY_LEVELS);
     NOBLIGATION(thread->signature = THREAD_SIGNATURE);                          /* Validate thread structure          */
 
-    thread->stack           = PORT_CTX_INIT(stack, stack_size, entry, arg);     /* Make a fake thread stack           */
+    thread->stack           = NCPU_INIT_CTX(stack, stack_size, entry, arg);     /* Make a fake thread stack           */
     thread->priority        = priority;
     thread->opriority       = priority;
     thread->quantum_counter = CONFIG_SCHED_TIME_QUANTUM;

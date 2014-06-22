@@ -39,6 +39,7 @@
 
 #include "plat/compiler.h"
 #include "arch/cpu.h"
+#include "arch/intr.h"
 #include "kernel/nub_config.h"
 #include "kernel/ndebug.h"
 #include "kernel/nbitop.h"
@@ -391,7 +392,7 @@ void nsys_lock_int_exit(
  * @pre         3) `thread->signature != DEF_THD_CONTRACT_SIGNATURE`, the thread structure can't be initialized more
  *                  than once.
  * @pre         4) `fn != NULL`
- * @pre         5) `stack_size >= PORT_STACK_MINSIZE`, see @ref PORT_STACK_MINSIZE.
+ * @pre         5) `stack_size >= NCPU_STACK_MINSIZE`, see @ref NCPU_STACK_MINSIZE.
  * @pre         6) `0 < priority < CFG_SCHED_PRIO_LVL`, see @ref CFG_SCHED_PRIO_LVL.
  * @post        1) `thread->signature == DEF_THD_CONTRACT_SIGNATURE`, each @ref esThread structure will have valid
  *                  signature after initialization.

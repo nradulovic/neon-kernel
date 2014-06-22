@@ -58,7 +58,7 @@ PORT_C_NORETURN void ndebug_assert(
 {
     struct ndebug_report report;
 
-    ES_INTR_DISABLE();
+    NINTR_DISABLE();
 
     if (object->mod != NULL)
     {
@@ -79,7 +79,7 @@ PORT_C_NORETURN void ndebug_assert(
     report.msg     = message;
     report.line    = object->line;
     userAssert(&report);
-    ES_CPU_TERM();
+    NCPU_TERM();
 
     while (true);
 }

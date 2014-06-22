@@ -23,14 +23,13 @@
  * @author      Nenad Radulovic
  * @brief       Implementation of ARM Cortex-M3 CPU port.
  * @addtogroup  arm-none-eabi-gcc-v7-m_impl
- *********************************************************************//** @{ */
+ *************************************************************************************************************//** @{ */
 
 /*=================================================================================================  INCLUDE FILES  ==*/
 
 #include "plat/compiler.h"
+#include "arch/cpu_config.h"
 #include "arch/cpu.h"
-#include "arch/intr.h"
-#include "arch/kcore_cfg.h"
 #include "kernel/nub.h"
 
 /*=================================================================================================  LOCAL MACRO's  ==*/
@@ -70,7 +69,7 @@ static void thread_exit(
  * - 8      initiate SVC 0 which switches the context to the first thread
  * - 10     infinite loop: will never reach here
  */
-PORT_C_NORETURN void nport_thread_start(
+PORT_C_NORETURN void ncpu_dispatch_to_first(
     void)
 {
     __asm__ __volatile__ (
@@ -89,7 +88,7 @@ PORT_C_NORETURN void nport_thread_start(
     while (true);
 }
 
-void * nport_thread_init_ctx(
+void * ncpu_init_ctx(
     void *                      stack,
     size_t                      stack_size,
     void                     (* entry)(void *),
@@ -99,28 +98,12 @@ void * nport_thread_init_ctx(
 
     sp       = (struct nthread_ctx *)((uint8_t *)stack + stack_size);
     sp--;
-    sp->xpsr = (ncpu_reg)(PORT_PSR_THUMB_STATE_Msk | PORT_CONFIG_KCORE_PSR_DATA);
+    sp->xpsr = (ncpu_reg)(PORT_PSR_THUMB_STATE_Msk | PORT_CONFIG_CPU_PSR_DATA);
     sp->pc   = (ncpu_reg)entry;
     sp->lr   = (ncpu_reg)thread_exit;
     sp->r0   = (ncpu_reg)arg;
 
     return (sp);
-}
-
-void portModuleCpuInit(
-    void)
-{
-    NINTR_PRIO_SET(PENDSV_IRQN,    NINTR_PRIO_TO_CODE(CONFIG_INTR_MAX_ISR_PRIO));
-    NINTR_PRIO_SET(SVCALL_IRQN,    NINTR_PRIO_TO_CODE(CONFIG_INTR_MAX_ISR_PRIO));
-    NINTR_PRIO_SET(ES_SYSTEM_IRQN, NINTR_PRIO_TO_CODE(CONFIG_INTR_MAX_ISR_PRIO));
-}
-
-void portModuleCpuTerm(
-    void)
-{
-    /*
-     * TODO: put CPU to sleep or for (;;)
-     */
 }
 
 /*
@@ -133,7 +116,7 @@ void portModuleCpuTerm(
  * - 10     Load LR wih @ref DEF_EXC_RETURN value indicating that we want to
  *          return to thread mode and on return use the PSP stack
  */
-PORT_C_NAKED void kcoreSVC(
+PORT_C_NAKED void port_svc_isr(
     void)
 {
 #if (0 != CONFIG_INTR_MAX_ISR_PRIO)
@@ -180,7 +163,7 @@ PORT_C_NAKED void kcoreSVC(
  * - 14     restore previous interrupt priority from main stack
  * Note:    LR was already loaded with valid DEF_EXC_RETURN value
  */
-PORT_C_NAKED void kcorePendSV(
+PORT_C_NAKED void port_pend_sv(
     void)
 {
 #if (0 != CONFIG_INTR_MAX_ISR_PRIO)
@@ -227,7 +210,7 @@ PORT_C_NAKED void kcorePendSV(
 #endif
 }
 
-void portSysTmr(
+void port_sys_tmr(
     void)
 {
     nsys_isr_enter_i();

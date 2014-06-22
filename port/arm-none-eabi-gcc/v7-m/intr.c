@@ -23,23 +23,23 @@
  * @author      Nenad Radulovic
  * @brief       Implementation of ARM Cortex-M3 interrupt port.
  * @addtogroup  arm-none-eabi-gcc-v7-m_impl
- *********************************************************************//** @{ */
+ *************************************************************************************************************//** @{ */
 
-/*=========================================================  INCLUDE FILES  ==*/
+/*=================================================================================================  INCLUDE FILES  ==*/
 
 #include "plat/compiler.h"
 #include "arch/intr.h"
 
-/*=========================================================  LOCAL MACRO's  ==*/
-/*======================================================  LOCAL DATA TYPES  ==*/
-/*=============================================  LOCAL FUNCTION PROTOTYPES  ==*/
+/*=================================================================================================  LOCAL MACRO's  ==*/
+/*==============================================================================================  LOCAL DATA TYPES  ==*/
+/*=====================================================================================  LOCAL FUNCTION PROTOTYPES  ==*/
 
-static PORT_C_INLINE void intrSetPriorityGrouping(
+static PORT_C_INLINE void intr_set_priority_grouping(
     uint32_t            grouping);
 
-/*=======================================================  LOCAL VARIABLES  ==*/
-/*======================================================  GLOBAL VARIABLES  ==*/
-/*============================================  LOCAL FUNCTION DEFINITIONS  ==*/
+/*===============================================================================================  LOCAL VARIABLES  ==*/
+/*==============================================================================================  GLOBAL VARIABLES  ==*/
+/*====================================================================================  LOCAL FUNCTION DEFINITIONS  ==*/
 
 /**@brief       Set Priority Grouping
  * @param       grouping
@@ -49,36 +49,38 @@ static PORT_C_INLINE void intrSetPriorityGrouping(
  *              conflict between priority grouping and available priority bits (PORT_ISR_PRIO_BITS), the smallest
  *              possible priority group is set.
  */
-static PORT_C_INLINE void intrSetPriorityGrouping(
-    uint32_t            grouping) {
-
-    natomic             reg;
+static PORT_C_INLINE void intr_set_priority_grouping(
+    uint32_t                    grouping)
+{
+    natomic                     reg;
 
     grouping &= 0x07u;
     reg  = PORT_SCB->AIRCR;
     reg &= ~(PORT_SCB_AIRCR_VECTKEY_Msk | PORT_SCB_AIRCR_PRIGROUP_Msk);
-    reg |= (PORT_SCB_AIRCR_VECTKEY_VALUE << PORT_SCB_AIRCR_VECTKEY_Pos) | (grouping << PORT_SCB_AIRCR_PRIGROUP_Pos);
+    reg |=  (PORT_SCB_AIRCR_VECTKEY_VALUE << PORT_SCB_AIRCR_VECTKEY_Pos) | (grouping << PORT_SCB_AIRCR_PRIGROUP_Pos);
     PORT_SCB->AIRCR = reg;
 }
 
-/*===================================  GLOBAL PRIVATE FUNCTION DEFINITIONS  ==*/
-/*====================================  GLOBAL PUBLIC FUNCTION DEFINITIONS  ==*/
+/*===========================================================================  GLOBAL PRIVATE FUNCTION DEFINITIONS  ==*/
+/*============================================================================  GLOBAL PUBLIC FUNCTION DEFINITIONS  ==*/
 
-void portModuleIntrInit(
-    void) {
-
-    portIntrDisable_();
-    intrSetPriorityGrouping(
-        PORT_CONFIG_ISR_SUBPRIORITY);                                           /* Setup priority subgroup to zero bits                     */
+void nintr_module_init(
+    void)
+{
+    nintr_disable();
+    intr_set_priority_grouping(PORT_CONFIG_ISR_SUBPRIORITY);                    /* Setup priority subgroup.           */
+    NINTR_SET_PRIORITY(PENDSV_IRQN,    NINTR_PRIO_TO_CODE(CONFIG_INTR_MAX_ISR_PRIO));
+    NINTR_SET_PRIORITY(SVCALL_IRQN,    NINTR_PRIO_TO_CODE(CONFIG_INTR_MAX_ISR_PRIO));
+    NINTR_SET_PRIORITY(ES_SYSTEM_IRQN, NINTR_PRIO_TO_CODE(CONFIG_INTR_MAX_ISR_PRIO));
 }
 
-void portModuleIntrTerm(
-    void) {
-
-    portIntrDisable_();
+void nintr_module_term(
+    void)
+{
+    nintr_disable();
 }
 
-/*================================*//** @cond *//*==  CONFIGURATION ERRORS  ==*/
-/** @endcond *//** @} *//******************************************************
+/*========================================================================*//** @cond *//*==  CONFIGURATION ERRORS  ==*/
+/** @endcond *//** @} *//**********************************************************************************************
  * END of intr.c
- ******************************************************************************/
+ **********************************************************************************************************************/
