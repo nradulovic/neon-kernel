@@ -44,7 +44,7 @@
  *              - 1 - Debug options can be enabled individually
  */
 #if !defined(CONFIG_DEBUG)
-# define CONFIG_DEBUG                  0
+# define CONFIG_DEBUG                       0
 #endif
 
 /**@brief       Enable/disable API arguments validation
@@ -55,7 +55,7 @@
  * @note        This option is enabled only if @ref CONFIG_DEBUG is enabled, too.
  */
 #if !defined(CONFIG_DEBUG_API)
-# define CONFIG_DEBUG_API          1
+# define CONFIG_DEBUG_API                   1
 #endif
 
 /**@brief       Enable/disable internal checks
@@ -66,11 +66,11 @@
  * @note        This option is enabled only if @ref CONFIG_DEBUG is enabled, too.
  */
 #if !defined(CONFIG_DEBUG_INTERNAL)
-# define CONFIG_DEBUG_INTERNAL         1
+# define CONFIG_DEBUG_INTERNAL              1
 #endif
 
 #if !defined(CONFIG_SEMAPHORE)
-# define CONFIG_SEMAPHORE               1
+# define CONFIG_SEMAPHORE                   1
 #endif
 
 /*------------------------------------------------------------------------*//**
