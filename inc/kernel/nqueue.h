@@ -21,9 +21,9 @@
  *//***************************************************************************************************************//**
  * @file
  * @author      Nenad Radulovic
- * @brief       Generic queue header
- * @defgroup    generic_queue Generic queue
- * @brief       Generic queue
+ * @brief       Generic run_queue header
+ * @defgroup    generic_queue Generic run_queue
+ * @brief       Generic run_queue
  *************************************************************************************************************//** @{ */
 
 #ifndef NQUEUE_H_
@@ -48,7 +48,7 @@ extern "C" {
 
 /*====================================================================================================  DATA TYPES  ==*/
 
-/**@brief       Pointer queue
+/**@brief       Pointer run_queue
  * @api
  */
 struct nqueue
