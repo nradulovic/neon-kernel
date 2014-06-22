@@ -36,45 +36,45 @@
 
 /**@brief       C extension - make a function inline
  */
-#define PORT_C_INLINE                   __inline__
+#define PORT_C_INLINE                       __inline__
 
 /**@brief       C extension - make a function inline - always
  */
-#define PORT_C_INLINE_ALWAYS            __inline__ __attribute__((__always_inline__))
+#define PORT_C_INLINE_ALWAYS                __inline__ __attribute__((__always_inline__))
 
 /**@brief       Omit function prologue/epilogue sequences
  */
-#define PORT_C_NAKED                    __attribute__((naked))
+#define PORT_C_NAKED                        __attribute__((naked))
 
 /**@brief       Provides function name for assert macros
  */
 #if (defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 199901L)) || defined(__DOXYGEN__)
-# define PORT_C_FUNC                    __func__
+# define PORT_C_FUNC                        __func__
 #elif (__GNUC__ >= 2)
-# define PORT_C_FUNC                    __FUNCTION__
+# define PORT_C_FUNC                        __FUNCTION__
 #else
-# define PORT_C_FUNC                    "unknown"
+# define PORT_C_FUNC                        "unknown"
 #endif
 
 /**@brief       Provides the free file's name which is being compiled
  */
-#define PORT_C_FILE                     __FILE__
+#define PORT_C_FILE                         __FILE__
 
 /**@brief       Provides the free source line
  */
-#define PORT_C_LINE                     __LINE__
+#define PORT_C_LINE                         __LINE__
 
 /**@brief       Declare a weak function
  */
-#define PORT_C_WEAK                     __attribute__((weak))
+#define PORT_C_WEAK                         __attribute__((weak))
 
 /**@brief       Declare a function that will never return
  */
-#define PORT_C_NORETURN                 __attribute__((noreturn))
+#define PORT_C_NORETURN                     __attribute__((noreturn))
 
-#define PORT_C_FN_PURE                  __attribute__((pure))
+#define PORT_C_FN_PURE                      __attribute__((pure))
 
-#define PORT_C_UNUSED                   __attribute__((unused))
+#define PORT_C_UNUSED                       __attribute__((unused))
 
 /**@brief       Declare a variable that will be stored in ROM address space
  */
@@ -87,7 +87,16 @@
 /**@brief       This attribute specifies a minimum alignment (in bytes) for
  *              variables of the specified type.
  */
-#define PORT_C_ALIGN(align)             __attribute__((aligned (align)))
+#define PORT_C_ALIGN(align)                 __attribute__((aligned (align)))
+
+#ifdef __GNUC__
+#define member_type(type, member)           __typeof__ (((type *)0)->member)
+#else
+#define member_type(type, member)           const void
+#endif
+
+#define container_of(ptr, type, member)                                                                                 \
+    ((type *)((char *)(member_type(type, member) *){ ptr } - offsetof(type, member)))
 
 /*---------------------------------------------  C++ extern base  --*/
 #ifdef __cplusplus
