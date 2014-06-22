@@ -30,10 +30,15 @@
 #define NLIST_H_
 
 /*=================================================================================================  INCLUDE FILES  ==*/
+
+#include <stdbool.h>
+
+#include "plat/compiler.h"
+
 /*=======================================================================================================  MACRO's  ==*/
 
 /*-----------------------------------------------------------------------------------------------------------------*//**
- * @name        Singly linked circular list with Sentinel
+ * @name        Singly linked circular array_entry with Sentinel
  * @{ *//*------------------------------------------------------------------------------------------------------------*/
 
 #define NSLIST_INIT(list, node)                                                                                         \
@@ -69,7 +74,7 @@
     (pointer) = (sentinel)->list.next; (pointer) != (to); (pointer) = (pointer)->list.next
 
 /** @} *//*-------------------------------------------------------------------------------------------------------*//**
- * @name        Doubly Linked circular list with Sentinel
+ * @name        Doubly Linked circular array_entry with Sentinel
  * @{ *//*------------------------------------------------------------------------------------------------------------*/
 
 /**@brief       Initialize node
@@ -125,7 +130,7 @@
 #define NDLIST_ADD_TAIL(list, sentinel, node)                                                                           \
     NDLIST_ADD_BEFORE(list, sentinel, node)
 
-/**@brief       Remove the @c node from a list
+/**@brief       Remove the @c node from a array_entry
  */
 #define NDLIST_REMOVE(list, node)                                                                                       \
     do                                                                                                                  \
@@ -150,8 +155,69 @@ extern "C" {
 #endif
 
 /*====================================================================================================  DATA TYPES  ==*/
+
+struct ndlist
+{
+    struct ndlist *     next;
+    struct ndlist *     prev;
+};
+
 /*==============================================================================================  GLOBAL VARIABLES  ==*/
 /*===========================================================================================  FUNCTION PROTOTYPES  ==*/
+
+static PORT_C_INLINE void ndlist_init(
+    struct ndlist *             list)
+{
+    list->next = list;
+    list->prev = list;
+}
+
+static PORT_C_INLINE void ndlist_add_before(
+    struct ndlist *             current,
+    struct ndlist *             node)
+{
+    node->next          = current;
+    node->prev          = current->prev;
+    current->prev->next = node;
+    current->prev       = node;
+}
+
+static PORT_C_INLINE void ndlist_add_after(
+    struct ndlist *             current,
+    struct ndlist *             node)
+{
+    node->prev          = current;
+    node->next          = current->next;
+    current->next->prev = node;
+    current->next       = node;
+}
+
+static PORT_C_INLINE void ndlist_remove(
+    struct ndlist *             current)
+{
+    current->next->prev = current->prev;
+    current->prev->next = current->next;
+}
+
+static PORT_C_INLINE bool ndlist_is_empty(
+    struct ndlist *             current)
+{
+    if (current->next == current)
+    {
+        return (true);
+    }
+    else
+    {
+        return (false);
+    }
+}
+
+static PORT_C_INLINE struct ndlist * ndlist_next(
+    struct ndlist *             current)
+{
+    return (current->next);
+}
+
 /** @} *//*---------------------------------------------------------------------------------------  C++ extern end  --*/
 #ifdef __cplusplus
 }
