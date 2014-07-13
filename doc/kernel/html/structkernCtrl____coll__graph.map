@@ -1,8 +1,0 @@
-<map id="kernCtrl_" name="kernCtrl_">
-<area shape="rect" id="node2" href="$structesThd.html" title="Thread structure. " alt="" coords="155,147,241,283"/>
-<area shape="rect" id="node4" href="$structesThd_1_1thdL__.html" title="Thread linked List structure. " alt="" coords="206,672,305,749"/>
-<area shape="rect" id="node6" href="$structesThdQ_1_1thdLSent__.html" title="Thread linked list sentinel structure. " alt="" coords="261,368,395,445"/>
-<area shape="rect" id="node3" href="$structportStck.html" title="Stack structure used for stack declaration in order to force the alignment Alignment of stack structu..." alt="" coords="163,5,233,83"/>
-<area shape="rect" id="node5" href="$structesThdQ.html" title="Thread Queue structure. " alt="" coords="212,531,298,608"/>
-<area shape="rect" id="node7" href="$structesThdQ_1_1pbm__.html" title="Priority Bit Map structure. " alt="" coords="129,361,237,453"/>
-</map>

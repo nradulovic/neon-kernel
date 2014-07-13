@@ -1,7 +1,0 @@
-<map id="kernel_cfg.h" name="kernel_cfg.h">
-<area shape="rect" id="node2" href="$kcore_8h.html" title="Interface of CPU port &#45; Template. " alt="" coords="127,80,192,107"/>
-<area shape="rect" id="node3" href="$kernel_8h.html" title="Main kernel interface. " alt="" coords="126,155,193,181"/>
-<area shape="rect" id="node4" href="$semaphore_8h.html" title="Interface of semaphore. " alt="" coords="5,229,101,256"/>
-<area shape="rect" id="node5" href="$kernel_8c.html" title="Implementation of kernel port independent code. " alt="" coords="126,229,193,256"/>
-<area shape="rect" id="node6" href="$kcore_8c.html" title="Implementation of CPU port &#45; Template. " alt="" coords="218,229,283,256"/>
-</map>

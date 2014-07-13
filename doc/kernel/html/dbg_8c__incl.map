@@ -1,7 +1,0 @@
-<map id="dbg.c" name="dbg.c">
-<area shape="rect" id="node2" href="$compiler_8h.html" title="Interface of Compiler port &#45; Template. " alt="" coords="255,155,365,181"/>
-<area shape="rect" id="node5" href="$cpu_8h.html" title="Interface of CPU port &#45; Template. " alt="" coords="155,80,236,107"/>
-<area shape="rect" id="node8" href="$dbg_8h.html" title="Debug basic functionality. " alt="" coords="336,80,429,107"/>
-<area shape="rect" id="node6" href="$cpu__cfg_8h.html" title="Configuration of CPU port &#45; Template. " alt="" coords="5,155,112,181"/>
-<area shape="rect" id="node7" href="$kernel__cfg_8h.html" title="Configuration of Kernel &#45; Template. " alt="" coords="137,155,231,181"/>
-</map>

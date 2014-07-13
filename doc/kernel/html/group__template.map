@@ -1,9 +1,0 @@
-<map id="Port template" name="Port template">
-<area shape="rect" id="node1" href="$group__template__compiler.html" title="Compiler provided macros and data types. " alt="" coords="197,5,297,32"/>
-<area shape="rect" id="node2" href="$group__template__cpu__cfg.html" title="CPU port specific configuration options. " alt="" coords="169,56,324,83"/>
-<area shape="rect" id="node4" href="$group__template__dbg__cfg.html" title="Default Debug Configuration settings. " alt="" coords="155,107,339,133"/>
-<area shape="rect" id="node5" href="$group__template__cpu__intf.html" title="CPU port macros and functions. " alt="" coords="181,157,312,184"/>
-<area shape="rect" id="node6" href="$group__template__kern__cfg.html" title="Default Kernel Configuration settings. " alt="" coords="155,208,338,235"/>
-<area shape="rect" id="node7" href="$group__template__family__cfg.html" title="Family port specific configuration options. " alt="" coords="164,259,329,285"/>
-<area shape="rect" id="node8" href="$group__template__cpu__impl.html" title="CPU port inner work. " alt="" coords="181,309,312,336"/>
-</map>
