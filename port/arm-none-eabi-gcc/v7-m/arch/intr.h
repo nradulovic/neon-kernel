@@ -52,8 +52,8 @@
 
 #define NINTR_GET_MASK(mask)                nintr_get_mask(mask)
 
-#define NINTR_REPLACE_MASK(oldPrio, newPrio)                                                                            \
-    nintr_replace_mask(oldPrio, newPrio)
+#define NINTR_REPLACE_MASK(newPrio)                                                                                     \
+    nintr_replace_mask(newPrio)
 
 #define NINTR_PRIO_TO_CODE(prio)                                                                                        \
     (((prio) << (8u - PORT_ISR_PRIO_BITS)) & 0xfful)
@@ -118,6 +118,7 @@ static PORT_C_INLINE_ALWAYS void nintr_enable(
     void) {
 
     __asm __volatile__ (
+        "@  nintr_enable                                    \n"
         "   cpsie   i                                       \n");
 }
 
@@ -128,13 +129,14 @@ static PORT_C_INLINE_ALWAYS void nintr_disable(
     void) {
 
     __asm __volatile__ (
+        "@  nintr_disable                                   \n"
         "   cpsid   i                                       \n");
 }
 
 /**@brief       Set the new interrupt priority state
  * @param       state
  *              New interrupt priority mask or new state of interrupts
- * @note        Depending on @ref CONFIG_INTR_MAX_ISR_PRIO setting this function will
+ * @note        Depending on @ref CONFIG_INTR_MAX_PRIO setting this function will
  *              either set the new priority of allowed interrupts or just
  *              disable/enable all interrupts.
  * @inline
@@ -142,13 +144,15 @@ static PORT_C_INLINE_ALWAYS void nintr_disable(
 static PORT_C_INLINE_ALWAYS void nintr_set_mask(
     nintr_ctx                   intrCtx) {
 
-#if (0 != CONFIG_INTR_MAX_ISR_PRIO)
+#if (0 != CONFIG_INTR_MAX_PRIO)
     __asm __volatile__ (
+        "@  nintr_set_mask                                  \n"
         "   msr    basepri, %0                              \n"
         :
         : "r"(intrCtx));
 #else
     __asm __volatile__ (
+        "@  nintr_set_mask                                  \n"
         "   msr    primask, %0                              \n"
         :
         : "r"(intrCtx));
@@ -165,8 +169,9 @@ static PORT_C_INLINE_ALWAYS void nintr_get_mask(
 
     nintr_ctx                   tmp;
 
-#if (0 != CONFIG_INTR_MAX_ISR_PRIO)
+#if (0 != CONFIG_INTR_MAX_PRIO)
     __asm __volatile__ (
+        "@  nintr_get_mask                                  \n"
         "   mrs     %0, basepri                             \n"
         : "=r"(tmp));
 #else
@@ -181,26 +186,28 @@ static PORT_C_INLINE_ALWAYS void nintr_get_mask(
  * @return      Current interrupt priority mask
  * @inline
  */
-static PORT_C_INLINE_ALWAYS void nintr_replace_mask(
-    nintr_ctx *         old,
-    nintr_ctx           new) {
+static PORT_C_INLINE_ALWAYS nintr_ctx nintr_replace_mask(
+    nintr_ctx                   new)
+{
+    nintr_ctx                   old;
 
-    nintr_ctx           tmp;
-
-#if (0 != CONFIG_INTR_MAX_ISR_PRIO)
+#if (0 != CONFIG_INTR_MAX_PRIO)
     __asm __volatile__ (
+        "@  nintr_replace_mask                              \n"
         "   mrs     %0, basepri                             \n"
         "   msr     basepri, %1                             \n"
-        : "=&r"(tmp)
+        : "=&r"(old)
         : "r"(new));
 #else
     __asm __volatile__ (
+        "@  nintr_replace_mask                              \n"
         "   mrs     %0, primask                             \n"
         "   msr    primask, %1                              \n"
-        : "=r"(tmp)
+        : "=&r"(old)
         : "r"(new));
 #endif
-    *old = tmp;
+
+    return (old);
 }
 
 /**@brief       Set Priority for Cortex-M  System Interrupts

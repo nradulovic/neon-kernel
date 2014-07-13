@@ -33,6 +33,7 @@
 
 /*=========================================================  INCLUDE FILES  ==*/
 
+#include "plat/compiler.h"
 #include "arch/intr.h"
 
 /*===============================================================  MACRO's  ==*/
@@ -55,7 +56,7 @@
  *              section.
  */
 #define NCRITICAL_LOCK_ENTER(lockCtx)                                         \
-    NINTR_REPLACE_MASK(lockCtx, NINTR_PRIO_TO_CODE(CONFIG_INTR_MAX_ISR_PRIO))
+    *(lockCtx) = nintr_replace_mask(NINTR_PRIO_TO_CODE(CONFIG_INTR_MAX_PRIO))
 
 /**@brief       Exit critical code section
  * @param       lockCtx
@@ -63,7 +64,7 @@
  *              previously saved interrupt context state.
  */
 #define NCRITICAL_LOCK_EXIT(lockCtx)                                          \
-    NINTR_SET_MASK(lockCtx)
+    nintr_set_mask(lockCtx)
 
 /**@} *//*----------------------------------------------  C++ extern begin  --*/
 #ifdef __cplusplus
@@ -71,13 +72,6 @@ extern "C" {
 #endif
 
 /*============================================================  DATA TYPES  ==*/
-
-/**@brief       Lock context type
- * @details     This type is used to declare variable type which will hold lock
- *              context data.
- */
-typedef nintr_ctx esLockCtx;
-
 /*======================================================  GLOBAL VARIABLES  ==*/
 /*===================================================  FUNCTION PROTOTYPES  ==*/
 /*--------------------------------------------------------  C++ extern end  --*/

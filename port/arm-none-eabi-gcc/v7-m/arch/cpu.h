@@ -40,6 +40,8 @@
 #include "plat/compiler.h"
 #include "arch/cortex_m3.h"
 
+#include "lib/natomic.h"
+
 /*=======================================================================================================  MACRO's  ==*/
 
 /*----------------------------------------------------------------------------------------------------------------*//**
@@ -74,7 +76,7 @@
 
 #define NCPU_MODULE_TERM()                  (void)0
 
-#define NCPU_INIT()                         (void)0
+#define NCPU_INIT()                         ncpu_init()
 
 #define NCPU_INIT_LATE()                    (void)0
 
@@ -145,9 +147,13 @@
 
 #define NCPU_DISPATCH()                     ncpu_dispatch()
 
-#define NCPU_DISPATCH_ISR()                 ncpu_dispatch()
+#define NCPU_DISPATCH_FROM_ISR()            ncpu_dispatch()
 
 #define NCPU_DISPATCH_TO_FIRST()            ncpu_dispatch_to_first()
+
+
+
+
 
 /**@} *//*---------------------------------------------------------------------------------------  C++ extern base  --*/
 #ifdef __cplusplus
@@ -215,11 +221,12 @@ struct nthread_ctx
  * @inline
  */
 static PORT_C_INLINE_ALWAYS uint_fast8_t ncpu_find_last_set(
-    natomic                     value)
+    n_native                     value)
 {
     uint_fast8_t                clz;
 
     __asm__ __volatile__ (
+        "@  ncpu_find_last_set                              \n"
         "   clz    %0, %1                                   \n"
         : "=r"(clz)
         : "r"(value));
@@ -231,6 +238,16 @@ static PORT_C_INLINE_ALWAYS uint_fast8_t ncpu_find_last_set(
  * @name        Generic port functions
  * @{ *//*------------------------------------------------------------------------------------------------------------*/
 
+static PORT_C_INLINE void ncpu_init(
+    void)
+{
+    __asm__ __volatile__(
+        "@  ncpu_init                                       \n"
+        "   clrex                                           \n");               /* Clear the exclusive monitor.       */
+}
+
+
+
 /**@brief       Check if this is the last ISR executing
  * @return      Is the currently executed ISR the last one?
  *  @retval     true - this is last ISR
@@ -240,12 +257,9 @@ static PORT_C_INLINE_ALWAYS uint_fast8_t ncpu_find_last_set(
 static PORT_C_INLINE_ALWAYS bool ncpu_is_isr_last(
     void)
 {
-    if ((PORT_SCB->ICSR & PORT_SCB_ICSR_RETTOBASE_Msk) != 0u)
-    {
+    if ((PORT_SCB->ICSR & PORT_SCB_ICSR_RETTOBASE_Msk) != 0u)  {
         return (true);
-    }
-    else
-    {
+    } else {
         return (false);
     }
 }
@@ -332,6 +346,30 @@ PORT_C_NAKED void port_pend_sv(
  */
 void port_sys_tmr(
     void);
+
+
+/**@} *//*--------------------------------------------------------------------------------------------------------*//**
+ * @name        Atomic operations
+ * @{ *//*------------------------------------------------------------------------------------------------------------*/
+
+static PORT_C_INLINE uint32_t ncpu_add(uint32_t number, struct natomic * atomic) {
+    uint32_t                    result;
+    ncpu_reg                    tmp;
+
+    __asm__ __volatile__ (
+        "@  ncpu_add                                        \n"
+        "1: ldrex   %0, [%3]                                \n"
+        "   add     %0, %0, %4                              \n"
+        "   strex   %1, %0, [%3]                            \n"
+        "   cmp     %1, #0                                  \n"
+        "   bne     1b"
+        : "=&r" (result), "=&r" (tmp), "+Qo" (atomic->counter)
+        : "r" (&atomic->counter), "Ir" (number)
+        : "cc");
+
+    return (result);
+}
+
 
 /** @} *//*---------------------------------------------------------------------------------------  C++ extern end  --*/
 #ifdef __cplusplus

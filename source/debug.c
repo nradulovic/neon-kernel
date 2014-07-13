@@ -18,57 +18,53 @@
  *
  * web site:    http://github.com/nradulovic
  * e-mail  :    nenad.b.radulovic@gmail.com
- *//***************************************************************************************************************//**
+ *//***********************************************************************//**
  * @file
  * @author      Nenad Radulovic
  * @brief       Debug support Implementation
- * @addtogroup  nano_dbg
- *************************************************************************************************************//** @{ */
-/**@defgroup    nano_dbg_impl Debug support Implementation
+ * @addtogroup  debug
+ *********************************************************************//** @{ */
+/**@defgroup    debug_impl Debug support Implementation
  * @brief       Debug support Implementation
- * @{ *//*------------------------------------------------------------------------------------------------------------*/
+ * @{ *//*--------------------------------------------------------------------*/
 
-/*=================================================================================================  INCLUDE FILES  ==*/
+/*=========================================================  INCLUDE FILES  ==*/
 
-#include <stdbool.h>
 #include <stddef.h>
 
-#include "plat/compiler.h"
 #include "arch/cpu.h"
 #include "arch/intr.h"
+#include "lib/ndebug.h"
 
-#include "kernel/ndebug.h"
+/*=========================================================  LOCAL MACRO's  ==*/
+/*======================================================  LOCAL DATA TYPES  ==*/
+/*=============================================  LOCAL FUNCTION PROTOTYPES  ==*/
+/*=======================================================  LOCAL VARIABLES  ==*/
+/*======================================================  GLOBAL VARIABLES  ==*/
+/*============================================  LOCAL FUNCTION DEFINITIONS  ==*/
+/*===================================  GLOBAL PRIVATE FUNCTION DEFINITIONS  ==*/
+/*====================================  GLOBAL PUBLIC FUNCTION DEFINITIONS  ==*/
 
-/*=================================================================================================  LOCAL MACRO's  ==*/
-/*==============================================================================================  LOCAL DATA TYPES  ==*/
-/*=====================================================================================  LOCAL FUNCTION PROTOTYPES  ==*/
-/*===============================================================================================  LOCAL VARIABLES  ==*/
-/*==============================================================================================  GLOBAL VARIABLES  ==*/
-/*====================================================================================  LOCAL FUNCTION DEFINITIONS  ==*/
-/*===========================================================================  GLOBAL PRIVATE FUNCTION DEFINITIONS  ==*/
-/*============================================================================  GLOBAL PUBLIC FUNCTION DEFINITIONS  ==*/
-
-/* 1)       This function will disable all interrupts to prevent any new interrupts to execute which can trigger another
- *          assert causing a very confusing situation of why it failed.
+/* 1)       This function will disable all interrupts to prevent any new
+ *          interrupts to execute which can trigger another assert causing a
+ *          very confusing situation of why it failed.
  */
 PORT_C_NORETURN void ndebug_assert(
-    const PORT_C_ROM struct ndebug_object * object,
+    const PORT_C_ROM struct nmodule_info *     module_info,
+    const PORT_C_ROM struct nub_debug_object * object,
     const PORT_C_ROM char *                 expression,
     const PORT_C_ROM char *                 message)
 {
-    struct ndebug_report report;
+    struct ndebug_report        report;
 
     NINTR_DISABLE();
 
-    if (object->mod != NULL)
-    {
-        report.mod_name   = object->mod->name;
-        report.mod_desc   = object->mod->desc;
-        report.mod_author = object->mod->auth;
-        report.mod_file   = object->mod->file;
-    }
-    else
-    {
+    if (module_info != NULL) {
+        report.mod_name   = module_info->name;
+        report.mod_desc   = module_info->desc;
+        report.mod_author = module_info->auth;
+        report.mod_file   = module_info->file;
+    } else {
         report.mod_name   = "Unnamed";
         report.mod_desc   = "not specified";
         report.mod_author = "not specified";
@@ -78,13 +74,13 @@ PORT_C_NORETURN void ndebug_assert(
     report.expr    = expression;
     report.msg     = message;
     report.line    = object->line;
-    userAssert(&report);
+    hook_at_failed_assert(&report);
     NCPU_TERM();
 
     while (true);
 }
 
-/*========================================================================*//** @cond *//*==  CONFIGURATION ERRORS  ==*/
-/** @endcond *//** @} *//** @} *//*************************************************************************************
+/*================================*//** @cond *//*==  CONFIGURATION ERRORS  ==*/
+/** @endcond *//** @} *//** @} *//*********************************************
  * END of ndebug.c
- **********************************************************************************************************************/
+ ******************************************************************************/

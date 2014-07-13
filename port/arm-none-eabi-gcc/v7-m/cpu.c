@@ -30,6 +30,8 @@
 #include "plat/compiler.h"
 #include "arch/cpu_config.h"
 #include "arch/cpu.h"
+#include "kernel/nthread.h"
+#include "kernel/nsched.h"
 #include "kernel/nub.h"
 
 /*=================================================================================================  LOCAL MACRO's  ==*/
@@ -119,7 +121,7 @@ void * ncpu_init_ctx(
 PORT_C_NAKED void port_svc_isr(
     void)
 {
-#if (0 != CONFIG_INTR_MAX_ISR_PRIO)
+#if (0 != CONFIG_INTR_MAX_PRIO)
     __asm__ __volatile__ (
         "   ldr     r0, =%0                                 \n"               /* (1) Load KernCtrl.cthd address                          */
         "   mov     r1, %2                                  \n"               /* (2)                                                      */
@@ -133,9 +135,9 @@ PORT_C_NAKED void port_svc_isr(
         "   mov     lr, %1                                  \n"               /* (10)                                                     */
         "   bx      lr                                      \n"               /* Return to first thread                                   */
         :
-        :   "i"(&global_nub_sys.cthread),
+        :   "i"(&g_nsched.current),
             "i"(DEF_EXC_RETURN),
-            "i"(NINTR_PRIO_TO_CODE(CONFIG_INTR_MAX_ISR_PRIO)));
+            "i"(NINTR_PRIO_TO_CODE(CONFIG_INTR_MAX_PRIO)));
 #else
     __asm__ __volatile__ (
         "   ldr     r0, =%0                                 \n"               /* (1) Load KernCtrl.cthd address                          */
@@ -148,7 +150,7 @@ PORT_C_NAKED void port_svc_isr(
         "   mov     lr, %1                                  \n"               /* (10)                                                     */
         "   bx      lr                                      \n"               /* Return to first thread                                   */
         :
-        :   "i"(&global_nub_sys.cthread),
+        :   "i"(&g_nsched.current),
             "i"(DEF_EXC_RETURN));
 #endif
 }
@@ -158,7 +160,7 @@ PORT_C_NAKED void port_svc_isr(
  * - 5,6    save the current context on PSP stack
  * - 1,7,8  save the thread top of stack into the first member of the thread ID
  *          structure
- * - 9-10   Make KernCtrl.cthd == KernCtrl.pthd
+ * - 9-10   Make g_nsched.cthd == g_nsched.pthd
  * - 11-13  restore new context
  * - 14     restore previous interrupt priority from main stack
  * Note:    LR was already loaded with valid DEF_EXC_RETURN value
@@ -166,28 +168,28 @@ PORT_C_NAKED void port_svc_isr(
 PORT_C_NAKED void port_pend_sv(
     void)
 {
-#if (0 != CONFIG_INTR_MAX_ISR_PRIO)
+#if (0 != CONFIG_INTR_MAX_PRIO)
     __asm__ __volatile__ (
-        "   ldr     r0, =%0                                 \n"               /* (1) Get the address of KernCtrl                         */
-        "   mov     r1, %3                                  \n"               /* (2)                                                      */
-        "   mrs     r3, basepri                             \n"               /* (3)                                                      */
-        "   msr     basepri, r1                             \n"               /* (4)                                                      */
-        "   mrs     r1, psp                                 \n"               /* (5)                                                      */
-        "   stmdb   r1!, {r4-r11}                           \n"               /* (6)                                                      */
-        "   ldr     r2, [r0, %1]                            \n"               /* (7)                                                      */
-        "   str     r1, [r2]                                \n"               /* (8)                                                      */
-        "   ldr     r2, [r0, %2]                            \n"               /* (9)                                                      */
-        "   str     r2, [r0]                                \n"               /* (10)                                                     */
-        "   ldr     r1, [r2]                                \n"               /* (11)                                                     */
-        "   ldmia   r1!, {r4-r11}                           \n"               /* (12)                                                     */
-        "   msr     psp, r1                                 \n"               /* (13)                                                     */
-        "   msr     basepri, r3                             \n"               /* (14)                                                     */
-        "   bx      lr                                      \n"               /* Return to new thread                                     */
+        "   ldr     r0, =%0                                 \n"                 /* (1) Get the address of g_nsched                          */
+        "   mov     r1, %3                                  \n"                 /* (2)                                                      */
+        "   mrs     r3, basepri                             \n"                 /* (3)                                                      */
+        "   msr     basepri, r1                             \n"                 /* (4)                                                      */
+        "   mrs     r1, psp                                 \n"                 /* (5)                                                      */
+        "   stmdb   r1!, {r4-r11}                           \n"                 /* (6)                                                      */
+        "   ldr     r2, [r0, %1]                            \n"                 /* (7)                                                      */
+        "   str     r1, [r2]                                \n"                 /* (8)                                                      */
+        "   ldr     r2, [r0, %2]                            \n"                 /* (9)                                                      */
+        "   str     r2, [r0]                                \n"                 /* (10)                                                     */
+        "   ldr     r1, [r2]                                \n"                 /* (11)                                                     */
+        "   ldmia   r1!, {r4-r11}                           \n"                 /* (12)                                                     */
+        "   msr     psp, r1                                 \n"                 /* (13)                                                     */
+        "   msr     basepri, r3                             \n"                 /* (14)                                                     */
+        "   bx      lr                                      \n"                 /* Return to new thread                                     */
         :
-        :   "i"(&global_nub_sys),
-            "J"(offsetof(struct nub_sys_ctx, cthread)),
-            "J"(offsetof(struct nub_sys_ctx, pthread)),
-            "i"(NINTR_PRIO_TO_CODE(CONFIG_INTR_MAX_ISR_PRIO)));
+        :   "i"(&g_nsched),
+            "J"(offsetof(struct nsched_ctx, current)),
+            "J"(offsetof(struct nsched_ctx, pending)),
+            "i"(NINTR_PRIO_TO_CODE(CONFIG_INTR_MAX_PRIO)));
 #else
     __asm__ __volatile__ (
         "   ldr     r0, =%0                                 \n"               /* (1) Get the address of gCurrentThd                       */
@@ -204,9 +206,9 @@ PORT_C_NAKED void port_pend_sv(
         "   cpsie   i                                       \n"               /* (14)                                                     */
         "   bx      lr                                      \n"               /* Return to new thread                                     */
         :
-        :   "i"(&global_nub_sys),
-            "J"(offsetof(esKernCtrl_T, cthread)),
-            "J"(offsetof(esKernCtrl_T, pthread)));
+        :   "i"(&global_nsched),
+            "J"(offsetof(esKernCtrl_T, current)),
+            "J"(offsetof(esKernCtrl_T, pending)));
 #endif
 }
 
@@ -214,7 +216,7 @@ void port_sys_tmr(
     void)
 {
     nsys_isr_enter_i();
-    nub_sys_timer_isr();
+    nsys_timer_isr();
     nsys_isr_exit_i();
 }
 

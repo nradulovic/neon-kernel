@@ -52,7 +52,7 @@ static PORT_C_INLINE void intr_set_priority_grouping(
 static PORT_C_INLINE void intr_set_priority_grouping(
     uint32_t                    grouping)
 {
-    natomic                     reg;
+    n_native                     reg;
 
     grouping &= 0x07u;
     reg  = PORT_SCB->AIRCR;
@@ -69,9 +69,9 @@ void nintr_module_init(
 {
     nintr_disable();
     intr_set_priority_grouping(PORT_CONFIG_ISR_SUBPRIORITY);                    /* Setup priority subgroup.           */
-    NINTR_SET_PRIORITY(PENDSV_IRQN,    NINTR_PRIO_TO_CODE(CONFIG_INTR_MAX_ISR_PRIO));
-    NINTR_SET_PRIORITY(SVCALL_IRQN,    NINTR_PRIO_TO_CODE(CONFIG_INTR_MAX_ISR_PRIO));
-    NINTR_SET_PRIORITY(ES_SYSTEM_IRQN, NINTR_PRIO_TO_CODE(CONFIG_INTR_MAX_ISR_PRIO));
+    NINTR_SET_PRIORITY(PENDSV_IRQN,    NINTR_PRIO_TO_CODE(CONFIG_INTR_MAX_PRIO));
+    NINTR_SET_PRIORITY(SVCALL_IRQN,    NINTR_PRIO_TO_CODE(CONFIG_INTR_MAX_PRIO));
+    NINTR_SET_PRIORITY(ES_SYSTEM_IRQN, NINTR_PRIO_TO_CODE(CONFIG_INTR_MAX_PRIO));
 }
 
 void nintr_module_term(

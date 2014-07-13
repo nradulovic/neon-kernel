@@ -20,94 +20,36 @@
  * e-mail  :    nenad.b.radulovic@gmail.com
  *//***********************************************************************//**
  * @file
- * @author  	Nenad Radulovic
- * @brief       Linked lists header
- * @defgroup    linked_list Linked lists
- * @brief       Linked lists
+ * @author      Nenad Radulovic
+ * @brief       Atomic operations
+ * @defgroup    atomic_intf Atomic operations
+ * @brief       Atomic operations
  *********************************************************************//** @{ */
 
-#ifndef NLIST_H
-#define NLIST_H
+#ifndef NATOMIC_H
+#define NATOMIC_H
 
 /*=========================================================  INCLUDE FILES  ==*/
 
-#include <stdbool.h>
-
 #include "plat/compiler.h"
+#include "arch/cpu.h"
 
 /*===============================================================  MACRO's  ==*/
-/*------------------------------------------------------  C++ extern begin  --*/
+/*-------------------------------------------------------  C++ extern base  --*/
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /*============================================================  DATA TYPES  ==*/
 
-struct ndlist
-{
-    struct ndlist *     next;
-    struct ndlist *     prev;
+struct natomic {
+    n_native                    counter;
 };
+
+typedef struct natomic natomic;
 
 /*======================================================  GLOBAL VARIABLES  ==*/
 /*===================================================  FUNCTION PROTOTYPES  ==*/
-
-static PORT_C_INLINE void ndlist_init(
-    struct ndlist *             node)
-{
-    node->next = node;
-    node->prev = node;
-}
-
-static PORT_C_INLINE void ndlist_add_before(
-    struct ndlist *             current,
-    struct ndlist *             node)
-{
-    node->next          = current;
-    node->prev          = current->prev;
-    current->prev->next = node;
-    current->prev       = node;
-}
-
-static PORT_C_INLINE void ndlist_add_after(
-    struct ndlist *             current,
-    struct ndlist *             node)
-{
-    node->prev          = current;
-    node->next          = current->next;
-    current->next->prev = node;
-    current->next       = node;
-}
-
-static PORT_C_INLINE void ndlist_remove(
-    struct ndlist *             node)
-{
-    node->next->prev = node->prev;
-    node->prev->next = node->next;
-}
-
-static PORT_C_INLINE bool ndlist_is_empty(
-    const struct ndlist *       node)
-{
-    if (node->next == node) {
-        return (true);
-    } else {
-        return (false);
-    }
-}
-
-static PORT_C_INLINE struct ndlist * ndlist_next(
-    const struct ndlist *       node)
-{
-    return (node->next);
-}
-
-static PORT_C_INLINE struct ndlist * ndlist_prev(
-    const struct ndlist *       node)
-{
-    return (node->prev);
-}
-
 /*--------------------------------------------------------  C++ extern end  --*/
 #ifdef __cplusplus
 }
@@ -115,6 +57,6 @@ static PORT_C_INLINE struct ndlist * ndlist_prev(
 
 /*================================*//** @cond *//*==  CONFIGURATION ERRORS  ==*/
 /** @endcond *//** @} *//******************************************************
- * END of nlist.h
+ * END of natomic.h
  ******************************************************************************/
-#endif /* NLIST_H */
+#endif /* NATOMIC_H */

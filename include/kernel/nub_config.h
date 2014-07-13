@@ -105,6 +105,15 @@
 # define CFG_SCHED_POWER_SAVE           1u
 #endif
 
+/**@brief       Enable/disable registry
+ * @details     Possible values are:
+ *              - 0u - registry is disabled
+ *              - 1u - registry is enabled
+ */
+#if !defined(CONFIG_REGISTRY)
+# define CONFIG_REGISTRY                    1u
+#endif
+
 /**@brief       System timer adaptive mode
  * @details     Possible values are:
  *              - 0u - adaptive mode is disabled
@@ -145,26 +154,26 @@
 
 /**@brief       Pre kernel initialization hook function
  */
-#if !defined(CFG_HOOK_PRE_KERN_INIT)
-# define CFG_HOOK_PRE_KERN_INIT         0u
+#if !defined(CONFIG_HOOK_SYS_EARLY_INIT)
+# define CONFIG_HOOK_SYS_EARLY_INIT         0u
 #endif
 
 /**@brief       Post kernel initialization hook function
  */
-#if !defined(CFG_HOOK_PORT_KERN_INIT)
-# define CFG_HOOK_POST_KERN_INIT        0u
+#if !defined(CONFIG_HOOK_AT_SYS_LATE_INIT)
+# define CONFIG_HOOK_AT_SYS_LATE_INIT       0u
 #endif
 
 /**@brief       Pre kernel start hook function
  */
-#if !defined(CFG_HOOK_PRE_KERN_START)
-# define CFG_HOOK_PRE_KERN_START        0u
+#if !defined(CONFIG_HOOK_AT_SYS_START)
+# define CONFIG_HOOK_AT_SYS_START           0u
 #endif
 
 /**@brief       Post thread initialization hook function
  */
-#if !defined(CFG_HOOK_POST_THD_INIT)
-# define CFG_HOOK_POST_THD_INIT         0u
+#if !defined(CONFIG_HOOK_AT_THREAD_INIT)
+# define CONFIG_HOOK_AT_THREAD_INIT         0u
 #endif
 
 /**@brief       Pre thread termination hook function
@@ -187,8 +196,8 @@
 
 /**@brief       Pre context switch hook function
  */
-#if !defined(CFG_HOOK_PRE_CTX_SW)
-# define CFG_HOOK_PRE_CTX_SW            0u
+#if !defined(CONFIG_HOOK_AT_CONTEXT_SWITCH)
+# define CONFIG_HOOK_AT_CONTEXT_SWITCH      0
 #endif
 
 /** @} *//*-------------------------------------------------------------------*/
@@ -245,19 +254,19 @@
 # error "NUB RT Kernel RT Kernel: Configuration option CFG_HOOK_PRE_SYSTMR_EVENT is out of range."
 #endif
 
-#if ((1u != CFG_HOOK_PRE_KERN_INIT) && (0u != CFG_HOOK_PRE_KERN_INIT))
+#if ((1u != CONFIG_HOOK_SYS_EARLY_INIT) && (0u != CONFIG_HOOK_SYS_EARLY_INIT))
 # error "NUB RT Kernel RT Kernel: Configuration option CFG_HOOK_PRE_KERN_INIT is out of range."
 #endif
 
-#if ((1u != CFG_HOOK_POST_KERN_INIT) && (0u != CFG_HOOK_POST_KERN_INIT))
+#if ((1u != CONFIG_HOOK_AT_SYS_LATE_INIT) && (0u != CONFIG_HOOK_AT_SYS_LATE_INIT))
 # error "NUB RT Kernel RT Kernel: Configuration option CFG_HOOK_POST_KERN_INIT is out of range."
 #endif
 
-#if ((1u != CFG_HOOK_PRE_KERN_START) && (0u != CFG_HOOK_PRE_KERN_START))
+#if ((1u != CONFIG_HOOK_AT_SYS_START) && (0u != CONFIG_HOOK_AT_SYS_START))
 # error "NUB RT Kernel RT Kernel: Configuration option CFG_HOOK_PRE_KERN_START is out of range."
 #endif
 
-#if ((1u != CFG_HOOK_POST_THD_INIT) && (0u != CFG_HOOK_POST_THD_INIT))
+#if ((1u != CONFIG_HOOK_AT_THREAD_INIT) && (0u != CONFIG_HOOK_AT_THREAD_INIT))
 # error "NUB RT Kernel RT Kernel: Configuration option CFG_HOOK_POST_THD_INIT is out of range."
 #endif
 
@@ -273,7 +282,7 @@
 # error "NUB RT Kernel RT Kernel: Configuration option CFG_HOOK_PRE_IDLE is out of range."
 #endif
 
-#if ((1u != CFG_HOOK_PRE_CTX_SW) && (0u != CFG_HOOK_PRE_CTX_SW))
+#if ((1u != CONFIG_HOOK_AT_CONTEXT_SWITCH) && (0u != CONFIG_HOOK_AT_CONTEXT_SWITCH))
 # error "NUB RT Kernel RT Kernel: Configuration option CFG_HOOK_PRE_CTX_SW is out of range."
 #endif
 

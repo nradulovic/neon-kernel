@@ -18,37 +18,37 @@
  *
  * web site:    http://github.com/nradulovic
  * e-mail  :    nenad.b.radulovic@gmail.com
- *//***************************************************************************************************************//**
+ *//***********************************************************************//**
  * @file
  * @author      Nenad Radulovic
- * @brief       Generic run_queue header
- * @defgroup    generic_queue Generic run_queue
- * @brief       Generic run_queue
- *************************************************************************************************************//** @{ */
+ * @brief       Generic queue header
+ * @defgroup    generic_queue Generic queue
+ * @brief       Generic queue
+ *********************************************************************//** @{ */
 
-#ifndef NQUEUE_H_
-#define NQUEUE_H_
+#ifndef NQUEUE_H
+#define NQUEUE_H
 
-/*=================================================================================================  INCLUDE FILES  ==*/
+/*=========================================================  INCLUDE FILES  ==*/
 
 #include <stdbool.h>
 #include <stdint.h>
 #include <stddef.h>
 
-#include "plat/compiler.h"
+#include <plat/compiler.h>
 
-/*=======================================================================================================  MACRO's  ==*/
+/*===============================================================  MACRO's  ==*/
 
 #define NQUEUE_SIZEOF(elements)             (sizeof(void * [1]) * (elements))
 
-/*-----------------------------------------------------------------------------------------------  C++ extern base  --*/
+/*-------------------------------------------------------  C++ extern base  --*/
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/*====================================================================================================  DATA TYPES  ==*/
+/*============================================================  DATA TYPES  ==*/
 
-/**@brief       Pointer run_queue
+/**@brief       Queue structure
  * @api
  */
 struct nqueue
@@ -62,8 +62,9 @@ struct nqueue
 
 typedef struct nqueue nqueue;
 
-/*==============================================================================================  GLOBAL VARIABLES  ==*/
-/*===========================================================================================  FUNCTION PROTOTYPES  ==*/
+/*======================================================  GLOBAL VARIABLES  ==*/
+/*===================================================  FUNCTION PROTOTYPES  ==*/
+
 
 static PORT_C_INLINE void nqueue_init(
     struct nqueue *             queue,
@@ -77,6 +78,8 @@ static PORT_C_INLINE void nqueue_init(
     queue->size   = (uint32_t)size;
 }
 
+
+
 static PORT_C_INLINE void nqueue_term(
     struct nqueue *             queue)
 {
@@ -87,14 +90,15 @@ static PORT_C_INLINE void nqueue_term(
     queue->size   = UINT32_C(0);
 }
 
+
+
 static PORT_C_INLINE void nqueue_put_head(
     struct nqueue *             queue,
     void *                      item)
 {
     queue->buffer[queue->head++] = item;
 
-    if (queue->head == queue->size)
-    {
+    if (queue->head == queue->size) {
         queue->head = UINT32_C(0);
     }
     queue->empty--;
@@ -104,13 +108,14 @@ static PORT_C_INLINE void nqueue_put_tail(
     struct nqueue *             queue,
     void *                      item)
 {
-    if (queue->tail == UINT32_C(0))
-    {
+    if (queue->tail == UINT32_C(0)) {
         queue->tail = queue->size;
     }
     queue->buffer[--queue->tail] = item;
     queue->empty--;
 }
+
+
 
 static PORT_C_INLINE void * nqueue_get_tail(
     struct nqueue *             queue)
@@ -119,8 +124,7 @@ static PORT_C_INLINE void * nqueue_get_tail(
 
     tmp = queue->buffer[queue->tail++];
 
-    if (queue->tail == queue->size)
-    {
+    if (queue->tail == queue->size) {
         queue->tail = UINT32_C(0);
     }
     queue->empty++;
@@ -128,11 +132,15 @@ static PORT_C_INLINE void * nqueue_get_tail(
     return (tmp);
 }
 
+
+
 static PORT_C_INLINE size_t nqueue_size(
     const struct nqueue *       queue)
 {
     return ((size_t)queue->size);
 }
+
+
 
 static PORT_C_INLINE size_t nqueue_occupied(
     const struct nqueue *       queue)
@@ -140,11 +148,15 @@ static PORT_C_INLINE size_t nqueue_occupied(
     return ((size_t)(queue->size - queue->empty));
 }
 
+
+
 static PORT_C_INLINE size_t nqueue_unoccupied(
     const struct nqueue *       queue)
 {
     return ((size_t)queue->empty);
 }
+
+
 
 static PORT_C_INLINE void ** nqueue_buffer(
     const struct nqueue *       queue)
@@ -152,39 +164,37 @@ static PORT_C_INLINE void ** nqueue_buffer(
     return (queue->buffer);
 }
 
+
+
 static PORT_C_INLINE bool nqueue_is_full(
     const struct nqueue *       queue)
 {
-    if (queue->empty == UINT32_C(0))
-    {
+    if (queue->empty == UINT32_C(0)) {
         return (true);
-    }
-    else
-    {
+    } else {
         return (false);
     }
 }
+
+
 
 static PORT_C_INLINE bool nqueue_is_empty(
     const struct nqueue *       queue)
 {
-    if (queue->empty == queue->size)
-    {
+    if (queue->empty == queue->size) {
         return (true);
-    }
-    else
-    {
+    } else {
         return (false);
     }
 }
 
-/*------------------------------------------------------------------------------------------------  C++ extern end  --*/
+/*--------------------------------------------------------  C++ extern end  --*/
 #ifdef __cplusplus
 }
 #endif
 
-/*========================================================================*//** @cond *//*==  CONFIGURATION ERRORS  ==*/
-/** @endcond *//** @} *//**********************************************************************************************
+/*================================*//** @cond *//*==  CONFIGURATION ERRORS  ==*/
+/** @endcond *//** @} *//******************************************************
  * END of nqueue.h
- **********************************************************************************************************************/
-#endif /* NQUEUE_H_ */
+ ******************************************************************************/
+#endif /* NQUEUE_H */
