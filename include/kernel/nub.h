@@ -1,20 +1,20 @@
 /*
- * This file is part of NUB Real-Time Kernel.
+ * This file is part of Neon RT Kernel.
  *
  * Copyright (C) 2010 - 2014 Nenad Radulovic
  *
- * NUB Real-Time Kernel is free software: you can redistribute it and/or modify
+ * Neon RT Kernel is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * NUB Real-Time Kernel is distributed in the hope that it will be useful,
+ * Neon RT Kernel is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with NUB Real-Time Kernel.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Neon RT Kernel.  If not, see <http://www.gnu.org/licenses/>.
  *
  * web site:    http://github.com/nradulovic
  * e-mail  :    nenad.b.radulovic@gmail.com
@@ -63,7 +63,7 @@
 
 /**@brief       Kernel identification string
  */
-#define NSYS_ID                             "NUB Real-Time Kernel"
+#define NSYS_ID                             "Neon RT Kernel"
 
 /*------------------------------------------------------  C++ extern begin  --*/
 #ifdef __cplusplus
