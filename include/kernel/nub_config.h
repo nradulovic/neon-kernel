@@ -83,7 +83,7 @@
  *              - Max: 256
  */
 #if !defined(CONFIG_PRIORITY_LEVELS)
-# define CONFIG_PRIORITY_LEVELS             8u
+# define CONFIG_PRIORITY_LEVELS             32u
 #endif
 
 #if !defined(CONFIG_PRIORITY_BUCKETS)
