@@ -40,7 +40,7 @@
 
 #include "plat/compiler.h"
 #include "kernel/nub_config.h"
-#include "lib/nprio_list.h"
+#include "lib/nbias_list.h"
 #include "lib/nlist.h"
 #include "lib/nstatus.h"
 
@@ -87,7 +87,7 @@ extern "C" {
 struct nthread
 {
     struct nthread_stack *      stack;                                          /**<@brief Pointer to top of stack    */
-    struct nprio_list_node      queue_node;                                     /**<@brief Priority queue node        */
+    struct nbias_list           queue_node;                                     /**<@brief Priority queue node        */
     uint_fast8_t                opriority;                                      /**<@brief Origin priority level      */
     uint_fast8_t                quantum_counter;                                /**<@brief Quantum counter            */
     uint_fast8_t                quantum_reload;                                 /**<@brief Quantum reload value       */
@@ -226,7 +226,7 @@ void nthread_set_priority(
     uint8_t                     priority);
 
 static PORT_C_INLINE struct nthread * nthread_from_queue_node(
-    struct nprio_list_node *    thread_node)
+    struct nbias_list *         thread_node)
 {
     return (container_of(thread_node, struct nthread, queue_node));
 }

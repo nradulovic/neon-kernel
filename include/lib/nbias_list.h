@@ -21,13 +21,13 @@
  *//***********************************************************************//**
  * @file
  * @author  	Nenad Radulovic
- * @brief       Priority linked lists header
- * @defgroup    prio_linked_list Priority linked lists
- * @brief       Priority linked lists
+ * @brief       Bias linked lists header
+ * @defgroup    bias_linked_list Bias linked lists
+ * @brief       Bias linked lists
  *********************************************************************//** @{ */
 
-#ifndef NPRIO_LIST_H
-#define NPRIO_LIST_H
+#ifndef NBIAS_LIST_H
+#define NBIAS_LIST_H
 
 /*=========================================================  INCLUDE FILES  ==*/
 
@@ -39,8 +39,8 @@
 
 /*===============================================================  MACRO's  ==*/
 
-#define NDLIST_TO_PRIO_DLIST(node)                                              \
-    container_of(node, struct nprio_list_node, list)
+#define NDLIST_TO_BIAS_LIST(node)                                               \
+    container_of(node, struct nbias_list, list)
 
 /*------------------------------------------------------  C++ extern begin  --*/
 #ifdef __cplusplus
@@ -49,41 +49,28 @@ extern "C" {
 
 /*============================================================  DATA TYPES  ==*/
 
-struct nprio_list
+struct nbias_list
 {
     struct ndlist               list;
-};
-
-struct nprio_list_node
-{
-    struct ndlist               list;
-    uint_fast8_t                priority;
+    uint_fast32_t               bias;
 };
 
 /*======================================================  GLOBAL VARIABLES  ==*/
 /*===================================================  FUNCTION PROTOTYPES  ==*/
 
-static PORT_C_INLINE void nprio_list_init_node(
-    struct nprio_list_node *    node,
-    uint_fast8_t                priority)
+static PORT_C_INLINE void nbias_list_init(
+    struct nbias_list *         node,
+    uint_fast32_t               bias)
 {
     ndlist_init(&node->list);
-    node->priority = priority;
+    node->bias = bias;
 }
 
 
 
-static PORT_C_INLINE void nprio_list_init(
-    struct nprio_list *         list)
-{
-    ndlist_init(&list->list);
-}
-
-
-
-static PORT_C_INLINE void nprio_list_prio_insert(
-    struct nprio_list *         list,
-    struct nprio_list_node *    node)
+static PORT_C_INLINE void nbias_list_sort_insert(
+    struct nbias_list *         list,
+    struct nbias_list *         node)
 {
     struct ndlist *             current;
 
@@ -92,47 +79,47 @@ static PORT_C_INLINE void nprio_list_prio_insert(
     do {
         current = ndlist_next(current);                                         /* Iterate to the next node in list.  */
     } while ((current != &list->list) &&                                        /* Not end of list and node has equal */
-             (NDLIST_TO_PRIO_DLIST(current)->priority >= node->priority));      /* or higher priority than given node?*/
+             (NDLIST_TO_BIAS_LIST(current)->bias >= node->bias));               /* or higher bias than given node?    */
     ndlist_add_before(current, &node->list);
 }
 
 
 
-static PORT_C_INLINE void nprio_list_fifo_insert(
-    struct nprio_list *         list,
-    struct nprio_list_node *    node)
+static PORT_C_INLINE void nbias_list_fifo_insert(
+    struct nbias_list *         list,
+    struct nbias_list *         node)
 {
     ndlist_add_before(&list->list, &node->list);
 }
 
 
 
-static PORT_C_INLINE void nprio_list_remove(
-    struct nprio_list_node *    node)
+static PORT_C_INLINE void nbias_list_remove(
+    struct nbias_list *         node)
 {
     ndlist_remove(&node->list);
 }
 
 
 
-static PORT_C_INLINE struct nprio_list_node * nprio_list_tail(
-    const struct nprio_list *   list)
+static PORT_C_INLINE struct nbias_list * nbias_list_tail(
+    const struct nbias_list *   list)
 {
-    return (NDLIST_TO_PRIO_DLIST(ndlist_next(&list->list)));
+    return (NDLIST_TO_BIAS_LIST(ndlist_next(&list->list)));
 }
 
 
 
-static PORT_C_INLINE struct nprio_list_node * nprio_list_head(
-    struct nprio_list *        list)
+static PORT_C_INLINE struct nbias_list * nbias_list_head(
+    struct nbias_list *        list)
 {
-    return (NDLIST_TO_PRIO_DLIST(ndlist_prev(&list->list)));
+    return (NDLIST_TO_BIAS_LIST(ndlist_prev(&list->list)));
 }
 
 
 
-static PORT_C_INLINE bool nprio_list_is_empty(
-    const struct nprio_list *  list)
+static PORT_C_INLINE bool nbias_list_is_empty(
+    const struct nbias_list *  list)
 {
     if (ndlist_is_empty(&list->list)) {
         return (true);
@@ -143,27 +130,27 @@ static PORT_C_INLINE bool nprio_list_is_empty(
 
 
 
-static PORT_C_INLINE struct nprio_list_node * nprio_list_next(
-    const struct nprio_list_node * node)
+static PORT_C_INLINE struct nbias_list * nbias_list_next(
+    const struct nbias_list *   node)
 {
-    return (NDLIST_TO_PRIO_DLIST(ndlist_next(&node->list)));
+    return (NDLIST_TO_BIAS_LIST(ndlist_next(&node->list)));
 }
 
 
 
-static PORT_C_INLINE uint_fast8_t nprio_list_priority(
-    const struct nprio_list_node * node)
+static PORT_C_INLINE uint_fast32_t nbias_list_get_bias(
+    const struct nbias_list *   node)
 {
-    return (node->priority);
+    return (node->bias);
 }
 
 
 
-static PORT_C_INLINE void nprio_list_set_priority(
-    struct nprio_list_node *    node,
-    uint_fast8_t                priority)
+static PORT_C_INLINE void nbias_list_set_bias(
+    struct nbias_list *         node,
+    uint_fast32_t               bias)
 {
-    node->priority = priority;
+    node->bias = bias;
 }
 
 /*--------------------------------------------------------  C++ extern end  --*/
@@ -173,6 +160,6 @@ static PORT_C_INLINE void nprio_list_set_priority(
 
 /*================================*//** @cond *//*==  CONFIGURATION ERRORS  ==*/
 /** @endcond *//** @} *//******************************************************
- * END of nprio_list.h
+ * END of nbias_list.h
  ******************************************************************************/
-#endif /* NPRIO_LIST_H */
+#endif /* NBIAS_LIST_H */

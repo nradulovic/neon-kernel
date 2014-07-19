@@ -36,7 +36,7 @@
 
 #include "plat/compiler.h"
 #include "kernel/nub_config.h"
-#include "lib/nprio_array.h"
+#include "lib/nprio_queue.h"
 #include "lib/nstatus.h"
 
 /*===============================================================  MACRO's  ==*/
@@ -51,7 +51,7 @@ extern "C" {
  * @api
  */
 struct nsem {
-    struct nprio_array          prio_array;
+    struct nprio_queue          prio_array;
     int32_t                     count;
 #if   (CONFIG_DEBUG_API == 1u) || defined(__DOXYGEN__)
     n_native                    signature;                                      /**<@brief Debug signature            */

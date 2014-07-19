@@ -14,11 +14,11 @@
  * GNU Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with Neon RT  Kernel.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Neon RT Kernel.  If not, see <http://www.gnu.org/licenses/>.
  *
  * web site:    http://github.com/nradulovic
  * e-mail  :    nenad.b.radulovic@gmail.com
- *//***************************************************************************************************************//**
+ *//***********************************************************************//**
  * @file
  * @author  	Nenad Radulovic
  * @brief   	Kernel Configuration settings
@@ -87,7 +87,7 @@
 #endif
 
 #if !defined(CONFIG_PRIORITY_BUCKETS)
-# define CONFIG_PRIORITY_BUCKETS            CONFIG_PRIORITY_LEVELS
+# define CONFIG_PRIORITY_BUCKETS            1
 #endif
 
 /**@brief       Scheduler Round-Robin time quantum
@@ -204,15 +204,15 @@
 /*================================*//** @cond *//*==  CONFIGURATION ERRORS  ==*/
 
 #if ((CONFIG_DEBUG != 1) && (CONFIG_DEBUG != 0))
-# error "NUB RT Kernel RT Kernel: Configuration option CONFIG_DEBUG is out of range."
+# error "Neon RT Kernel: Configuration option CONFIG_DEBUG is out of range."
 #endif
 
 #if ((CONFIG_DEBUG_API != 1) && (CONFIG_DEBUG_API != 0))
-# error "NUB RT Kernel RT Kernel: Configuration option CONFIG_DEBUG_API is out of range."
+# error "Neon RT Kernel: Configuration option CONFIG_DEBUG_API is out of range."
 #endif
 
 #if ((CONFIG_DEBUG_INTERNAL != 1) && (CONFIG_DEBUG_INTERNAL != 0))
-# error "NUB RT Kernel RT Kernel: Configuration option CONFIG_DEBUG_INTERNAL is out of range."
+# error "Neon RT Kernel: Configuration option CONFIG_DEBUG_INTERNAL is out of range."
 #endif
 
 #if (CONFIG_DEBUG == 0) || defined(NDEBUG)
@@ -225,69 +225,69 @@
 #endif
 
 #if ((3u > CONFIG_PRIORITY_LEVELS) || (CONFIG_PRIORITY_LEVELS > 256))
-# error "NUB RT Kernel RT Kernel: Configuration option CONFIG_PRIORITY_LEVELS is out of range."
+# error "Neon RT Kernel: Configuration option CONFIG_PRIORITY_LEVELS is out of range."
 #endif
 
 #if (CONFIG_PRIORITY_BUCKETS > CONFIG_PRIORITY_LEVELS)
-# error "NUB RT Kernel RT Kernel: Configuration option CONFIG_PRIORITY_BUCKETS is out of range. It must be smaller or equal to CONFIG_PRIORITY_LEVELS."
+# error "Neon RT Kernel: Configuration option CONFIG_PRIORITY_BUCKETS is out of range. It must be smaller or equal to CONFIG_PRIORITY_LEVELS."
 #endif
 
 #if ((CONFIG_PRIORITY_BUCKETS !=  1) && (CONFIG_PRIORITY_BUCKETS !=   2) && (CONFIG_PRIORITY_BUCKETS !=   4) &&         \
      (CONFIG_PRIORITY_BUCKETS !=  8) && (CONFIG_PRIORITY_BUCKETS !=  16) && (CONFIG_PRIORITY_BUCKETS !=  32) &&         \
      (CONFIG_PRIORITY_BUCKETS != 64) && (CONFIG_PRIORITY_BUCKETS != 128) && (CONFIG_PRIORITY_BUCKETS != 256))
-# error "NUB RT Kernel RT Kernel: Configuration option CONFIG_PRIORITY_BUCKETS is not valid. It must be a 2^n number."
+# error "Neon RT Kernel: Configuration option CONFIG_PRIORITY_BUCKETS is not valid. It must be a 2^n number."
 #endif
 
 #if ((1u != CFG_SCHED_POWER_SAVE) && (0u != CFG_SCHED_POWER_SAVE))
-# error "NUB RT Kernel RT Kernel: Configuration option CFG_SCHED_POWER_SAVE is out of range."
+# error "Neon RT Kernel: Configuration option CFG_SCHED_POWER_SAVE is out of range."
 #endif
 
 #if ((1u != CFG_SYSTMR_ADAPTIVE_MODE) && (0u != CFG_SYSTMR_ADAPTIVE_MODE))
-# error "NUB RT Kernel RT Kernel: Configuration option CFG_SYSTMR_ADAPTIVE_MODE is out of range."
+# error "Neon RT Kernel: Configuration option CFG_SYSTMR_ADAPTIVE_MODE is out of range."
 #endif
 
 #if ((0u == CFG_SCHED_POWER_SAVE) && (1u == CFG_SYSTMR_ADAPTIVE_MODE))
-# error "NUB RT Kernel RT Kernel: Configuration option CFG_SCHED_PRIO_LVL must be enabled when CFG_SYSTMR_ADAPTIVE_MODE is enabled, too."
+# error "Neon RT Kernel: Configuration option CFG_SCHED_PRIO_LVL must be enabled when CFG_SYSTMR_ADAPTIVE_MODE is enabled, too."
 #endif
 
 #if ((1u != CFG_HOOK_PRE_SYSTMR_EVENT) && (0u != CFG_HOOK_PRE_SYSTMR_EVENT))
-# error "NUB RT Kernel RT Kernel: Configuration option CFG_HOOK_PRE_SYSTMR_EVENT is out of range."
+# error "Neon RT Kernel: Configuration option CFG_HOOK_PRE_SYSTMR_EVENT is out of range."
 #endif
 
 #if ((1u != CONFIG_HOOK_SYS_EARLY_INIT) && (0u != CONFIG_HOOK_SYS_EARLY_INIT))
-# error "NUB RT Kernel RT Kernel: Configuration option CFG_HOOK_PRE_KERN_INIT is out of range."
+# error "Neon RT Kernel: Configuration option CFG_HOOK_PRE_KERN_INIT is out of range."
 #endif
 
 #if ((1u != CONFIG_HOOK_AT_SYS_LATE_INIT) && (0u != CONFIG_HOOK_AT_SYS_LATE_INIT))
-# error "NUB RT Kernel RT Kernel: Configuration option CFG_HOOK_POST_KERN_INIT is out of range."
+# error "Neon RT Kernel: Configuration option CFG_HOOK_POST_KERN_INIT is out of range."
 #endif
 
 #if ((1u != CONFIG_HOOK_AT_SYS_START) && (0u != CONFIG_HOOK_AT_SYS_START))
-# error "NUB RT Kernel RT Kernel: Configuration option CFG_HOOK_PRE_KERN_START is out of range."
+# error "Neon RT Kernel: Configuration option CFG_HOOK_PRE_KERN_START is out of range."
 #endif
 
 #if ((1u != CONFIG_HOOK_AT_THREAD_INIT) && (0u != CONFIG_HOOK_AT_THREAD_INIT))
-# error "NUB RT Kernel RT Kernel: Configuration option CFG_HOOK_POST_THD_INIT is out of range."
+# error "Neon RT Kernel: Configuration option CFG_HOOK_POST_THD_INIT is out of range."
 #endif
 
 #if ((1u != CFG_HOOK_PRE_THD_TERM) && (0u != CFG_HOOK_PRE_THD_TERM))
-# error "NUB RT Kernel RT Kernel: Configuration option CFG_HOOK_PRE_THD_TERM is out of range."
+# error "Neon RT Kernel: Configuration option CFG_HOOK_PRE_THD_TERM is out of range."
 #endif
 
 #if ((1u != CFG_HOOK_PRE_THD_TERM) && (0u != CFG_HOOK_PRE_THD_TERM))
-# error "NUB RT Kernel RT Kernel: Configuration option CFG_HOOK_PRE_THD_TERM is out of range."
+# error "Neon RT Kernel: Configuration option CFG_HOOK_PRE_THD_TERM is out of range."
 #endif
 
 #if ((1u != CFG_HOOK_PRE_IDLE) && (0u != CFG_HOOK_PRE_IDLE))
-# error "NUB RT Kernel RT Kernel: Configuration option CFG_HOOK_PRE_IDLE is out of range."
+# error "Neon RT Kernel: Configuration option CFG_HOOK_PRE_IDLE is out of range."
 #endif
 
 #if ((1u != CONFIG_HOOK_AT_CONTEXT_SWITCH) && (0u != CONFIG_HOOK_AT_CONTEXT_SWITCH))
-# error "NUB RT Kernel RT Kernel: Configuration option CFG_HOOK_PRE_CTX_SW is out of range."
+# error "Neon RT Kernel: Configuration option CFG_HOOK_PRE_CTX_SW is out of range."
 #endif
 
 #if (0u > CFG_SYSTMR_TICK_TYPE) || (2u < CFG_SYSTMR_TICK_TYPE)
-# error "NUB RT Kernel RT Kernel: Configuration option CFG_SYSTMR_TICK_TYPE is out of range."
+# error "Neon RT Kernel: Configuration option CFG_SYSTMR_TICK_TYPE is out of range."
 #endif
 
 /** @endcond *//** @} *//******************************************************

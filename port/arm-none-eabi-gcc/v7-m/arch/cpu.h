@@ -62,7 +62,7 @@
 
 /**@brief       Find Last Set bit in a word
  */
-#define NCPU_FIND_LAST_SET(val)             ncpu_find_last_set(val)
+#define NCPU_LOG2(val)                      ncpu_log2(val)
 
 /**@brief       Compute exponential function with the base 2, f(x) = 2 ^ x
  */
@@ -220,13 +220,13 @@ struct nthread_ctx
  *              <code>fls(x) = w − clz(x)</code>.
  * @inline
  */
-static PORT_C_INLINE_ALWAYS uint_fast8_t ncpu_find_last_set(
+static PORT_C_INLINE_ALWAYS uint_fast8_t ncpu_log2(
     n_native                     value)
 {
     uint_fast8_t                clz;
 
     __asm__ __volatile__ (
-        "@  ncpu_find_last_set                              \n"
+        "@  ncpu_log2                                       \n"
         "   clz    %0, %1                                   \n"
         : "=r"(clz)
         : "r"(value));
