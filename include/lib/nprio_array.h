@@ -187,7 +187,7 @@ static PORT_C_INLINE bool nbitmap_is_empty(
         return (false);
     }
 #else   /*  (CONFIG_PRIORITY_BUCKETS > NCPU_DATA_WIDTH) */
-    if (bitmap->bit == 0u) {
+    if (bitmap->bit[0] == 0u) {
         return (true);
     } else {
         return (false);
