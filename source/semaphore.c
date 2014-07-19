@@ -56,7 +56,7 @@ void nsem_init(
     struct nsem *               sem,
     int32_t                     count)
 {
-    nprio_array_init(&sem->prio_array);
+    nprio_queue_init(&sem->prio_array);
     sem->count = count;
 }
 
@@ -69,12 +69,12 @@ void nsem_term(
 
     NCRITICAL_LOCK_ENTER(&intr_ctx);
 
-    while (!nprio_array_is_empty(&sem->prio_array)) {
-        struct nprio_list_node * current_node;
+    while (!nprio_queue_is_empty(&sem->prio_array)) {
+        struct nbias_list *     current_node;
 
-        current_node = nprio_array_peek(&sem->prio_array);
+        current_node = nprio_queue_peek(&sem->prio_array);
         nthread_from_queue_node(current_node)->status = N_E_OBJ_REMOVED;
-        nprio_array_remove(&sem->prio_array, current_node);
+        nprio_queue_remove(&sem->prio_array, current_node);
         nsched_insert_i(current_node);
     }
     nsched_reschedule_i();
@@ -92,10 +92,10 @@ enum n_status nsem_wait(
     sem->count--;
 
     if (sem->count < 0) {
-        struct nprio_list_node * current_node;
+        struct nbias_list *     current_node;
 
         current_node = nsched_remove_current_i();
-        nprio_array_insert(&sem->prio_array, current_node);
+        nprio_queue_insert(&sem->prio_array, current_node);
         nsched_reschedule_i();
         NCRITICAL_LOCK_EXIT(intr_ctx);
 

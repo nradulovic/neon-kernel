@@ -38,7 +38,7 @@
 
 #include "plat/compiler.h"
 #include "kernel/nub_config.h"
-#include "lib/nprio_array.h"
+#include "lib/nprio_queue.h"
 
 /*===============================================================  MACRO's  ==*/
 /*------------------------------------------------------  C++ extern begin  --*/
@@ -57,7 +57,7 @@ struct nsched_ctx
     struct nthread *            current;                                        /**<@brief The current thread         */
     struct nthread *            pending;                                        /**<@brief The pending thread         */
     uint_fast16_t               lock_count;
-    struct nprio_array          run_queue;
+    struct nprio_queue          run_queue;
 };
 
 /*======================================================  GLOBAL VARIABLES  ==*/
@@ -96,7 +96,7 @@ void nsched_start(
  * @schedno
  * @api
  */
-struct nprio_list_node * nsched_get_current(
+struct nbias_list * nsched_get_current(
     void);
 
 
@@ -117,9 +117,9 @@ struct nprio_list_node * nsched_get_current(
  * @iclass
  */
 static PORT_C_INLINE void nsched_insert_i(
-    struct nprio_list_node *    thread_node)
+    struct nbias_list *         thread_node)
 {
-    nprio_array_insert(&g_nsched.run_queue, thread_node);
+    nprio_queue_insert(&g_nsched.run_queue, thread_node);
 }
 
 
@@ -142,35 +142,22 @@ static PORT_C_INLINE void nsched_insert_i(
  * @iclass
  */
 static PORT_C_INLINE void nsched_remove_i(
-    struct nprio_list_node *    thread_node)
+    struct nbias_list *         thread_node)
 {
-    nprio_array_remove(&g_nsched.run_queue, thread_node);
+    nprio_queue_remove(&g_nsched.run_queue, thread_node);
 }
 
 
 
-static PORT_C_INLINE struct nprio_list_node * nsched_remove_current_i(
+static PORT_C_INLINE struct nbias_list * nsched_remove_current_i(
     void)
 {
-    struct nprio_list_node *    thread_node;
+    struct nbias_list *         thread_node;
 
     thread_node = nsched_get_current();
     nsched_remove_i(thread_node);
 
     return (thread_node);
-}
-
-
-
-/**@brief       Modify the specified thread priority.
- */
-static PORT_C_INLINE void nsched_modify_prio_i(
-    struct nprio_list_node *    thread_node,
-    uint_fast8_t                priority)
-{
-    nprio_array_remove(&g_nsched.run_queue, thread_node);
-    nprio_list_set_priority(thread_node, priority);
-    nprio_array_insert(&g_nsched.run_queue, thread_node);
 }
 
 

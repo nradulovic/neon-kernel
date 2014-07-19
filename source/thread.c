@@ -73,7 +73,7 @@ void nthread_init(
     NOBLIGATION(thread->signature = THREAD_SIGNATURE);                          /* Validate thread structure          */
 
     thread->stack           = NCPU_INIT_CTX(stack, stack_size, entry, arg);     /* Make a fake thread stack           */
-    nprio_list_init_node(&thread->queue_node, priority);
+    nbias_list_init(&thread->queue_node, priority);
     thread->opriority       = priority;
     thread->quantum_counter = CONFIG_SCHED_TIME_QUANTUM;
     thread->quantum_reload  = CONFIG_SCHED_TIME_QUANTUM;
@@ -110,11 +110,11 @@ PORT_C_NORETURN void nthread_term(
 uint8_t nthread_get_priority(
     void)
 {
-    struct nprio_list_node *    current_node;
+    struct nbias_list *         current_node;
 
     current_node = nsched_get_current();
 
-    return ((uint8_t)nprio_list_priority(current_node));
+    return ((uint8_t)nbias_list_get_bias(current_node));
 }
 
 
@@ -122,12 +122,16 @@ uint8_t nthread_get_priority(
 void nthread_set_priority(
     uint8_t                     priority)
 {
+    struct nbias_list *         thread_node;
     nintr_ctx                   intr_ctx;
 
     NREQUIRE(NAPI_RANGE, priority < CONFIG_PRIORITY_LEVELS);
 
     NCRITICAL_LOCK_ENTER(&intr_ctx);
-    nsched_modify_prio_i(nsched_get_current(), priority);
+    thread_node = nsched_get_current();
+    nprio_queue_remove(&g_nsched.run_queue, thread_node);
+    nbias_list_set_bias(thread_node, priority);
+    nprio_queue_insert(&g_nsched.run_queue, thread_node);
     nsched_reschedule_i();
     NCRITICAL_LOCK_EXIT(intr_ctx);
 }

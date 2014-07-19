@@ -54,7 +54,7 @@ struct nsched_ctx               g_nsched;
 static PORT_C_INLINE_ALWAYS bool sched_is_rescheduled(struct nsched_ctx * ctx)
 {
     struct nthread *        new_thread;
-    new_thread = nthread_from_queue_node(nprio_array_peek(&g_nsched.run_queue));/* Get new highest priority thread.   */
+    new_thread = nthread_from_queue_node(nprio_queue_peek(&g_nsched.run_queue));/* Get new highest priority thread.   */
 
     if (new_thread != ctx->current) {                                           /* Context switching is needed only   */
                                                                                 /* when current and pending are       */
@@ -79,7 +79,7 @@ void nsched_init(
     g_nsched.current = NULL;
     g_nsched.pending = NULL;
     g_nsched.lock_count = 0u;
-    nprio_array_init(&g_nsched.run_queue);                                      /* Initialize run_queue structure.    */
+    nprio_queue_init(&g_nsched.run_queue);                                      /* Initialize run_queue structure.    */
 }
 
 
@@ -91,7 +91,7 @@ void nsched_start(
     nintr_ctx                   intr_ctx;
 
     NCRITICAL_LOCK_ENTER(&intr_ctx);
-    new_thread = nthread_from_queue_node(nprio_array_peek(&g_nsched.run_queue));
+    new_thread = nthread_from_queue_node(nprio_queue_peek(&g_nsched.run_queue));
                                                                                 /* Get the highest priority thread.   */
     g_nsched.pending = new_thread;
     NCRITICAL_LOCK_EXIT(intr_ctx);
@@ -100,7 +100,7 @@ void nsched_start(
 
 
 
-struct nprio_list_node * nsched_get_current(
+struct nbias_list * nsched_get_current(
     void)
 {
     return (&g_nsched.current->queue_node);
@@ -212,7 +212,7 @@ void nsched_quantum_i(
                                                                                 /* quantum                            */
         if (thread->quantum_counter == 0u) {
             thread->quantum_counter = thread->quantum_reload;                   /* Reload thread time quantum         */
-            nprio_array_rotate(&g_nsched.run_queue, &thread->queue_node);       /* Rotate current thread priority     */
+            nprio_queue_rotate(&g_nsched.run_queue, &thread->queue_node);       /* Rotate current thread priority     */
                                                                                 /* array level.                       */
         }
     }

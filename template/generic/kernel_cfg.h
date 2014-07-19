@@ -183,59 +183,59 @@
 /*========================================================================*//** @cond *//*==  CONFIGURATION ERRORS  ==*/
 
 #if ((3U > CONFIG_PRIORITY_LEVELS) || (256U < CONFIG_PRIORITY_LEVELS))
-# error "NUB RT Kernel RT Kernel: Configuration option CFG_SCHED_PRIO_LVL is out of range."
+# error "Neon RT Kernel: Configuration option CFG_SCHED_PRIO_LVL is out of range."
 #endif
 
 #if ((1U != CFG_SCHED_POWER_SAVE) && (0U != CFG_SCHED_POWER_SAVE))
-# error "NUB RT Kernel RT Kernel: Configuration option CFG_SCHED_POWER_SAVE is out of range."
+# error "Neon RT Kernel: Configuration option CFG_SCHED_POWER_SAVE is out of range."
 #endif
 
 #if ((1U != CFG_SYSTMR_ADAPTIVE_MODE) && (0U != CFG_SYSTMR_ADAPTIVE_MODE))
-# error "NUB RT Kernel RT Kernel: Configuration option CFG_SYSTMR_ADAPTIVE_MODE is out of range."
+# error "Neon RT Kernel: Configuration option CFG_SYSTMR_ADAPTIVE_MODE is out of range."
 #endif
 
 #if ((0U == CFG_SCHED_POWER_SAVE) && (1U == CFG_SYSTMR_ADAPTIVE_MODE))
-# error "NUB RT Kernel RT Kernel: Configuration option CFG_SCHED_PRIO_LVL must be enabled when CFG_SYSTMR_ADAPTIVE_MODE is enabled, too."
+# error "Neon RT Kernel: Configuration option CFG_SCHED_PRIO_LVL must be enabled when CFG_SYSTMR_ADAPTIVE_MODE is enabled, too."
 #endif
 
 #if ((1U != CFG_HOOK_PRE_SYSTMR_EVENT) && (0U != CFG_HOOK_PRE_SYSTMR_EVENT))
-# error "NUB RT Kernel RT Kernel: Configuration option CFG_HOOK_PRE_SYSTMR_EVENT is out of range."
+# error "Neon RT Kernel: Configuration option CFG_HOOK_PRE_SYSTMR_EVENT is out of range."
 #endif
 
 #if ((1U != CFG_HOOK_PRE_KERN_INIT) && (0U != CFG_HOOK_PRE_KERN_INIT))
-# error "NUB RT Kernel RT Kernel: Configuration option CFG_HOOK_PRE_KERN_INIT is out of range."
+# error "Neon RT Kernel: Configuration option CFG_HOOK_PRE_KERN_INIT is out of range."
 #endif
 
 #if ((1U != CFG_HOOK_POST_KERN_INIT) && (0U != CFG_HOOK_POST_KERN_INIT))
-# error "NUB RT Kernel RT Kernel: Configuration option CFG_HOOK_POST_KERN_INIT is out of range."
+# error "Neon RT Kernel: Configuration option CFG_HOOK_POST_KERN_INIT is out of range."
 #endif
 
 #if ((1U != CFG_HOOK_PRE_KERN_START) && (0U != CFG_HOOK_PRE_KERN_START))
-# error "NUB RT Kernel RT Kernel: Configuration option CFG_HOOK_PRE_KERN_START is out of range."
+# error "Neon RT Kernel: Configuration option CFG_HOOK_PRE_KERN_START is out of range."
 #endif
 
 #if ((1U != CFG_HOOK_POST_THD_INIT) && (0U != CFG_HOOK_POST_THD_INIT))
-# error "NUB RT Kernel RT Kernel: Configuration option CFG_HOOK_POST_THD_INIT is out of range."
+# error "Neon RT Kernel: Configuration option CFG_HOOK_POST_THD_INIT is out of range."
 #endif
 
 #if ((1U != CFG_HOOK_PRE_THD_TERM) && (0U != CFG_HOOK_PRE_THD_TERM))
-# error "NUB RT Kernel RT Kernel: Configuration option CFG_HOOK_PRE_THD_TERM is out of range."
+# error "Neon RT Kernel: Configuration option CFG_HOOK_PRE_THD_TERM is out of range."
 #endif
 
 #if ((1U != CFG_HOOK_PRE_THD_TERM) && (0U != CFG_HOOK_PRE_THD_TERM))
-# error "NUB RT Kernel RT Kernel: Configuration option CFG_HOOK_PRE_THD_TERM is out of range."
+# error "Neon RT Kernel: Configuration option CFG_HOOK_PRE_THD_TERM is out of range."
 #endif
 
 #if ((1U != CFG_HOOK_PRE_IDLE) && (0U != CFG_HOOK_PRE_IDLE))
-# error "NUB RT Kernel RT Kernel: Configuration option CFG_HOOK_PRE_IDLE is out of range."
+# error "Neon RT Kernel: Configuration option CFG_HOOK_PRE_IDLE is out of range."
 #endif
 
 #if ((1U != CFG_HOOK_PRE_CTX_SW) && (0U != CFG_HOOK_PRE_CTX_SW))
-# error "NUB RT Kernel RT Kernel: Configuration option CFG_HOOK_PRE_CTX_SW is out of range."
+# error "Neon RT Kernel: Configuration option CFG_HOOK_PRE_CTX_SW is out of range."
 #endif
 
 #if (0 > CFG_SYSTMR_TICK_TYPE) || (2U < CFG_SYSTMR_TICK_TYPE)
-# error "NUB RT Kernel RT Kernel: Configuration option CFG_SYSTMR_TICK_TYPE is out of range."
+# error "Neon RT Kernel: Configuration option CFG_SYSTMR_TICK_TYPE is out of range."
 #endif
 
 /** @endcond *//** @} *//**********************************************************************************************
