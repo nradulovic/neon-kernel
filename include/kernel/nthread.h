@@ -239,6 +239,14 @@ static PORT_C_INLINE struct nthread * nthread_from_queue_node(
 extern void hook_at_thread_init(
     struct nthread *            thread);
 
+/**@brief       Hook function called at thread termination
+ * @details     This function is called only when
+ *              @ref CONFIG_HOOK_AT_THREAD_TERM is enabled.
+ * @api
+ */
+extern void hook_at_thread_term(
+    struct nthread *            thread);
+
 /*--------------------------------------------------------  C++ extern end  --*/
 #ifdef __cplusplus
 }

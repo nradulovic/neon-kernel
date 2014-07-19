@@ -82,7 +82,7 @@ void nthread_init(
     nsched_reschedule_i();                                                      /* Invoke the scheduler               */
     NCRITICAL_LOCK_EXIT(intr_ctx);
 
-#if   (1u == CONFIG_HOOK_AT_THREAD_INIT)
+#if   (CONFIG_HOOK_AT_THREAD_INIT == 1u)
     hook_at_thread_init(thread);
 #endif
 }
@@ -94,8 +94,8 @@ PORT_C_NORETURN void nthread_term(
 {
     nintr_ctx                   intr_ctx;
 
-#if   (1u == CFG_HOOK_PRE_THD_TERM)
-    userPreThdTerm();
+#if   (CONFIG_HOOK_AT_THREAD_TERM)
+    hook_at_thread_term();
 #endif
     NCRITICAL_LOCK_ENTER(&intr_ctx);
     nsched_remove_current_i();
