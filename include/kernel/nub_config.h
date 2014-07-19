@@ -87,7 +87,7 @@
 #endif
 
 #if !defined(CONFIG_PRIORITY_BUCKETS)
-# define CONFIG_PRIORITY_BUCKETS            1
+# define CONFIG_PRIORITY_BUCKETS            32u
 #endif
 
 /**@brief       Scheduler Round-Robin time quantum
@@ -155,31 +155,31 @@
 /**@brief       Pre kernel initialization hook function
  */
 #if !defined(CONFIG_HOOK_SYS_EARLY_INIT)
-# define CONFIG_HOOK_SYS_EARLY_INIT         0u
+# define CONFIG_HOOK_SYS_EARLY_INIT         1u
 #endif
 
 /**@brief       Post kernel initialization hook function
  */
 #if !defined(CONFIG_HOOK_AT_SYS_LATE_INIT)
-# define CONFIG_HOOK_AT_SYS_LATE_INIT       0u
+# define CONFIG_HOOK_AT_SYS_LATE_INIT       1u
 #endif
 
 /**@brief       Pre kernel start hook function
  */
 #if !defined(CONFIG_HOOK_AT_SYS_START)
-# define CONFIG_HOOK_AT_SYS_START           0u
+# define CONFIG_HOOK_AT_SYS_START           1u
 #endif
 
 /**@brief       Post thread initialization hook function
  */
 #if !defined(CONFIG_HOOK_AT_THREAD_INIT)
-# define CONFIG_HOOK_AT_THREAD_INIT         0u
+# define CONFIG_HOOK_AT_THREAD_INIT         1u
 #endif
 
 /**@brief       Pre thread termination hook function
  */
-#if !defined(CFG_HOOK_PRE_THD_TERM)
-# define CFG_HOOK_PRE_THD_TERM          0u
+#if !defined(CONFIG_HOOK_AT_THREAD_TERM)
+# define CONFIG_HOOK_AT_THREAD_TERM         1u
 #endif
 
 /**@brief       Pre idle hook function
@@ -270,11 +270,11 @@
 # error "Neon RT Kernel: Configuration option CFG_HOOK_POST_THD_INIT is out of range."
 #endif
 
-#if ((1u != CFG_HOOK_PRE_THD_TERM) && (0u != CFG_HOOK_PRE_THD_TERM))
+#if ((1u != CONFIG_HOOK_AT_THREAD_TERM) && (0u != CONFIG_HOOK_AT_THREAD_TERM))
 # error "Neon RT Kernel: Configuration option CFG_HOOK_PRE_THD_TERM is out of range."
 #endif
 
-#if ((1u != CFG_HOOK_PRE_THD_TERM) && (0u != CFG_HOOK_PRE_THD_TERM))
+#if ((1u != CONFIG_HOOK_AT_THREAD_TERM) && (0u != CONFIG_HOOK_AT_THREAD_TERM))
 # error "Neon RT Kernel: Configuration option CFG_HOOK_PRE_THD_TERM is out of range."
 #endif
 
