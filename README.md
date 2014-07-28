@@ -8,31 +8,34 @@ systems.
 - Integrate a profiling system (memory/stack usage, CPU usage...)
 - test, test, test...
 
+
 # Features
 
 ## System
-1. Static design; no heap memory required. All data structures are allocated 
+
+* Static design; no heap memory required. All data structures are allocated 
     during the compile time.
-2. Static configuration, no execution overhead.
-3. Portable. The kernel can run on wide range of micro-controllers. It was tested
+* Static configuration, no execution overhead.
+* Portable. The kernel can run on wide range of micro-controllers. It was tested
     on 8-bit Microchip PIC up to 64-bit AMD CPU as Linux user thread.
-4. Can be easily integrated into an existing system. The kernel does not require
+* Can be easily integrated into an existing system. The kernel does not require
     custom linker scripts or start files. Assembly code is minimally used in
     port system.
 
-
 ## Scheduler
-1. Unlimited number of tasks.
-2. Up to 64 priority levels on 8-bit micro-controllers and up to 256 priority 
+
+* Unlimited number of tasks.
+* Up to 64 priority levels on 8-bit micro-controllers and up to 256 priority 
     levels on 32-bit micro-controllers.
-3. Round-robing, non-preemptive scheduling of tasks with same priority.
-4. O(1) constant time complexity, scheduling time does not increase if new tasks 
+* Round-robing, non-preemptive scheduling of tasks with same priority.
+* O(1) constant time complexity, scheduling time does not increase if new tasks 
     are added.
 
 
 # Usage
 
 ## Configuration and ports
+
 Configuration is done in two files: `nkernel_config.h` (port independent 
 settings) and in `port_config.h` (port depended settings, located in port 
 directory structure).
@@ -53,10 +56,12 @@ below or equal to 8 on low end 8-bit micro-controllers. Higher number of levels
 may impact the execution performance on low end 8-bit micro-controllers.
 
 ## System
+
 To initialize the system user application must call `nkernel_init()` function.
 This function will prepare internal data structure for scheduler.
 
 ## Thread
+
 A thread is a function with the following prototype: 
 
         void function(void * stack)
@@ -72,6 +77,7 @@ during the thread creation process. This gives the ability to write parametrized
 thread functions.
 
 ### Creating
+
 A new thread is created using `nthread_create()` function. The function searches
 through free thread pool to obtain a thread data structure.
 
@@ -87,6 +93,7 @@ After the thread is created the thread is in `NSTATE_IDLE` state. To put the
 thread in ready/running state use `nthread_ready()` function.
 
 ### Running
+
 The threads are invoked by scheduler. To start the scheduler call the kernel 
 function `nkernel_start()`. The scheduler will evaluate all threads that are 
 ready and schedule them for execution. When there are no threads ready for 
@@ -95,13 +102,14 @@ execution the scheduler function will return.
 Threads can be created and destroyed during the system execution.
 
 ### Destroying
+
 A thread is destroyed by using `nthread_destroy()` function. If the thread is 
 ready for execution or is currently executing then it will be removed from ready 
 queue. When the thread is destroyed its data structure is returned to free 
 thread pool.
 
 
-## Building
+# Building
 
 The kernel was built using arm-none-eabi GCC v4.8 compiler tool-chain (from 
 https://launchpad.net/gcc-arm-embedded/+download) and binary was downloaded
@@ -109,7 +117,7 @@ to the MCU using _texane_ gdb-server. There are no makefiles, it is assumed
 that IDE will generate them for you.
 
 
-#### Example for STM32F10x family port
+## Example for STM32F10x family port
 
 There are two groups of source files which need to be compiled for ARMv7-M 
 architecture: 
@@ -120,7 +128,7 @@ The following include paths are needed:
 - `./include`
 - `./port/arm-none-eabi-gcc/v7-m`
 
-## Documentation
+# Documentation
 
 Some documentation is available under Wiki 
 https://github.com/nradulovic/esolid-kernel/wiki. 
@@ -132,8 +140,7 @@ run doxygen:
 
 This will generate HTML, LaTex and man documentation in `./doc/kernel` directory.
 
-
-## Running
+# Running
 To successfully use and run kernel you will need to study the kernel 
 documentation. The documentation is still being written and some examples will
 be added later.
