@@ -22,7 +22,7 @@ memory constrained embedded systems.
     files. Assembly code is minimally used in port system. 
 * **Preemption aware**. The system can be coupled with an existing RTOS to 
     provide preemptive execution if it is needed. Several instances of the 
-    scheduler can be started to provide several levels of preemption.
+    scheduler can be started to provide multiple levels of preemption.
 
 
 ### Scheduler
