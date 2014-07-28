@@ -1,17 +1,11 @@
-# Introduction 
+# Neon RT Kernel 
 
 Neon RT Kernel is real-time cooperative, single stack kernel for embedded 
 systems. 
 
-## TODO list
+## Features
 
-- Integrate a profiling system (memory/stack usage, CPU usage...)
-- test, test, test...
-
-
-# Features
-
-## System
+### System
 
 * Static design; no heap memory required. All data structures are allocated 
     during the compile time.
@@ -22,7 +16,7 @@ systems.
     custom linker scripts or start files. Assembly code is minimally used in
     port system.
 
-## Scheduler
+### Scheduler
 
 * Unlimited number of tasks.
 * Up to 64 priority levels on 8-bit micro-controllers and up to 256 priority 
@@ -32,9 +26,9 @@ systems.
     are added.
 
 
-# Usage
+## Usage
 
-## Configuration and ports
+### Configuration and ports
 
 Configuration is done in two files: `nkernel_config.h` (port independent 
 settings) and in `port_config.h` (port depended settings, located in port 
@@ -55,12 +49,12 @@ of task priority levels. It is preferred that this configuration option is held
 below or equal to 8 on low end 8-bit micro-controllers. Higher number of levels 
 may impact the execution performance on low end 8-bit micro-controllers.
 
-## System
+### System
 
 To initialize the system user application must call `nkernel_init()` function.
 This function will prepare internal data structure for scheduler.
 
-## Thread
+### Thread
 
 A thread is a function with the following prototype: 
 
@@ -109,7 +103,7 @@ queue. When the thread is destroyed its data structure is returned to free
 thread pool.
 
 
-# Building
+## Building
 
 The kernel was built using arm-none-eabi GCC v4.8 compiler tool-chain (from 
 https://launchpad.net/gcc-arm-embedded/+download) and binary was downloaded
@@ -117,7 +111,7 @@ to the MCU using _texane_ gdb-server. There are no makefiles, it is assumed
 that IDE will generate them for you.
 
 
-## Example for STM32F10x family port
+### Example for STM32F10x family port
 
 There are two groups of source files which need to be compiled for ARMv7-M 
 architecture: 
@@ -128,7 +122,7 @@ The following include paths are needed:
 - `./include`
 - `./port/arm-none-eabi-gcc/v7-m`
 
-# Documentation
+## Documentation
 
 Some documentation is available under Wiki 
 https://github.com/nradulovic/esolid-kernel/wiki. 
@@ -140,7 +134,7 @@ run doxygen:
 
 This will generate HTML, LaTex and man documentation in `./doc/kernel` directory.
 
-# Running
+## Running
 To successfully use and run kernel you will need to study the kernel 
 documentation. The documentation is still being written and some examples will
 be added later.
