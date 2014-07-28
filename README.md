@@ -5,17 +5,29 @@ systems.
 
 ## TODO list
 
-- Integrate a profiling system (memory/stack usage, cpu usage...)
+- Integrate a profiling system (memory/stack usage, CPU usage...)
 - test, test, test...
 
 # Features
 
-1. Unlimited number of tasks
-2. Up to 64 priority levels on 8-bit microcontrollers and up to 256 priority 
-    levels on 32-bit microcontrollers.
-3. Round-robing, non-preemptive scheduling of tasks with same priority
+## System
+1. Static design; no heap memory required. All data structures are allocated 
+    during the compile time.
+2. Static configuration, no execution overhead.
+3. Portable. The kernel can run on wide range of micro-controllers. It was tested
+    on 8-bit Microchip PIC up to 64-bit AMD CPU as Linux user thread.
+4. Can be easily integrated into an existing system. The kernel does not require
+    custom linker scripts or start files. Assembly code is minimally used in
+    port system.
+
+
+## Scheduler
+1. Unlimited number of tasks.
+2. Up to 64 priority levels on 8-bit micro-controllers and up to 256 priority 
+    levels on 32-bit micro-controllers.
+3. Round-robing, non-preemptive scheduling of tasks with same priority.
 4. O(1) constant time complexity, scheduling time does not increase if new tasks 
-    are added
+    are added.
 
 
 # Using eSolid - Real-Time Kernel
@@ -26,15 +38,15 @@ Configuration is done in two files: `nkernel_config.h` (port independent
 settings) and in `port_config.h` (port depended settings, located in port 
 directory structure).
 
-Currently, kernel is ported only to ARMv7-M architecture range of 
-microcontrollers. It was tested on STM32F100 series of microcontrollers, but it
+Currently, kernel is officially ported only to ARMv7-M architecture range of 
+micro-controllers. It was tested on STM32F100 series of micro-controllers, but it
 should work, with minimal modifications, on any ARMv7-M CPU. Some other ports 
 like AVR-GCC are planned, too.
 
 
 ## Building
 
-The kernel was built using arm-none-eabi GCC v4.8 compiler toolchain (from 
+The kernel was built using arm-none-eabi GCC v4.8 compiler tool-chain (from 
 https://launchpad.net/gcc-arm-embedded/+download) and binary was downloaded
 to the MCU using _texane_ gdb-server. There are no makefiles, it is assumed
 that IDE will generate them for you.
