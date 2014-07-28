@@ -39,22 +39,35 @@
 #include <stddef.h>
 
 #include "plat/compiler.h"
-#include "kernel/nub_config.h"
+#include "plat/sys_lock.h"
 #include "lib/nbias_list.h"
 #include "lib/nlist.h"
 #include "lib/nstatus.h"
 
+#include "nkernel_config.h"
+
 /*===============================================================  MACRO's  ==*/
 
-/**@brief       Converts the required stack elements into the stack array index.
- * @param       elem
- *              Number of stack elements: the stack size is expressed in number
- *              of elements regardless of the size of port general purpose
- *              registers.
- * @return      Number of stack elements needed for stack usage.
- * @api
+/**@brief       Identifies kernel major version number
  */
-#define NSTACK_SIZE(elem)                   PORT_STACK_SIZE(elem)
+#define NSYS_VER_MAJOR                      (1ul)
+
+/**@brief       Identifies kernel minor version number
+ */
+#define NSYS_VER_MINOR                      (0ul)
+
+/**@brief       Identifies kernel patch level
+ */
+#define NSYS_VER_PATCH                      (0ul)
+
+/**@brief       Identifies the underlying kernel version number
+ */
+#define NSYS_VER                                                                \
+    (((NSYS_VER_MAJOR) << 24) | (NSYS_VER_MINOR << 16) | (NSYS_VER_PATCH))
+
+/**@brief       Kernel identification string
+ */
+#define NSYS_ID                             "Neon RT Kernel"
 
 /**@brief       Maximum level of priority possible for application thread
  * @api
@@ -86,17 +99,13 @@ extern "C" {
  */
 struct nthread
 {
-    struct nthread_stack *      stack;                                          /**<@brief Pointer to top of stack    */
     struct nbias_list           queue_node;                                     /**<@brief Priority queue node        */
-    uint_fast8_t                opriority;                                      /**<@brief Origin priority level      */
-    uint_fast8_t                quantum_counter;                                /**<@brief Quantum counter            */
-    uint_fast8_t                quantum_reload;                                 /**<@brief Quantum reload value       */
+    void                     (* entry)(void *);
+    void *                      stack;                                          /**<@brief Pointer to top of stack    */
+    uint_fast16_t               ref;
 #if   (CONFIG_REGISTRY  == 1u) || defined(__DOXYGEN__)
     const char *                name;
     struct ndlist               registry_node;
-#endif
-#if   (CONFIG_SEMAPHORE == 1u) || defined(__DOXYGEN__)
-    enum n_status               status;
 #endif
 #if   (CONFIG_DEBUG_API == 1u) || defined(__DOXYGEN__)
     n_native                    signature;                                      /**<@brief Debug signature            */
@@ -111,6 +120,20 @@ typedef struct nthread nthread;
 /*======================================================  GLOBAL VARIABLES  ==*/
 /*===================================================  FUNCTION PROTOTYPES  ==*/
 
+void nkernel_init(void);
+
+void nkernel_term(void);
+
+void nkernel_start(void);
+
+size_t nkernel_get_context_size(void);
+
+void nsys_lock(
+    lock_ctx *                  lock);
+
+void nsys_unlock(
+    lock_ctx *                  lock);
+
 /**@brief       Initialize the specified thread
  * @param       thread
  *              Thread is a pointer to the thread structure, @ref nthread. The
@@ -120,11 +143,6 @@ typedef struct nthread nthread;
  * @param       entry
  *              Entry is a pointer to thread entry function. Thread function
  *              must have the following signature: `void thread (void * arg)`.
- * @param       arg
- *              Arg is a void pointer to an optional thread arguments. It's
- *              usage is application defined and it is intended to pass
- *              arguments to thread entry function when it is started for the
- *              first time. *
  * @param       stack
  *              Stack is a pointer to a allocated memory for thread stack. The
  *              pointer always points to the first element in the array,
@@ -133,13 +151,6 @@ typedef struct nthread nthread;
  *              return addresses. Each thread has its own stack and different
  *              sized stack. The stack type must be an array of
  *              @ref nthread_stack.
- * @param       stack_size
- *              Stack size specifies the size of allocated stack memory. Size is
- *              expressed in bytes. Please, see the port documentation about
- *              minimal stack size. Usage of C unary operator `sizeof` is the
- *              recommended way of specifying the stack size. Another way of
- *              specifying required stack size is through the usage of
- *              @ref NSTACK_SIZE macro.
  * @param       priority
  *              Priority is the priority of the thread. The higher the number,
  *              the higher the priority (the importance) of the thread. Several
@@ -148,11 +159,9 @@ typedef struct nthread nthread;
  *              kernel service threads only.
  * @pre         1) `thread != NULL`
  * @pre         2) `thread->signature != THREAD_SIGNATURE`, the thread structure
- *                  can't be initialized more than once.
+ *                  must be initialized only once.
  * @pre         3) `entry != NULL`
  * @pre         4) `stack != NULL`
- * @pre         5) `stack_size >= NCPU_STACK_MINSIZE`, see
- *                  @ref NCPU_STACK_MINSIZE.
  * @pre         6) `0 < priority < CONFIG_PRIORITY_LEVELS`, see
  *                  @ref CONFIG_PRIORITY_LEVELS.
  * @post        1) `thread->signature = THREAD_SIGNATURE`, each @ref nthread
@@ -162,7 +171,7 @@ typedef struct nthread nthread;
  *              provide arguments specifying to kernel how the thread will be
  *              managed. Threads are always created in the @c ready-to-run state.
  *              Threads can be created either prior to the start of
- *              multi-threading (before calling nsys_start()), or by a running
+ *              multi-threading (before calling nkernel_start()), or by a running
  *              thread.
  * @called
  * @fromapp
@@ -173,10 +182,8 @@ typedef struct nthread nthread;
 void nthread_init(
     struct nthread *            thread,
     void                     (* entry)(void *),
-    void *                      arg,
-    struct nthread_stack *      stack,
-    size_t                      stack_size,
-    uint8_t                     priority);
+    void *                      stack,
+    uint_fast8_t                priority);
 
 
 
@@ -189,10 +196,20 @@ void nthread_init(
  * @schedyes
  * @api
  */
-PORT_C_NORETURN void nthread_term(
+void nthread_term(
     void);
 
 
+
+
+
+void nthread_ready_i(
+    struct nthread *            thread);
+
+
+
+void nthread_sleep_i(
+    void);
 
 /**@brief       Get the priority of the current thread
  * @return      The priority of the current thread.
@@ -204,7 +221,7 @@ PORT_C_NORETURN void nthread_term(
  * @schedno
  * @api
  */
-uint8_t nthread_get_priority(
+uint_fast8_t nthread_get_priority(
     void);
 
 
@@ -223,20 +240,40 @@ uint8_t nthread_get_priority(
  * @api
  */
 void nthread_set_priority(
-    uint8_t                     priority);
+    uint_fast8_t                priority);
 
-static PORT_C_INLINE struct nthread * nthread_from_queue_node(
-    struct nbias_list *         thread_node)
-{
-    return (container_of(thread_node, struct nthread, queue_node));
-}
+
+
+#if (CONFIG_SYS_PREEMPT_AWARE == 1)
+extern void * callback_get_tls(void);
+#endif
+
+/** @} *//*---------------------------------------------------------------*//**
+ * @addtogroup  Hook functions
+ * @{ *//*--------------------------------------------------------------------*/
+
+/**@brief       Hook function called at system early init
+ * @details     This function is called only when @ref CONFIG_HOOK_SYS_INIT is enabled.
+ * @api
+ */
+extern void hook_on_sys_init(
+    void);
+
+
+
+/**@brief       Hook function called at system start
+ * @details     This function is called only when @ref CONFIG_HOOK_SYS_START is enabled.
+ * @api
+ */
+extern void hook_on_sys_start(
+    void);
 
 /**@brief       Hook function called at thread initialization
  * @details     This function is called only when
- *              @ref CONFIG_HOOK_AT_THREAD_INIT is enabled.
+ *              @ref CONFIG_HOOK_THREAD_INIT is enabled.
  * @api
  */
-extern void hook_at_thread_init(
+extern void hook_on_thread_init(
     struct nthread *            thread);
 
 /**@brief       Hook function called at thread termination
@@ -244,8 +281,13 @@ extern void hook_at_thread_init(
  *              @ref CONFIG_HOOK_AT_THREAD_TERM is enabled.
  * @api
  */
-extern void hook_at_thread_term(
+extern void hook_on_thread_term(
     struct nthread *            thread);
+
+
+extern void hook_on_thread_switch(
+    struct nthread *            old_thread,
+    struct nthread *            new_thread);
 
 /*--------------------------------------------------------  C++ extern end  --*/
 #ifdef __cplusplus

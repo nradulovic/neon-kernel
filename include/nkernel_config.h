@@ -90,19 +90,8 @@
 # define CONFIG_PRIORITY_BUCKETS            32u
 #endif
 
-/**@brief       Scheduler Round-Robin time quantum
- */
-#if !defined(CONFIG_SCHED_TIME_QUANTUM)
-# define CONFIG_SCHED_TIME_QUANTUM          10u
-#endif
-
-/**@brief       Enable/disable scheduler power savings mode
- * @details     Possible values are:
- *              - 0u - power saving is disabled
- *              - 1u - power saving is enabled
- */
-#if !defined(CFG_SCHED_POWER_SAVE)
-# define CFG_SCHED_POWER_SAVE           1u
+#if !defined(CONFIG_SYS_PREEMPT_AWARE)
+#define CONFIG_SYS_PREEMPT_AWARE            0u
 #endif
 
 /**@brief       Enable/disable registry
@@ -132,16 +121,6 @@
 # define CFG_SYSTMR_EVENT_FREQUENCY     100ul
 #endif
 
-/**@brief       The size of the system timer tick event counter
- * @details     Possible values are:
- *              - 0u - 8 bit counter
- *              - 1u - 16 bit counter
- *              - 2u - 32 bit counter
- */
-#if !defined(CFG_SYSTMR_TICK_TYPE)
-# define CFG_SYSTMR_TICK_TYPE           2u
-#endif
-
 /** @} *//*---------------------------------------------------------------*//**
  * @name        Kernel pre hooks
  * @{ *//*--------------------------------------------------------------------*/
@@ -149,55 +128,37 @@
 /**@brief       System timer event hook function
  */
 #if !defined(CFG_HOOK_PRE_SYSTMR_EVENT)
-# define CFG_HOOK_PRE_SYSTMR_EVENT      0u
+# define CFG_HOOK_PRE_SYSTMR_EVENT          0
 #endif
 
 /**@brief       Pre kernel initialization hook function
  */
-#if !defined(CONFIG_HOOK_SYS_EARLY_INIT)
-# define CONFIG_HOOK_SYS_EARLY_INIT         1u
-#endif
-
-/**@brief       Post kernel initialization hook function
- */
-#if !defined(CONFIG_HOOK_AT_SYS_LATE_INIT)
-# define CONFIG_HOOK_AT_SYS_LATE_INIT       1u
+#if !defined(CONFIG_HOOK_SYS_INIT)
+# define CONFIG_HOOK_SYS_INIT               0
 #endif
 
 /**@brief       Pre kernel start hook function
  */
-#if !defined(CONFIG_HOOK_AT_SYS_START)
-# define CONFIG_HOOK_AT_SYS_START           1u
+#if !defined(CONFIG_HOOK_SYS_START)
+# define CONFIG_HOOK_SYS_START              0
 #endif
 
 /**@brief       Post thread initialization hook function
  */
-#if !defined(CONFIG_HOOK_AT_THREAD_INIT)
-# define CONFIG_HOOK_AT_THREAD_INIT         1u
+#if !defined(CONFIG_HOOK_THREAD_INIT)
+# define CONFIG_HOOK_THREAD_INIT            0
 #endif
 
 /**@brief       Pre thread termination hook function
  */
 #if !defined(CONFIG_HOOK_AT_THREAD_TERM)
-# define CONFIG_HOOK_AT_THREAD_TERM         1u
-#endif
-
-/**@brief       Pre idle hook function
- */
-#if !defined(CFG_HOOK_PRE_IDLE)
-# define CFG_HOOK_PRE_IDLE              0u
-#endif
-
-/**@brief       Post idle hook function
- */
-#if !defined(CFG_HOOK_POST_IDLE)
-# define CFG_HOOK_POST_IDLE             0u
+# define CONFIG_HOOK_AT_THREAD_TERM         0
 #endif
 
 /**@brief       Pre context switch hook function
  */
-#if !defined(CONFIG_HOOK_AT_CONTEXT_SWITCH)
-# define CONFIG_HOOK_AT_CONTEXT_SWITCH      0
+#if !defined(CONFIG_HOOK_THREAD_SWITCH)
+# define CONFIG_HOOK_THREAD_SWITCH      0
 #endif
 
 /** @} *//*-------------------------------------------------------------------*/
@@ -238,23 +199,15 @@
 # error "Neon RT Kernel: Configuration option CONFIG_PRIORITY_BUCKETS is not valid. It must be a 2^n number."
 #endif
 
-#if ((1u != CFG_SCHED_POWER_SAVE) && (0u != CFG_SCHED_POWER_SAVE))
-# error "Neon RT Kernel: Configuration option CFG_SCHED_POWER_SAVE is out of range."
-#endif
-
 #if ((1u != CFG_SYSTMR_ADAPTIVE_MODE) && (0u != CFG_SYSTMR_ADAPTIVE_MODE))
 # error "Neon RT Kernel: Configuration option CFG_SYSTMR_ADAPTIVE_MODE is out of range."
-#endif
-
-#if ((0u == CFG_SCHED_POWER_SAVE) && (1u == CFG_SYSTMR_ADAPTIVE_MODE))
-# error "Neon RT Kernel: Configuration option CFG_SCHED_PRIO_LVL must be enabled when CFG_SYSTMR_ADAPTIVE_MODE is enabled, too."
 #endif
 
 #if ((1u != CFG_HOOK_PRE_SYSTMR_EVENT) && (0u != CFG_HOOK_PRE_SYSTMR_EVENT))
 # error "Neon RT Kernel: Configuration option CFG_HOOK_PRE_SYSTMR_EVENT is out of range."
 #endif
 
-#if ((1u != CONFIG_HOOK_SYS_EARLY_INIT) && (0u != CONFIG_HOOK_SYS_EARLY_INIT))
+#if ((1u != CONFIG_HOOK_SYS_INIT) && (0u != CONFIG_HOOK_SYS_INIT))
 # error "Neon RT Kernel: Configuration option CFG_HOOK_PRE_KERN_INIT is out of range."
 #endif
 
@@ -262,11 +215,11 @@
 # error "Neon RT Kernel: Configuration option CFG_HOOK_POST_KERN_INIT is out of range."
 #endif
 
-#if ((1u != CONFIG_HOOK_AT_SYS_START) && (0u != CONFIG_HOOK_AT_SYS_START))
+#if ((1u != CONFIG_HOOK_SYS_START) && (0u != CONFIG_HOOK_SYS_START))
 # error "Neon RT Kernel: Configuration option CFG_HOOK_PRE_KERN_START is out of range."
 #endif
 
-#if ((1u != CONFIG_HOOK_AT_THREAD_INIT) && (0u != CONFIG_HOOK_AT_THREAD_INIT))
+#if ((1u != CONFIG_HOOK_THREAD_INIT) && (0u != CONFIG_HOOK_THREAD_INIT))
 # error "Neon RT Kernel: Configuration option CFG_HOOK_POST_THD_INIT is out of range."
 #endif
 
@@ -274,20 +227,8 @@
 # error "Neon RT Kernel: Configuration option CFG_HOOK_PRE_THD_TERM is out of range."
 #endif
 
-#if ((1u != CONFIG_HOOK_AT_THREAD_TERM) && (0u != CONFIG_HOOK_AT_THREAD_TERM))
-# error "Neon RT Kernel: Configuration option CFG_HOOK_PRE_THD_TERM is out of range."
-#endif
-
-#if ((1u != CFG_HOOK_PRE_IDLE) && (0u != CFG_HOOK_PRE_IDLE))
-# error "Neon RT Kernel: Configuration option CFG_HOOK_PRE_IDLE is out of range."
-#endif
-
-#if ((1u != CONFIG_HOOK_AT_CONTEXT_SWITCH) && (0u != CONFIG_HOOK_AT_CONTEXT_SWITCH))
+#if ((1u != CONFIG_HOOK_THREAD_SWITCH) && (0u != CONFIG_HOOK_THREAD_SWITCH))
 # error "Neon RT Kernel: Configuration option CFG_HOOK_PRE_CTX_SW is out of range."
-#endif
-
-#if (0u > CFG_SYSTMR_TICK_TYPE) || (2u < CFG_SYSTMR_TICK_TYPE)
-# error "Neon RT Kernel: Configuration option CFG_SYSTMR_TICK_TYPE is out of range."
 #endif
 
 /** @endcond *//** @} *//******************************************************

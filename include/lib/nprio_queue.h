@@ -38,9 +38,10 @@
 
 #include "plat/compiler.h"
 #include "arch/cpu.h"
-#include "kernel/nub_config.h"
 #include "lib/nbitop.h"
 #include "lib/nbias_list.h"
+
+#include "nkernel_config.h"
 
 /*===============================================================  MACRO's  ==*/
 
@@ -117,10 +118,10 @@ static PORT_C_INLINE void nbitmap_set(
     index = priority &
         ((uint_fast8_t)~0u >> (sizeof(priority) * 8u - NLOG2_8(NCPU_DATA_WIDTH)));
     group = priority >> NLOG2_8(NCPU_DATA_WIDTH);
-    bitmap->group      |= NCPU_EXP2(group);
-    bitmap->bit[group] |= NCPU_EXP2(index);
+    bitmap->group      |= ncpu_exp2(group);
+    bitmap->bit[group] |= ncpu_exp2(index);
 #else   /*  (CONFIG_PRIORITY_BUCKETS > NCPU_DATA_WIDTH) */
-    bitmap->bit[0] |= NCPU_EXP2(priority);
+    bitmap->bit[0] |= ncpu_exp2(priority);
 #endif  /* !(CONFIG_PRIORITY_BUCKETS > NCPU_DATA_WIDTH) */
 }
 
@@ -137,13 +138,13 @@ static PORT_C_INLINE void nbitmap_clear(
     index = priority &
         ((uint_fast8_t)~0u >> (sizeof(priority) * 8u - NLOG2_8(NCPU_DATA_WIDTH)));
     group = priority >> NLOG2_8(NCPU_DATA_WIDTH);
-    bitmap->bit[group] &= ~NCPU_EXP2(index);
+    bitmap->bit[group] &= ~ncpu_exp2(index);
 
     if (bitmap->bit[group] == 0u) {                                             /* If this is the last bit cleared in */
-        bitmap->group &= ~NCPU_EXP2(group);                                     /* this array_entry then clear bit    */
+        bitmap->group &= ~ncpu_exp2(group);                                     /* this array_entry then clear bit    */
     }                                                                           /* group indicator, too.              */
 #else   /*  (CONFIG_PRIORITY_BUCKETS > NCPU_DATA_WIDTH) */
-    bitmap->bit[0] &= ~NCPU_EXP2(priority);
+    bitmap->bit[0] &= ~ncpu_exp2(priority);
 #endif  /* !(CONFIG_PRIORITY_BUCKETS > NCPU_DATA_WIDTH) */
 }
 
@@ -156,14 +157,14 @@ static PORT_C_INLINE uint_fast8_t nbitmap_get_highest(
     uint_fast8_t                group;
     uint_fast8_t                index;
 
-    group = NCPU_LOG2(bitmap->group);
-    index = NCPU_LOG2(bitmap->bit[group]);
+    group = ncpu_log2(bitmap->group);
+    index = ncpu_log2(bitmap->bit[group]);
 
     return ((group << NLOG2_8(NCPU_DATA_WIDTH)) | index);
 #else   /*  (CONFIG_PRIORITY_BUCKETS > NCPU_DATA_WIDTH) */
     uint_fast8_t                index;
 
-    index = NCPU_LOG2(bitmap->bit[0]);
+    index = ncpu_log2(bitmap->bit[0]);
 
     return (index);
 #endif  /* !(CONFIG_PRIORITY_BUCKETS > NCPU_DATA_WIDTH) */

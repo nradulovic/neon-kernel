@@ -38,7 +38,7 @@
 #include <stdint.h>
 
 #include "plat/compiler.h"
-#include "kernel/nub_config.h"
+#include "nkernel_config.h"
 
 /*===============================================================  MACRO's  ==*/
 
@@ -56,10 +56,9 @@
  *              Module author : string
  * @api
  */
-#define NMODULE_INFO_CREATE(name, description, author)                          \
-    PORT_C_ROM struct PORT_C_UNUSED nmodule_info global_module_info =           \
+#define NMODULE_INFO_CREATE(description, author)                                \
+    PORT_C_ROM struct PORT_C_UNUSED nmodule_info g_module_info =                \
     {                                                                           \
-        name,                                                                   \
         description,                                                            \
         author,                                                                 \
         PORT_C_FILE                                                             \
@@ -98,44 +97,13 @@
  *              TRUE.
  * @api
  */
-#if (1 == CONFIG_DEBUG)
+#if (CONFIG_DEBUG == 1)
 # define NASSERT(msg, expr)                                                     \
-    do {                                                                        \
-        if (!(expr)) {                                                          \
-            static const PORT_C_ROM struct nub_debug_object this_object =       \
-            {                                                                   \
-                PORT_C_FUNC,                                                    \
-                PORT_C_LINE                                                     \
-            };                                                                  \
-            ndebug_assert(&global_module_info, &this_object, #expr, msg);       \
-        }                                                                       \
-    } while (0u)
+    if (!(expr)) {                                                              \
+        nassert(&g_module_info, PORT_C_FUNC, PORT_C_LINE, #expr, msg);          \
+    }
 #else
 # define NASSERT(msg, expr)               (void)0
-#endif
-
-/**@brief       Generic assert macro (anonymous).
- * @param       msg
- *              Message : enum esDebugMessageNo : enumerated debug message.
- * @param       expr
- *              Expression : C expression : condition expression which must be
- *              TRUE.
- * @api
- */
-#if (1 == CONFIG_DEBUG)
-# define NASSERT_NONAME(msg, expr)                                              \
-    do {                                                                        \
-        if (!(expr)) {                                                          \
-            static const PORT_C_ROM struct nub_debug_object this_object =       \
-            {                                                                   \
-                PORT_C_FUNC,                                                    \
-                PORT_C_LINE                                                     \
-            };                                                                  \
-            ndebug_assert(&global_module_info, &this_object, #expr, msg);       \
-        }                                                                       \
-    } while (0u)
-#else
-# define NASSERT_NONAME(msg, expr)          (void)0
 #endif
 
 /**@brief       Assert macro that will always execute (no conditional).
@@ -146,16 +114,9 @@
  *              macro is executed.
  * @api
  */
-#if (1 == CONFIG_DEBUG)
+#if (CONFIG_DEBUG == 1)
 # define NASSERT_ALWAYS(text)                                                   \
-    do {                                                                        \
-        static const PORT_C_ROM struct nub_debug_object this_object =           \
-        {                                                                       \
-            PORT_C_FUNC,                                                        \
-            PORT_C_LINE                                                         \
-        };                                                                      \
-        ndebug_assert(&global_module_info, &this_object, text, NULL);           \
-    } while (0u)
+    nassert(&g_module_info, PORT_C_FUNC, PORT_C_LINE, #text, NULL);
 #else
 # define NASSERT_ALWAYS(text)               (void)0
 #endif
@@ -174,7 +135,7 @@
  *              satisfied
  * @api
  */
-#if (1 == CONFIG_DEBUG_INTERNAL)
+#if (CONFIG_DEBUG_INTERNAL == 1)
 # define NASSERT_INTERNAL(msg, expr)        NASSERT(msg, expr)
 #else
 # define NASSERT_INTERNAL(msg, expr)        (void)0
@@ -192,7 +153,7 @@
  *              contracts need to be validated.
  * @api
  */
-#if (1 == CONFIG_DEBUG_API)
+#if (CONFIG_DEBUG_API == 1)
 # define NOBLIGATION(expr)                  expr
 #else
 # define NOBLIGATION(expr)                  (void)0
@@ -220,18 +181,25 @@
  */
 #if    (CONFIG_DEBUG == 1)
 # define NENSURE(expr)                                                          \
-    do {                                                                        \
-        if ((expr) != ES_ERROR_NONE) {                                          \
-            static const PORT_C_ROM struct nub_debug_object this_object =       \
-            {                                                                   \
-                PORT_C_FUNC,                                                    \
-                PORT_C_LINE                                                     \
-            };                                                                  \
-            ndebug_assert(&global_module_info, &this_object, #expr, NAPI_CALL); \
-        }                                                                       \
-    } while (0u)
+    if ((expr) != ES_ERROR_NONE) {                                              \
+        nassert(&g_module_info, PORT_C_FUNC, PORT_C_LINE, #expr, NAPI_CALL);    \
+    }
 #else
 # define NENSURE(expr)                      expr
+#endif
+
+/**@brief       Make sure the caller has fulfilled all contract preconditions
+ * @param       msg
+ *              Message : enum esDebugMessageNo : enumerated debug message.
+ * @param       expr
+ *              Expression : C expression : condition expression which must be
+ *              satisfied
+ * @api
+ */
+#if   (CONFIG_DEBUG_INTERNAL == 1) && (CONFIG_DEBUG_API == 1)
+# define NREQUIRE_INTERNAL(msg, expr)       NASSERT(msg, expr)
+#else
+# define NREQUIRE_INTERNAL(msg, expr)       (void)0
 #endif
 
 /**@brief       Make sure the callee has fulfilled all contract postconditions
@@ -240,18 +208,7 @@
  * @api
  */
 #if   (CONFIG_DEBUG_INTERNAL == 1) && (CONFIG_DEBUG_API == 1)
-# define NENSURE_INTERNAL(expr)                                                 \
-    do {                                                                        \
-        if ((expr) != ES_ERROR_NONE) {                                          \
-            static const PORT_C_ROM struct nub_debug_object this_object =       \
-            {                                                                   \
-                &global_module_info,                                            \
-                PORT_C_FUNC,                                                    \
-                PORT_C_LINE                                                     \
-            };                                                                  \
-            ndebug_assert(&this_object, #expr, NAPI_CALL);                      \
-        }                                                                       \
-    } while (0u)
+# define NENSURE_INTERNAL(expr)             NENSURE(expr)
 #else
 # define NENSURE_INTERNAL(expr)             expr
 #endif
@@ -275,45 +232,12 @@ extern "C" {
  */
 struct nmodule_info
 {
-    const PORT_C_ROM char * const PORT_C_ROM_VAR name;                          /**<@brief Module name                */
     const PORT_C_ROM char * const PORT_C_ROM_VAR desc;                          /**<@brief Module description         */
     const PORT_C_ROM char * const PORT_C_ROM_VAR auth;                          /**<@brief Module author              */
     const PORT_C_ROM char * const PORT_C_ROM_VAR file;                          /**<@brief Module source file         */
 };
 
-/**@brief       Debug C object information structure
- * @notapi
- */
-struct nub_debug_object
-{
-    const PORT_C_ROM char * const PORT_C_ROM_VAR fn;                            /**<@brief Function name              */
-    uint16_t                    line;                                           /**<@brief Code line reference        */
-};
-
-/**@brief       Debug report structure
- * @details     This detailed debug report prepared by ndebug_assert() function.
- *              Use this structure to present the report to the user.
- * @api
- */
-struct ndebug_report
-{
-    const PORT_C_ROM char *     mod_name;                                       /**<@brief Module name                */
-    const PORT_C_ROM char *     mod_desc;                                       /**<@brief Module description         */
-    const PORT_C_ROM char *     mod_author;                                     /**<@brief Module author              */
-    const PORT_C_ROM char *     mod_file;                                       /**<@brief Module source file         */
-    const PORT_C_ROM char *     fn_name;                                        /**<@brief Function name              */
-    const PORT_C_ROM char *     expr;                                           /**<@brief C expression               */
-    const PORT_C_ROM char *     msg;                                            /**<@brief Additional text            */
-    uint16_t                    line;                                           /**<@brief Source code line           */
-};
-
 /*======================================================  GLOBAL VARIABLES  ==*/
-
-/**@brief       Noname module information structure
- * @api
- */
-extern PORT_C_UNUSED const PORT_C_ROM struct nmodule_info global_module_noname;
-
 /*===================================================  FUNCTION PROTOTYPES  ==*/
 
 /**@brief       An assertion has failed
@@ -333,9 +257,10 @@ extern PORT_C_UNUSED const PORT_C_ROM struct nmodule_info global_module_noname;
  *              function for presentation.
  * @notapi
  */
-PORT_C_NORETURN void ndebug_assert(
-    const PORT_C_ROM struct nmodule_info     * module_info,
-    const PORT_C_ROM struct nub_debug_object * debug_object,
+PORT_C_NORETURN void nassert(
+    const PORT_C_ROM struct nmodule_info * module_info,
+    const PORT_C_ROM char *     fn,
+    uint32_t                    line,
     const PORT_C_ROM char *     expr,
     const PORT_C_ROM char *     msg);
 
@@ -351,7 +276,11 @@ PORT_C_NORETURN void ndebug_assert(
  *              macros.
  */
 extern void hook_at_failed_assert(
-    const struct ndebug_report * debug_report);
+    const PORT_C_ROM struct nmodule_info * module_info,
+    const PORT_C_ROM char *     fn,
+    uint32_t                    line,
+    const PORT_C_ROM char *     expr,
+    const PORT_C_ROM char *     msg);
 
 /*--------------------------------------------------------  C++ extern end  --*/
 #ifdef __cplusplus

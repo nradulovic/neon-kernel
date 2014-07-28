@@ -32,6 +32,7 @@
 /*=========================================================  INCLUDE FILES  ==*/
 
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
 
 #include "plat/compiler.h"
@@ -40,7 +41,7 @@
 /*===============================================================  MACRO's  ==*/
 
 #define NDLIST_TO_BIAS_LIST(node)                                               \
-    container_of(node, struct nbias_list, list)
+    CONTAINER_OF(node, struct nbias_list, list)
 
 /*------------------------------------------------------  C++ extern begin  --*/
 #ifdef __cplusplus
