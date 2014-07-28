@@ -18,21 +18,21 @@
  *
  * web site:    http://github.com/nradulovic
  * e-mail  :    nenad.b.radulovic@gmail.com
- *//***************************************************************************************************************//**
+ *//***********************************************************************//**
  * @file
  * @author  	Nenad Radulovic
  * @brief       Interface of ARM Cortex compiler port.
  * @addtogroup  arm-none-eabi-gcc
- *************************************************************************************************************//** @{ */
+ *********************************************************************//** @{ */
 /**@defgroup    arm-none-eabi-gcc-compiler Compiler support
  * @brief       Compiler support
- * @{ *//*------------------------------------------------------------------------------------------------------------*/
+ * @{ *//*--------------------------------------------------------------------*/
 
 #ifndef NCOMPILER_H
 #define NCOMPILER_H
 
-/*=================================================================================================  INCLUDE FILES  ==*/
-/*=======================================================================================================  MACRO's  ==*/
+/*=========================================================  INCLUDE FILES  ==*/
+/*===============================================================  MACRO's  ==*/
 
 /**@brief       C extension - make a function inline
  */
@@ -45,6 +45,8 @@
 /**@brief       Omit function prologue/epilogue sequences
  */
 #define PORT_C_NAKED                        __attribute__((naked))
+
+#define PORT_C_UNUSED                       __attribute__((unused))
 
 /**@brief       Provides function name for assert macros
  */
@@ -64,17 +66,9 @@
  */
 #define PORT_C_LINE                         __LINE__
 
-/**@brief       Declare a weak function
- */
-#define PORT_C_WEAK                         __attribute__((weak))
-
 /**@brief       Declare a function that will never return
  */
 #define PORT_C_NORETURN                     __attribute__((noreturn))
-
-#define PORT_C_FN_PURE                      __attribute__((pure))
-
-#define PORT_C_UNUSED                       __attribute__((unused))
 
 /**@brief       Declare a variable that will be stored in ROM address space
  */
@@ -89,12 +83,6 @@
  */
 #define PORT_C_ALIGN(align)                 __attribute__((aligned (align)))
 
-#ifdef __GNUC__
-#define member_type(type, member)           __typeof__ (((type *)0)->member)
-#else
-#define member_type(type, member)           const void
-#endif
-
 /**@brief       Cast a member of a structure out to the containing structure
  * @param       ptr
  *              the pointer to the member.
@@ -103,29 +91,29 @@
  * @param       member
  *              the name of the member within the struct.
  */
-#define container_of(ptr, type, member)                                                                                 \
-    ((type *)((char *)(member_type(type, member) *){ ptr } - offsetof(type, member)))
+#define CONTAINER_OF(ptr, type, member)                                         \
+    ((type *)((char *)(ptr) - offsetof(type, member)))
 
-/*-----------------------------------------------------------------------------------------------  C++ extern base  --*/
+/*-------------------------------------------------------  C++ extern base  --*/
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/*====================================================================================================  DATA TYPES  ==*/
+/*============================================================  DATA TYPES  ==*/
 
 /**@brief General purpose registers are 32bit wide.
  */
 typedef unsigned int n_native;
 
-/*==============================================================================================  GLOBAL VARIABLES  ==*/
-/*===========================================================================================  FUNCTION PROTOTYPES  ==*/
-/*------------------------------------------------------------------------------------------------  C++ extern end  --*/
+/*======================================================  GLOBAL VARIABLES  ==*/
+/*===================================================  FUNCTION PROTOTYPES  ==*/
+/*--------------------------------------------------------  C++ extern end  --*/
 #ifdef __cplusplus
 }
 #endif
 
-/*========================================================================*//** @cond *//*==  CONFIGURATION ERRORS  ==*/
-/** @endcond *//** @} *//** @} *//*************************************************************************************
+/*================================*//** @cond *//*==  CONFIGURATION ERRORS  ==*/
+/** @endcond *//** @} *//** @} *//*********************************************
  * END of compiler.h
- **********************************************************************************************************************/
+ ******************************************************************************/
 #endif /* NCOMPILER_H */

@@ -18,64 +18,37 @@
  *
  * web site:    http://github.com/nradulovic
  * e-mail  :    nenad.b.radulovic@gmail.com
- *//***************************************************************************************************************//**
+ *//***********************************************************************//**
  * @file
  * @author  	Nenad Radulovic
  * @brief       Interrupt module header
  * @addtogroup  arm-none-eabi-gcc
- *************************************************************************************************************//** @{ */
+ *********************************************************************//** @{ */
 /**@defgroup    arm-none-eabi-gcc-v7-m-intr ARM Cortex M3/M4 Interrupt module
  * @brief       Interrupt module
- * @{ *//*------------------------------------------------------------------------------------------------------------*/
+ * @{ *//*--------------------------------------------------------------------*/
 
 #ifndef NINTR_H_
 #define NINTR_H_
 
-/*=================================================================================================  INCLUDE FILES  ==*/
+/*=========================================================  INCLUDE FILES  ==*/
 
 #include "plat/compiler.h"
 #include "family/profile.h"
 #include "cortex_m3.h"
 #include "arch/intr_config.h"
 
-/*=======================================================================================================  MACRO's  ==*/
+/*===============================================================  MACRO's  ==*/
 
-/*----------------------------------------------------------------------------------------------------------------*//**
+/*------------------------------------------------------------------------*//**
  * @name        Interrupt management
- * @{ *//*------------------------------------------------------------------------------------------------------------*/
+ * @{ *//*--------------------------------------------------------------------*/
 
-#define NINTR_ENABLE()                      nintr_enable()
-
-#define NINTR_DISABLE()                     nintr_disable()
-
-#define NINTR_SET_MASK(mask)                nintr_set_mask(mask)
-
-#define NINTR_GET_MASK(mask)                nintr_get_mask(mask)
-
-#define NINTR_REPLACE_MASK(newPrio)                                                                                     \
-    nintr_replace_mask(newPrio)
-
-#define NINTR_PRIO_TO_CODE(prio)                                                                                        \
+#define NINTR_PRIO_TO_CODE(prio)                                                \
     (((prio) << (8u - PORT_ISR_PRIO_BITS)) & 0xfful)
 
-#define NINTR_CODE_TO_PRIO(code)                                                                                        \
+#define NINTR_CODE_TO_PRIO(code)                                                \
     (((code) & 0xfful) >> (8u - PORT_ISR_PRIO_BITS))
-
-#define NINTR_SET_PRIORITY(intr_num, prio)  nintr_set_priority(intr_num, prio)
-
-#define NINTR_GET_PRIORITY(intr_num, prio)  nintr_get_priority(intr_num, prio)
-
-/**@} *//*--------------------------------------------------------------------------------------------------------*//**
- * @name        Generic port macros
- * @{ *//*------------------------------------------------------------------------------------------------------------*/
-
-#define NINTR_MODULE_INIT()                 nintr_module_init()
-
-#define NINTR_MODULE_TERM()                 nintr_module_term()
-
-#define NINTR_INIT()                        (void)0
-
-#define NINTR_INIT_LATE()                   (void)0                                 /**< @brief This port does not need this function call      */
 
 /**@} *//*----------------------------------------------  C++ extern base  --*/
 #ifdef __cplusplus
@@ -95,7 +68,7 @@ enum nintr_no
     USAGEFAULT_IRQN       = -10,                                                /**< @brief 6 Cortex-M3 Usage Fault Interrupt               */
     SVCALL_IRQN           = -5,                                                 /**< @brief 11 Cortex-M3 SV Call Interrupt                  */
     PENDSV_IRQN           = -2,                                                 /**< @brief 14 Cortex-M3 Pend SV Interrupt                  */
-    ES_SYSTEM_IRQN        = -1                                             /**< @brief 15 Cortex-M3 System Tick Interrupt              */
+    ES_SYSTEM_IRQN        = -1                                                  /**< @brief 15 Cortex-M3 System Tick Interrupt              */
 };
 
 /**@brief       Interrupt context type
@@ -104,12 +77,12 @@ enum nintr_no
  */
 typedef unsigned int nintr_ctx;
 
-/*==============================================================================================  GLOBAL VARIABLES  ==*/
-/*===========================================================================================  FUNCTION PROTOTYPES  ==*/
+/*======================================================  GLOBAL VARIABLES  ==*/
+/*===================================================  FUNCTION PROTOTYPES  ==*/
 
-/*----------------------------------------------------------------------------------------------------------------*//**
+/*------------------------------------------------------------------------*//**
  * @name        Interrupt management
- * @{ *//*------------------------------------------------------------------------------------------------------------*/
+ * @{ *//*--------------------------------------------------------------------*/
 
 /**@brief       Enable all interrupts
  * @inline
@@ -234,15 +207,15 @@ static PORT_C_INLINE_ALWAYS void nintr_set_priority(
  * @inline
  */
 static PORT_C_INLINE_ALWAYS void nintr_get_priority(
-    enum nintr_no                intr_no,
+    enum nintr_no               intr_no,
     uint32_t *                  priority) {
 
     *priority = PORT_SCB->SHP[((uint32_t)(intr_no) & 0x0ful) - 4u];
 }
 
-/** @} *//*-------------------------------------------------------------------------------------------------------*//**
+/** @} *//*---------------------------------------------------------------*//**
  * @name        Generic port functions
- * @{ *//*------------------------------------------------------------------------------------------------------------*/
+ * @{ *//*--------------------------------------------------------------------*/
 
 /**@brief       Initialize port
  * @details     Function will set up sub-priority bits to zero and handlers
@@ -261,8 +234,8 @@ void nintr_module_term(
 }
 #endif
 
-/*========================================================================*//** @cond *//*==  CONFIGURATION ERRORS  ==*/
-/** @endcond *//** @} *//** @} *//*************************************************************************************
+/*================================*//** @cond *//*==  CONFIGURATION ERRORS  ==*/
+/** @endcond *//** @} *//** @} *//*********************************************
  * END of intr.h
- **********************************************************************************************************************/
+ ******************************************************************************/
 #endif /* NINTR_H_ */

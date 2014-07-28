@@ -18,7 +18,7 @@
  *
  * web site:    http://github.com/nradulovic
  * e-mail  :    nenad.b.radulovic@gmail.com
- *//***************************************************************************************************************//**
+ *//***********************************************************************//**
  * @file
  * @author  	Nenad Radulovic
  * @brief       Interface of ARM Cortex critical code section port.
@@ -28,8 +28,8 @@
  * @brief       Critical code section
  * @{ *//*--------------------------------------------------------------------*/
 
-#ifndef ES_ARCH_CRITICAL_H_
-#define ES_ARCH_CRITICAL_H_
+#ifndef SYS_LOCK_H
+#define SYS_LOCK_H
 
 /*=========================================================  INCLUDE FILES  ==*/
 
@@ -49,22 +49,28 @@
  *              into the interrupt controller status/control register.
  * @{ *//*--------------------------------------------------------------------*/
 
+#define NSYS_LOCK_USES_RESOURCE             0
+
+#define NSYS_LOCK_DECL_RESOURCE(resource)
+
+#define NSYS_LOCK_INIT(resource)            (void)0
+
 /**@brief       Enter critical code section
  * @param       lockCtx
  *              Interrupt context, pointer to portable type variable which will
  *              hold the interrupt context state during the critical code
  *              section.
  */
-#define NCRITICAL_LOCK_ENTER(lockCtx)                                         \
-    *(lockCtx) = nintr_replace_mask(NINTR_PRIO_TO_CODE(CONFIG_INTR_MAX_PRIO))
+#define NSYS_LOCK_ENTER(context, resource)                              \
+    *(context) = nintr_replace_mask(NINTR_PRIO_TO_CODE(CONFIG_INTR_MAX_PRIO))
 
 /**@brief       Exit critical code section
  * @param       lockCtx
  *              Interrupt context, portable type variable which is holding a
  *              previously saved interrupt context state.
  */
-#define NCRITICAL_LOCK_EXIT(lockCtx)                                          \
-    nintr_set_mask(lockCtx)
+#define NSYS_LOCK_EXIT(context, resource)                               \
+    nintr_set_mask(*(context))
 
 /**@} *//*----------------------------------------------  C++ extern begin  --*/
 #ifdef __cplusplus
@@ -72,6 +78,9 @@ extern "C" {
 #endif
 
 /*============================================================  DATA TYPES  ==*/
+
+typedef nintr_ctx lock_ctx;
+
 /*======================================================  GLOBAL VARIABLES  ==*/
 /*===================================================  FUNCTION PROTOTYPES  ==*/
 /*--------------------------------------------------------  C++ extern end  --*/
@@ -81,6 +90,6 @@ extern "C" {
 
 /*================================*//** @cond *//*==  CONFIGURATION ERRORS  ==*/
 /** @endcond *//** @} *//******************************************************
- * END of critical.h
+ * END of sys_lock.h
  ******************************************************************************/
-#endif /* ES_ARCH_CRITICAL_H_ */
+#endif /* SYS_LOCK_H */

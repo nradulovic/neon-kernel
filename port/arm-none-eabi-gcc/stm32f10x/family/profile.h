@@ -53,16 +53,6 @@
  */
 #define ES_PROFILE_MAX_RAM_SIZE         8192u
 
-#if !defined(ES_OPTIMIZE_FOR_SPEED)
-#define ES_RAM_SIZE_MAX                 65535
-#define ES_RAM_SSIZE_MAX                32767
-#define ES_RAM_SSIZE_MIN                -32768
-#else
-#define ES_RAM_SIZE_MAX                 4294967295ul
-#define ES_RAM_SSIZE_MAX                2147483647l
-#define ES_RAM_SSIZE_MIN                -2147483648l
-#endif /* !ES_OPTIMIZE_FOR_SPEED */
-
 /**@brief       Port constant: interrupt priority bits implemented in MCU
  * @note        It is also recommended to ensure that all priority bits are
  *              assigned as being preemption priority bits, and none as sub
@@ -76,10 +66,6 @@ extern "C" {
 #endif
 
 /*============================================================  DATA TYPES  ==*/
-
-typedef unsigned int       esRamSize;
-typedef signed   int       esRamSSize;
-
 /*======================================================  GLOBAL VARIABLES  ==*/
 /*===================================================  FUNCTION PROTOTYPES  ==*/
 /*--------------------------------------------------------  C++ extern end  --*/

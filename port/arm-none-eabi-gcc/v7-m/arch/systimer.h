@@ -34,6 +34,7 @@
 
 #include "plat/compiler.h"
 #include "arch/systimer_config.h"
+#include "arch/cortex_m3.h"
 #include "family/profile.h"
 
 /*===============================================================  MACRO's  ==*/
@@ -52,35 +53,6 @@
 #define ES_SYSTIMER_MAX_TICKS                                                   \
     (ES_PROFILE_MAX_SYSTIMER_VAL / ES_SYSTIMER_ONE_TICK)
 
-/**@} *//*----------------------------------------------------------------*//**
- * @name        System timer management
- * @{ *//*--------------------------------------------------------------------*/
-
-#define ES_MODULE_SYSTIMER_INIT()       portModuleSysTimerInit()
-
-#define ES_MODULE_SYSTIMER_TERM()       portModuleSysTimerTerm()
-
-#define ES_SYSTIMER_INIT(val)           portSysTimerInit_(val)
-
-#define ES_SYSTIMER_TERM()              portSysTimerTerm_()
-
-#define ES_SYSTIMER_GET_RVAL()          portSysTimerGetRVal_()
-
-#define ES_SYSTIMER_GET_CVAL()          portSysTimerGetCVal_()
-
-#define ES_SYSTIMER_RELOAD(val)         portSysTimerReload_(val)
-
-#define ES_SYSTIMER_ENABLE()            portSysTimerEnable_()
-
-#define ES_SYSTIMER_DISABLE()           portSysTimerDisable_()
-
-#define ES_SYSTIMER_ISR_ENABLE()        portSysTimerIsrEnable_()
-
-#define ES_SYSTIMER_ISR_DISABLE()       portSysTimerIsrDisable_()
-
-#define ES_SYSTIMER_SET_HANDLER(handler, level)                                 \
-    portSysTimerSetHandler(handler, level)
-
 /** @} *//*---------------------------------------------  C++ extern base  --*/
 #ifdef __cplusplus
 extern "C" {
@@ -90,7 +62,7 @@ extern "C" {
 
 /**@brief       System timer hardware register type.
  */
-typedef unsigned int esSysTimerTick;
+typedef unsigned int nsys_timer_tick;
 
 /*======================================================  GLOBAL VARIABLES  ==*/
 /*===================================================  FUNCTION PROTOTYPES  ==*/
@@ -103,7 +75,7 @@ typedef unsigned int esSysTimerTick;
  * @inline
  */
 static PORT_C_INLINE_ALWAYS void portSysTimerInit_(
-    esSysTimerTick      val) {
+    nsys_timer_tick      val) {
 
     PORT_SYSTICK->CTRL &= ~PORT_SYSTICK_CTRL_ENABLE_Msk;                        /* Disable SysTick Timer                                    */
     PORT_SYSTICK->LOAD  = val - 1u;                                             /* Set SysTick reload register                              */
@@ -125,7 +97,7 @@ static PORT_C_INLINE_ALWAYS void portSysTimerTerm_(
 /**@brief       Get free counter value
  * @inline
  */
-static PORT_C_INLINE_ALWAYS esSysTimerTick portSysTimerGetCVal_(
+static PORT_C_INLINE_ALWAYS nsys_timer_tick portSysTimerGetCVal_(
     void) {
 
     return (PORT_SYSTICK->VAL);
@@ -134,7 +106,7 @@ static PORT_C_INLINE_ALWAYS esSysTimerTick portSysTimerGetCVal_(
 /**@brief       Get reload counter value
  * @inline
  */
-static PORT_C_INLINE_ALWAYS esSysTimerTick portSysTimerGetRVal_(
+static PORT_C_INLINE_ALWAYS nsys_timer_tick portSysTimerGetRVal_(
     void) {
 
     return (PORT_SYSTICK->LOAD);
@@ -144,7 +116,7 @@ static PORT_C_INLINE_ALWAYS esSysTimerTick portSysTimerGetRVal_(
  * @inline
  */
 static PORT_C_INLINE_ALWAYS void portSysTimerReload_(
-    esSysTimerTick      val) {
+    nsys_timer_tick      val) {
 
     --val;
     PORT_SYSTICK->CTRL &= ~PORT_SYSTICK_CTRL_ENABLE_Msk;
@@ -165,7 +137,7 @@ static PORT_C_INLINE_ALWAYS void portSysTimerEnable_(
 /**@brief       Disable the system timer
  * @inline
  */
-static PORT_C_INLINE_ALWAYS void portSysTimerDisable_(
+static PORT_C_INLINE_ALWAYS void ntimer_disable(
     void) {
 
     PORT_SYSTICK->CTRL &= ~PORT_SYSTICK_CTRL_ENABLE_Msk;
@@ -190,13 +162,13 @@ static PORT_C_INLINE_ALWAYS void portSysTimerIsrDisable_(
     PORT_SYSTICK->CTRL &= ~PORT_SYSTICK_CTRL_TICKINT_Msk;
 }
 
-void portModuleSysTimerInit(
+void ntimer_module_init(
     void);
 
-void portModuleSysTimerTerm(
+void ntimer_module_term(
     void);
 
-void portSysTimerSetHandler(
+void ntimer_set_handler(
     void             (* handler)(void),
     uint_fast8_t        level);
 

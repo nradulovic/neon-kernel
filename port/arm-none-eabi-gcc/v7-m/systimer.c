@@ -42,53 +42,56 @@
 /*=============================================  LOCAL FUNCTION PROTOTYPES  ==*/
 /*=======================================================  LOCAL VARIABLES  ==*/
 
-static const NMODULE_INFO_CREATE("systimer", "System Timer (port)", "Nenad Radulovic");
+static const NMODULE_INFO_CREATE("System Timer (port)", "Nenad Radulovic");
 
-static void (* GlobalSysTimerHandler[4])(void);
+static void (* g_timer_handler[4])(void);
 
 /*======================================================  GLOBAL VARIABLES  ==*/
 /*============================================  LOCAL FUNCTION DEFINITIONS  ==*/
 /*===================================  GLOBAL PRIVATE FUNCTION DEFINITIONS  ==*/
 /*====================================  GLOBAL PUBLIC FUNCTION DEFINITIONS  ==*/
 
-void portModuleSysTimerInit(
-    void) {
 
-    ES_SYSTIMER_DISABLE();
+void ntimer_module_init(
+    void)
+{
+    ntimer_disable();
     /*
      * TODO: Clear interrupt flag and interrupt enable bits
      * TODO: Set up ISR priority
      */
 }
 
-void portModuleSysTimerTerm(
-    void) {
 
-    ES_SYSTIMER_DISABLE();
+
+void ntimer_module_term(
+    void)
+{
+    ntimer_disable();
     /*
      * TODO: Clear interrupt flag and interrupt enable bits
      */
 }
 
-void portSysTimerSetHandler(
-    void             (* handler)(void),
-    uint_fast8_t        level) {
+void ntimer_set_handler(
+    void                     (* handler)(void),
+    uint_fast8_t                level)
+{
+    NREQUIRE(NAPI_RANGE, level < NARRAY_DIMENSION(g_timer_handler));
 
-    NREQUIRE(NAPI_RANGE, level < NARRAY_DIMENSION(GlobalSysTimerHandler));
-
-    GlobalSysTimerHandler[level] = handler;
+    g_timer_handler[level] = handler;
 }
 
 
 
 void portSysTimerHandler(
-    void) {
-
+    void)
+{
     uint_fast8_t        count;
 
-    for (count = 0; count < NARRAY_DIMENSION(GlobalSysTimerHandler); count++) {
-        if (GlobalSysTimerHandler[count] != NULL) {
-            GlobalSysTimerHandler[count]();
+    for (count = 0; count < NARRAY_DIMENSION(g_timer_handler); count++) {
+        if (g_timer_handler[count] != NULL) {
+            g_timer_handler[count]();
         }
     }
     /*
