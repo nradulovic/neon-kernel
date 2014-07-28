@@ -52,27 +52,12 @@ may impact the execution performance on low end 8-bit micro-controllers.
 ### Ports
 
 Ports are divided into three sections:
-* architecture
-* platform
-* family
-
-
-#### Port architecture
-
-This port responsibility is to manage CPU, interrupt controller, core power
-manageger and system timer.
-
-
-#### Port platform
-
-Port platform manages C language specifics (compiler abstraction) and provides 
-critical code section protection.
-
-
-#### Port family
-
-Several port families can have the same port architecture. Each port family 
-introduces diversity to port architecture. 
+* **Architecture**. This port responsibility is to manage CPU, interrupt 
+    controller, core power manager and system timer.
+* **Platform**. Port platform manages C language specifics (compiler 
+    abstraction) and provides critical code section protection.
+* **Family**. Several port families can have the same port architecture. Each 
+    port family introduces diversity to port architecture. 
 
 
 ### System
