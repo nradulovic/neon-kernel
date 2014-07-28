@@ -49,33 +49,16 @@
  *          interrupts to execute which can trigger another assert causing a
  *          very confusing situation of why it failed.
  */
-PORT_C_NORETURN void ndebug_assert(
-    const PORT_C_ROM struct nmodule_info *     module_info,
-    const PORT_C_ROM struct nub_debug_object * object,
-    const PORT_C_ROM char *                 expression,
-    const PORT_C_ROM char *                 message)
+PORT_C_NORETURN void nassert(
+    const PORT_C_ROM struct nmodule_info * module_info,
+    const PORT_C_ROM char *     fn,
+    uint32_t                    line,
+    const PORT_C_ROM char *     expr,
+    const PORT_C_ROM char *     msg)
 {
-    struct ndebug_report        report;
-
-    NINTR_DISABLE();
-
-    if (module_info != NULL) {
-        report.mod_name   = module_info->name;
-        report.mod_desc   = module_info->desc;
-        report.mod_author = module_info->auth;
-        report.mod_file   = module_info->file;
-    } else {
-        report.mod_name   = "Unnamed";
-        report.mod_desc   = "not specified";
-        report.mod_author = "not specified";
-        report.mod_file   = "not specified";
-    }
-    report.fn_name = object->fn;
-    report.expr    = expression;
-    report.msg     = message;
-    report.line    = object->line;
-    hook_at_failed_assert(&report);
-    NCPU_TERM();
+    nintr_disable();
+    hook_at_failed_assert(module_info, fn, line, expr, msg);
+    ncpu_module_term();
 
     while (true);
 }

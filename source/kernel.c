@@ -30,10 +30,16 @@
 
 /*=========================================================  INCLUDE FILES  ==*/
 
-#include "plat/critical.h"
+#include "nkernel_config.h"
+
+#include "plat/compiler.h"
+#include "plat/sys_lock.h"
+#include "arch/cpu.h"
+#include "arch/intr.h"
+#include "arch/systimer.h"
 #include "lib/ndebug.h"
-#include "kernel/nthread.h"
-#include "kernel/nsched.h"
+#include "lib/nprio_queue.h"
+#include "nkernel.h"
 
 /*=========================================================  LOCAL MACRO's  ==*/
 
@@ -43,97 +49,316 @@
  */
 #define THREAD_SIGNATURE                    ((n_native)0xfeedbeeful)
 
+#define NODE_TO_THREAD(node)                                                    \
+    CONTAINER_OF(node, struct nthread, queue_node)
+
+#if (CONFIG_SYS_PREEMPT_AWARE == 0)
+#define get_sys_context()                   (&g_sys)
+#else
+#define get_sys_context()                   ((struct sys_ctx *)callback_get_tls())
+#endif
+
 /*======================================================  LOCAL DATA TYPES  ==*/
+
+
+/**@brief       Scheduler context structure
+ * @details     This structure holds important status data for the scheduler.
+ */
+struct sched_ctx
+{
+    struct nthread *            current;                                        /**<@brief The current thread         */
+    struct nprio_queue          run_queue;                                      /**<@brief Run queue of threads       */
+};
+
+
+/**@brief       System context structure
+ * @details     This structure holds all local data for the whole system. If the
+ *              kernel is used in preemptable environment then this structure
+ *              will be allocated one per thread. If the underlying OS has fast
+ *              synchronization mechanism then all critical sections can be
+ *              protected by using the said mechanism.
+ */
+struct sys_ctx
+{
+#if (NSYS_LOCK_USES_RESOURCE == 1)
+    NSYS_LOCK_DECL_RESOURCE(lock_res);
+#endif
+    struct sched_ctx            sched;
+};
+
 /*=============================================  LOCAL FUNCTION PROTOTYPES  ==*/
+
+
+static PORT_C_INLINE void sched_init(
+    void);
+
+
+
+static PORT_C_INLINE struct nbias_list * sched_get_current(
+    void);
+
+
+
+static PORT_C_INLINE void sched_insert_i(
+    struct nbias_list *         thread_node);
+
+
+
+static PORT_C_INLINE void sched_remove_i(
+    struct nbias_list *         thread_node);
+
+
+
+static PORT_C_INLINE void sched_schedule(
+    void);
+
 /*=======================================================  LOCAL VARIABLES  ==*/
 
-static const NMODULE_INFO_CREATE("nthread", "Threads", "Nenad Radulovic");
+/**@brief       Provides the basic information about this module
+ */
+static const NMODULE_INFO_CREATE("Neon RT Kernel", "Nenad Radulovic");
+
+#if (CONFIG_SYS_PREEMPT_AWARE == 0)
+static struct sys_ctx          g_sys;
+#endif
 
 /*======================================================  GLOBAL VARIABLES  ==*/
 /*============================================  LOCAL FUNCTION DEFINITIONS  ==*/
+
+
+static PORT_C_INLINE void sched_init(
+    void)
+{
+    struct sched_ctx *          ctx = &get_sys_context()->sched;
+
+    ctx->current = NULL;
+    nprio_queue_init(&ctx->run_queue);                                          /* Initialize run_queue structure.    */
+}
+
+
+
+static PORT_C_INLINE struct nbias_list * sched_get_current(
+    void)
+{
+    struct sched_ctx *          ctx = &get_sys_context()->sched;
+
+    return (&ctx->current->queue_node);
+}
+
+
+
+static PORT_C_INLINE void sched_insert_i(
+    struct nbias_list *         thread_node)
+{
+    struct sched_ctx *          ctx = &get_sys_context()->sched;
+
+    nprio_queue_insert(&ctx->run_queue, thread_node);
+}
+
+
+
+static PORT_C_INLINE void sched_remove_i(
+    struct nbias_list *         thread_node)
+{
+    struct sched_ctx *          ctx = &get_sys_context()->sched;
+
+    nprio_queue_remove(&ctx->run_queue, thread_node);
+}
+
+
+
+static PORT_C_INLINE void sched_schedule(
+    void)
+{
+    struct sched_ctx *          ctx = &get_sys_context()->sched;
+    lock_ctx                    lock;
+
+    nsys_lock(&lock);
+
+    while (!nprio_queue_is_empty(&ctx->run_queue)) {
+        struct nbias_list *     new_node;
+        struct nthread *        new_thread;
+
+        new_node     = nprio_queue_peek(&ctx->run_queue);
+        nprio_queue_rotate(&ctx->run_queue, new_node);
+        new_thread   = NODE_TO_THREAD(new_node);
+#if (CONFIG_HOOK_THREAD_SWITCH == 1)
+        hook_on_thread_switch(ctx->current, new_thread);
+#endif
+        ctx->current = new_thread;
+        nsys_unlock(&lock);
+        new_thread->entry(new_thread->stack);
+        nsys_lock(&lock);
+    }
+    ctx->current = NULL;
+    nsys_unlock(&lock);
+}
+
 /*===================================  GLOBAL PRIVATE FUNCTION DEFINITIONS  ==*/
 /*====================================  GLOBAL PUBLIC FUNCTION DEFINITIONS  ==*/
+
+
+void nkernel_init(void)
+{
+    ncpu_module_init();
+    nintr_module_init();
+    ntimer_module_init();
+    NSYS_LOCK_INIT(&get_sys_context()->lock_res);
+    sched_init();
+
+#if (CONFIG_HOOK_SYS_INIT == 1)
+    hook_on_sys_init();
+#endif
+}
+
+
+
+void nkernel_term(void)
+{
+    ntimer_module_term();
+    nintr_module_term();
+    ncpu_module_term();
+}
+
+
+
+void nkernel_start(void)
+{
+#if (CONFIG_HOOK_SYS_START == 1)
+    hook_on_sys_start();
+#endif
+    sched_schedule();
+}
+
+
+
+size_t nkernel_get_context_size(void)
+{
+    return (sizeof(struct sys_ctx));
+}
+
+
+
+void nsys_lock(
+    lock_ctx *                  lock)
+{
+    NSYS_LOCK_ENTER(lock, &get_sys_context()->lock_res);
+}
+
+
+
+void nsys_unlock(
+    lock_ctx *                  lock)
+{
+    NSYS_LOCK_EXIT(lock, &get_sys_context()->lock_res);
+}
+
+
 
 void nthread_init(
     struct nthread *            thread,
     void                     (* entry)(void *),
-    void *                      arg,
-    struct nthread_stack *      stack,
-    size_t                      stack_size,
-    uint8_t                     priority)
+    void *                      stack,
+    uint_fast8_t                priority)
 {
-    nintr_ctx                   intr_ctx;
+    lock_ctx                    lock;
 
     NREQUIRE(NAPI_POINTER, thread != NULL);
     NREQUIRE(NAPI_OBJECT,  thread->signature != THREAD_SIGNATURE);
     NREQUIRE(NAPI_POINTER, entry  != NULL);
     NREQUIRE(NAPI_POINTER, stack  != NULL);
-    NREQUIRE(NAPI_RANGE,   stack_size >= NCPU_STACK_MINSIZE);
     NREQUIRE(NAPI_RANGE,   priority < CONFIG_PRIORITY_LEVELS);
     NOBLIGATION(thread->signature = THREAD_SIGNATURE);                          /* Validate thread structure          */
 
-    thread->stack           = NCPU_INIT_CTX(stack, stack_size, entry, arg);     /* Make a fake thread stack           */
+    thread->entry = entry;
+    thread->stack = stack;
     nbias_list_init(&thread->queue_node, priority);
-    thread->opriority       = priority;
-    thread->quantum_counter = CONFIG_SCHED_TIME_QUANTUM;
-    thread->quantum_reload  = CONFIG_SCHED_TIME_QUANTUM;
-    NCRITICAL_LOCK_ENTER(&intr_ctx);
-    nsched_insert_i(&thread->queue_node);                                       /* Add to Run Queue                   */
-    nsched_reschedule_i();                                                      /* Invoke the scheduler               */
-    NCRITICAL_LOCK_EXIT(intr_ctx);
+    nsys_lock(&lock);
+    sched_insert_i(&thread->queue_node);                                        /* Add to Run Queue                   */
+    nsys_unlock(&lock);
 
-#if   (CONFIG_HOOK_AT_THREAD_INIT == 1u)
-    hook_at_thread_init(thread);
+#if   (CONFIG_HOOK_THREAD_INIT == 1u)
+    hook_on_thread_init(thread);
 #endif
 }
 
 
 
-PORT_C_NORETURN void nthread_term(
+void nthread_term(
     void)
 {
-    nintr_ctx                   intr_ctx;
+    struct nthread *            thread = NODE_TO_THREAD(sched_get_current());
+    lock_ctx                    lock;
 
-#if   (CONFIG_HOOK_AT_THREAD_TERM)
-    hook_at_thread_term();
+    NREQUIRE_INTERNAL(NAPI_OBJECT, thread->signature == THREAD_SIGNATURE);
+    NOBLIGATION(                   thread->signature = ~THREAD_SIGNATURE);
+
+#if (CONFIG_HOOK_AT_THREAD_TERM == 1)
+    hook_on_thread_term(thread);
 #endif
-    NCRITICAL_LOCK_ENTER(&intr_ctx);
-    nsched_remove_current_i();
-    nsched_reschedule_i();
-    NCRITICAL_LOCK_EXIT(intr_ctx);
-
-    while (true);                                                               /* Should never come here             */
+    nsys_lock(&lock);
+    sched_remove_i(&thread->queue_node);
+    nsys_unlock(&lock);
 }
 
 
 
-uint8_t nthread_get_priority(
+void nthread_ready_i(
+    struct nthread *            thread)
+{
+    NREQUIRE(NAPI_OBJECT, thread->signature == THREAD_SIGNATURE);
+
+    thread->ref++;
+
+    if (thread->ref == 1u) {
+        sched_insert_i(&thread->queue_node);
+    }
+}
+
+
+
+void nthread_sleep_i(
     void)
 {
-    struct nbias_list *         current_node;
+    struct nthread *            thread = NODE_TO_THREAD(sched_get_current());
 
-    current_node = nsched_get_current();
+    NREQUIRE_INTERNAL(NAPI_OBJECT, thread->signature == THREAD_SIGNATURE);
 
-    return ((uint8_t)nbias_list_get_bias(current_node));
+    thread->ref--;
+
+    if (thread->ref == 0u) {
+        sched_remove_i(&thread->queue_node);
+    }
+}
+
+
+
+uint_fast8_t nthread_get_priority(
+    void)
+{
+    struct nthread *            thread = NODE_TO_THREAD(sched_get_current());
+
+    NREQUIRE_INTERNAL(NAPI_OBJECT, thread->signature == THREAD_SIGNATURE);
+
+    return ((uint_fast8_t)nbias_list_get_bias(&thread->queue_node));
 }
 
 
 
 void nthread_set_priority(
-    uint8_t                     priority)
+    uint_fast8_t                priority)
 {
-    struct nbias_list *         thread_node;
-    nintr_ctx                   intr_ctx;
+    struct nthread *            thread = NODE_TO_THREAD(sched_get_current());
+    lock_ctx                    lock;
 
-    NREQUIRE(NAPI_RANGE, priority < CONFIG_PRIORITY_LEVELS);
+    NREQUIRE(NAPI_RANGE,  priority < CONFIG_PRIORITY_LEVELS);
+    NREQUIRE_INTERNAL(NAPI_OBJECT, thread->signature == THREAD_SIGNATURE);
 
-    NCRITICAL_LOCK_ENTER(&intr_ctx);
-    thread_node = nsched_get_current();
-    nprio_queue_remove(&g_nsched.run_queue, thread_node);
-    nbias_list_set_bias(thread_node, priority);
-    nprio_queue_insert(&g_nsched.run_queue, thread_node);
-    nsched_reschedule_i();
-    NCRITICAL_LOCK_EXIT(intr_ctx);
+    nsys_lock(&lock);
+    sched_remove_i(&thread->queue_node);
+    nbias_list_set_bias(&thread->queue_node, priority);
+    sched_insert_i(&thread->queue_node);
+    nsys_unlock(&lock);
 }
 
 /*================================*//** @cond *//*==  CONFIGURATION ERRORS  ==*/
