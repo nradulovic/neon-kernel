@@ -30,10 +30,9 @@ systems.
     are added.
 
 
-# Using eSolid - Real-Time Kernel
+# Usage
 
 ## Configuration and ports
-
 Configuration is done in two files: `nkernel_config.h` (port independent 
 settings) and in `port_config.h` (port depended settings, located in port 
 directory structure).
@@ -42,6 +41,64 @@ Currently, kernel is officially ported only to ARMv7-M architecture range of
 micro-controllers. It was tested on STM32F100 series of micro-controllers, but it
 should work, with minimal modifications, on any ARMv7-M CPU. Some other ports 
 like AVR-GCC are planned, too.
+
+Configuration option `CONFIG_NUM_OF_NC_TASKS` is used to specify the maximum 
+amount of concurrent tasks in the system. Note that tasks can be deleted, too.
+So if the system is not executing all tasks at the same time then this number
+can be set to the maximum number of active tasks in order to save RAM memory.
+
+Configuration option `CONFIG_NUM_OF_PRIO_LEVELS` is used to specify the number 
+of task priority levels. It is preferred that this configuration option is held 
+below or equal to 8 on low end 8-bit micro-controllers. Higher number of levels 
+may impact the execution performance on low end 8-bit micro-controllers.
+
+## System
+To initialize the system user application must call `nkernel_init()` function.
+This function will prepare internal data structure for scheduler.
+
+## Thread
+A thread is a function with the following prototype: 
+
+        void function(void * stack)
+    
+Each thread must return after some defined time. When the thread returns it 
+leaves the CPU time for other threads to execute. Ideally, threads are organized 
+as finite state machines which by design are always returning.
+
+During the thread execution interrupts are allowed. 
+
+The argument to thread function is always the stack pointer which was given 
+during the thread creation process. This gives the ability to write parametrized 
+thread functions.
+
+### Creating
+A new thread is created using `nthread_create()` function. The function searches
+through free thread pool to obtain a thread data structure.
+
+1. First parameter is pointer to thread entry function.
+2. Second parameter is pointer to thread stack space. This parameter is optional 
+and it is needed when writing parametrized thread functions.
+3. Third parameter is thread priority. The higher the number the higher the 
+importance of the thread. The maximum priority level is defined by 
+`CONFIG_NUM_OF_PRIO_LEVELS` configuration option. More than one threads can have
+same priority.
+
+After the thread is created the thread is in `NSTATE_IDLE` state. To put the 
+thread in ready/running state use `nthread_ready()` function.
+
+### Running
+The threads are invoked by scheduler. To start the scheduler call the kernel 
+function `nkernel_start()`. The scheduler will evaluate all threads that are 
+ready and schedule them for execution. When there are no threads ready for 
+execution the scheduler function will return.
+
+Threads can be created and destroyed during the system execution.
+
+### Destroying
+A thread is destroyed by using `nthread_destroy()` function. If the thread is 
+ready for execution or is currently executing then it will be removed from ready 
+queue. When the thread is destroyed its data structure is returned to free 
+thread pool.
 
 
 ## Building
