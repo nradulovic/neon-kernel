@@ -1,7 +1,7 @@
 # Neon RT Kernel 
 
-Neon RT Kernel is real-time cooperative, single stack kernel for embedded 
-systems. 
+Neon RT Kernel is real-time cooperative, single stack kernel for very small, 
+memory constrained embedded systems. 
 
 
 ## Features
@@ -9,14 +9,20 @@ systems.
 
 ### System
 
-* Static design; no heap memory required. All data structures are allocated 
+* **Static design**. No heap memory required. All data structures are allocated 
     during the compile time.
-* Static configuration, no execution overhead.
-* Portable. The kernel can run on wide range of micro-controllers. It was tested
+* **Static configuration**. The configuration is done in C header files using macro
+    defines.
+* **Lightweight**. All kernel functions have very small code size and usage of
+    stack located and static variables is at minimum.
+* **Portable**. The kernel can run on wide range of micro-controllers. It was tested
     on 8-bit Microchip PIC up to 64-bit AMD CPU as Linux user thread.
-* Can be easily integrated into an existing system. The kernel does not require
-    custom linker scripts or start files. Assembly code is minimally used in
-    port system.
+* **Easy integration**. The kernel can be easily integrated into an existing 
+    project. The kernel does not require any custom linker scripts or start-up 
+    files. Assembly code is minimally used in port system. 
+* **Preemption aware**. The system can be coupled with an existing RTOS to 
+    provide preemptive execution if it is needed. Several instances of the 
+    scheduler can be started to provide several levels of preemption.
 
 
 ### Scheduler
@@ -26,7 +32,16 @@ systems.
     levels on 32-bit micro-controllers.
 * Round-robing, non-preemptive scheduling of threads with same priority.
 * O(1) constant time complexity, scheduling time does not increase if new 
-    threads are added to scheduler ready queue.
+    threads are added to scheduler's ready queue.
+* Hardware support for efficient schedulers algorithm execution.
+
+
+### Array queues
+
+
+
+### Time management
+
 
 
 ## Usage
