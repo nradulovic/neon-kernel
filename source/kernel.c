@@ -52,12 +52,6 @@
 #define NODE_TO_THREAD(node)                                                    \
     CONTAINER_OF(node, struct nthread, queue_node)
 
-#if (CONFIG_SYS_PREEMPT_AWARE == 0)
-#define get_sys_context()                   (&g_sys)
-#else
-#define get_sys_context()                   ((struct sys_ctx *)callback_get_tls())
-#endif
-
 /*======================================================  LOCAL DATA TYPES  ==*/
 
 
@@ -89,6 +83,16 @@ struct sys_ctx
 /*=============================================  LOCAL FUNCTION PROTOTYPES  ==*/
 
 
+static PORT_C_INLINE struct sys_ctx * sys_context_get(
+    const struct nthread *      thread);
+    
+    
+    
+static PORT_C_INLINE void sys_context_init(
+    struct nthread *            thread);
+    
+    
+    
 static PORT_C_INLINE void sched_init(
     void);
 
@@ -118,18 +122,46 @@ static PORT_C_INLINE void sched_schedule(
  */
 static const NMODULE_INFO_CREATE("Neon RT Kernel", "Nenad Radulovic");
 
-#if (CONFIG_SYS_PREEMPT_AWARE == 0)
-static struct sys_ctx          g_sys;
-#endif
-
 /*======================================================  GLOBAL VARIABLES  ==*/
 /*============================================  LOCAL FUNCTION DEFINITIONS  ==*/
+
+
+static PORT_C_INLINE struct sys_ctx * sys_context_get(
+    const struct nthread *      thread)
+{
+#if (CONFIG_SYS_PREEMPT_AWARE == 0)
+    static struct sys_ctx       sys_context;
+
+    (void)thread;
+        
+    return (&sys_context);
+#else
+    if (thread != NULL) {
+        return (thread->sys_context);
+    } else {
+        return (callback_get_tls());
+    }
+#endif
+}
+
+
+
+static PORT_C_INLINE void sys_context_init(
+    struct nthread *            thread)
+{
+#if (CONFIG_SYS_PREEMPT_AWARE == 0)
+    (void)thread;
+#else
+    thread->sys_context = callback_get_tls();
+#endif
+}
+
 
 
 static PORT_C_INLINE void sched_init(
     void)
 {
-    struct sched_ctx *          ctx = &get_sys_context()->sched;
+    struct sched_ctx *          ctx = &sys_context_get(NULL)->sched;
 
     ctx->current = NULL;
     nprio_queue_init(&ctx->run_queue);                                          /* Initialize run_queue structure.    */
@@ -140,7 +172,7 @@ static PORT_C_INLINE void sched_init(
 static PORT_C_INLINE struct nbias_list * sched_get_current(
     void)
 {
-    struct sched_ctx *          ctx = &get_sys_context()->sched;
+    struct sched_ctx *          ctx = &sys_context_get(NULL)->sched;
 
     return (&ctx->current->queue_node);
 }
@@ -150,8 +182,8 @@ static PORT_C_INLINE struct nbias_list * sched_get_current(
 static PORT_C_INLINE void sched_insert_i(
     struct nbias_list *         thread_node)
 {
-    struct sched_ctx *          ctx = &get_sys_context()->sched;
-
+    struct sched_ctx *          ctx = 
+        &sys_context_get(NODE_TO_THREAD(thread_node))->sched;
     nprio_queue_insert(&ctx->run_queue, thread_node);
 }
 
@@ -160,8 +192,8 @@ static PORT_C_INLINE void sched_insert_i(
 static PORT_C_INLINE void sched_remove_i(
     struct nbias_list *         thread_node)
 {
-    struct sched_ctx *          ctx = &get_sys_context()->sched;
-
+    struct sched_ctx *          ctx = 
+        &sys_context_get(NODE_TO_THREAD(thread_node))->sched;
     nprio_queue_remove(&ctx->run_queue, thread_node);
 }
 
@@ -170,7 +202,7 @@ static PORT_C_INLINE void sched_remove_i(
 static PORT_C_INLINE void sched_schedule(
     void)
 {
-    struct sched_ctx *          ctx = &get_sys_context()->sched;
+    struct sched_ctx *          ctx = &sys_context_get(NULL)->sched;
     lock_ctx                    lock;
 
     nsys_lock(&lock);
@@ -203,7 +235,7 @@ void nkernel_init(void)
     ncpu_module_init();
     nintr_module_init();
     ntimer_module_init();
-    NSYS_LOCK_INIT(&get_sys_context()->lock_res);
+    NSYS_LOCK_INIT(&sys_context_get(NULL)->lock_res);
     sched_init();
 
 #if (CONFIG_HOOK_SYS_INIT == 1)
@@ -242,7 +274,7 @@ size_t nkernel_get_context_size(void)
 void nsys_lock(
     lock_ctx *                  lock)
 {
-    NSYS_LOCK_ENTER(lock, &get_sys_context()->lock_res);
+    NSYS_LOCK_ENTER(lock, &sys_context_get(NULL)->lock_res);
 }
 
 
@@ -250,7 +282,7 @@ void nsys_lock(
 void nsys_unlock(
     lock_ctx *                  lock)
 {
-    NSYS_LOCK_EXIT(lock, &get_sys_context()->lock_res);
+    NSYS_LOCK_EXIT(lock, &sys_context_get(NULL)->lock_res);
 }
 
 
@@ -273,6 +305,11 @@ void nthread_init(
     thread->entry = entry;
     thread->stack = stack;
     nbias_list_init(&thread->queue_node, priority);
+    sys_context_init(thread);
+#if   (CONFIG_REGISTRY          == 1)
+    thread->name  = NULL;
+    ndlist_init(thread->registry_node);
+#endif
     nsys_lock(&lock);
     sched_insert_i(&thread->queue_node);                                        /* Add to Run Queue                   */
     nsys_unlock(&lock);

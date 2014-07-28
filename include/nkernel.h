@@ -103,11 +103,14 @@ struct nthread
     void                     (* entry)(void *);
     void *                      stack;                                          /**<@brief Pointer to top of stack    */
     uint_fast16_t               ref;
-#if   (CONFIG_REGISTRY  == 1u) || defined(__DOXYGEN__)
+#if   (CONFIG_SYS_PREEMPT_AWARE == 1) || defined(__DOXYGEN__)
+    void *                      sys_context;
+#endif
+#if   (CONFIG_REGISTRY          == 1) || defined(__DOXYGEN__)
     const char *                name;
     struct ndlist               registry_node;
 #endif
-#if   (CONFIG_DEBUG_API == 1u) || defined(__DOXYGEN__)
+#if   (CONFIG_DEBUG_API         == 1) || defined(__DOXYGEN__)
     n_native                    signature;                                      /**<@brief Debug signature            */
 #endif
 };
