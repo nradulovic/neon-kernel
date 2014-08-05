@@ -204,6 +204,9 @@ void nthread_term(
 
 
 
+struct nthread * nthread_get_current(
+    void);
+    
 
 
 void nthread_ready_i(

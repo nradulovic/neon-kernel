@@ -159,10 +159,8 @@ static PORT_C_INLINE void sys_context_init(
 
 
 static PORT_C_INLINE void sched_init(
-    void)
+    struct sched_ctx *          ctx)
 {
-    struct sched_ctx *          ctx = &sys_context_get(NULL)->sched;
-
     ctx->current = NULL;
     nprio_queue_init(&ctx->run_queue);                                          /* Initialize run_queue structure.    */
 }
@@ -170,39 +168,34 @@ static PORT_C_INLINE void sched_init(
 
 
 static PORT_C_INLINE struct nbias_list * sched_get_current(
-    void)
+    struct sched_ctx *          ctx)
 {
-    struct sched_ctx *          ctx = &sys_context_get(NULL)->sched;
-
     return (&ctx->current->queue_node);
 }
 
 
 
 static PORT_C_INLINE void sched_insert_i(
+    struct sched_ctx *          ctx,
     struct nbias_list *         thread_node)
 {
-    struct sched_ctx *          ctx = 
-        &sys_context_get(NODE_TO_THREAD(thread_node))->sched;
     nprio_queue_insert(&ctx->run_queue, thread_node);
 }
 
 
 
 static PORT_C_INLINE void sched_remove_i(
+    struct sched_ctx *          ctx,
     struct nbias_list *         thread_node)
 {
-    struct sched_ctx *          ctx = 
-        &sys_context_get(NODE_TO_THREAD(thread_node))->sched;
     nprio_queue_remove(&ctx->run_queue, thread_node);
 }
 
 
 
 static PORT_C_INLINE void sched_schedule(
-    void)
+    struct sched_ctx *          ctx)
 {
-    struct sched_ctx *          ctx = &sys_context_get(NULL)->sched;
     lock_ctx                    lock;
 
     nsys_lock(&lock);
@@ -212,15 +205,15 @@ static PORT_C_INLINE void sched_schedule(
         struct nthread *        new_thread;
 
         new_node     = nprio_queue_peek(&ctx->run_queue);
-        nprio_queue_rotate(&ctx->run_queue, new_node);
         new_thread   = NODE_TO_THREAD(new_node);
 #if (CONFIG_HOOK_THREAD_SWITCH == 1)
         hook_on_thread_switch(ctx->current, new_thread);
 #endif
         ctx->current = new_thread;
         nsys_unlock(&lock);
-        new_thread->entry(new_thread->stack);
+        ctx->current->entry(ctx->current->stack);
         nsys_lock(&lock);
+        nprio_queue_rotate(&ctx->run_queue, new_node);
     }
     ctx->current = NULL;
     nsys_unlock(&lock);
@@ -324,18 +317,26 @@ void nthread_init(
 void nthread_term(
     void)
 {
-    struct nthread *            thread = NODE_TO_THREAD(sched_get_current());
+    struct nthread *            thread;
     lock_ctx                    lock;
 
-    NREQUIRE_INTERNAL(NAPI_OBJECT, thread->signature == THREAD_SIGNATURE);
-    NOBLIGATION(                   thread->signature = ~THREAD_SIGNATURE);
-
+    thread = nthread_get_current();
 #if (CONFIG_HOOK_AT_THREAD_TERM == 1)
     hook_on_thread_term(thread);
 #endif
     nsys_lock(&lock);
-    sched_remove_i(&thread->queue_node);
+    nthread_block_i(thread);
     nsys_unlock(&lock);
+    NOBLIGATION(thread->signature = ~THREAD_SIGNATURE);
+}
+
+
+
+struct nthread * nthread_get_current(void)
+{
+    struct sched_ctx *          ctx = &sys_context_get(NULL)->sched;
+    
+    return (NODE_TO_THREAD(sched_get_current(ctx)));
 }
 
 
@@ -348,7 +349,26 @@ void nthread_ready_i(
     thread->ref++;
 
     if (thread->ref == 1u) {
-        sched_insert_i(&thread->queue_node);
+        struct sched_ctx *      ctx = &sys_context_get(thread)->sched;
+        
+        sched_insert_i(ctx, &thread->queue_node);
+    }
+}
+
+
+
+void nthread_block_i(
+    struct nthread *            thread)
+{
+    NREQUIRE(NAPI_POINTER, thread != NULL);
+    NREQUIRE(NAPI_OBJECT,  thread->signature == THREAD_SIGNATURE);
+
+    thread->ref--;
+
+    if (thread->ref == 0u) {
+        struct sched_ctx *      ctx = &sys_context_get(thread)->sched;
+        
+        sched_remove_i(ctx, &thread->queue_node);
     }
 }
 
@@ -357,15 +377,7 @@ void nthread_ready_i(
 void nthread_sleep_i(
     void)
 {
-    struct nthread *            thread = NODE_TO_THREAD(sched_get_current());
-
-    NREQUIRE_INTERNAL(NAPI_OBJECT, thread->signature == THREAD_SIGNATURE);
-
-    thread->ref--;
-
-    if (thread->ref == 0u) {
-        sched_remove_i(&thread->queue_node);
-    }
+    nthread_block_i(nthread_get_current());
 }
 
 
@@ -373,8 +385,10 @@ void nthread_sleep_i(
 uint_fast8_t nthread_get_priority(
     void)
 {
-    struct nthread *            thread = NODE_TO_THREAD(sched_get_current());
+    struct nthread *            thread;
 
+    thread = nthread_get_current();
+    
     NREQUIRE_INTERNAL(NAPI_OBJECT, thread->signature == THREAD_SIGNATURE);
 
     return ((uint_fast8_t)nbias_list_get_bias(&thread->queue_node));
@@ -385,16 +399,20 @@ uint_fast8_t nthread_get_priority(
 void nthread_set_priority(
     uint_fast8_t                priority)
 {
-    struct nthread *            thread = NODE_TO_THREAD(sched_get_current());
+    struct nthread *            thread;
+    struct sched_ctx *          ctx;
     lock_ctx                    lock;
 
+    thread = nthread_get_current();
+    ctx    = &sys_context_get(thread)->sched;
+    
     NREQUIRE(NAPI_RANGE,  priority < CONFIG_PRIORITY_LEVELS);
     NREQUIRE_INTERNAL(NAPI_OBJECT, thread->signature == THREAD_SIGNATURE);
 
     nsys_lock(&lock);
-    sched_remove_i(&thread->queue_node);
+    sched_remove_i(ctx, &thread->queue_node);
     nbias_list_set_bias(&thread->queue_node, priority);
-    sched_insert_i(&thread->queue_node);
+    sched_insert_i(ctx, &thread->queue_node);
     nsys_unlock(&lock);
 }
 
