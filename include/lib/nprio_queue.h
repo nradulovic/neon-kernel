@@ -35,6 +35,7 @@
 /*=========================================================  INCLUDE FILES  ==*/
 
 #include <stdbool.h>
+#include <stddef.h>
 
 #include "plat/compiler.h"
 #include "arch/cpu.h"
@@ -72,9 +73,9 @@ struct nprio_queue
     struct nprio_bitmap
     {
 #if   (CONFIG_PRIORITY_BUCKETS > NCPU_DATA_WIDTH) || defined(__DOXYGEN__)
-        n_native                     group;                                     /**<@brief Bit group indicator        */
+        n_native                    group;                                      /**<@brief Bit group indicator        */
 #endif  /* (CONFIG_PRIORITY_BUCKETS > NCPU_DATA_WIDTH) */
-        n_native                     bit[NDIVISION_ROUNDUP(
+        n_native                    bit[NDIVISION_ROUNDUP(
                                          CONFIG_PRIORITY_BUCKETS,
                                          NCPU_DATA_WIDTH)];                     /**<@brief Bucket indicator           */
     }                           bitmap;                                         /**<@brief Priority bitmap            */
@@ -94,14 +95,14 @@ static PORT_C_INLINE void nbitmap_init(
 #if   (CONFIG_PRIORITY_BUCKETS > NCPU_DATA_WIDTH)
     uint_fast8_t                group;
 
-    bitmap->group = 0u;
+    bitmap->group      = 0u;
     group = NARRAY_DIMENSION(bitmap->bit);
 
     while (group-- != 0u) {
         bitmap->bit[group] = 0u;
     }
 #else   /*  (CONFIG_PRIORITY_BUCKETS > NCPU_DATA_WIDTH) */
-    bitmap->bit[0] = 0u;
+    bitmap->bit[0]     = 0u;
 #endif  /* !(CONFIG_PRIORITY_BUCKETS > NCPU_DATA_WIDTH) */
 }
 
@@ -189,6 +190,7 @@ static PORT_C_INLINE bool nbitmap_is_empty(
     }
 #endif  /* !(CONFIG_PRIORITY_BUCKETS > NCPU_DATA_WIDTH) */
 }
+
 
 #endif  /* (CONFIG_PRIORITY_BUCKETS != 1) */
 
@@ -303,7 +305,14 @@ static PORT_C_INLINE bool nprio_queue_is_empty(
     const struct nprio_queue *  queue)
 {
 #if (CONFIG_PRIORITY_BUCKETS != 1)
-    return (nbitmap_is_empty(&queue->bitmap));
+    bool                        retval;
+
+    retval = nbitmap_is_empty(&queue->bitmap);
+
+#if (CONFIG_PRIORITY_BUCKETS != CONFIG_PRIORITY_LEVELS)
+#endif
+
+    return (retval);
 #else
     if (queue->sentinel[0] == NULL) {
         return (true);

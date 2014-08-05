@@ -103,7 +103,7 @@ struct nthread
     void                     (* entry)(void *);
     void *                      stack;                                          /**<@brief Pointer to top of stack    */
     uint_fast16_t               ref;
-#if   (CONFIG_SYS_PREEMPT_AWARE == 1) || defined(__DOXYGEN__)
+#if   (CONFIG_MULTITHREAD == 1) || defined(__DOXYGEN__)
     void *                      sys_context;
 #endif
 #if   (CONFIG_REGISTRY          == 1) || defined(__DOXYGEN__)
@@ -129,13 +129,15 @@ void nkernel_term(void);
 
 void nkernel_start(void);
 
+void nkernel_reschedule_i(nlock_ctx * lock);
+
 size_t nkernel_get_context_size(void);
 
 void nsys_lock(
-    lock_ctx *                  lock);
+    nlock_ctx *                 lock);
 
 void nsys_unlock(
-    lock_ctx *                  lock);
+    nlock_ctx *                 lock);
 
 /**@brief       Initialize the specified thread
  * @param       thread
@@ -204,8 +206,6 @@ void nthread_term(
 
 
 
-
-
 void nthread_ready_i(
     struct nthread *            thread);
 
@@ -247,7 +247,7 @@ void nthread_set_priority(
 
 
 
-#if (CONFIG_SYS_PREEMPT_AWARE == 1)
+#if (CONFIG_MULTITHREAD == 1)
 extern void * callback_get_tls(void);
 #endif
 

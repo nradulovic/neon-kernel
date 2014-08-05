@@ -79,7 +79,7 @@ extern "C" {
 
 /*============================================================  DATA TYPES  ==*/
 
-typedef nintr_ctx lock_ctx;
+typedef nintr_ctx nlock_ctx;
 
 /*======================================================  GLOBAL VARIABLES  ==*/
 /*===================================================  FUNCTION PROTOTYPES  ==*/

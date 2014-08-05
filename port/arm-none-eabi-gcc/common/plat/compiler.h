@@ -42,6 +42,10 @@
  */
 #define PORT_C_INLINE_ALWAYS                __inline__ __attribute__((__always_inline__))
 
+/**@brief       Instruct compiler to not inline the function
+ */
+#define PORT_C_NOINLINE                     __attribute__ ((noinline))
+
 /**@brief       Omit function prologue/epilogue sequences
  */
 #define PORT_C_NAKED                        __attribute__((naked))

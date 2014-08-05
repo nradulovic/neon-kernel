@@ -87,11 +87,15 @@
 #endif
 
 #if !defined(CONFIG_PRIORITY_BUCKETS)
-# define CONFIG_PRIORITY_BUCKETS            32u
+# define CONFIG_PRIORITY_BUCKETS            32
 #endif
 
-#if !defined(CONFIG_SYS_PREEMPT_AWARE)
-#define CONFIG_SYS_PREEMPT_AWARE            0u
+#if !defined(CONFIG_PREEMPT)
+#define CONFIG_PREEMPT                      1
+#endif
+
+#if !defined(CONFIG_MULTITHREAD)
+#define CONFIG_MULTITHREAD            0u
 #endif
 
 /**@brief       Enable/disable registry

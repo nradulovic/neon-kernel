@@ -37,6 +37,7 @@
 #include <stdbool.h>
 
 #include "plat/compiler.h"
+#include "arch/intr.h"
 #include "lib/natomic.h"
 
 /*===============================================================  MACRO's  ==*/
@@ -132,6 +133,13 @@ static PORT_C_INLINE uint32_t ncpu_atomic_add(
 
     return (result);
 }
+
+/**@} *//*----------------------------------------------------------------*//**
+ * @name        Context switching
+ * @{ *//*--------------------------------------------------------------------*/
+
+PORT_C_NAKED void ncpu_switch(
+    void);
 
 /**@} *//*----------------------------------------------------------------*//**
  * @name        Generic port functions
