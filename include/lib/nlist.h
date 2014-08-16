@@ -52,14 +52,19 @@ struct ndlist
 /*======================================================  GLOBAL VARIABLES  ==*/
 /*===================================================  FUNCTION PROTOTYPES  ==*/
 
-static PORT_C_INLINE void ndlist_init(
+
+PORT_C_INLINE
+void ndlist_init(
     struct ndlist *             node)
 {
     node->next = node;
     node->prev = node;
 }
 
-static PORT_C_INLINE void ndlist_add_before(
+
+
+PORT_C_INLINE
+void ndlist_add_before(
     struct ndlist *             current,
     struct ndlist *             node)
 {
@@ -69,7 +74,10 @@ static PORT_C_INLINE void ndlist_add_before(
     current->prev       = node;
 }
 
-static PORT_C_INLINE void ndlist_add_after(
+
+
+PORT_C_INLINE
+void ndlist_add_after(
     struct ndlist *             current,
     struct ndlist *             node)
 {
@@ -79,14 +87,20 @@ static PORT_C_INLINE void ndlist_add_after(
     current->next       = node;
 }
 
-static PORT_C_INLINE void ndlist_remove(
+
+
+PORT_C_INLINE
+void ndlist_remove(
     struct ndlist *             node)
 {
     node->next->prev = node->prev;
     node->prev->next = node->next;
 }
 
-static PORT_C_INLINE bool ndlist_is_empty(
+
+
+PORT_C_INLINE
+bool ndlist_is_empty(
     const struct ndlist *       node)
 {
     if (node->next == node) {
@@ -96,13 +110,19 @@ static PORT_C_INLINE bool ndlist_is_empty(
     }
 }
 
-static PORT_C_INLINE struct ndlist * ndlist_next(
+
+
+PORT_C_INLINE
+struct ndlist * ndlist_next(
     const struct ndlist *       node)
 {
     return (node->next);
 }
 
-static PORT_C_INLINE struct ndlist * ndlist_prev(
+
+
+PORT_C_INLINE
+struct ndlist * ndlist_prev(
     const struct ndlist *       node)
 {
     return (node->prev);

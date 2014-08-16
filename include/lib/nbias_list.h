@@ -59,7 +59,9 @@ struct nbias_list
 /*======================================================  GLOBAL VARIABLES  ==*/
 /*===================================================  FUNCTION PROTOTYPES  ==*/
 
-static PORT_C_INLINE void nbias_list_init(
+
+PORT_C_INLINE
+void nbias_list_init(
     struct nbias_list *         node,
     uint_fast32_t               bias)
 {
@@ -69,7 +71,8 @@ static PORT_C_INLINE void nbias_list_init(
 
 
 
-static PORT_C_INLINE void nbias_list_sort_insert(
+PORT_C_INLINE
+void nbias_list_sort_insert(
     struct nbias_list *         list,
     struct nbias_list *         node)
 {
@@ -86,7 +89,8 @@ static PORT_C_INLINE void nbias_list_sort_insert(
 
 
 
-static PORT_C_INLINE void nbias_list_fifo_insert(
+PORT_C_INLINE
+void nbias_list_fifo_insert(
     struct nbias_list *         list,
     struct nbias_list *         node)
 {
@@ -95,7 +99,8 @@ static PORT_C_INLINE void nbias_list_fifo_insert(
 
 
 
-static PORT_C_INLINE void nbias_list_remove(
+PORT_C_INLINE
+void nbias_list_remove(
     struct nbias_list *         node)
 {
     ndlist_remove(&node->list);
@@ -103,7 +108,8 @@ static PORT_C_INLINE void nbias_list_remove(
 
 
 
-static PORT_C_INLINE struct nbias_list * nbias_list_tail(
+PORT_C_INLINE
+struct nbias_list * nbias_list_tail(
     const struct nbias_list *   list)
 {
     return (NDLIST_TO_BIAS_LIST(ndlist_next(&list->list)));
@@ -111,7 +117,8 @@ static PORT_C_INLINE struct nbias_list * nbias_list_tail(
 
 
 
-static PORT_C_INLINE struct nbias_list * nbias_list_head(
+PORT_C_INLINE
+struct nbias_list * nbias_list_head(
     struct nbias_list *        list)
 {
     return (NDLIST_TO_BIAS_LIST(ndlist_prev(&list->list)));
@@ -119,7 +126,8 @@ static PORT_C_INLINE struct nbias_list * nbias_list_head(
 
 
 
-static PORT_C_INLINE bool nbias_list_is_empty(
+PORT_C_INLINE
+bool nbias_list_is_empty(
     const struct nbias_list *  list)
 {
     if (ndlist_is_empty(&list->list)) {
@@ -131,7 +139,8 @@ static PORT_C_INLINE bool nbias_list_is_empty(
 
 
 
-static PORT_C_INLINE struct nbias_list * nbias_list_next(
+PORT_C_INLINE
+struct nbias_list * nbias_list_next(
     const struct nbias_list *   node)
 {
     return (NDLIST_TO_BIAS_LIST(ndlist_next(&node->list)));
@@ -139,7 +148,8 @@ static PORT_C_INLINE struct nbias_list * nbias_list_next(
 
 
 
-static PORT_C_INLINE uint_fast32_t nbias_list_get_bias(
+PORT_C_INLINE
+uint_fast32_t nbias_list_get_bias(
     const struct nbias_list *   node)
 {
     return (node->bias);
@@ -147,7 +157,8 @@ static PORT_C_INLINE uint_fast32_t nbias_list_get_bias(
 
 
 
-static PORT_C_INLINE void nbias_list_set_bias(
+PORT_C_INLINE
+void nbias_list_set_bias(
     struct nbias_list *         node,
     uint_fast32_t               bias)
 {

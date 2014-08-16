@@ -37,7 +37,7 @@
 #include <stdbool.h>
 
 #include "plat/compiler.h"
-#include "arch/cpu.h"
+#include "arch/ncore.h"
 #include "lib/nbitop.h"
 #include "lib/nbias_list.h"
 
@@ -72,9 +72,9 @@ struct nprio_queue
     struct nprio_bitmap
     {
 #if   (CONFIG_PRIORITY_BUCKETS > NCPU_DATA_WIDTH) || defined(__DOXYGEN__)
-        n_native                     group;                                     /**<@brief Bit group indicator        */
+        ncpu_reg                     group;                                     /**<@brief Bit group indicator        */
 #endif  /* (CONFIG_PRIORITY_BUCKETS > NCPU_DATA_WIDTH) */
-        n_native                     bit[NDIVISION_ROUNDUP(
+        ncpu_reg                     bit[NDIVISION_ROUNDUP(
                                          CONFIG_PRIORITY_BUCKETS,
                                          NCPU_DATA_WIDTH)];                     /**<@brief Bucket indicator           */
     }                           bitmap;                                         /**<@brief Priority bitmap            */
@@ -88,7 +88,8 @@ struct nprio_queue
 #if (CONFIG_PRIORITY_BUCKETS != 1)
 
 
-static PORT_C_INLINE void nbitmap_init(
+PORT_C_INLINE
+void nbitmap_init(
     struct nprio_bitmap *       bitmap)
 {
 #if   (CONFIG_PRIORITY_BUCKETS > NCPU_DATA_WIDTH)
@@ -107,7 +108,8 @@ static PORT_C_INLINE void nbitmap_init(
 
 
 
-static PORT_C_INLINE void nbitmap_set(
+PORT_C_INLINE
+void nbitmap_set(
     struct nprio_bitmap *       bitmap,
     uint_fast8_t                priority)
 {
@@ -127,7 +129,8 @@ static PORT_C_INLINE void nbitmap_set(
 
 
 
-static PORT_C_INLINE void nbitmap_clear(
+PORT_C_INLINE
+void nbitmap_clear(
     struct nprio_bitmap *       bitmap,
     uint_fast8_t                priority)
 {
@@ -150,7 +153,8 @@ static PORT_C_INLINE void nbitmap_clear(
 
 
 
-static PORT_C_INLINE uint_fast8_t nbitmap_get_highest(
+PORT_C_INLINE
+uint_fast8_t nbitmap_get_highest(
     const struct nprio_bitmap * bitmap)
 {
 #if   (CONFIG_PRIORITY_BUCKETS > NCPU_DATA_WIDTH)
@@ -172,7 +176,8 @@ static PORT_C_INLINE uint_fast8_t nbitmap_get_highest(
 
 
 
-static PORT_C_INLINE bool nbitmap_is_empty(
+PORT_C_INLINE
+bool nbitmap_is_empty(
     const struct nprio_bitmap * bitmap)
 {
 #if   (CONFIG_PRIORITY_BUCKETS > NCPU_DATA_WIDTH)
@@ -192,7 +197,9 @@ static PORT_C_INLINE bool nbitmap_is_empty(
 
 #endif  /* (CONFIG_PRIORITY_BUCKETS != 1) */
 
-static PORT_C_INLINE void nprio_queue_init(
+
+PORT_C_INLINE
+void nprio_queue_init(
     struct nprio_queue *        queue)
 {
     uint_fast8_t                count;
@@ -209,7 +216,8 @@ static PORT_C_INLINE void nprio_queue_init(
 
 
 
-static PORT_C_INLINE void nprio_queue_insert(
+PORT_C_INLINE
+void nprio_queue_insert(
     struct nprio_queue *        queue,
     struct nbias_list  *        node)
 {
@@ -237,7 +245,8 @@ static PORT_C_INLINE void nprio_queue_insert(
 
 
 
-static PORT_C_INLINE void nprio_queue_remove(
+PORT_C_INLINE
+void nprio_queue_remove(
     struct nprio_queue *        queue,
     struct nbias_list  *        node)
 {
@@ -261,7 +270,8 @@ static PORT_C_INLINE void nprio_queue_remove(
 
 
 
-static PORT_C_INLINE void nprio_queue_rotate(
+PORT_C_INLINE
+void nprio_queue_rotate(
     struct nprio_queue *        queue,
     struct nbias_list  *        node)
 {
@@ -283,7 +293,8 @@ static PORT_C_INLINE void nprio_queue_rotate(
 
 
 
-static PORT_C_INLINE struct nbias_list * nprio_queue_peek(
+PORT_C_INLINE
+struct nbias_list * nprio_queue_peek(
     const struct nprio_queue *  queue)
 {
     uint_fast8_t                bucket;
@@ -299,7 +310,8 @@ static PORT_C_INLINE struct nbias_list * nprio_queue_peek(
 
 
 
-static PORT_C_INLINE bool nprio_queue_is_empty(
+PORT_C_INLINE
+bool nprio_queue_is_empty(
     const struct nprio_queue *  queue)
 {
 #if (CONFIG_PRIORITY_BUCKETS != 1)

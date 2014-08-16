@@ -34,7 +34,7 @@
 /*=========================================================  INCLUDE FILES  ==*/
 
 #include "plat/compiler.h"
-#include "arch/intr.h"
+#include "arch/ncore.h"
 
 /*===============================================================  MACRO's  ==*/
 
@@ -55,6 +55,8 @@
 
 #define NSYS_LOCK_INIT(resource)            (void)0
 
+#define NSYS_LOCK_TERM(resource)            (void)0
+
 /**@brief       Enter critical code section
  * @param       lockCtx
  *              Interrupt context, pointer to portable type variable which will
@@ -62,7 +64,7 @@
  *              section.
  */
 #define NSYS_LOCK_ENTER(context, resource)                              \
-    *(context) = nintr_replace_mask(NINTR_PRIO_TO_CODE(CONFIG_INTR_MAX_PRIO))
+    *(context) = nisr_replace_mask(NISR_PRIO_TO_CODE(CONFIG_ISR_MAX_PRIO))
 
 /**@brief       Exit critical code section
  * @param       lockCtx
@@ -70,7 +72,7 @@
  *              previously saved interrupt context state.
  */
 #define NSYS_LOCK_EXIT(context, resource)                               \
-    nintr_set_mask(*(context))
+    nisr_set_mask(*(context))
 
 /**@} *//*----------------------------------------------  C++ extern begin  --*/
 #ifdef __cplusplus
@@ -79,7 +81,7 @@ extern "C" {
 
 /*============================================================  DATA TYPES  ==*/
 
-typedef nintr_ctx lock_ctx;
+typedef nisr_ctx lock_ctx;
 
 /*======================================================  GLOBAL VARIABLES  ==*/
 /*===================================================  FUNCTION PROTOTYPES  ==*/

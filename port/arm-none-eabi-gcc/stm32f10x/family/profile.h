@@ -40,18 +40,18 @@
 
 /**@brief       Specifies maximum CPU clock speed in Hz.
  */
-#define ES_PROFILE_MAX_CPU_CLOCK        24000000ul
+#define NPROFILE_MAX_CPU_CLOCK          24000000ul
 
 /**@brief       System timer maximum value
  * @details     STM32F10x family has 24-bit wide system tick register
  */
-#define ES_PROFILE_MAX_SYSTIMER_VAL     0xfffffful
+#define NPROFILE_MAX_SYSTIMER_VAL       0xfffffful
 
 /**@brief       Maximum RAM size for this family
  * @details     This define is used to choose optimal algorithm for this family
  *              of micro-controllers.
  */
-#define ES_PROFILE_MAX_RAM_SIZE         8192u
+#define NPROFILE_RAM_SIZE               8192u
 
 /**@brief       Port constant: interrupt priority bits implemented in MCU
  * @note        It is also recommended to ensure that all priority bits are

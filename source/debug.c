@@ -30,10 +30,7 @@
 
 /*=========================================================  INCLUDE FILES  ==*/
 
-#include <stddef.h>
-
-#include "arch/cpu.h"
-#include "arch/intr.h"
+#include "arch/ncore.h"
 #include "lib/ndebug.h"
 
 /*=========================================================  LOCAL MACRO's  ==*/
@@ -46,21 +43,22 @@
 /*====================================  GLOBAL PUBLIC FUNCTION DEFINITIONS  ==*/
 
 /* 1)       This function will disable all interrupts to prevent any new
- *          interrupts to execute which can trigger another assert causing a
+ *          interrupts from executing which can trigger another assert causing a
  *          very confusing situation of why it failed.
  */
-PORT_C_NORETURN void nassert(
+PORT_C_NORETURN
+void nassert(
     const PORT_C_ROM struct nmodule_info * module_info,
     const PORT_C_ROM char *     fn,
     uint32_t                    line,
     const PORT_C_ROM char *     expr,
     const PORT_C_ROM char *     msg)
 {
-    nintr_disable();
+    nisr_disable();
     hook_at_failed_assert(module_info, fn, line, expr, msg);
-    ncpu_module_term();
+    ncpu_stop();
 
-    while (true);
+    for (;;);
 }
 
 /*================================*//** @cond *//*==  CONFIGURATION ERRORS  ==*/

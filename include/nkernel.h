@@ -42,7 +42,6 @@
 #include "plat/sys_lock.h"
 #include "lib/nbias_list.h"
 #include "lib/nlist.h"
-#include "lib/nstatus.h"
 
 #include "nkernel_config.h"
 
@@ -54,7 +53,7 @@
 
 /**@brief       Identifies kernel minor version number
  */
-#define NSYS_VER_MINOR                      (0ul)
+#define NSYS_VER_MINOR                      (2ul)
 
 /**@brief       Identifies kernel patch level
  */
@@ -102,8 +101,8 @@ struct nthread
     struct nbias_list           queue_node;                                     /**<@brief Priority queue node        */
     void                     (* entry)(void *);
     void *                      stack;                                          /**<@brief Pointer to top of stack    */
-    uint_fast16_t               ref;
-#if   (CONFIG_SYS_PREEMPT_AWARE == 1) || defined(__DOXYGEN__)
+    ncpu_reg                    ref;
+#if   (CONFIG_MULTITHREADING == 1) || defined(__DOXYGEN__)
     void *                      sys_context;
 #endif
 #if   (CONFIG_REGISTRY          == 1) || defined(__DOXYGEN__)
@@ -111,7 +110,7 @@ struct nthread
     struct ndlist               registry_node;
 #endif
 #if   (CONFIG_DEBUG_API         == 1) || defined(__DOXYGEN__)
-    n_native                    signature;                                      /**<@brief Debug signature            */
+    ncpu_reg                    signature;                                      /**<@brief Debug signature            */
 #endif
 };
 
@@ -206,10 +205,15 @@ void nthread_term(
 
 struct nthread * nthread_get_current(
     void);
-    
+
 
 
 void nthread_ready_i(
+    struct nthread *            thread);
+
+
+
+void nthread_block_i(
     struct nthread *            thread);
 
 
@@ -250,7 +254,7 @@ void nthread_set_priority(
 
 
 
-#if (CONFIG_SYS_PREEMPT_AWARE == 1)
+#if (CONFIG_MULTITHREADING == 1)
 extern void * callback_get_tls(void);
 #endif
 

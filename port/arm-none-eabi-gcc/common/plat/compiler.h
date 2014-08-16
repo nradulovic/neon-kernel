@@ -34,13 +34,16 @@
 /*=========================================================  INCLUDE FILES  ==*/
 /*===============================================================  MACRO's  ==*/
 
-/**@brief       C extension - make a function inline
+/**@brief       Try to force a function always to be inlined.
+ *              Since there is no default language construct to ensure this,
+ *              this will always only be an approximation depending on
+ *              the compiler.
  */
-#define PORT_C_INLINE                       __inline__
+#define PORT_C_INLINE                       static __inline__
 
-/**@brief       C extension - make a function inline - always
+/**@brief       Same as @ref PORT_C_INLINE but has greater power over compiler
  */
-#define PORT_C_INLINE_ALWAYS                __inline__ __attribute__((__always_inline__))
+#define PORT_C_INLINE_ALWAYS                static __inline__ __attribute__((__always_inline__))
 
 /**@brief       Omit function prologue/epilogue sequences
  */
@@ -100,11 +103,6 @@ extern "C" {
 #endif
 
 /*============================================================  DATA TYPES  ==*/
-
-/**@brief General purpose registers are 32bit wide.
- */
-typedef unsigned int n_native;
-
 /*======================================================  GLOBAL VARIABLES  ==*/
 /*===================================================  FUNCTION PROTOTYPES  ==*/
 /*--------------------------------------------------------  C++ extern end  --*/

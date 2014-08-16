@@ -90,8 +90,8 @@
 # define CONFIG_PRIORITY_BUCKETS            32u
 #endif
 
-#if !defined(CONFIG_SYS_PREEMPT_AWARE)
-#define CONFIG_SYS_PREEMPT_AWARE            0u
+#if !defined(CONFIG_MULTITHREADING)
+#define CONFIG_MULTITHREADING               1u
 #endif
 
 /**@brief       Enable/disable registry
