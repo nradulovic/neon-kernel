@@ -164,7 +164,7 @@ static void sched_init(
     struct sched_ctx *          ctx)
 {
     ctx->current = NULL;
-    nprio_queue_init(&ctx->run_queue);                                          /* Initialize run_queue structure.    */
+    nprio_queue_init(&ctx->run_queue);     /* Initialize run_queue structure. */
 }
 
 
