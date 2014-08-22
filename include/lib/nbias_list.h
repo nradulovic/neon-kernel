@@ -81,9 +81,11 @@ void nbias_list_sort_insert(
     current = &list->list;
 
     do {
-        current = ndlist_next(current);                                         /* Iterate to the next node in list.  */
-    } while ((current != &list->list) &&                                        /* Not end of list and node has equal */
-             (NDLIST_TO_BIAS_LIST(current)->bias >= node->bias));               /* or higher bias than given node?    */
+        current = ndlist_next(current); /* Iterate to the next node in list.  */
+                                        /* Not end of list and node has equal */
+                                        /* or higher bias than given node?    */
+    } while ((current != &list->list) &&                                        
+             (NDLIST_TO_BIAS_LIST(current)->bias >= node->bias));               
     ndlist_add_before(current, &node->list);
 }
 
