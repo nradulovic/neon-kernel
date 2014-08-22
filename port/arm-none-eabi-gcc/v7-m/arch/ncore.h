@@ -34,6 +34,7 @@
 /*=========================================================  INCLUDE FILES  ==*/
 
 #include <stdint.h>
+#include <stdbool.h>
 
 #include "plat/compiler.h"
 #include "family/profile.h"
@@ -66,6 +67,8 @@
 
 #define NISR_CODE_TO_PRIO(code)                                                 \
     (((code) & 0xfful) >> (8u - PORT_ISR_PRIO_BITS))
+
+#define nisr_exit()                         (void)0
 
 /**@} *//*----------------------------------------------------------------*//**
  * @name        Core timer macros
@@ -115,9 +118,11 @@ typedef unsigned int ncore_timer_tick;
 PORT_C_INLINE
 void ncpu_stop(void)
 {
-    /*
-     * TODO: Put the CPU to sleep here
-     */
+    while (true) {
+    __asm__ __volatile__ (
+        "@  ncpu_stop                                       \n"
+        "   wfe                                             \n");
+    }
 }
 
 
@@ -179,7 +184,7 @@ void ncpu_sat_decrement(
 
 /**@brief       Enable all interrupts
  */
-PORT_C_INLINE_ALWAYS
+PORT_C_INLINE
 void nisr_enable(void)
 {
     __asm __volatile__ (
@@ -191,7 +196,7 @@ void nisr_enable(void)
 
 /**@brief       Disable all interrupts
  */
-PORT_C_INLINE_ALWAYS
+PORT_C_INLINE
 void nisr_disable(void)
 {
     __asm __volatile__ (
@@ -202,55 +207,29 @@ void nisr_disable(void)
 
 
 /**@brief       Set the new interrupt priority state
- * @param       state
+ * @param       new_mask
  *              New interrupt priority mask or new state of interrupts
  * @note        Depending on @ref CONFIG_ISR_MAX_PRIO setting this function will
  *              either set the new priority of allowed interrupts or just
  *              disable/enable all interrupts.
  */
-PORT_C_INLINE_ALWAYS
+PORT_C_INLINE
 void nisr_set_mask(
-    nisr_ctx                   isr_ctx)
+    nisr_ctx                   new_mask)
 {
 #if (CONFIG_ISR_MAX_PRIO != 0)
     __asm __volatile__ (
         "@  nisr_set_mask                                   \n"
         "   msr    basepri, %0                              \n"
         :
-        : "r"(isr_ctx));
+        : "r"(new_mask));
 #else
     __asm __volatile__ (
         "@  nisr_set_mask                                   \n"
         "   msr    primask, %0                              \n"
         :
-        : "r"(isr_ctx));
+        : "r"(new_mask));
 #endif
-}
-
-
-
-/**@brief       Get the interrupt priority state
- * @param       state
- *              Pointer to state variable where to store enabled interrupts
- */
-PORT_C_INLINE_ALWAYS
-void nisr_get_mask(
-    nisr_ctx *                 isr_ctx)
-{
-    nisr_ctx                   tmp;
-
-#if (CONFIG_ISR_MAX_PRIO != 0)
-    __asm __volatile__ (
-        "@  nisr_get_mask                                   \n"
-        "   mrs     %0, basepri                             \n"
-        : "=r"(tmp));
-#else
-    __asm __volatile__ (
-        "@  nisr_get_mask                                   \n"
-        "   mrs     %0, primask                             \n"
-        : "=r"(tmp));
-#endif
-    *isr_ctx = tmp;
 }
 
 
@@ -258,32 +237,58 @@ void nisr_get_mask(
 /**@brief       Get old and set new interrupt priority mask
  * @return      Current interrupt priority mask
  */
-PORT_C_INLINE_ALWAYS
+PORT_C_INLINE
 nisr_ctx nisr_replace_mask(
-    nisr_ctx                   new)
+    nisr_ctx                   new_mask)
 {
-    nisr_ctx                   old;
+    nisr_ctx                   old_mask;
 
 #if (CONFIG_ISR_MAX_PRIO != 0)
     __asm __volatile__ (
         "@  nisr_replace_mask                               \n"
         "   mrs     %0, basepri                             \n"
         "   msr     basepri, %1                             \n"
-        : "=&r"(old)
-        : "r"(new));
+        : "=&r"(old_mask)
+        : "r"(new_mask));
 #else
     __asm __volatile__ (
         "@  nisr_replace_mask                               \n"
         "   mrs     %0, primask                             \n"
         "   msr    primask, %1                              \n"
-        : "=&r"(old)
-        : "r"(new));
+        : "=&r"(old_mask)
+        : "r"(new_mask));
 #endif
 
-    return (old);
+    return (old_mask);
 }
 
 
+
+PORT_C_INLINE
+void nisr_enter(void)
+{
+    extern bool g_isr_is_active;
+    
+    g_isr_is_active = true;
+}
+
+
+
+PORT_C_INLINE
+void nisr_pend_kernel(void)
+{
+    PORT_SCB->ICSR |= PORT_SCB_ICSR_PENDSVSET_Msk;
+}
+
+
+
+PORT_C_INLINE
+bool nisr_is_active(void)
+{
+    extern bool g_isr_is_active;
+    
+    return (g_isr_is_active);
+}
 
 /**@} *//*----------------------------------------------------------------*//**
  * @name        Core timer management
@@ -385,7 +390,7 @@ void ncore_timer_isr_enable(void)
 PORT_C_INLINE
 void ncore_timer_isr_disable(void)
 {
-    PORT_SCB->ICSR |= PORT_SCB_ICSR_PENDSTCLR_Msk;
+    PORT_SCB->ICSR     |= PORT_SCB_ICSR_PENDSTCLR_Msk;
     PORT_SYSTICK->CTRL &= ~PORT_SYSTICK_CTRL_TICKINT_Msk;
 }
 
@@ -407,18 +412,15 @@ void ntimer_set_handler(
  * @{ *//*--------------------------------------------------------------------*/
 
 
-
 /**@brief       Initialize port
  */
-void ncore_init(
-    void);
+void ncore_init(void);
 
 
 
 /**@brief       Terminate port
  */
-void ncore_term(
-    void);
+void ncore_term(void);
 
 
 

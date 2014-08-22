@@ -932,6 +932,13 @@ struct port_core_debug {
     PORT_RW uint32_t    DEMCR;
 };
 
+#define PORT_BIT_BAND_1_LO                  (0x20000000ul)
+#define PORT_BIT_BAND_1_HI                  (0x20100000ul)
+#define PORT_BIT_BAND_BASE_1                (0x22000000ul)
+#define PORT_BIT_BAND_2_LO                  (0x40000000ul)
+#define PORT_BIT_BAND_2_HI                  (0x40100000ul)
+#define PORT_BIT_BAND_BASE_2                (0x42000000ul)
+
 /*======================================================  GLOBAL VARIABLES  ==*/
 /*===================================================  FUNCTION PROTOTYPES  ==*/
 /*--------------------------------------------------------  C++ extern end  --*/

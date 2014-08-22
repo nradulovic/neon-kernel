@@ -38,53 +38,56 @@
 
 /*===============================================================  MACRO's  ==*/
 
-/*------------------------------------------------------------------------*//**
- * @name        Critical code lock management
- * @brief       Disable/enable interrupts by preserving the interrupt context
- * @details     Generally speaking these macros would store the interrupt
- *              context in the local variable of @ref esLockCtx type and then
- *              disable interrupts. Local variable is allocated in all of NUB RT Kernel
- *              functions that need to disable interrupts. Macros would restore
- *              the interrupt context by copying back the allocated variable
- *              into the interrupt controller status/control register.
- * @{ *//*--------------------------------------------------------------------*/
+#define nsys_lock_init()                    (void)0
 
-#define NSYS_LOCK_USES_RESOURCE             0
+#define nsys_lock_term()                    (void)0
 
-#define NSYS_LOCK_DECL_RESOURCE(resource)
-
-#define NSYS_LOCK_INIT(resource)            (void)0
-
-#define NSYS_LOCK_TERM(resource)            (void)0
-
-/**@brief       Enter critical code section
- * @param       lockCtx
- *              Interrupt context, pointer to portable type variable which will
- *              hold the interrupt context state during the critical code
- *              section.
- */
-#define NSYS_LOCK_ENTER(context, resource)                              \
-    *(context) = nisr_replace_mask(NISR_PRIO_TO_CODE(CONFIG_ISR_MAX_PRIO))
-
-/**@brief       Exit critical code section
- * @param       lockCtx
- *              Interrupt context, portable type variable which is holding a
- *              previously saved interrupt context state.
- */
-#define NSYS_LOCK_EXIT(context, resource)                               \
-    nisr_set_mask(*(context))
-
-/**@} *//*----------------------------------------------  C++ extern begin  --*/
+/*------------------------------------------------------  C++ extern begin  --*/
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /*============================================================  DATA TYPES  ==*/
 
-typedef nisr_ctx lock_ctx;
+struct nsys_lock
+{
+    nisr_ctx                    isr_ctx;
+}
+
+typedef struct nsys_lock nsys_lock;
 
 /*======================================================  GLOBAL VARIABLES  ==*/
 /*===================================================  FUNCTION PROTOTYPES  ==*/
+
+
+
+/**@brief       Enter critical code section
+ * @param       resource
+ *              Interrupt resource, pointer to portable type variable which will
+ *              hold the interrupt context state during the critical code
+ *              section.
+ */
+PORT_C_INLINE
+void nsys_lock_enter(
+    struct nsys_lock *          lock)
+{
+    lock->isr_ctx = nisr_replace_mask(NISR_PRIO_TO_CODE(CONFIG_ISR_MAX_PRIO));
+}
+
+
+
+/**@brief       Exit critical code section
+ * @param       resource
+ *              Interrupt resource, portable type variable which is holding a
+ *              previously saved interrupt context state.
+ */
+PORT_C_INLINE
+void nsys_lock_exit(
+    struct nsys_lock *          lock)
+{
+    nisr_set_mask(lock->isr_ctx);
+}
+
 /*--------------------------------------------------------  C++ extern end  --*/
 #ifdef __cplusplus
 }

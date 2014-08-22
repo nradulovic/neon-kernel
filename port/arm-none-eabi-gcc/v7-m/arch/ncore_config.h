@@ -81,11 +81,11 @@
 
 
 #if !defined(ncore_timer_isr)
-# define ncore_timer_isr                SysTick_Handler
+# define ncore_timer_isr                    SysTick_Handler
 #endif
 
 #if !defined(ncore_kernel_isr)
-# define ncore_kernel_isr               ncore_kernel_isr
+# define ncore_kernel_isr                   PendSV_Handler
 #endif
 
 /*================================*//** @cond *//*==  CONFIGURATION ERRORS  ==*/

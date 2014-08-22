@@ -60,6 +60,8 @@
  */
 #define PORT_ISR_PRIO_BITS              4u
 
+#define PORT_BIT_BAND                   1u
+
 /*-------------------------------------------------------  C++ extern base  --*/
 #ifdef __cplusplus
 extern "C" {

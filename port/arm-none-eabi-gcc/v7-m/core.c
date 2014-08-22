@@ -30,7 +30,9 @@
 #include <stddef.h>
 
 #include "plat/compiler.h"
+#include "plat/sys_lock.h"
 #include "arch/ncore.h"
+#include "nkernel.h"
 
 /*=========================================================  LOCAL MACRO's  ==*/
 /*======================================================  LOCAL DATA TYPES  ==*/
@@ -87,6 +89,9 @@ static void module_term_core_timer(void);
 static void (* g_core_timer_handler[CONFIG_CORE_TIMER_HANDLERS])(void);
 
 /*======================================================  GLOBAL VARIABLES  ==*/
+
+bool g_isr_is_active;
+
 /*============================================  LOCAL FUNCTION DEFINITIONS  ==*/
 
 
@@ -115,8 +120,11 @@ static void module_init_isr(void)
 {
     nisr_disable();
     isr_set_priority_grouping(PORT_CONFIG_ISR_SUBPRIORITY);
-                                                  /* Setup priority subgroup. */
-    isr_set_priority(PENDSV_IRQN,   NISR_PRIO_TO_CODE(CONFIG_ISR_MAX_PRIO));
+                                                /* Setup priority subgroup.   */
+#if   (CONFIG_PREEMPT == 1)                                              
+    isr_set_priority(PENDSV_IRQN,   NISR_PRIO_TO_CODE(1));
+                                                /* Set to lower priority.     */
+#endif
     isr_set_priority(SYSTIMER_IRQN, NISR_PRIO_TO_CODE(CONFIG_ISR_MAX_PRIO));
 }
 
@@ -242,10 +250,13 @@ void ncore_timer_isr(void)
 
 void ncore_kernel_isr(void)
 {
-
+    struct nsys_lock            lock;
+    
+    nsys_lock_enter(&lock);
+    g_isr_is_active = false;
+    nkernel_schedule_i(&lock);
+    nsys_lock_exit(&lock);
 }
-
-
 
 /*================================*//** @cond *//*==  CONFIGURATION ERRORS  ==*/
 /** @endcond *//** @} *//******************************************************
