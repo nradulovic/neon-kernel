@@ -28,8 +28,8 @@
  * @brief       Kernel Configuration settings
  * @{ *//*--------------------------------------------------------------------*/
 
-#if !defined(KERNEL_CFG_H__)
-#define KERNEL_CFG_H__
+#ifndef KERNEL_CFG_H
+#define KERNEL_CFG_H
 
 /*=========================================================  INCLUDE FILES  ==*/
 /*===============================================================  DEFINES  ==*/
@@ -131,30 +131,6 @@
 # define CFG_HOOK_PRE_SYSTMR_EVENT          0
 #endif
 
-/**@brief       Pre kernel initialization hook function
- */
-#if !defined(CONFIG_HOOK_SYS_INIT)
-# define CONFIG_HOOK_SYS_INIT               0
-#endif
-
-/**@brief       Pre kernel start hook function
- */
-#if !defined(CONFIG_HOOK_SYS_START)
-# define CONFIG_HOOK_SYS_START              0
-#endif
-
-/**@brief       Post thread initialization hook function
- */
-#if !defined(CONFIG_HOOK_THREAD_INIT)
-# define CONFIG_HOOK_THREAD_INIT            0
-#endif
-
-/**@brief       Pre thread termination hook function
- */
-#if !defined(CONFIG_HOOK_AT_THREAD_TERM)
-# define CONFIG_HOOK_AT_THREAD_TERM         0
-#endif
-
 /**@brief       Pre context switch hook function
  */
 #if !defined(CONFIG_HOOK_THREAD_SWITCH)
@@ -207,26 +183,6 @@
 # error "Neon RT Kernel: Configuration option CFG_HOOK_PRE_SYSTMR_EVENT is out of range."
 #endif
 
-#if ((1u != CONFIG_HOOK_SYS_INIT) && (0u != CONFIG_HOOK_SYS_INIT))
-# error "Neon RT Kernel: Configuration option CFG_HOOK_PRE_KERN_INIT is out of range."
-#endif
-
-#if ((1u != CONFIG_HOOK_AT_SYS_LATE_INIT) && (0u != CONFIG_HOOK_AT_SYS_LATE_INIT))
-# error "Neon RT Kernel: Configuration option CFG_HOOK_POST_KERN_INIT is out of range."
-#endif
-
-#if ((1u != CONFIG_HOOK_SYS_START) && (0u != CONFIG_HOOK_SYS_START))
-# error "Neon RT Kernel: Configuration option CFG_HOOK_PRE_KERN_START is out of range."
-#endif
-
-#if ((1u != CONFIG_HOOK_THREAD_INIT) && (0u != CONFIG_HOOK_THREAD_INIT))
-# error "Neon RT Kernel: Configuration option CFG_HOOK_POST_THD_INIT is out of range."
-#endif
-
-#if ((1u != CONFIG_HOOK_AT_THREAD_TERM) && (0u != CONFIG_HOOK_AT_THREAD_TERM))
-# error "Neon RT Kernel: Configuration option CFG_HOOK_PRE_THD_TERM is out of range."
-#endif
-
 #if ((1u != CONFIG_HOOK_THREAD_SWITCH) && (0u != CONFIG_HOOK_THREAD_SWITCH))
 # error "Neon RT Kernel: Configuration option CFG_HOOK_PRE_CTX_SW is out of range."
 #endif
@@ -234,4 +190,4 @@
 /** @endcond *//** @} *//******************************************************
  * END of kernel_cfg.h
  ******************************************************************************/
-#endif /* KERNEL_CFG_H__ */
+#endif /* KERNEL_CFG_H */

@@ -98,19 +98,16 @@ extern "C" {
  */
 struct nthread
 {
-    struct nbias_list           queue_node;                                     /**<@brief Priority queue node        */
-    void                     (* entry)(void *);
-    void *                      stack;                                          /**<@brief Pointer to top of stack    */
-    ncpu_reg                    ref;
-#if   (CONFIG_MULTITHREADING == 1) || defined(__DOXYGEN__)
-    void *                      sys_context;
-#endif
+    struct nbias_list           queue_node;         /**<@brief Priority queue */
+    void                     (* entry)(void *);     /**<@brief Task entry     */
+    void *                      stack;              /**<@brief Top of stack   */
+    ncpu_reg                    ref;                /**<@brief Reference count*/
 #if   (CONFIG_REGISTRY          == 1) || defined(__DOXYGEN__)
     const char *                name;
     struct ndlist               registry_node;
 #endif
 #if   (CONFIG_DEBUG_API         == 1) || defined(__DOXYGEN__)
-    ncpu_reg                    signature;                                      /**<@brief Debug signature            */
+    ncpu_reg                    signature;         /**<@brief Debug signature */
 #endif
 };
 
@@ -122,19 +119,31 @@ typedef struct nthread nthread;
 /*======================================================  GLOBAL VARIABLES  ==*/
 /*===================================================  FUNCTION PROTOTYPES  ==*/
 
+
 void nkernel_init(void);
+
+
 
 void nkernel_term(void);
 
+
+
 void nkernel_start(void);
 
-size_t nkernel_get_context_size(void);
 
-void nsys_lock(
-    lock_ctx *                  lock);
 
-void nsys_unlock(
-    lock_ctx *                  lock);
+void nkernel_isr_enter(void);
+
+
+
+void nkernel_isr_exit(void);
+
+
+
+void nkernel_schedule_i(
+    struct nsys_lock *          lock);
+
+
 
 /**@brief       Initialize the specified thread
  * @param       thread
@@ -173,8 +182,8 @@ void nsys_unlock(
  *              provide arguments specifying to kernel how the thread will be
  *              managed. Threads are always created in the @c ready-to-run state.
  *              Threads can be created either prior to the start of
- *              multi-threading (before calling nkernel_start()), or by a running
- *              thread.
+ *              multi-threading (before calling nkernel_start()), or by a 
+                running thread.
  * @called
  * @fromapp
  * @fromthd
@@ -198,13 +207,11 @@ void nthread_init(
  * @schedyes
  * @api
  */
-void nthread_term(
-    void);
+void nthread_term(void);
 
 
 
-struct nthread * nthread_get_current(
-    void);
+struct nthread * nthread_get_current(void);
 
 
 
@@ -218,8 +225,9 @@ void nthread_block_i(
 
 
 
-void nthread_sleep_i(
-    void);
+void nthread_sleep_i(void);
+
+
 
 /**@brief       Get the priority of the current thread
  * @return      The priority of the current thread.
@@ -231,8 +239,7 @@ void nthread_sleep_i(
  * @schedno
  * @api
  */
-uint_fast8_t nthread_get_priority(
-    void);
+uint_fast8_t nthread_get_priority(void);
 
 
 
@@ -252,47 +259,10 @@ uint_fast8_t nthread_get_priority(
 void nthread_set_priority(
     uint_fast8_t                priority);
 
-
-
-#if (CONFIG_MULTITHREADING == 1)
-extern void * callback_get_tls(void);
-#endif
-
 /** @} *//*---------------------------------------------------------------*//**
  * @addtogroup  Hook functions
  * @{ *//*--------------------------------------------------------------------*/
 
-/**@brief       Hook function called at system early init
- * @details     This function is called only when @ref CONFIG_HOOK_SYS_INIT is enabled.
- * @api
- */
-extern void hook_on_sys_init(
-    void);
-
-
-
-/**@brief       Hook function called at system start
- * @details     This function is called only when @ref CONFIG_HOOK_SYS_START is enabled.
- * @api
- */
-extern void hook_on_sys_start(
-    void);
-
-/**@brief       Hook function called at thread initialization
- * @details     This function is called only when
- *              @ref CONFIG_HOOK_THREAD_INIT is enabled.
- * @api
- */
-extern void hook_on_thread_init(
-    struct nthread *            thread);
-
-/**@brief       Hook function called at thread termination
- * @details     This function is called only when
- *              @ref CONFIG_HOOK_AT_THREAD_TERM is enabled.
- * @api
- */
-extern void hook_on_thread_term(
-    struct nthread *            thread);
 
 
 extern void hook_on_thread_switch(
