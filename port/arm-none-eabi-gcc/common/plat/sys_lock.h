@@ -52,7 +52,7 @@ extern "C" {
 struct nsys_lock
 {
     nisr_ctx                    isr_ctx;
-}
+};
 
 typedef struct nsys_lock nsys_lock;
 
