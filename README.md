@@ -89,7 +89,7 @@ A thread is a function with the following prototype:
     
 Each thread **must return** after some defined time. When the thread returns it 
 leaves the CPU time for other threads to execute. Ideally, threads are written 
-as finite state machines which by design are always returning.
+as finite state machines which by definition are always returning.
 
 During the thread execution interrupts are allowed. 
 
