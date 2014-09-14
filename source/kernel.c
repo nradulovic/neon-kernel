@@ -35,10 +35,10 @@
 #include "plat/compiler.h"
 #include "plat/sys_lock.h"
 #include "arch/ncore.h"
-#include "lib/ndebug.h"
-#include "lib/nlist.h"
-#include "lib/nbias_list.h"
-#include "lib/nprio_queue.h"
+#include "base/ndebug.h"
+#include "base/nlist.h"
+#include "base/nbias_list.h"
+#include "base/nprio_queue.h"
 #include "nkernel.h"
 
 /*=========================================================  LOCAL MACRO's  ==*/
@@ -102,23 +102,23 @@ static void sched_remove_i(
 
 static struct nbias_list * sched_fetch_i(
     struct sched_ctx *          ctx);
-    
-    
-    
+
+
+
 #if   (CONFIG_PREEMPT == 1)
 static struct nbias_list * sched_fetch_masked_i(
     struct sched_ctx *          ctx,
     uint_fast8_t                mask);
 #endif
 
-    
+
 
 static void sched_run_i(
     struct sched_ctx *          ctx,
     struct nsys_lock *          lock);
-    
-    
-    
+
+
+
 #if   (CONFIG_PREEMPT == 1)
 static void sched_preempt_i(
     struct sched_ctx *          ctx,
@@ -185,12 +185,12 @@ static struct nbias_list * sched_fetch_i(
 {
     if (!nprio_queue_is_empty(&ctx->run_queue)) {
         struct nbias_list *     new_node;
-    
+
         new_node = nprio_queue_peek(&ctx->run_queue);
-        
+
         return (new_node);
     } else {
-    
+
         return (NULL);
     }
 }
@@ -204,17 +204,17 @@ static struct nbias_list * sched_fetch_masked_i(
 {
     struct nbias_list *         new_node;
     uint_fast8_t                new_prio;
-    
+
     new_node = nprio_queue_peek(&ctx->run_queue);
     new_prio = (uint_fast8_t)nbias_list_get_bias(new_node);
-    
+
     if (new_prio > mask) {
-        
+
         return (new_node);
     } else {
-    
+
         return (NULL);
-    }    
+    }
 }
 #endif
 
@@ -228,7 +228,7 @@ static void sched_run_i(
 
     while ((new_node = sched_fetch_i(ctx)) != NULL) {
         struct nthread *        new_thread;
-        
+
         nprio_queue_rotate(&ctx->run_queue, new_node);
         ctx->current = new_node;
         new_thread   = NODE_TO_THREAD(new_node);
@@ -251,10 +251,10 @@ static void sched_preempt_i(
 
     old_node = ctx->current;
     mask     = (uint_fast8_t)nbias_list_get_bias(old_node);
-    
+
     while ((new_node = sched_fetch_masked_i(ctx, mask)) != NULL) {
         struct nthread *        new_thread;
-        
+
         nprio_queue_rotate(&ctx->run_queue, new_node);
         ctx->current = new_node;
         new_thread   = NODE_TO_THREAD(new_node);
@@ -291,7 +291,7 @@ void nkernel_term(void)
 void nkernel_start(void)
 {
     struct nsys_lock            lock;
-    
+
     nsys_lock_enter(&lock);
     sched_run_i(&g_domain.sched, &lock);
     nsys_lock_exit(&lock);
@@ -343,7 +343,7 @@ void nthread_init(
     NREQUIRE(NAPI_OBJECT,  thread->signature != THREAD_SIGNATURE);
     NREQUIRE(NAPI_POINTER, entry  != NULL);
     NREQUIRE(NAPI_POINTER, stack  != NULL);
-    NREQUIRE(NAPI_RANGE,   priority < CONFIG_PRIORITY_LEVELS);
+    NREQUIRE(NAPI_RANGE,   priority < CONFIG_BIAS_LEVELS);
     NOBLIGATION(thread->signature = THREAD_SIGNATURE);  /* Validate structure */
 
     thread->entry = entry;
@@ -364,7 +364,7 @@ void nthread_term(void)
 
     nsys_lock_enter(&lock);
     thread = NODE_TO_THREAD(sched_get_current(&g_domain.sched));
-    
+
     if (thread->ref != 0u) {
         thread->ref  = 0u;
         sched_remove_i(&g_domain.sched, &thread->queue_node);
@@ -378,9 +378,9 @@ void nthread_term(void)
 struct nthread * nthread_get_current(void)
 {
     struct nthread *            current_thread;
-    
+
     current_thread = NODE_TO_THREAD(sched_get_current(&g_domain.sched));
-    
+
     NREQUIRE_INTERNAL(NAPI_OBJECT, current_thread->signature == THREAD_SIGNATURE);
 
     return (current_thread);
@@ -440,8 +440,8 @@ void nthread_set_priority(
     struct nthread *            thread;
     struct nsys_lock            lock;
 
-    NREQUIRE(NAPI_RANGE,  priority < CONFIG_PRIORITY_LEVELS);
-        
+    NREQUIRE(NAPI_RANGE,  priority < CONFIG_BIAS_LEVELS);
+
     thread = nthread_get_current();
     nsys_lock_enter(&lock);
     sched_remove_i(&g_domain.sched, &thread->queue_node);

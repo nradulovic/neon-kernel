@@ -40,8 +40,9 @@
 
 #include "plat/compiler.h"
 #include "plat/sys_lock.h"
-#include "lib/nbias_list.h"
-#include "lib/nlist.h"
+#include "base/ndebug.h"
+#include "base/nbias_list.h"
+#include "base/nlist.h"
 
 #include "nkernel_config.h"
 
@@ -182,7 +183,7 @@ void nkernel_schedule_i(
  *              provide arguments specifying to kernel how the thread will be
  *              managed. Threads are always created in the @c ready-to-run state.
  *              Threads can be created either prior to the start of
- *              multi-threading (before calling nkernel_start()), or by a 
+ *              multi-threading (before calling nkernel_start()), or by a
                 running thread.
  * @called
  * @fromapp

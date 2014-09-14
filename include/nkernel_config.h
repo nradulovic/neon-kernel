@@ -38,37 +38,6 @@
 /** @endcond */
 /*==============================================================  SETTINGS  ==*/
 
-/**@brief       Enable/disable Debug module
- * @details     Possible values:
- *              - 0 - All debug options are disabled
- *              - 1 - Debug options can be enabled individually
- */
-#if !defined(CONFIG_DEBUG)
-# define CONFIG_DEBUG                       0
-#endif
-
-/**@brief       Enable/disable API arguments validation
- * @details     Possible values:
- *              - 0 - API validation is disabled
- *              - 1 - API validation is enabled
- *
- * @note        This option is enabled only if @ref CONFIG_DEBUG is enabled, too.
- */
-#if !defined(CONFIG_DEBUG_API)
-# define CONFIG_DEBUG_API                   1
-#endif
-
-/**@brief       Enable/disable internal checks
- * @details     Possible values:
- *              - 0 - API validation is disabled
- *              - 1 - API validation is enabled
- *
- * @note        This option is enabled only if @ref CONFIG_DEBUG is enabled, too.
- */
-#if !defined(CONFIG_DEBUG_INTERNAL)
-# define CONFIG_DEBUG_INTERNAL              1
-#endif
-
 #if !defined(CONFIG_SEMAPHORE)
 # define CONFIG_SEMAPHORE                   1
 #endif
@@ -82,14 +51,6 @@
  *              - Min: 3 (three priority levels)
  *              - Max: 256
  */
-#if !defined(CONFIG_PRIORITY_LEVELS)
-# define CONFIG_PRIORITY_LEVELS             32u
-#endif
-
-#if !defined(CONFIG_PRIORITY_BUCKETS)
-# define CONFIG_PRIORITY_BUCKETS            32u
-#endif
-
 #if !defined(CONFIG_MULTITHREADING)
 #define CONFIG_MULTITHREADING               1u
 #endif
@@ -110,15 +71,6 @@
  */
 #if !defined(CFG_SYSTMR_ADAPTIVE_MODE)
 # define CFG_SYSTMR_ADAPTIVE_MODE       0u
-#endif
-
-/**@brief       The frequency of system timer tick event
- * @note        This setting is valid only if configuration option
- *              @ref CONFIG_SYSTIMER_CLOCK_FREQ is properly set in port
- *              configuration file cpu_cfg.h
- */
-#if !defined(CFG_SYSTMR_EVENT_FREQUENCY)
-# define CFG_SYSTMR_EVENT_FREQUENCY     100ul
 #endif
 
 /** @} *//*---------------------------------------------------------------*//**
@@ -152,27 +104,8 @@
 # error "Neon RT Kernel: Configuration option CONFIG_DEBUG_INTERNAL is out of range."
 #endif
 
-#if (CONFIG_DEBUG == 0) || defined(NDEBUG)
-# undef  CONFIG_DEBUG
-# define CONFIG_DEBUG                       0
-# undef  CONFIG_DEBUG_API
-# define CONFIG_DEBUG_API                   0
-# undef  CONFIG_DEBUG_INTERNAL
-# define CONFIG_DEBUG_INTERNAL              0
-#endif
-
-#if ((3u > CONFIG_PRIORITY_LEVELS) || (CONFIG_PRIORITY_LEVELS > 256))
-# error "Neon RT Kernel: Configuration option CONFIG_PRIORITY_LEVELS is out of range."
-#endif
-
 #if (CONFIG_PRIORITY_BUCKETS > CONFIG_PRIORITY_LEVELS)
 # error "Neon RT Kernel: Configuration option CONFIG_PRIORITY_BUCKETS is out of range. It must be smaller or equal to CONFIG_PRIORITY_LEVELS."
-#endif
-
-#if ((CONFIG_PRIORITY_BUCKETS !=  1) && (CONFIG_PRIORITY_BUCKETS !=   2) && (CONFIG_PRIORITY_BUCKETS !=   4) &&         \
-     (CONFIG_PRIORITY_BUCKETS !=  8) && (CONFIG_PRIORITY_BUCKETS !=  16) && (CONFIG_PRIORITY_BUCKETS !=  32) &&         \
-     (CONFIG_PRIORITY_BUCKETS != 64) && (CONFIG_PRIORITY_BUCKETS != 128) && (CONFIG_PRIORITY_BUCKETS != 256))
-# error "Neon RT Kernel: Configuration option CONFIG_PRIORITY_BUCKETS is not valid. It must be a 2^n number."
 #endif
 
 #if ((1u != CFG_SYSTMR_ADAPTIVE_MODE) && (0u != CFG_SYSTMR_ADAPTIVE_MODE))
