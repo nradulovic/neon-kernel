@@ -35,16 +35,16 @@
 
 /*=========================================================  INCLUDE FILES  ==*/
 
+#include <kernel/kernel_config.h>
 #include <stdint.h>
 #include <stddef.h>
 
-#include "plat/compiler.h"
-#include "plat/sys_lock.h"
-#include "base/ndebug.h"
-#include "base/nbias_list.h"
-#include "base/nlist.h"
+#include "port/compiler.h"
+#include "port/sys_lock.h"
+#include "shared/debug.h"
+#include "lib/bias_list.h"
+#include "lib/list.h"
 
-#include "nkernel_config.h"
 
 /*===============================================================  MACRO's  ==*/
 

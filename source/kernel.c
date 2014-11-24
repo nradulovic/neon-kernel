@@ -30,16 +30,19 @@
 
 /*=========================================================  INCLUDE FILES  ==*/
 
-#include "nkernel_config.h"
 
-#include "plat/compiler.h"
-#include "plat/sys_lock.h"
-#include "arch/ncore.h"
-#include "base/ndebug.h"
-#include "base/nlist.h"
-#include "base/nbias_list.h"
-#include "base/nprio_queue.h"
-#include "nkernel.h"
+
+#include "kernel/kernel_config.h"
+
+#include "port/compiler.h"
+#include "port/sys_lock.h"
+#include "port/cpu.h"
+#include "shared/component.h"
+#include "shared/debug.h"
+#include "lib/list.h"
+#include "lib/bias_list.h"
+#include "lib/bitmap.h"
+#include "kernel/kernel.h"
 
 /*=========================================================  LOCAL MACRO's  ==*/
 
@@ -52,7 +55,42 @@
 #define NODE_TO_THREAD(node)                                                    \
     CONTAINER_OF(node, struct nthread, queue_node)
 
+#define NPRIO_ARRAY_BUCKET_BITS                                                 \
+    NLOG2_8(NDIVISION_ROUNDUP(CONFIG_PRIORITY_LEVELS, CONFIG_PRIORITY_BUCKETS))
+
+#if (NBITMAP_IS_SINGLE(CONFIG_PRIORITY_BUCKETS))
+#define BITMAP_INIT(bitmap)					nbitmap_single_init((bitmap))
+#define BITMAP_SET(bitmap, index)			nbitmap_single_set((bitmap), (index))
+#define BITMAP_CLEAR(bitmap, index)			nbitmap_single_clear((bitmap), (index))
+#define BITMAP_GET_HIGHEST(bitmap)			nbitmap_single_get_highest((bitmap))
+#define BITMAP_IS_EMPTY(bitmap)				nbitmap_is_empty((bitmap))
+#else
+#define BITMAP_INIT(bitmap)					nbitmap_multi_init((bitmap), sizeof((bitmap)))
+#define BITMAP_SET(bitmap, index)			nbitmap_multi_set((bitmap), (index))
+#define BITMAP_CLEAR(bitmap, index)			nbitmap_multi_clear((bitmap), (index))
+#define BITMAP_GET_HIGHEST(bitmap)			nbitmap_multi_get_highest((bitmap))
+#define BITMAP_IS_EMPTY(bitmap)				nbitmap_is_empty((bitmap))
+#endif
+
 /*======================================================  LOCAL DATA TYPES  ==*/
+
+/**@brief       Priority queue structure
+ * @details     A priority queue consists of an array of sub-queues. There is
+ *              one sub-queue per priority level. Each sub-queue contains the
+ *              nodes at the corresponding priority level. There is also a
+ *              bitmap corresponding to the array that is used to determine
+ *              effectively the highest priority node on the queue.
+ * @api
+ */
+struct nprio_queue
+{
+#if (CONFIG_PRIORITY_BUCKETS != 1)
+    struct nbitmap 				bitmap[NBITMAP_DIM(CONFIG_PRIORITY_BUCKETS)];
+    									/**<@brief Priority bitmap            */
+#endif  /* (CONFIG_PRIORITY_BUCKETS != 1) */
+    struct nbias_list *         sentinel[CONFIG_PRIORITY_BUCKETS];
+};
+
 
 /**@brief       Scheduler context structure
  * @details     This structure holds important status data for the scheduler.
@@ -67,7 +105,7 @@ struct sched_ctx
  * @details     This structure holds all local data for the whole system. If the
  *              kernel is used in preemptable environment then this structure
  *              will be allocated one per thread. If the underlying OS has fast
- *              synchronization mechanism then all critical sections can be
+ *              synchronisation mechanism then all critical sections can be
  *              protected by using the said mechanism.
  */
 struct sys_domain
@@ -76,6 +114,45 @@ struct sys_domain
 };
 
 /*=============================================  LOCAL FUNCTION PROTOTYPES  ==*/
+
+
+PORT_C_INLINE
+void nprio_queue_init(
+    struct nprio_queue *        queue);
+
+
+
+PORT_C_INLINE
+void nprio_queue_insert(
+    struct nprio_queue *        queue,
+    struct nbias_list  *        node);
+
+
+
+PORT_C_INLINE
+void nprio_queue_remove(
+    struct nprio_queue *        queue,
+    struct nbias_list  *        node);
+
+
+
+PORT_C_INLINE
+void nprio_queue_rotate(
+    struct nprio_queue *        queue,
+    struct nbias_list  *        node);
+
+
+
+PORT_C_INLINE
+struct nbias_list * nprio_queue_peek(
+    const struct nprio_queue *  queue);
+
+
+
+PORT_C_INLINE
+bool nprio_queue_is_empty(
+    const struct nprio_queue *  queue);
+
 
 
 static void sched_init(
@@ -129,12 +206,146 @@ static void sched_preempt_i(
 
 /**@brief       Provides the basic information about this module
  */
-static const NMODULE_INFO_CREATE("Neon RT Kernel", "Nenad Radulovic");
+static const NCOMPONENT_DEFINE("Neon RT Kernel", "Nenad Radulovic");
 
 static struct sys_domain        g_domain;
 
 /*======================================================  GLOBAL VARIABLES  ==*/
 /*============================================  LOCAL FUNCTION DEFINITIONS  ==*/
+
+
+PORT_C_INLINE
+void nprio_queue_init(
+    struct nprio_queue *        queue)
+{
+    uint_fast8_t                count;
+
+#if (CONFIG_PRIORITY_BUCKETS != 1)
+    BITMAP_INIT(queue->bitmap);
+#endif
+    count = NARRAY_DIMENSION(queue->sentinel);
+
+    while (count-- != 0u) {                                                     /* Initialize each list entry.        */
+        queue->sentinel[count] = NULL;
+    }
+}
+
+
+
+PORT_C_INLINE
+void nprio_queue_insert(
+    struct nprio_queue *        queue,
+    struct nbias_list  *        node)
+{
+    uint_fast8_t                bucket;
+
+#if (CONFIG_PRIORITY_BUCKETS != 1)
+    bucket = nbias_list_get_bias(node) >> NPRIO_ARRAY_BUCKET_BITS;
+#else
+    bucket = 0u;
+#endif
+
+    if (queue->sentinel[bucket] == NULL) {
+    									/* If adding the first entry.         */
+        queue->sentinel[bucket] = node;
+#if (CONFIG_PRIORITY_BUCKETS != 1)
+        BITMAP_SET(queue->bitmap, bucket);
+        								/* Mark the bucket list as used.      */
+#endif
+    } else {
+#if (CONFIG_PRIORITY_BUCKETS != CONFIG_PRIORITY_LEVELS)
+        nbias_list_sort_insert(queue->sentinel[bucket], node);
+        								/* Priority search and insertion.  	  */
+#else
+        nbias_list_fifo_insert(queue->sentinel[bucket], node);
+        							    /* FIFO insertion.                    */
+#endif
+    }
+}
+
+
+
+PORT_C_INLINE
+void nprio_queue_remove(
+    struct nprio_queue *        queue,
+    struct nbias_list  *        node)
+{
+    uint_fast8_t                bucket;
+
+#if (CONFIG_PRIORITY_BUCKETS != 1)
+    bucket = nbias_list_get_bias(node) >> NPRIO_ARRAY_BUCKET_BITS;
+#else
+    bucket = 0u;
+#endif
+
+    if (nbias_list_is_empty(node)) {    /* If this was the last node in list. */
+        queue->sentinel[bucket] = NULL;
+#if (CONFIG_PRIORITY_BUCKETS != 1)
+        BITMAP_CLEAR(queue->bitmap, bucket);
+        								/* Mark the bucket as unused.         */
+#endif
+    } else {
+        nbias_list_remove(node);
+    }
+}
+
+
+
+PORT_C_INLINE
+void nprio_queue_rotate(
+    struct nprio_queue *        queue,
+    struct nbias_list  *        node)
+{
+    uint_fast8_t                bucket;
+
+#if (CONFIG_PRIORITY_BUCKETS != 1)
+    bucket = nbias_list_get_bias(node) >> NPRIO_ARRAY_BUCKET_BITS;
+#else
+    bucket = 0u;
+#endif
+
+#if (CONFIG_PRIORITY_BUCKETS != CONFIG_PRIORITY_LEVELS)
+    nbias_list_remove(node);                                                    /* Remove node from bucket.           */
+    nbias_list_sort_insert(queue->sentinel[bucket], node);                      /* Insert the thread at new position. */
+#else
+    queue->sentinel[bucket] = nbias_list_next(queue->sentinel[bucket]);
+#endif
+}
+
+
+
+PORT_C_INLINE
+struct nbias_list * nprio_queue_peek(
+    const struct nprio_queue *  queue)
+{
+    uint_fast8_t                bucket;
+
+#if (CONFIG_PRIORITY_BUCKETS != 1)
+    bucket = BITMAP_GET_HIGHEST(queue->bitmap);
+#else
+    bucket = 0u;
+#endif
+
+    return (nbias_list_tail(queue->sentinel[bucket]));
+}
+
+
+
+PORT_C_INLINE
+bool nprio_queue_is_empty(
+    const struct nprio_queue *  queue)
+{
+#if (CONFIG_PRIORITY_BUCKETS != 1)
+    return (BITMAP_IS_EMPTY(queue->bitmap));
+#else
+    if (queue->sentinel[0] == NULL) {
+        return (true);
+    } else {
+        return (false);
+    }
+#endif
+}
+
 
 
 static void sched_init(
@@ -272,7 +483,6 @@ static void sched_preempt_i(
 
 void nkernel_init(void)
 {
-    ncore_init();
     nsys_lock_init();
     sched_init(&g_domain.sched);
 }
@@ -283,7 +493,6 @@ void nkernel_term(void)
 {
     sched_term(&g_domain.sched);
     nsys_lock_term();
-    ncore_term();
 }
 
 

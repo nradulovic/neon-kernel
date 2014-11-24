@@ -51,6 +51,19 @@
  *              - Min: 3 (three priority levels)
  *              - Max: 256
  */
+#if !defined(CONFIG_PRIORITY_LEVELS)
+# define CONFIG_PRIORITY_LEVELS             32u
+#endif
+
+#if !defined(CONFIG_PRIORITY_BUCKETS)
+# define CONFIG_PRIORITY_BUCKETS            32u
+#endif
+
+/**@brief       Scheduler priority levels
+ * @details     Possible values:
+ *              - Min: 3 (three priority levels)
+ *              - Max: 256
+ */
 #if !defined(CONFIG_MULTITHREADING)
 #define CONFIG_MULTITHREADING               1u
 #endif
