@@ -59,13 +59,8 @@
 # define CONFIG_PRIORITY_BUCKETS            32u
 #endif
 
-/**@brief       Scheduler priority levels
- * @details     Possible values:
- *              - Min: 3 (three priority levels)
- *              - Max: 256
- */
 #if !defined(CONFIG_MULTITHREADING)
-#define CONFIG_MULTITHREADING               1u
+#define CONFIG_MULTITHREADING               0u
 #endif
 
 /**@brief       Enable/disable registry
@@ -74,7 +69,7 @@
  *              - 1u - registry is enabled
  */
 #if !defined(CONFIG_REGISTRY)
-# define CONFIG_REGISTRY                    1u
+# define CONFIG_REGISTRY                    0u
 #endif
 
 /**@brief       System timer adaptive mode
@@ -83,7 +78,7 @@
  *              - 1u - adaptive mode is enabled
  */
 #if !defined(CFG_SYSTMR_ADAPTIVE_MODE)
-# define CFG_SYSTMR_ADAPTIVE_MODE       0u
+# define CFG_SYSTMR_ADAPTIVE_MODE           0u
 #endif
 
 /** @} *//*---------------------------------------------------------------*//**

@@ -48,27 +48,6 @@
 
 /*===============================================================  MACRO's  ==*/
 
-/**@brief       Identifies kernel major version number
- */
-#define NSYS_VER_MAJOR                      (1ul)
-
-/**@brief       Identifies kernel minor version number
- */
-#define NSYS_VER_MINOR                      (2ul)
-
-/**@brief       Identifies kernel patch level
- */
-#define NSYS_VER_PATCH                      (0ul)
-
-/**@brief       Identifies the underlying kernel version number
- */
-#define NSYS_VER                                                                \
-    (((NSYS_VER_MAJOR) << 24) | (NSYS_VER_MINOR << 16) | (NSYS_VER_PATCH))
-
-/**@brief       Kernel identification string
- */
-#define NSYS_ID                             "Neon RT Kernel"
-
 /**@brief       Maximum level of priority possible for application thread
  * @api
  */
@@ -107,7 +86,7 @@ struct nthread
     const char *                name;
     struct ndlist               registry_node;
 #endif
-#if   (CONFIG_DEBUG_API         == 1) || defined(__DOXYGEN__)
+#if   (CONFIG_API_VALIDATION    == 1) || defined(__DOXYGEN__)
     ncpu_reg                    signature;         /**<@brief Debug signature */
 #endif
 };
@@ -129,7 +108,7 @@ void nkernel_term(void);
 
 
 
-void nkernel_start(void);
+void nkernel_run(void);
 
 
 
@@ -208,7 +187,8 @@ void nthread_init(
  * @schedyes
  * @api
  */
-void nthread_term(void);
+void nthread_term(
+    struct nthread *            thread);
 
 
 

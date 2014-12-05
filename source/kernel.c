@@ -91,7 +91,6 @@ struct nprio_queue
     struct nbias_list *         sentinel[CONFIG_PRIORITY_BUCKETS];
 };
 
-
 /**@brief       Scheduler context structure
  * @details     This structure holds important status data for the scheduler.
  */
@@ -483,7 +482,6 @@ static void sched_preempt_i(
 
 void nkernel_init(void)
 {
-    nsys_lock_init();
     sched_init(&g_domain.sched);
 }
 
@@ -492,12 +490,11 @@ void nkernel_init(void)
 void nkernel_term(void)
 {
     sched_term(&g_domain.sched);
-    nsys_lock_term();
 }
 
 
 
-void nkernel_start(void)
+void nkernel_run(void)
 {
     struct nsys_lock            lock;
 
@@ -566,13 +563,13 @@ void nthread_init(
 
 
 
-void nthread_term(void)
+void nthread_term(
+    struct nthread *            thread)
 {
     struct nsys_lock            lock;
     struct nthread *            thread;
 
     nsys_lock_enter(&lock);
-    thread = NODE_TO_THREAD(sched_get_current(&g_domain.sched));
 
     if (thread->ref != 0u) {
         thread->ref  = 0u;
