@@ -1,9 +1,0 @@
-@INCLUDE            =   doxyfile-generic
-PROJECT_NAME        =   "eSolid - Real Time Operating System Ports"
-PROJECT_BRIEF       =   "Event Based System"
-INPUT               =   ../doc/src/kernel-port.dox                              \
-                        ../port/arm-none-eabi-gcc/common/compiler.h             \
-                        ../port/arm-none-eabi-gcc/v7-m/cpu.h                    \
-                        ../port/arm-none-eabi-gcc/v7-m/cpu.c                    \
-                        ../port/arm-none-eabi-gcc/v7-m/cpu_cfg.h                 
-OUTPUT_DIRECTORY    =   ../doc/out/kernel-port
