@@ -549,7 +549,6 @@ void nthread_init(
     NREQUIRE(NAPI_OBJECT,  thread->signature != THREAD_SIGNATURE);
     NREQUIRE(NAPI_POINTER, entry  != NULL);
     NREQUIRE(NAPI_POINTER, stack  != NULL);
-    NREQUIRE(NAPI_RANGE,   priority < CONFIG_BIAS_LEVELS);
     NOBLIGATION(thread->signature = THREAD_SIGNATURE);  /* Validate structure */
 
     thread->entry = entry;
@@ -567,7 +566,6 @@ void nthread_term(
     struct nthread *            thread)
 {
     struct nsys_lock            lock;
-    struct nthread *            thread;
 
     nsys_lock_enter(&lock);
 
@@ -645,8 +643,6 @@ void nthread_set_priority(
 {
     struct nthread *            thread;
     struct nsys_lock            lock;
-
-    NREQUIRE(NAPI_RANGE,  priority < CONFIG_BIAS_LEVELS);
 
     thread = nthread_get_current();
     nsys_lock_enter(&lock);
