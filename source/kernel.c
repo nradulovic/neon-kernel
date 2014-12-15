@@ -239,7 +239,7 @@ void nprio_queue_insert(
     uint_fast8_t                bucket;
 
 #if (CONFIG_PRIORITY_BUCKETS != 1)
-    bucket = nbias_list_get_bias(node) >> NPRIO_ARRAY_BUCKET_BITS;
+    bucket = (uint_fast8_t)nbias_list_get_bias(node) >> NPRIO_ARRAY_BUCKET_BITS;
 #else
     bucket = 0u;
 #endif
@@ -272,7 +272,7 @@ void nprio_queue_remove(
     uint_fast8_t                bucket;
 
 #if (CONFIG_PRIORITY_BUCKETS != 1)
-    bucket = nbias_list_get_bias(node) >> NPRIO_ARRAY_BUCKET_BITS;
+    bucket = (uint_fast8_t)nbias_list_get_bias(node) >> NPRIO_ARRAY_BUCKET_BITS;
 #else
     bucket = 0u;
 #endif
@@ -298,7 +298,7 @@ void nprio_queue_rotate(
     uint_fast8_t                bucket;
 
 #if (CONFIG_PRIORITY_BUCKETS != 1)
-    bucket = nbias_list_get_bias(node) >> NPRIO_ARRAY_BUCKET_BITS;
+    bucket = (uint_fast8_t)nbias_list_get_bias(node) >> NPRIO_ARRAY_BUCKET_BITS;
 #else
     bucket = 0u;
 #endif
