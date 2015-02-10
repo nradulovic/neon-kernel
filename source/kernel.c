@@ -407,29 +407,6 @@ static struct nbias_list * sched_fetch_i(
 
 
 
-#if   (CONFIG_PREEMPT == 1)
-static struct nbias_list * sched_fetch_masked_i(
-    struct sched_ctx *          ctx,
-    uint_fast8_t                mask)
-{
-    struct nbias_list *         new_node;
-    uint_fast8_t                new_prio;
-
-    new_node = nprio_queue_peek(&ctx->run_queue);
-    new_prio = (uint_fast8_t)nbias_list_get_bias(new_node);
-
-    if (new_prio > mask) {
-
-        return (new_node);
-    } else {
-
-        return (NULL);
-    }
-}
-#endif
-
-
-
 static void sched_run_i(
     struct sched_ctx *          ctx,
     struct nsys_lock *          lock)
@@ -447,34 +424,6 @@ static void sched_run_i(
         nsys_lock_enter(lock);
     }
 }
-
-
-
-#if   (CONFIG_PREEMPT == 1)
-static void sched_preempt_i(
-    struct sched_ctx *          ctx,
-    struct nsys_lock *          lock)
-{
-    struct nbias_list *         new_node;
-    struct nbias_list *         old_node;
-    uint_fast8_t                mask;
-
-    old_node = ctx->current;
-    mask     = (uint_fast8_t)nbias_list_get_bias(old_node);
-
-    while ((new_node = sched_fetch_masked_i(ctx, mask)) != NULL) {
-        struct nthread *        new_thread;
-
-        nprio_queue_rotate(&ctx->run_queue, new_node);
-        ctx->current = new_node;
-        new_thread   = NODE_TO_THREAD(new_node);
-        nsys_lock_exit(lock);
-        new_thread->entry(new_thread->stack);
-        nsys_lock_enter(lock);
-    }
-    ctx->current = old_node;
-}
-#endif
 
 /*===================================  GLOBAL PRIVATE FUNCTION DEFINITIONS  ==*/
 /*====================================  GLOBAL PUBLIC FUNCTION DEFINITIONS  ==*/
