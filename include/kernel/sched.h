@@ -31,6 +31,7 @@
 
 /*=========================================================  INCLUDE FILES  ==*/
 
+#include "port/cpu.h"
 #include "shared/config.h"
 #include "shared/debug.h"
 #include "lib/bias_list.h"
