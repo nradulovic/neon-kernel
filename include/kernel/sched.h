@@ -58,16 +58,16 @@ extern "C" {
 
 struct nthread_define
 {
-    const char *        		name;
-    uint8_t             		priority;
+    const char *                name;
+    uint8_t                     priority;
 };
 
 struct nthread
 {
-	struct nbias_list           node; 			/**<@brief Priority queue node*/
-	ncpu_reg					ref;			/**<@brief Reference count 	  */
+    struct nbias_list           node;           /**<@brief Priority queue node*/
+    ncpu_reg                    ref;            /**<@brief Reference count    */
 #if (CONFIG_REGISTRY == 1) || defined(__DOXYGEN__)
-    char                  		name[CONFIG_REGISTRY_NAME_SIZE];
+    char                        name[CONFIG_REGISTRY_NAME_SIZE];
     struct ndlist               registry_node;
 #endif
 #if (CONFIG_API_VALIDATION == 1) || defined(__DOXYGEN__)
@@ -88,23 +88,23 @@ void nsched_term(void);
 
 
 void nsched_thread_init(
-	struct nthread * 			thread,
-	const struct nthread_define * define);
+    struct nthread *            thread,
+    const struct nthread_define * define);
 
 
 
 void nsched_thread_term(
-	struct nthread * 			thread);
+    struct nthread *            thread);
 
 
 
 void nsched_thread_insert_i(
-	struct nthread * 			thread);
+    struct nthread *            thread);
 
 
 
 void nsched_thread_remove_i(
-	struct nthread * 			thread);
+    struct nthread *            thread);
 
 
 

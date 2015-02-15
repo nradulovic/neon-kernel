@@ -41,24 +41,24 @@
 
 /*=========================================================  LOCAL MACRO's  ==*/
 
-#define NODE_TO_THREAD(node_ptr)												\
-	CONTAINER_OF(node_ptr, struct nthread, node)
+#define NODE_TO_THREAD(node_ptr)                                                \
+    CONTAINER_OF(node_ptr, struct nthread, node)
 
 #define NPRIO_ARRAY_BUCKET_BITS                                                 \
     NLOG2_8(NDIVISION_ROUNDUP(CONFIG_PRIORITY_LEVELS, CONFIG_PRIORITY_BUCKETS))
 
 #if (NBITMAP_IS_SINGLE(CONFIG_PRIORITY_BUCKETS))
-#define BITMAP_INIT(bitmap)					nbitmap_single_init((bitmap))
-#define BITMAP_SET(bitmap, index)			nbitmap_single_set((bitmap), (index))
-#define BITMAP_CLEAR(bitmap, index)			nbitmap_single_clear((bitmap), (index))
-#define BITMAP_GET_HIGHEST(bitmap)			nbitmap_single_get_highest((bitmap))
-#define BITMAP_IS_EMPTY(bitmap)				nbitmap_is_empty((bitmap))
+#define BITMAP_INIT(bitmap)                 nbitmap_single_init((bitmap))
+#define BITMAP_SET(bitmap, index)           nbitmap_single_set((bitmap), (index))
+#define BITMAP_CLEAR(bitmap, index)         nbitmap_single_clear((bitmap), (index))
+#define BITMAP_GET_HIGHEST(bitmap)          nbitmap_single_get_highest((bitmap))
+#define BITMAP_IS_EMPTY(bitmap)             nbitmap_is_empty((bitmap))
 #else
-#define BITMAP_INIT(bitmap)					nbitmap_multi_init((bitmap), sizeof((bitmap)))
-#define BITMAP_SET(bitmap, index)			nbitmap_multi_set((bitmap), (index))
-#define BITMAP_CLEAR(bitmap, index)			nbitmap_multi_clear((bitmap), (index))
-#define BITMAP_GET_HIGHEST(bitmap)			nbitmap_multi_get_highest((bitmap))
-#define BITMAP_IS_EMPTY(bitmap)				nbitmap_is_empty((bitmap))
+#define BITMAP_INIT(bitmap)                 nbitmap_multi_init((bitmap), sizeof((bitmap)))
+#define BITMAP_SET(bitmap, index)           nbitmap_multi_set((bitmap), (index))
+#define BITMAP_CLEAR(bitmap, index)         nbitmap_multi_clear((bitmap), (index))
+#define BITMAP_GET_HIGHEST(bitmap)          nbitmap_multi_get_highest((bitmap))
+#define BITMAP_IS_EMPTY(bitmap)             nbitmap_is_empty((bitmap))
 #endif
 
 /*======================================================  LOCAL DATA TYPES  ==*/
@@ -74,8 +74,8 @@
 struct prio_queue
 {
 #if (CONFIG_PRIORITY_BUCKETS != 1)
-    struct nbitmap 				bitmap[NBITMAP_DIM(CONFIG_PRIORITY_BUCKETS)];
-    									/**<@brief Priority bitmap            */
+    struct nbitmap              bitmap[NBITMAP_DIM(CONFIG_PRIORITY_BUCKETS)];
+                                        /**<@brief Priority bitmap            */
 #endif  /* (CONFIG_PRIORITY_BUCKETS != 1) */
     struct nbias_list *         sentinel[CONFIG_PRIORITY_BUCKETS];
 };
@@ -131,7 +131,7 @@ bool prio_queue_is_empty(
 
 /*=======================================================  LOCAL VARIABLES  ==*/
 
-static struct sched_ctx     	g_sched_ctx;
+static struct sched_ctx         g_sched_ctx;
 
 /*======================================================  GLOBAL VARIABLES  ==*/
 /*============================================  LOCAL FUNCTION DEFINITIONS  ==*/
@@ -167,19 +167,19 @@ void prio_queue_insert(
 #else
     bucket = 0u;
 #endif
-    									/* If adding the first entry.         */
+                                        /* If adding the first entry.         */
     if (queue->sentinel[bucket] == NULL) {
         queue->sentinel[bucket] = node;
 #if (CONFIG_PRIORITY_BUCKETS != 1)
-        								/* Mark the bucket list as used.      */
+                                        /* Mark the bucket list as used.      */
         BITMAP_SET(queue->bitmap, bucket);
 #endif
     } else {
 #if (CONFIG_PRIORITY_BUCKETS != CONFIG_PRIORITY_LEVELS)
-    									/* Priority search and insertion.  	  */
+                                        /* Priority search and insertion.     */
         nbias_list_sort_insert(queue->sentinel[bucket], node);
 #else
-        								/* FIFO insertion.                    */
+                                        /* FIFO insertion.                    */
         nbias_list_fifo_insert(queue->sentinel[bucket], node);
 #endif
     }
@@ -204,7 +204,7 @@ void prio_queue_remove(
         queue->sentinel[bucket] = NULL;
 #if (CONFIG_PRIORITY_BUCKETS != 1)
         BITMAP_CLEAR(queue->bitmap, bucket);
-        								/* Mark the bucket as unused.         */
+                                        /* Mark the bucket as unused.         */
 #endif
     } else {
         nbias_list_remove(node);
@@ -272,7 +272,7 @@ bool prio_queue_is_empty(
 
 void nsched_init(void)
 {
-	struct sched_ctx * 			ctx = &g_sched_ctx;
+    struct sched_ctx *          ctx = &g_sched_ctx;
 
     ctx->current = NULL;
     prio_queue_init(&ctx->run_queue);     /* Initialize run_queue structure. */
@@ -282,7 +282,7 @@ void nsched_init(void)
 
 void nsched_term(void)
 {
-	struct sched_ctx * 			ctx = &g_sched_ctx;
+    struct sched_ctx *          ctx = &g_sched_ctx;
 
     ctx->current = NULL;
 }
@@ -290,14 +290,14 @@ void nsched_term(void)
 
 
 void nsched_thread_init(
-	struct nthread * 			thread,
-	const struct nthread_define * define)
+    struct nthread *            thread,
+    const struct nthread_define * define)
 {
-	nbias_list_init(&thread->node, define->priority);
-	thread->ref = 0;
+    nbias_list_init(&thread->node, define->priority);
+    thread->ref = 0;
 
 #if (CONFIG_REGISTRY == 1)
-	strncpy(thread->name, define->name, sizeof(thread->name));
+    strncpy(thread->name, define->name, sizeof(thread->name));
     ndlist_init(&thread->registry_node);
 #endif
 }
@@ -306,50 +306,50 @@ void nsched_thread_init(
 
 void nsched_thread_term(struct nthread * thread)
 {
-	struct sched_ctx * 			ctx = &g_sched_ctx;
-	nsys_lock					sys_lock;
+    struct sched_ctx *          ctx = &g_sched_ctx;
+    nsys_lock                   sys_lock;
 
-	nsys_lock_enter(&sys_lock);
+    nsys_lock_enter(&sys_lock);
 
-	if (thread->ref != 0u) {
-		thread->ref =  0u;
-		prio_queue_remove(&ctx->run_queue, &thread->node);
-	}
-	nbias_list_term(&thread->node);
-	nsys_lock_exit(&sys_lock);
+    if (thread->ref != 0u) {
+        thread->ref =  0u;
+        prio_queue_remove(&ctx->run_queue, &thread->node);
+    }
+    nbias_list_term(&thread->node);
+    nsys_lock_exit(&sys_lock);
 }
 
 
 
 void nsched_thread_insert_i(struct nthread * thread)
 {
-	ncpu_sat_increment(&thread->ref);
+    ncpu_sat_increment(&thread->ref);
 
-	if (thread->ref == 1u) {
-		struct sched_ctx * 		ctx = &g_sched_ctx;
+    if (thread->ref == 1u) {
+        struct sched_ctx *      ctx = &g_sched_ctx;
 
-		prio_queue_insert(&ctx->run_queue, &thread->node);
-	}
+        prio_queue_insert(&ctx->run_queue, &thread->node);
+    }
 }
 
 
 
 void nsched_thread_remove_i(struct nthread * thread)
 {
-	if (thread->ref == 1u) {
-		struct sched_ctx * 		ctx = &g_sched_ctx;
+    if (thread->ref == 1u) {
+        struct sched_ctx *      ctx = &g_sched_ctx;
 
-		prio_queue_remove(&ctx->run_queue, &thread->node);
-	}
-	ncpu_sat_decrement(&thread->ref);
+        prio_queue_remove(&ctx->run_queue, &thread->node);
+    }
+    ncpu_sat_decrement(&thread->ref);
 }
 
 
 
 struct nthread * nsched_thread_fetch_i(void)
 {
-	struct sched_ctx * 			ctx = &g_sched_ctx;
-	struct nbias_list *     	new_node;
+    struct sched_ctx *          ctx = &g_sched_ctx;
+    struct nbias_list *         new_node;
 
     if (!prio_queue_is_empty(&ctx->run_queue)) {
         new_node = prio_queue_peek(&ctx->run_queue);
@@ -358,9 +358,9 @@ struct nthread * nsched_thread_fetch_i(void)
 
         return (NODE_TO_THREAD(new_node));
     } else {
-    	ctx->current = NULL;
+        ctx->current = NULL;
 
-    	return (NULL);
+        return (NULL);
     }
 }
 
@@ -368,7 +368,7 @@ struct nthread * nsched_thread_fetch_i(void)
 
 struct nthread * nsched_get_current(void)
 {
-	struct sched_ctx * 			ctx = &g_sched_ctx;
+    struct sched_ctx *          ctx = &g_sched_ctx;
 
     return (NODE_TO_THREAD(ctx->current));
 }
