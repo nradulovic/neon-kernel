@@ -33,7 +33,6 @@
 
 #include "port/cpu.h"
 #include "shared/config.h"
-#include "shared/debug.h"
 #include "lib/bias_list.h"
 #include "lib/list.h"
 
@@ -71,7 +70,7 @@ struct nthread
     struct ndlist               registry_node;
 #endif
 #if (CONFIG_API_VALIDATION == 1) || defined(__DOXYGEN__)
-    ndebug_magic                signature;
+    unsigned int                signature;
 #endif
 };
 
