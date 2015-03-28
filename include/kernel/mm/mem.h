@@ -21,97 +21,96 @@
  *//***********************************************************************//**
  * @file
  * @author      Nenad Radulovic
- * @brief       Scheduler
- * @defgroup    sched Scheduler
- * @brief       Scheduler
+ * @brief       Memory class
+ * @defgroup    mem_class Memory class
+ * @brief       Memory class
  *********************************************************************//** @{ */
 
-#ifndef NEON_EDS_SCHED_H_
-#define NEON_EDS_SCHED_H_
+#ifndef NEON_MEM_CLASS_H_
+#define NEON_MEM_CLASS_H_
 
 /*=========================================================  INCLUDE FILES  ==*/
 
-#include "base/port/core.h"
-#include "base/shared/config.h"
-#include "kernel/lib/bias_list.h"
-#include "kernel/lib/list.h"
+#include <stddef.h>
+
+#include "base/port/compiler.h"
+#include "base/shared/debug.h"
 
 /*===============================================================  MACRO's  ==*/
-
-/**@brief       Maximum level of priority possible for application thread
- * @api
- */
-#define NTHREAD_PRIORITY_MAX            (CONFIG_PRIORITY_LEVELS - 1u)
-
-/**@brief       Minimum level of priority possible for application thread
- * @api
- */
-#define NTHREAD_PRIORITY_MIN            (0u)
-
-/*-------------------------------------------------------  C++ extern base  --*/
+/*------------------------------------------------------  C++ extern begin  --*/
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /*============================================================  DATA TYPES  ==*/
 
-struct nthread_define
+struct nmem
 {
-    const char *                name;
-    uint8_t                     priority;
+    void *                   (* vf_alloc)(struct nmem *, size_t);
+    void                     (* vf_free) (struct nmem *, void *);
+    void *                      base;           /**<@brief Base address       */
+    size_t                      free;           /**<@brief Free bytes         */
+    size_t                      size;           /**<@brief Size of memory     */
+#if (CONFIG_API_VALIDATION == 1) || defined(__DOXYGEN__)
+    unsigned int                signature;      /**<@brief Debug signature    */
+#endif
 };
 
-struct nthread
-{
-    struct nbias_list           node;           /**<@brief Priority queue node*/
-    ncpu_reg                    ref;            /**<@brief Reference count    */
-#if (CONFIG_REGISTRY == 1) || defined(__DOXYGEN__)
-    char                        name[CONFIG_REGISTRY_NAME_SIZE];
-    struct ndlist               registry_node;
-#endif
-#if (CONFIG_API_VALIDATION == 1) || defined(__DOXYGEN__)
-    unsigned int                signature;
-#endif
-};
+typedef struct nmem nmem;
 
 /*======================================================  GLOBAL VARIABLES  ==*/
 /*===================================================  FUNCTION PROTOTYPES  ==*/
 
 
-void nsched_init(void);
+
+PORT_C_INLINE
+void * nmem_alloc_i(
+    struct nmem *               mem,
+    size_t                      size)
+{
+    return (mem->vf_alloc(mem, size));
+}
 
 
 
-void nsched_term(void);
+
+void * nmem_alloc(
+    struct nmem *               mem,
+    size_t                      size);
 
 
 
-void nsched_thread_init(
-    struct nthread *            thread,
-    const struct nthread_define * define);
+PORT_C_INLINE
+void nmem_free_i(
+    struct nmem *               mem,
+    void *                      mem_storage)
+{
+    mem->vf_free(mem, mem_storage);
+}
 
 
 
-void nsched_thread_term(
-    struct nthread *            thread);
+void nmem_free(
+    struct nmem *               mem,
+    void *                      mem_storage);
 
 
 
-void nsched_thread_insert_i(
-    struct nthread *            thread);
+PORT_C_INLINE
+size_t nmem_get_free_i(
+    struct nmem *               mem)
+{
+    return (mem->free);
+}
 
 
 
-void nsched_thread_remove_i(
-    struct nthread *            thread);
-
-
-
-struct nthread * nsched_thread_fetch_i(void);
-
-
-
-struct nthread * nsched_get_current(void);
+PORT_C_INLINE
+size_t nmem_get_size_i(
+    struct nmem *               mem)
+{
+    return (mem->size);
+}
 
 /*--------------------------------------------------------  C++ extern end  --*/
 #ifdef __cplusplus
@@ -120,6 +119,6 @@ struct nthread * nsched_get_current(void);
 
 /*================================*//** @cond *//*==  CONFIGURATION ERRORS  ==*/
 /** @endcond *//** @} *//******************************************************
- * END of sched.h
+ * END of mem_class.h
  ******************************************************************************/
-#endif /* NEON_EDS_SCHED_H_ */
+#endif /* NEON_MEM_CLASS_H_ */

@@ -32,11 +32,10 @@
 
 #include <string.h>
 
-#include "port/sys_lock.h"
-#include "port/cpu.h"
-#include "shared/component.h"
-#include "lib/bitop.h"
-#include "lib/bitmap.h"
+#include "base/port/core.h"
+#include "base/shared/component.h"
+#include "kernel/lib/bitop.h"
+#include "kernel/lib/bitmap.h"
 #include "kernel/sched.h"
 
 /*=========================================================  LOCAL MACRO's  ==*/
@@ -307,16 +306,16 @@ void nsched_thread_init(
 void nsched_thread_term(struct nthread * thread)
 {
     struct sched_ctx *          ctx = &g_sched_ctx;
-    nsys_lock                   sys_lock;
+    ncore_lock                   sys_lock;
 
-    nsys_lock_enter(&sys_lock);
+    ncore_lock_enter(&sys_lock);
 
     if (thread->ref != 0u) {
         thread->ref =  0u;
         prio_queue_remove(&ctx->run_queue, &thread->node);
     }
     nbias_list_term(&thread->node);
-    nsys_lock_exit(&sys_lock);
+    ncore_lock_exit(&sys_lock);
 }
 
 
