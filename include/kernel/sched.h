@@ -78,11 +78,11 @@ struct nthread
 /*===================================================  FUNCTION PROTOTYPES  ==*/
 
 
-void nsched_init(void);
+void nmodule_sched_init(void);
 
 
 
-void nsched_term(void);
+void nmodule_sched_term(void);
 
 
 

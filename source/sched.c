@@ -85,7 +85,7 @@ struct prio_queue
 struct sched_ctx
 {
     struct nbias_list *         current;    /**<@brief The current thread     */
-    struct prio_queue          run_queue;  /**<@brief Run queue of threads   */
+    struct prio_queue           run_queue;  /**<@brief Run queue of threads   */
     void                     (* idle)(void);
 };
 
@@ -269,7 +269,7 @@ bool prio_queue_is_empty(
 /*===================================  GLOBAL PRIVATE FUNCTION DEFINITIONS  ==*/
 /*====================================  GLOBAL PUBLIC FUNCTION DEFINITIONS  ==*/
 
-void nsched_init(void)
+void nmodule_sched_init(void)
 {
     struct sched_ctx *          ctx = &g_sched_ctx;
 
@@ -279,7 +279,7 @@ void nsched_init(void)
 
 
 
-void nsched_term(void)
+void nmodule_sched_term(void)
 {
     struct sched_ctx *          ctx = &g_sched_ctx;
 

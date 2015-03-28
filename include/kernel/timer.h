@@ -47,7 +47,7 @@
 /**@brief       Convert time (given in milliseconds) into ticks
  */
 #define N_TIME_TO_TICK_MS(time_ms)                                              \
-    ((time_ms) * CONFIG_SYSTIMER_EVENT_FREQ / 1000ul)
+    ((time_ms) * CONFIG_CORE_TIMER_EVENT_FREQ / 1000ul)
 
 #define NTIMER_ATTR_ONE_SHOT            (0x1u << 0)
 #define NTIMER_ATTR_REPEAT              (0x1u << 1)
