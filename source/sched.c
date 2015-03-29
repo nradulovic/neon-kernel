@@ -322,7 +322,7 @@ void nsched_thread_term(struct nthread * thread)
 
 void nsched_thread_insert_i(struct nthread * thread)
 {
-    ncpu_sat_increment(&thread->ref);
+    ncore_sat_increment(&thread->ref);
 
     if (thread->ref == 1u) {
         struct sched_ctx *      ctx = &g_sched_ctx;
@@ -340,7 +340,7 @@ void nsched_thread_remove_i(struct nthread * thread)
 
         prio_queue_remove(&ctx->run_queue, &thread->node);
     }
-    ncpu_sat_decrement(&thread->ref);
+    ncore_sat_decrement(&thread->ref);
 }
 
 

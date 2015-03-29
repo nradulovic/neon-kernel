@@ -93,14 +93,6 @@ static void remove_timer(
 /*====================================  GLOBAL PUBLIC FUNCTION DEFINITIONS  ==*/
 
 
-void nmodule_timer_init(void)
-{
-    ncore_timer_init(NCORE_TIME_ONE_TICK(CONFIG_CORE_TIMER_CLOCK_FREQ));
-    ncore_timer_enable();
-}
-
-
-
 void ntimer_init(
     struct ntimer *             timer)
 {

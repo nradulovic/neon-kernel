@@ -90,8 +90,8 @@ void nbitmap_multi_set(
     bit_index   = index & ((uint_fast8_t)~0u >> (sizeof(index) * 8u -
         NLOG2_8(NCPU_DATA_WIDTH)));
     group_index = index >> NLOG2_8(NCPU_DATA_WIDTH);
-    bitmap[0].group                |= ncpu_exp2(group_index);
-    bitmap[group_index + 1u].group |= ncpu_exp2(bit_index);
+    bitmap[0].group                |= ncore_exp2(group_index);
+    bitmap[group_index + 1u].group |= ncore_exp2(bit_index);
 }
 
 
@@ -107,13 +107,13 @@ void nbitmap_multi_clear(
     bit_index   = index & ((uint_fast8_t)~0u >> (sizeof(index) * 8u -
             NLOG2_8(NCPU_DATA_WIDTH)));
     group_index = index >> NLOG2_8(NCPU_DATA_WIDTH);
-    bitmap[group_index + 1u].group &= ~ncpu_exp2(bit_index);
+    bitmap[group_index + 1u].group &= ~ncore_exp2(bit_index);
 
     if (bitmap[group_index + 1u].group == 0u) {
                                         /* If this is the last bit cleared in */
                                         /* this row then clear bit in group   */
                                         /* indicator, too.                    */
-        bitmap[0].group &= ~ncpu_exp2(group_index);
+        bitmap[0].group &= ~ncore_exp2(group_index);
     }
 }
 
@@ -126,8 +126,8 @@ uint_fast8_t nbitmap_multi_get_highest(
     uint_fast8_t                group_index;
     uint_fast8_t                bit_index;
 
-    group_index = ncpu_log2(bitmap[0].group);
-    bit_index   = ncpu_log2(bitmap[group_index + 1u].group);
+    group_index = ncore_log2(bitmap[0].group);
+    bit_index   = ncore_log2(bitmap[group_index + 1u].group);
 
     return ((uint_fast8_t)(group_index << NLOG2_8(NCPU_DATA_WIDTH)) | bit_index);
 }
@@ -148,7 +148,7 @@ void nbitmap_single_set(
     struct nbitmap *            bitmap,
     uint_fast8_t                index)
 {
-    bitmap[0].group |= ncpu_exp2(index);
+    bitmap[0].group |= ncore_exp2(index);
 }
 
 
@@ -158,7 +158,7 @@ void nbitmap_single_clear(
     struct nbitmap *            bitmap,
     uint_fast8_t                index)
 {
-    bitmap[0].group &= ~ncpu_exp2(index);
+    bitmap[0].group &= ~ncore_exp2(index);
 }
 
 
@@ -169,7 +169,7 @@ uint_fast8_t nbitmap_single_get_highest(
 {
     uint_fast8_t                index;
 
-    index = ncpu_log2(bitmap[0].group);
+    index = ncore_log2(bitmap[0].group);
 
     return (index);
 }
