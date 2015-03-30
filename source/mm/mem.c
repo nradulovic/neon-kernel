@@ -30,8 +30,8 @@
 
 /*=========================================================  INCLUDE FILES  ==*/
 
-#include "base/port/core.h"
-#include "kernel/mm/mem.h"
+#include "port/core.h"
+#include "mm/mem.h"
 
 /*=========================================================  LOCAL MACRO's  ==*/
 /*======================================================  LOCAL DATA TYPES  ==*/

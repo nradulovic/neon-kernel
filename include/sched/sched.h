@@ -31,10 +31,10 @@
 
 /*=========================================================  INCLUDE FILES  ==*/
 
-#include "base/port/core.h"
-#include "base/shared/config.h"
-#include "kernel/lib/bias_list.h"
-#include "kernel/lib/list.h"
+#include "port/core.h"
+#include "shared/config.h"
+#include "shared/bias_list.h"
+#include "shared/list.h"
 
 /*===============================================================  MACRO's  ==*/
 
@@ -78,7 +78,7 @@ struct nthread
 /*===================================================  FUNCTION PROTOTYPES  ==*/
 
 
-void nmodule_sched_init(void);
+void nsched_init(void);
 
 
 

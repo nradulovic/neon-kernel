@@ -33,8 +33,8 @@
 
 #include <stddef.h>
 
-#include "base/port/compiler.h"
-#include "base/shared/debug.h"
+#include "port/compiler.h"
+#include "shared/debug.h"
 
 /*===============================================================  MACRO's  ==*/
 /*------------------------------------------------------  C++ extern begin  --*/

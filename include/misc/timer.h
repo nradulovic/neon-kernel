@@ -37,10 +37,10 @@
 
 #include <stdbool.h>
 
-#include "base/port/compiler.h"
-#include "base/port/core.h"
-#include "base/shared/config.h"
-#include "kernel/lib/list.h"
+#include "port/compiler.h"
+#include "port/core.h"
+#include "shared/config.h"
+#include "shared/list.h"
 
 /*===============================================================  MACRO's  ==*/
 
@@ -87,7 +87,7 @@ void ntimer_init(
 
 
 /**@brief       Start a timer
- * @param       vTimer
+ * @param       timer
  *              Pointer to timer structure
  * @param       tick
  *              Number of ticks to run
@@ -99,7 +99,7 @@ void ntimer_init(
  */
 void ntimer_start_i(
     struct ntimer *             timer,
-    ncore_time_tick              tick,
+    ncore_time_tick             tick,
     void                     (* fn)(void *),
     void *                      arg,
     uint8_t                     flags);
@@ -107,7 +107,7 @@ void ntimer_start_i(
 
 
 /**@brief       Start a timer
- * @param       vTimer
+ * @param       timer
  *              Pointer to timer structure
  * @param       tick
  *              Number of ticks to run
@@ -119,7 +119,7 @@ void ntimer_start_i(
  */
 void ntimer_start(
     struct ntimer *             timer,
-    ncore_time_tick              tick,
+    ncore_time_tick             tick,
     void                     (* fn)(void *),
     void *                      arg,
     uint8_t                     flags);
@@ -127,7 +127,7 @@ void ntimer_start(
 
 
 /**@brief       Terminate a timer
- * @param       vTimer
+ * @param       timer
  *              Pointer to timer structure
  * @iclass
  */
@@ -137,7 +137,7 @@ void ntimer_cancel_i(
 
 
 /**@brief       Terminate a timer
- * @param       vTimer
+ * @param       timer
  *              Pointer to timer structure
  * @api
  */
@@ -147,7 +147,7 @@ void ntimer_cancel(
 
 
 /**@brief       Is a timer still running?
- * @param       vTimer
+ * @param       timer
  *              Pointer to timer structure
  * @return      Timer state
  *  @retval     TRUE - the timer is still running

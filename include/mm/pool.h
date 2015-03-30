@@ -33,8 +33,8 @@
 
 #include <stddef.h>
 
-#include "kernel/lib/bitop.h"
-#include "kernel/mm/mem.h"
+#include "shared/bitop.h"
+#include "mm/mem.h"
 
 /*===============================================================  MACRO's  ==*/
 

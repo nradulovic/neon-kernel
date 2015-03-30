@@ -33,7 +33,7 @@
 
 #include <stddef.h>
 
-#include "kernel/mm/mem.h"
+#include "mm/mem.h"
 
 /*===============================================================  MACRO's  ==*/
 

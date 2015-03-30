@@ -26,12 +26,12 @@
 
 /*=========================================================  INCLUDE FILES  ==*/
 
+#include <misc/timer.h>
 #include <stddef.h>
 
-#include "base/port/core.h"
-#include "base/shared/component.h"
-#include "base/shared/debug.h"
-#include "kernel/timer.h"
+#include "port/core.h"
+#include "shared/component.h"
+#include "shared/debug.h"
 
 /*=========================================================  LOCAL MACRO's  ==*/
 

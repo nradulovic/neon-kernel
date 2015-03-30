@@ -30,10 +30,10 @@
 
 /*=========================================================  INCLUDE FILES  ==*/
 
-#include "base/port/core.h"
-#include "base/shared/component.h"
-#include "kernel/lib/bitop.h"
-#include "kernel/mm/static.h"
+#include "port/core.h"
+#include "shared/component.h"
+#include "shared/bitop.h"
+#include "mm/static.h"
 
 /*=========================================================  LOCAL MACRO's  ==*/
 
