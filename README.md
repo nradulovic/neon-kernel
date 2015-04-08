@@ -1,3 +1,8 @@
+Deprecated repository
+=====================
+This repository is scheduled to be deleted. Once all source files are moved
+to new projects the repository will be deleted.
+
 # Neon Kernel Quick-start guide
 
 Neon is a collection of software components for real-time applications.
